@@ -1,0 +1,11 @@
+{
+  "name": "@klaro/tsconfig",
+  "private": true,
+  "exports": {
+    "./base.json": "./base.json",
+    "./compiled-package.json": "./compiled-package.json"
+  },
+  "files": [
+    "*.json"
+  ]
+}
