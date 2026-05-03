@@ -1,0 +1,348 @@
+.errorBlock {
+  position: relative;
+  min-height: 100vh;
+  background: radial-gradient(
+    ellipse 80% 80% at 50% 20%,
+    rgba(239, 68, 68, 0.1) 0%,
+    transparent 50%
+  ),
+  linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.5) 0%,
+    rgba(30, 41, 59, 0.3) 50%,
+    rgba(15, 23, 42, 0.5) 100%
+  );
+  overflow-x: hidden;
+}
+
+.errorBlock::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 71px,
+      rgba(148, 163, 184, 0.03) 71px,
+      rgba(148, 163, 184, 0.03) 72px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 71px,
+      rgba(148, 163, 184, 0.03) 71px,
+      rgba(148, 163, 184, 0.03) 72px
+    );
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.errorBlock__container {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  min-height: 100vh;
+  align-items: center;
+}
+
+.errorBlock__content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.errorBlock__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.errorBlock__eyebrow {
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ef4444;
+  line-height: 1.2;
+}
+
+.errorBlock__title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  color: var(--foreground, #ffffff);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.errorBlock__message {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 600px;
+}
+
+.errorBlock__copy {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--foreground, #ffffff);
+  margin: 0;
+  opacity: 0.95;
+}
+
+.errorBlock__subcopy {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--muted-foreground, #94a3b8);
+  margin: 0;
+}
+
+.errorBlock__errorInfo {
+  padding: 24px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.errorBlock__errorLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #ef4444;
+  margin: 0 0 12px 0;
+  letter-spacing: 0.05em;
+}
+
+.errorBlock__errorBox {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  overflow-x: auto;
+}
+
+.errorBlock__errorCode {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  color: #fca5a5;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.errorBlock__actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.errorBlock__link {
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.errorBlock__button {
+  padding: 12px 32px;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.errorBlock__button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
+}
+
+.errorBlock__buttonSecondary {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 12px 32px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.errorBlock__buttonSecondary:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.errorBlock__suggestions {
+  margin-top: 16px;
+  padding: 24px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.errorBlock__suggestionLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground, #ffffff);
+  margin: 0 0 12px 0;
+}
+
+.errorBlock__suggestionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.errorBlock__suggestionItem {
+  font-size: 0.95rem;
+  color: var(--muted-foreground, #94a3b8);
+  padding-left: 20px;
+  position: relative;
+}
+
+.errorBlock__suggestionItem::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.errorBlock__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.errorBlock__sidebarCard {
+  padding: 32px 24px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.errorBlock__sidebarTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--foreground, #ffffff);
+  margin: 0 0 12px 0;
+}
+
+.errorBlock__sidebarText {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--muted-foreground, #94a3b8);
+  margin: 0 0 16px 0;
+}
+
+.errorBlock__supportLink {
+  display: inline-block;
+  color: #ef4444;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.errorBlock__supportLink:hover {
+  color: #fca5a5;
+  text-decoration: underline;
+}
+
+@media (max-width: 1024px) {
+  .errorBlock__container {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 40px 20px;
+  }
+
+  .errorBlock__title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .errorBlock__sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .errorBlock__sidebarCard {
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 720px) {
+  .errorBlock {
+    min-height: auto;
+  }
+
+  .errorBlock__container {
+    padding: 32px 16px;
+    gap: 24px;
+  }
+
+  .errorBlock__title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+  }
+
+  .errorBlock__copy {
+    font-size: 0.95rem;
+  }
+
+  .errorBlock__actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .errorBlock__link {
+    width: 100%;
+  }
+
+  .errorBlock__button,
+  .errorBlock__buttonSecondary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .errorBlock__sidebar {
+    gap: 16px;
+  }
+
+  .errorBlock__sidebarCard {
+    padding: 20px 16px;
+  }
+
+  .errorBlock__suggestions {
+    padding: 16px;
+  }
+
+  .errorBlock__errorInfo {
+    padding: 16px;
+  }
+
+  .errorBlock__errorBox {
+    padding: 12px;
+  }
+
+  .errorBlock__errorCode {
+    font-size: 0.75rem;
+  }
+}
