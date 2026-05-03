@@ -1,0 +1,326 @@
+.notFoundBlock {
+  position: relative;
+  min-height: 100vh;
+  background: radial-gradient(
+    ellipse 80% 80% at 50% 20%,
+    rgba(79, 172, 254, 0.15) 0%,
+    transparent 50%
+  ),
+  linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.5) 0%,
+    rgba(30, 41, 59, 0.3) 50%,
+    rgba(15, 23, 42, 0.5) 100%
+  );
+  overflow-x: hidden;
+}
+
+.notFoundBlock::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 71px,
+      rgba(148, 163, 184, 0.03) 71px,
+      rgba(148, 163, 184, 0.03) 72px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 71px,
+      rgba(148, 163, 184, 0.03) 71px,
+      rgba(148, 163, 184, 0.03) 72px
+    );
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.notFoundBlock__container {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  min-height: 100vh;
+  align-items: center;
+}
+
+.notFoundBlock__content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.notFoundBlock__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notFoundBlock__eyebrow {
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent, #4faafe);
+  line-height: 1.2;
+}
+
+.notFoundBlock__title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  color: var(--foreground, #ffffff);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.notFoundBlock__message {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 600px;
+}
+
+.notFoundBlock__copy {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--foreground, #ffffff);
+  margin: 0;
+  opacity: 0.95;
+}
+
+.notFoundBlock__subcopy {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--muted-foreground, #94a3b8);
+  margin: 0;
+}
+
+.notFoundBlock__actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.notFoundBlock__link {
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.notFoundBlock__button {
+  padding: 12px 32px;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #4faafe 0%, #2563eb 100%);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notFoundBlock__button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(79, 172, 254, 0.3);
+}
+
+.notFoundBlock__buttonSecondary {
+  background: rgba(79, 172, 254, 0.1);
+  color: #4faafe;
+  border: 1px solid rgba(79, 172, 254, 0.3);
+  padding: 12px 32px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notFoundBlock__buttonSecondary:hover {
+  background: rgba(79, 172, 254, 0.2);
+  border-color: rgba(79, 172, 254, 0.5);
+}
+
+.notFoundBlock__suggestions {
+  margin-top: 16px;
+  padding: 24px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(79, 172, 254, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.notFoundBlock__suggestionLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground, #ffffff);
+  margin: 0 0 12px 0;
+}
+
+.notFoundBlock__suggestionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notFoundBlock__suggestionItem {
+  font-size: 0.95rem;
+}
+
+.notFoundBlock__suggestionLink {
+  color: #4faafe;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.notFoundBlock__suggestionLink:hover {
+  color: #60b5ff;
+  text-decoration: underline;
+}
+
+.notFoundBlock__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.notFoundBlock__sidebarCard {
+  padding: 32px 24px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(79, 172, 254, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.notFoundBlock__sidebarTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--foreground, #ffffff);
+  margin: 0 0 12px 0;
+}
+
+.notFoundBlock__sidebarText {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--muted-foreground, #94a3b8);
+  margin: 0 0 16px 0;
+}
+
+.notFoundBlock__supportLink {
+  display: inline-block;
+  color: #4faafe;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.notFoundBlock__supportLink:hover {
+  color: #60b5ff;
+  text-decoration: underline;
+}
+
+.notFoundBlock__tipsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notFoundBlock__tipsItem {
+  font-size: 0.95rem;
+  color: var(--muted-foreground, #94a3b8);
+  padding-left: 20px;
+  position: relative;
+}
+
+.notFoundBlock__tipsItem::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #4faafe;
+  font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .notFoundBlock__container {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 40px 20px;
+  }
+
+  .notFoundBlock__title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .notFoundBlock__sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .notFoundBlock__sidebarCard {
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 720px) {
+  .notFoundBlock {
+    min-height: auto;
+  }
+
+  .notFoundBlock__container {
+    padding: 32px 16px;
+    gap: 24px;
+  }
+
+  .notFoundBlock__title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+  }
+
+  .notFoundBlock__copy {
+    font-size: 0.95rem;
+  }
+
+  .notFoundBlock__actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .notFoundBlock__link {
+    width: 100%;
+  }
+
+  .notFoundBlock__button,
+  .notFoundBlock__buttonSecondary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .notFoundBlock__sidebar {
+    gap: 16px;
+  }
+
+  .notFoundBlock__sidebarCard {
+    padding: 20px 16px;
+  }
+
+  .notFoundBlock__suggestions {
+    padding: 16px;
+  }
+}
