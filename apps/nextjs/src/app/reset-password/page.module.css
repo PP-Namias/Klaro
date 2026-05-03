@@ -1,0 +1,363 @@
+.reset {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, color-mix(in oklab, var(--primary) 20%, transparent) 0, transparent 34%),
+    radial-gradient(circle at 78% 12%, color-mix(in oklab, var(--accent) 16%, transparent) 0, transparent 24%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--background) 95%, white) 0%,
+      var(--background) 47%,
+      color-mix(in oklab, var(--background) 90%, black) 100%
+    );
+  color: var(--foreground);
+}
+
+.reset::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.72), transparent 84%);
+  pointer-events: none;
+}
+
+.reset__shell {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+  display: flex;
+  min-height: 100vh;
+  width: min(100%, 1320px);
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+}
+
+.reset__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.reset__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.reset__brandMark {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
+  border-radius: 0.9rem;
+  background: color-mix(in oklab, var(--card) 74%, transparent);
+  box-shadow: 0 24px 60px color-mix(in oklab, var(--foreground) 10%, transparent);
+  font-family: var(--font-geist-mono);
+  font-size: 0.9rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.reset__brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.reset__brandName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.reset__brandTag {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.reset__ghostAction {
+  border-color: color-mix(in oklab, var(--foreground) 12%, transparent);
+  background: color-mix(in oklab, var(--card) 64%, transparent);
+}
+
+.reset__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 2rem;
+  align-items: stretch;
+  flex: 1;
+}
+
+.reset__column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.reset__eyebrow {
+  color: color-mix(in oklab, var(--primary) 84%, var(--foreground));
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.reset__title {
+  max-width: 8ch;
+  font-size: clamp(3rem, 6.5vw, 5.5rem);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+}
+
+.reset__lede {
+  max-width: 55ch;
+  color: var(--muted-foreground);
+  font-size: clamp(1.02rem, 1.8vw, 1.15rem);
+  line-height: 1.72;
+}
+
+.reset__form {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  background: color-mix(in oklab, var(--card) 72%, transparent);
+  box-shadow: 0 40px 100px color-mix(in oklab, var(--foreground) 12%, transparent);
+  backdrop-filter: blur(24px);
+  border-radius: 2rem;
+}
+
+.reset__field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.reset__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.reset__input {
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
+  border-radius: 0.85rem;
+  background: color-mix(in oklab, var(--background) 54%, transparent);
+  color: var(--foreground);
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: all 200ms ease;
+}
+
+.reset__input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 16%, transparent);
+}
+
+.reset__strength {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.reset__strengthBar {
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary) 100%);
+  border-radius: 2px;
+}
+
+.reset__strengthLabel {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+}
+
+.reset__checklist {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 8%, transparent);
+  background: color-mix(in oklab, var(--background) 42%, transparent);
+}
+
+.reset__checkItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.reset__checkIcon {
+  display: grid;
+  place-items: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.reset__checkText {
+  color: var(--foreground);
+}
+
+.reset__submit {
+  border-radius: 999px;
+  min-height: 2.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  width: 100%;
+}
+
+.reset__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.reset__footerText {
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+}
+
+.reset__footerLink {
+  color: var(--primary);
+  text-decoration: underline;
+  padding: 0;
+  height: auto;
+}
+
+.reset__tips {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  background: color-mix(in oklab, var(--card) 72%, transparent);
+  box-shadow: 0 40px 100px color-mix(in oklab, var(--foreground) 12%, transparent);
+  backdrop-filter: blur(24px);
+  border-radius: 2rem;
+}
+
+.reset__tipsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.25rem 0.2rem 0.5rem;
+}
+
+.reset__tipsTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.reset__tip {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  background: color-mix(in oklab, var(--background) 42%, transparent);
+}
+
+.reset__tipLabel {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.reset__tipCopy {
+  color: var(--muted-foreground);
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.reset__security {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+}
+
+.reset__securityLabel {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.reset__securityCopy {
+  color: var(--muted-foreground);
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.reset__pageFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0 1.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 1024px) {
+  .reset__hero {
+    grid-template-columns: 1fr;
+  }
+
+  .reset__title {
+    max-width: 12ch;
+  }
+}
+
+@media (max-width: 720px) {
+  .reset__shell {
+    padding: 1rem;
+    gap: 1.5rem;
+  }
+
+  .reset__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .reset__brand {
+    align-items: flex-start;
+  }
+
+  .reset__title {
+    font-size: clamp(2.5rem, 16vw, 4rem);
+  }
+
+  .reset__form,
+  .reset__tips {
+    padding: 1rem;
+  }
+}
