@@ -1,0 +1,335 @@
+.authErrorBlock {
+  position: relative;
+  min-height: 100vh;
+  background: radial-gradient(
+    ellipse 80% 80% at 50% 20%,
+    rgba(168, 85, 247, 0.1) 0%,
+    transparent 50%
+  ),
+  linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.5) 0%,
+    rgba(30, 41, 59, 0.3) 50%,
+    rgba(15, 23, 42, 0.5) 100%
+  );
+  overflow-x: hidden;
+}
+
+.authErrorBlock::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 71px,
+      rgba(148, 163, 184, 0.03) 71px,
+      rgba(148, 163, 184, 0.03) 72px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 71px,
+      rgba(148, 163, 184, 0.03) 71px,
+      rgba(148, 163, 184, 0.03) 72px
+    );
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.authErrorBlock__container {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  min-height: 100vh;
+  align-items: center;
+}
+
+.authErrorBlock__content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.authErrorBlock__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.authErrorBlock__eyebrow {
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #a855f7;
+  line-height: 1.2;
+}
+
+.authErrorBlock__title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  color: var(--foreground, #ffffff);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.authErrorBlock__message {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 600px;
+}
+
+.authErrorBlock__copy {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--foreground, #ffffff);
+  margin: 0;
+  opacity: 0.95;
+}
+
+.authErrorBlock__subcopy {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--muted-foreground, #94a3b8);
+  margin: 0;
+}
+
+.authErrorBlock__errorInfo {
+  padding: 20px 24px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.authErrorBlock__errorLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #a855f7;
+  margin: 0 0 8px 0;
+  letter-spacing: 0.05em;
+}
+
+.authErrorBlock__errorCode {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  color: #d8b4fe;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.authErrorBlock__actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.authErrorBlock__link {
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.authErrorBlock__button {
+  padding: 12px 32px;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.authErrorBlock__button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
+}
+
+.authErrorBlock__buttonSecondary {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  padding: 12px 32px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.authErrorBlock__buttonSecondary:hover {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.5);
+}
+
+.authErrorBlock__suggestions {
+  margin-top: 16px;
+  padding: 24px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.authErrorBlock__suggestionLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground, #ffffff);
+  margin: 0 0 12px 0;
+}
+
+.authErrorBlock__suggestionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.authErrorBlock__suggestionItem {
+  font-size: 0.95rem;
+  color: var(--muted-foreground, #94a3b8);
+  padding-left: 20px;
+  position: relative;
+}
+
+.authErrorBlock__suggestionItem::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #a855f7;
+  font-weight: 600;
+}
+
+.authErrorBlock__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.authErrorBlock__sidebarCard {
+  padding: 32px 24px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.authErrorBlock__sidebarTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--foreground, #ffffff);
+  margin: 0 0 12px 0;
+}
+
+.authErrorBlock__sidebarText {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--muted-foreground, #94a3b8);
+  margin: 0 0 16px 0;
+}
+
+.authErrorBlock__supportLink {
+  display: inline-block;
+  color: #a855f7;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.authErrorBlock__supportLink:hover {
+  color: #d8b4fe;
+  text-decoration: underline;
+}
+
+@media (max-width: 1024px) {
+  .authErrorBlock__container {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 40px 20px;
+  }
+
+  .authErrorBlock__title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .authErrorBlock__sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .authErrorBlock__sidebarCard {
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 720px) {
+  .authErrorBlock {
+    min-height: auto;
+  }
+
+  .authErrorBlock__container {
+    padding: 32px 16px;
+    gap: 24px;
+  }
+
+  .authErrorBlock__title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+  }
+
+  .authErrorBlock__copy {
+    font-size: 0.95rem;
+  }
+
+  .authErrorBlock__actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .authErrorBlock__link {
+    width: 100%;
+  }
+
+  .authErrorBlock__button,
+  .authErrorBlock__buttonSecondary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .authErrorBlock__sidebar {
+    gap: 16px;
+  }
+
+  .authErrorBlock__sidebarCard {
+    padding: 20px 16px;
+  }
+
+  .authErrorBlock__suggestions {
+    padding: 16px;
+  }
+
+  .authErrorBlock__errorInfo {
+    padding: 16px;
+  }
+
+  .authErrorBlock__errorCode {
+    font-size: 0.75rem;
+  }
+}
