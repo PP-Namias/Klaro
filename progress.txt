@@ -1,0 +1,87 @@
+Plan-first progress log for Klaro (created: 2026-05-03)
+
+Objective
+---------
+Produce a plan-first, buildable 5-day MVP to demo: scan -> explain -> chat -> find clinic -> book -> pay.
+
+High-level approach
+-------------------
+- Start with deterministic, reliable components for critical flows (OCR, value flagging, booking). Use LLMs for natural-language explanations and chat but keep rule-based verification for values.
+- Prioritize demo polish over breadth: pick a small curated dataset of lab results and a mocked doctor roster.
+- Keep PHI protected by default: guest share links expire; history saved only when user opts-in.
+
+Immediate next steps (first 48 hours)
+-----------------------------------
+1) Collect 5 representative lab result samples and 2 prescriptions (dev dataset)
+2) Implement document upload + Tesseract OCR + pre-processing hooks
+3) Build deterministic field extractor for the 5 demo formats
+4) Create LLM prompt templates for plain-language summary + tanong-mo card
+5) Wire a mock doctor list, booking create API, and Stripe test payment
+
+Progress log
+------------
+2026-05-03 09:20 - INIT
+- Created PRD (prd.json) with full feature breakdown, tech stack, and 5-day MVP plan.
+- Created this progress.txt (plan-first log).
+
+Planned milestones (5-day sprint)
+--------------------------------
+Day 1: OCR + parser + upload UI
+Day 2: Analysis engine + plain-language output + tanong-mo card
+Day 3: Chat integration + dialect support skeleton
+Day 4: Facilities map + booking flow (mock doctors)
+Day 5: Payments + demo polish + demo script
+
+Risks to monitor
+-----------------
+- OCR edge-cases for different lab formats
+- LLM hallucination on values (mitigate via rules)
+- Payment & verification integration complexity
+
+What I need from you
+--------------------
+- Confirm the 5 lab result samples (or attach them here)
+- Prioritize payment providers (Stripe + GCash/Maya for Philippines)
+- Confirm dialects to prioritize (default: Filipino, Bisaya, Ilocano)
+
+How I'll deliver
+-----------------
+- Commit small work-in-progress branches and push incremental PRs for each day of the 5-day plan
+- Provide demo script and recording steps on completion
+
+Next update: I'll begin implementing Day 1 tasks and will log progress here.
+
+2026-05-03 10:45 - PRD ENRICHMENT
+- Expanded `prd.json` with ticket-level breakdown (ticketsDetailed) including estimates (story points), dependencies, owners, test cases and CI/QA roles.
+- Added `testPlan` registry and detailed test case IDs for tracking.
+
+Next steps:
+1) Export ticketsDetailed to CSV/Markdown for quick import to GitHub Issues or Jira (I can generate this now).
+2) Optionally scaffold initial branches and GitHub issues from tickets.
+3) Start Day 1 implementation: scaffold /api/documents/scan endpoint and mobile upload screen.
+
+If you'd like I can immediately export the backlog to a CSV and create a branch + issue per E-* ticket locally (or prepare GitHub issue bodies for you to paste).
+
+2026-05-03 11:10 - Tickets Improved
+- Added `ticketsImproved` to `prd.json` with clearer ticket IDs (KL- prefixed), human-friendly titles, granular tasks and acceptance criteria to aid issue creation and developer onboarding.
+- These tickets are structured for direct CSV export/import into trackers and for scripting issue creation.
+
+Next actions available:
+- Export `ticketsImproved` to CSV/Markdown for import into GitHub/Jira (ready to generate).
+- Generate GitHub issue markdown bodies for each `KL-` ticket.
+- Scaffold API route `/api/documents/scan` and a minimal upload UI in `apps/expo` as a starting PR.
+
+2026-05-03 11:40 - Tickets Enhanced
+- Rewrote `ticketsImproved` entries to include `component`, `priority`, `relatedTickets`, `status`, and `subtasks` objects (with ids and acceptance checks). This makes tickets directly mappable to issue trackers and CI pipelines.
+
+Next recommended action: export `ticketsImproved` to CSV and optionally create GitHub issue markdown files (I can generate both). Which would you prefer?
+
+2026-05-03 11:55 - Enhancement Pack Added
+- Added `ticketEnhancements` in `prd.json` to supply labels, extra subtasks (telemetry, monitoring, reconciliation, prompt versioning) and ready-to-use GitHub issue templates for key tickets. This makes onboarding and issue creation fast.
+
+Ready options:
+- Export CSV of `ticketsImproved` + `ticketEnhancements` merged (recommended for Jira/GitHub import)
+- Generate per-ticket Markdown issue files for GitHub (one file per KL- ticket)
+- Create a shell script to call GitHub API and create issues automatically (requires personal token)
+
+Tell me which export you want and I'll generate it now.
