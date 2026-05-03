@@ -1,0 +1,382 @@
+.signup {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, color-mix(in oklab, var(--primary) 20%, transparent) 0, transparent 34%),
+    radial-gradient(circle at 78% 12%, color-mix(in oklab, var(--accent) 16%, transparent) 0, transparent 24%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--background) 95%, white) 0%,
+      var(--background) 47%,
+      color-mix(in oklab, var(--background) 90%, black) 100%
+    );
+  color: var(--foreground);
+}
+
+.signup::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.72), transparent 84%);
+  pointer-events: none;
+}
+
+.signup__shell {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+  display: flex;
+  min-height: 100vh;
+  width: min(100%, 1320px);
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+}
+
+.signup__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.signup__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.signup__brandMark {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
+  border-radius: 0.9rem;
+  background: color-mix(in oklab, var(--card) 74%, transparent);
+  box-shadow: 0 24px 60px color-mix(in oklab, var(--foreground) 10%, transparent);
+  font-family: var(--font-geist-mono);
+  font-size: 0.9rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.signup__brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.signup__brandName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.signup__brandTag {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.signup__ghostAction {
+  border-color: color-mix(in oklab, var(--foreground) 12%, transparent);
+  background: color-mix(in oklab, var(--card) 64%, transparent);
+}
+
+.signup__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 2rem;
+  align-items: stretch;
+  flex: 1;
+}
+
+.signup__column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.signup__eyebrow {
+  color: color-mix(in oklab, var(--primary) 84%, var(--foreground));
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.signup__title {
+  max-width: 12ch;
+  font-size: clamp(3rem, 6.5vw, 5.5rem);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+}
+
+.signup__lede {
+  max-width: 55ch;
+  color: var(--muted-foreground);
+  font-size: clamp(1.02rem, 1.8vw, 1.15rem);
+  line-height: 1.72;
+}
+
+.signup__form {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  background: color-mix(in oklab, var(--card) 72%, transparent);
+  box-shadow: 0 40px 100px color-mix(in oklab, var(--foreground) 12%, transparent);
+  backdrop-filter: blur(24px);
+  border-radius: 2rem;
+}
+
+.signup__field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.signup__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.signup__input {
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
+  border-radius: 0.85rem;
+  background: color-mix(in oklab, var(--background) 54%, transparent);
+  color: var(--foreground);
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: all 200ms ease;
+}
+
+.signup__input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 16%, transparent);
+}
+
+.signup__help {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.signup__terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+}
+
+.signup__checkbox {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.15rem;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.signup__termsLabel {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.signup__submit {
+  border-radius: 999px;
+  min-height: 2.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  width: 100%;
+}
+
+.signup__divider {
+  position: relative;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+}
+
+.signup__divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: color-mix(in oklab, var(--foreground) 10%, transparent);
+  z-index: 0;
+}
+
+.signup__divider {
+  z-index: 1;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  background: color-mix(in oklab, var(--card) 72%, transparent);
+  padding: 0 1rem;
+}
+
+.signup__ssoRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.signup__ssoButton {
+  border-radius: 999px;
+  border-color: color-mix(in oklab, var(--foreground) 14%, transparent);
+  background: color-mix(in oklab, var(--card) 58%, transparent);
+}
+
+.signup__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.signup__footerText {
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+}
+
+.signup__footerLink {
+  color: var(--primary);
+  text-decoration: underline;
+  padding: 0;
+  height: auto;
+}
+
+.signup__benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  background: color-mix(in oklab, var(--card) 72%, transparent);
+  box-shadow: 0 40px 100px color-mix(in oklab, var(--foreground) 12%, transparent);
+  backdrop-filter: blur(24px);
+  border-radius: 2rem;
+}
+
+.signup__benefitsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.25rem 0.2rem 0.5rem;
+}
+
+.signup__benefitsTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.signup__benefit {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 1.35rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  background: color-mix(in oklab, var(--background) 42%, transparent);
+}
+
+.signup__benefitLabel {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.signup__benefitTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.signup__benefitCopy {
+  color: var(--muted-foreground);
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.signup__stats {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.signup__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 8%, transparent);
+  background: color-mix(in oklab, var(--background) 38%, transparent);
+}
+
+.signup__statValue {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.signup__statLabel {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 1024px) {
+  .signup__hero {
+    grid-template-columns: 1fr;
+  }
+
+  .signup__title {
+    max-width: 12ch;
+  }
+}
+
+@media (max-width: 720px) {
+  .signup__shell {
+    padding: 1rem;
+    gap: 1.5rem;
+  }
+
+  .signup__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .signup__brand {
+    align-items: flex-start;
+  }
+
+  .signup__title {
+    font-size: clamp(2.5rem, 16vw, 4rem);
+  }
+
+  .signup__form,
+  .signup__benefits {
+    padding: 1rem;
+  }
+}
