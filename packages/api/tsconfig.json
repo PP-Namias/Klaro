@@ -1,0 +1,5 @@
+{
+  "extends": "../../tooling/typescript/compiled-package.json",
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}

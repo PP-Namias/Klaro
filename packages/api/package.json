@@ -1,0 +1,37 @@
+{
+  "name": "@klaro/api",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint --flag unstable_native_nodejs_ts_config",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@klaro/auth": "workspace:*",
+    "@klaro/db": "workspace:*",
+    "@klaro/validators": "workspace:*",
+    "@trpc/server": "catalog:",
+    "superjson": "2.2.3",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@klaro/eslint-config": "workspace:*",
+    "@klaro/prettier-config": "workspace:*",
+    "@klaro/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@klaro/prettier-config"
+}
