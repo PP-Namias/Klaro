@@ -149,3 +149,7 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 2026-05-04 20:15 - OCR CONFIDENCE INTEGRATION
 - Wired documents.setOcrResult to normalize OCR text and compute confidence from blocks when provided.
 - Validation: get_errors clean for packages/api/src/router/documents.ts
+
+2026-05-04 20:30 - EXTRACTION SERVICE SCAFFOLD
+- Added basic extraction helpers for lab lines, canonical names, and range flagging.
+- Validation: get_errors clean for packages/api/src/services/extraction.ts
