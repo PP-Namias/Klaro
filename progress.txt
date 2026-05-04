@@ -145,3 +145,7 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 2026-05-04 20:05 - OCR SERVICE SCAFFOLD
 - Added OCR helper service with confidence aggregation and cloud fallback check.
 - Validation: get_errors clean for packages/api/src/services/ocr.ts
+
+2026-05-04 20:15 - OCR CONFIDENCE INTEGRATION
+- Wired documents.setOcrResult to normalize OCR text and compute confidence from blocks when provided.
+- Validation: get_errors clean for packages/api/src/router/documents.ts

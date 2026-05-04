@@ -6,6 +6,7 @@ import { z } from "zod/v4";
 import { analysis, document } from "@klaro/db/schema";
 
 import { protectedProcedure } from "../trpc";
+import { buildOcrResult } from "../services/ocr";
 
 export const documentsRouter = {
   /**
@@ -75,6 +76,15 @@ export const documentsRouter = {
         documentId: z.string().uuid(),
         ocrText: z.string().min(1),
         confidence: z.number().min(0).max(1).optional(),
+        blocks: z
+          .array(
+            z.object({
+              text: z.string(),
+              confidence: z.number().min(0).max(1).optional(),
+            }),
+          )
+          .optional(),
+        source: z.enum(["local", "cloud"]).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -97,13 +107,26 @@ export const documentsRouter = {
         });
       }
 
+      const result = buildOcrResult({
+        text: input.ocrText,
+        blocks: input.blocks,
+        source: input.source,
+      });
+
       const updatePayload: Partial<typeof document.$inferInsert> = {
-        ocrText: input.ocrText,
+        ocrText: result.text,
         status: "processing",
       };
 
-      if (input.confidence !== undefined) {
-        updatePayload.confidence = input.confidence.toFixed(2);
+      const resolvedConfidence =
+        input.confidence !== undefined
+          ? input.confidence
+          : input.blocks && input.blocks.length > 0
+            ? result.confidence
+            : undefined;
+
+      if (resolvedConfidence !== undefined) {
+        updatePayload.confidence = resolvedConfidence.toFixed(2);
       }
 
       const [updatedDoc] = await ctx.db
