@@ -49,3 +49,25 @@ export const buildOcrResult = (input: {
 
 export const shouldUseCloudFallback = (confidence: number, threshold = 0.7) =>
   clampConfidence(confidence) < threshold;
+
+export const performOcr = async (imageUrlOrBuffer: string | Buffer): Promise<OcrResult> => {
+  // We use require to avoid TS missing declaration errors if tesseract.js types are missing
+  const Tesseract = require("tesseract.js");
+  
+  const worker = await Tesseract.createWorker("eng+tgl");
+  
+  const { data } = await worker.recognize(imageUrlOrBuffer);
+  await worker.terminate();
+
+  const blocks: OcrBlock[] = data.lines.map((line: any) => ({
+    text: line.text,
+    // Tesseract confidence is 0-100, we want 0-1
+    confidence: line.confidence / 100,
+  }));
+
+  return buildOcrResult({
+    text: data.text,
+    blocks,
+    source: "local",
+  });
+};

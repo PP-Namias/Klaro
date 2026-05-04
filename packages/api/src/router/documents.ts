@@ -364,4 +364,73 @@ export const documentsRouter = {
 
       return { success: true };
     }),
+
+  /**
+   * Process a document's image using server-side OCR and extract fields
+   */
+  processServerOcr: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.string().uuid(),
+        base64Image: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User must be authenticated",
+        });
+      }
+
+      const [doc] = await ctx.db
+        .select()
+        .from(document)
+        .where(eq(document.id, input.documentId));
+
+      if (!doc || doc.userId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have access to this document",
+        });
+      }
+
+      const { performOcr } = await import("../services/ocr");
+      const { extractTestsFromText } = await import("../services/extraction");
+
+      // convert base64 to buffer
+      const buffer = Buffer.from(input.base64Image, "base64");
+      
+      // perform OCR
+      const ocrResult = await performOcr(buffer);
+
+      // save OCR result to document
+      await ctx.db
+        .update(document)
+        .set({
+          ocrText: ocrResult.text,
+          confidence: ocrResult.confidence.toString(),
+          status: "analyzed",
+        })
+        .where(eq(document.id, input.documentId));
+
+      // extract tests
+      const tests = extractTestsFromText(ocrResult.text);
+      const flagged = tests.filter((t) => t.flag === "low" || t.flag === "high");
+
+      // update analysis
+      await ctx.db
+        .update(analysis)
+        .set({
+          extractedFields: tests,
+          flaggedValues: flagged,
+          status: "completed",
+        })
+        .where(eq(analysis.documentId, input.documentId));
+
+      return {
+        ocrResult,
+        extractedTests: tests,
+      };
+    }),
 } satisfies TRPCRouterRecord;
