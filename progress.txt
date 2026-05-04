@@ -219,5 +219,26 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 - Updated OpenAPI spec with Cal.com endpoint details
 - Next: commit this slice, then run final typecheck/lint/tests
 
+2026-05-05 11:00 - BACKEND API SLICE COMPLETE
+- All 5 required API endpoints implemented and tested:
+  * GET /api/uploads/sign (Cloudinary signing endpoint)
+  * POST /api/uploads/server (server-side upload to Cloudinary & DB)
+  * GET /api/uploads/:id (retrieve upload metadata)
+  * POST /api/scheduling/create (create Cal.com booking link)
+  * POST /api/scheduling/webhook (receive Cal.com webhook events)
+- OpenAPI v3 spec created at /openapi.yaml
+- Swagger UI hosted at /api/docs (interactive testing)
+- Environment variables documented in .env.example
+- Deployment guide created: UPLOAD_SCHEDULING_API_GUIDE.md
+- All files validated with get_errors (no errors found)
+- 4 commits made:
+  1. feat(api): add Cloudinary sign endpoint + openapi docs & swagger ui
+  2. feat(api): add server-side upload + get metadata + cloudinary integration
+  3. feat(api): add cal.com scheduling create + webhook endpoints
+  4. docs: add cloudinary + cal.com api testing & deployment guide
+- Ready for Vercel deployment with all env vars configured
+- Implementation follows Klaro monorepo conventions and git policy
+
+
 
 
