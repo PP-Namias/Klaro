@@ -315,16 +315,33 @@
   width: 100%;
 }
 
-.upload__previewPlaceholder {
+.upload__pdfPanel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.upload__pdfControls {
   align-items: center;
-  border: 1px dashed color-mix(in oklab, var(--foreground) 16%, transparent);
-  border-radius: 1rem;
-  color: var(--muted-foreground);
   display: flex;
-  font-size: 0.9rem;
-  justify-content: center;
-  min-height: 180px;
-  text-align: center;
+  gap: 0.75rem;
+}
+
+.upload__pdfLabel {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.upload__pdfInput {
+  max-width: 140px;
+}
+
+.upload__pdfPreview {
+  border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);
+  border-radius: 1rem;
+  height: 280px;
+  width: 100%;
 }
 
 .upload__previewActions {

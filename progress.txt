@@ -161,3 +161,7 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 2026-05-04 21:05 - WEB UPLOAD UI (BASE)
 - Added upload page with drag-and-drop intake, validation, and image preview placeholder flow.
 - Validation: get_errors clean for apps/nextjs/src/app/upload/page.tsx and upload-form.tsx
+
+2026-05-04 21:20 - WEB UPLOAD UI (PDF PREVIEW)
+- Added PDF preview via embed with page selection input.
+- Validation: get_errors clean for apps/nextjs/src/app/upload/upload-form.tsx

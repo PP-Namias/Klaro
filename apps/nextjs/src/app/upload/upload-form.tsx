@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@klaro/ui/button";
+import { Input } from "@klaro/ui/input";
 
 import styles from "./page.module.css";
 
@@ -32,6 +33,7 @@ export function UploadForm() {
   const [isDragging, setIsDragging] = useState(false);
   const [selected, setSelected] = useState<SelectedFile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pdfPage, setPdfPage] = useState(1);
 
   useEffect(() => {
     return () => {
@@ -47,6 +49,7 @@ export function UploadForm() {
     }
     setSelected(null);
     setError(null);
+    setPdfPage(1);
   };
 
   const selectFile = (file: File) => {
@@ -63,10 +66,11 @@ export function UploadForm() {
     }
 
     const kind = file.type === "application/pdf" ? "pdf" : "image";
-    const previewUrl = kind === "image" ? URL.createObjectURL(file) : undefined;
+    const previewUrl = URL.createObjectURL(file);
 
     setError(null);
     setSelected({ file, previewUrl, kind });
+    setPdfPage(1);
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -158,11 +162,34 @@ export function UploadForm() {
               alt="Selected document preview"
               className={styles.upload__previewImage}
             />
-          ) : (
-            <div className={styles.upload__previewPlaceholder}>
-              PDF preview will render here.
+          ) : selected.previewUrl ? (
+            <div className={styles.upload__pdfPanel}>
+              <div className={styles.upload__pdfControls}>
+                <label
+                  className={styles.upload__pdfLabel}
+                  htmlFor="upload-pdf-page"
+                >
+                  Page to analyze
+                </label>
+                <Input
+                  id="upload-pdf-page"
+                  type="number"
+                  min={1}
+                  value={pdfPage}
+                  onChange={(event) => {
+                    const nextValue = Number(event.target.value);
+                    setPdfPage(Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 1);
+                  }}
+                  className={styles.upload__pdfInput}
+                />
+              </div>
+              <embed
+                src={`${selected.previewUrl}#page=${pdfPage}`}
+                type="application/pdf"
+                className={styles.upload__pdfPreview}
+              />
             </div>
-          )}
+          ) : null}
           <div className={styles.upload__previewActions}>
             <Button type="button" variant="outline" onClick={clearSelection}>
               Remove file
