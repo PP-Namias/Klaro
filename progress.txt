@@ -175,6 +175,13 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 - Committed API domain routers, DB schema, seed script, and web upload UI changes.
 - Workspace is fully typecheck and lint clean.
 - Next step: proceed with Mobile Upload UI (KL-DS-001) or OCR pipeline integration.
+
+2026-05-05 00:25 - MOBILE UPLOAD UI
+- Implemented KL-DS-001: Mobile Camera capture screen in apps/expo.
+- Added expo-image-picker for gallery selection and camera capture.
+- Wired image picker results to trpc.documents.upload mutation.
+- Verified type safety (pnpm typecheck passed).
+- Next step: OCR Pipeline & Preprocessing (KL-EX-001 / E-100-S2).
 2026-05-05 09:10 - MOBILE UPLOAD SCAFFOLD
 - Created minimal Expo upload screen scaffold: apps/expo/src/app/upload.tsx
 - Feature: image picker + preview (permission request) using expo-image-picker
@@ -192,4 +199,15 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 - Updated .env.example with CLOUDINARY_* and CAL_COM_* placeholders
 - Validation: get_errors clean for new files
 - Next: add tests for sign endpoint & server-side upload endpoint to persist URL in DB
+
+2026-05-05 10:30 - BACKEND: Server-side upload + DB persistence
+- Added POST /api/uploads/server endpoint: accepts multipart/form-data, validates file (50MB max, JPEG/PNG/WebP/PDF)
+- Integrates Cloudinary SDK to upload to Cloudinary
+- Persists document record with storageUrl = Cloudinary secure_url
+- Added GET /api/uploads/:id endpoint to retrieve upload metadata
+- Added cloudinary ^2.0.0 to pnpm-workspace.yaml catalog and apps/nextjs package.json
+- Updated OpenAPI spec with new endpoints and response schemas
+- Validation: get_errors clean for new routes
+- Next: add integration tests and commit this slice
+
 
