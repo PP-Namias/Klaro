@@ -181,7 +181,15 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 - Added expo-image-picker for gallery selection and camera capture.
 - Wired image picker results to trpc.documents.upload mutation.
 - Verified type safety (pnpm typecheck passed).
-- Next step: OCR Pipeline & Preprocessing (KL-EX-001 / E-100-S2).
+
+2026-05-05 00:55 - OCR PIPELINE & EXTRACTION
+- Implemented KL-EX-001 (E-100-S2): Tesseract integration in packages/api.
+- Added documents.processServerOcr endpoint that accepts a base64Image.
+- Implemented performOcr service using tesseract.js.
+- Wired deterministic extraction (extractTestsFromText) to run after OCR.
+- Updated analysis and document db records with extracted results.
+- Verified type safety (pnpm typecheck passed).
+- Next step: Analysis & LLM (KL-LLM-001) or wiring processServerOcr to frontend.
 2026-05-05 09:10 - MOBILE UPLOAD SCAFFOLD
 - Created minimal Expo upload screen scaffold: apps/expo/src/app/upload.tsx
 - Feature: image picker + preview (permission request) using expo-image-picker
@@ -306,6 +314,70 @@ SLICE 7-9: Optional Enhancements (if time permits)
 - Monitoring and error logging setup
 
 STATUS: 2/9 slices complete. Auth foundation solid. Ready to expand to remaining slices or hand off for next-phase implementation.
+
+2026-05-05 15:15 - NEXT-PHASE AI AGENT PROMPT: AUTH INTEGRATION CONTINUATION
+- Created comprehensive continuation guide: .agents/AUTH_INTEGRATION_CONTINUATION.md
+- Purpose: Complete slices 3-9 of OAuth integration with better-auth
+- Content:
+  * Slices 3-9 detailed implementation specs (OpenAPI, signin/logout, tests, docs, optional enhancements)
+  * Task-by-task breakdown with code examples
+  * Validation steps for each slice
+  * Rate limiting + monitoring (optional)
+  * Cal.com webhook signature validation (optional)
+- Ready to copy-paste for next agent execution
+- Committed: docs(agents): add auth integration continuation guide (slices 3-9) for better-auth oauth
+
+PHASE 1 SUMMARY: Auth Foundation Complete
+==========================================
+
+WHAT WAS ACCOMPLISHED (Session Overview)
+1. Analyzed existing better-auth setup in Klaro project
+2. Extended better-auth with Google OAuth provider (in addition to existing Discord)
+3. Created session validation helpers for auth checking
+4. User-gated all upload endpoints (sign, server, get by ID)
+5. Added ownership validation (users can only access their own documents)
+6. Prepared 7 more slices (OpenAPI, endpoints, tests, docs, optional enhancements)
+
+COMMITS THIS PHASE (3 total)
+1. feat(auth): add google oauth provider + environment variable setup
+2. feat(auth): add session validation + user-gated upload endpoints & ownership checks
+3. docs(progress): log auth integration slices 1-2 complete (google oauth + user-gated uploads)
+4. docs(agents): add auth integration continuation guide (slices 3-9) for better-auth oauth
+
+FILES MODIFIED (7 total)
+- packages/auth/src/index.ts (added Google OAuth)
+- packages/auth/env.ts (added AUTH_GOOGLE_ID + AUTH_GOOGLE_SECRET)
+- apps/nextjs/src/auth/server.ts (pass Google credentials)
+- apps/nextjs/src/lib/session-validation.ts (NEW: session helpers)
+- apps/nextjs/src/app/api/uploads/sign/route.ts (added auth validation)
+- apps/nextjs/src/app/api/uploads/server/route.ts (added auth + session userId)
+- apps/nextjs/src/app/api/uploads/[id]/route.ts (added auth + ownership check)
+- .env.example (documented Google OAuth vars)
+
+VALIDATION COMPLETED
+✅ TypeScript: No errors in modified files
+✅ Lint: Code follows project standards
+✅ Commits: Semantic one-line messages per git-policy.md
+✅ Architecture: Follows better-auth patterns, not Supabase (adapted from original guide)
+✅ Security: User-gated endpoints, ownership validation, 401/403 error handling
+
+NEXT STEPS FOR PHASE 2 (AI Agent or Human)
+Copy-paste this prompt into next agent execution:
+→ .agents/AUTH_INTEGRATION_CONTINUATION.md
+
+Remaining work (SLICE 3-9, estimated 8-12 hours):
+- SLICE 3: Update OpenAPI spec with auth endpoints + security schemes (1-2h)
+- SLICE 4: Create signin/logout endpoints for better-auth (1-2h)
+- SLICE 5: Add integration tests for OAuth flow + file upload (2-3h)
+- SLICE 6: Write deployment docs + Vercel checklist (1-2h)
+- SLICE 7-9: Optional enhancements (Cal.com validation, rate limiting, monitoring) (2-4h)
+
+DEPLOYMENT STATUS
+🟢 Foundation Ready
+🟡 Partially Implemented (2/9 slices)
+🔴 Not Yet Complete (needs slices 3-9)
+
+READY FOR: Next agent execution on continuation guide, OR human review + approval before proceeding.
 
 
 
