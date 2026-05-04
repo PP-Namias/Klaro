@@ -6,6 +6,8 @@
  * tl;dr - this is where all the tRPC server stuff is created and plugged in.
  * The pieces you will need to use are documented accordingly near the end
  */
+import { randomUUID } from "node:crypto";
+
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
@@ -31,6 +33,7 @@ export const createTRPCContext = async (opts: {
   auth: Auth;
 }) => {
   const authApi = opts.auth.api;
+  const traceId = randomUUID();
   const session = await authApi.getSession({
     headers: opts.headers,
   });
@@ -38,6 +41,7 @@ export const createTRPCContext = async (opts: {
     authApi,
     session,
     db,
+    traceId,
   };
 };
 /**
@@ -48,10 +52,11 @@ export const createTRPCContext = async (opts: {
  */
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
-  errorFormatter: ({ shape, error }) => ({
+  errorFormatter: ({ shape, error, ctx }) => ({
     ...shape,
     data: {
       ...shape.data,
+      traceId: ctx?.traceId ?? null,
       zodError:
         error.cause instanceof ZodError
           ? z.flattenError(error.cause as ZodError<Record<string, unknown>>)

@@ -120,3 +120,24 @@ Next steps:
 3. Continue with mobile app (Expo) using same design patterns
 4. Integrate backend API endpoints
 
+2026-05-04 18:55 - TYPECHECK CLEANUP
+- Fixed 5 TypeScript errors across all 3 app workspaces (expo, nextjs, tanstack-start)
+  * expo: removed stale post/ route directory, regenerated expo-router type declarations for /document/[id]
+  * nextjs: fixed import path aliases @/ → ~/ in discord-signin.tsx and auth/callback/route.ts; fixed FieldError prop type in documents-panel.tsx
+  * tanstack-start: removed incompatible Zod form validator (tRPC already validates via router input schema)
+- All 14 typecheck tasks now pass clean (0 failures)
+- KL-DB-001 and KL-API-001 remain in-progress; schema and routers are scaffolded and type-safe
+
+Next: commit this cleanup slice, then begin the next unblocked PRD task
+
+2026-05-04 19:20 - API UTILITY ENDPOINT
+- Added a version utility endpoint to the tRPC app router and centralized the API version constant.
+- Validation: get_errors clean for packages/api/src/root.ts
+
+2026-05-04 19:30 - API TRACE ID
+- Added per-request traceId to tRPC context and exposed it in error responses.
+- Validation: get_errors clean for packages/api/src/trpc.ts
+
+2026-05-04 19:45 - OCR RESULT ATTACHMENT
+- Added documents.setOcrResult to store OCR text/confidence and mark document processing.
+- Validation: get_errors clean for packages/api/src/router/documents.ts
