@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 import { db } from "@klaro/db";
 import { document as documentTable } from "@klaro/db/schema";
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "~/lib/rate-limit";
 import { assertSession } from "~/lib/session-validation";
 
 cloudinary.config({
@@ -33,6 +34,19 @@ const ALLOWED_TYPES = [
 export const POST = async (req: NextRequest) => {
   try {
     // require authentication
+  try {
+    // Rate limit: 10 uploads per hour per user
+    const { allowed, remaining, resetAt } = checkRateLimit(
+      `upload:${req.headers.get("x-forwarded-for") || "unknown"}`,
+      RATE_LIMITS.uploads.server.maxRequests,
+      RATE_LIMITS.uploads.server.windowMs
+    );
+
+    if (!allowed) {
+      return rateLimitResponse(remaining, resetAt);
+    }
+
+    // Require authentication
     const session = await assertSession();
 
     const formData = await req.formData();

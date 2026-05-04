@@ -1,6 +1,19 @@
 import { auth } from "~/auth/server";
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "~/lib/rate-limit";
 
 export async function GET(req: Request) {
+  // Rate limit: 10 signin attempts per 15 minutes
+  const key = req.headers.get("x-forwarded-for") || "unknown";
+  const { allowed, remaining, resetAt } = checkRateLimit(
+    `signin:${key}`,
+    RATE_LIMITS.auth.signin.maxRequests,
+    RATE_LIMITS.auth.signin.windowMs
+  );
+
+  if (!allowed) {
+    return rateLimitResponse(remaining, resetAt);
+  }
+
   const { searchParams } = new URL(req.url);
   const provider = searchParams.get("provider") as "discord" | "google";
 
