@@ -31,7 +31,8 @@ export default function UploadScreen() {
     })
 
     if (!result.canceled && result.assets?.length) {
-      const asset = result.assets[0]
+      const asset = result.assets?.[0]
+      if (!asset) return
       setImageUri(asset.uri)
 
       const uriParts = asset.uri.split('/')

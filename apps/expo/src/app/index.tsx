@@ -1,5 +1,6 @@
+import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, Stack } from "expo-router";
 import { LegendList } from "@legendapp/list";
@@ -53,62 +54,81 @@ function DocumentCard(props: Readonly<{
 function UploadDocument() {
   const queryClient = useQueryClient();
 
-  const [fileName, setFileName] = useState("");
-  const [mimeType, setMimeType] = useState("application/pdf");
-  const [fileSize, setFileSize] = useState("");
-
-  const { mutate, error } = useMutation(
+  const { mutate, error, isPending } = useMutation(
     trpc.documents.upload.mutationOptions({
       async onSuccess() {
-        setFileName("");
-        setFileSize("");
         await queryClient.invalidateQueries(trpc.documents.list.queryFilter());
       },
     }),
   );
 
+  const processAsset = (asset: ImagePicker.ImagePickerAsset) => {
+    const uriParts = asset.uri.split("/");
+    const fallbackName = uriParts[uriParts.length - 1] ?? `upload-${Date.now()}.jpg`;
+    const fileName = asset.fileName ?? fallbackName;
+    const mimeType = asset.mimeType ?? "image/jpeg";
+    const fileSize = asset.fileSize;
+
+    mutate({
+      fileName,
+      mimeType,
+      fileSize: fileSize ? fileSize : undefined,
+    });
+  };
+
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets?.[0]) {
+      processAsset(result.assets[0]);
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert("Permission Required", "Camera permission is required to take photos.");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets?.[0]) {
+      processAsset(result.assets[0]);
+    }
+  };
+
   return (
-    <View className="mt-4 flex gap-2">
-      <TextInput
-        className="border-input bg-background text-foreground items-center rounded-md border px-3 text-lg leading-tight"
-        value={fileName}
-        onChangeText={setFileName}
-        placeholder="File name"
-      />
-      {error?.data?.zodError?.fieldErrors.fileName && (
-        <Text className="text-destructive mb-2">
-          {error.data.zodError.fieldErrors.fileName}
-        </Text>
-      )}
-      <TextInput
-        className="border-input bg-background text-foreground items-center rounded-md border px-3 text-lg leading-tight"
-        value={mimeType}
-        onChangeText={setMimeType}
-        placeholder="MIME type"
-      />
-      <TextInput
-        className="border-input bg-background text-foreground items-center rounded-md border px-3 text-lg leading-tight"
-        value={fileSize}
-        onChangeText={setFileSize}
-        placeholder="File size (bytes)"
-        keyboardType="numeric"
-      />
+    <View className="mt-4 flex gap-3">
       <Pressable
-        className="bg-primary flex items-center rounded-sm p-2"
-        onPress={() => {
-          const parsedSize = fileSize.trim() ? Number(fileSize) : undefined;
-          mutate({
-            fileName: fileName.trim(),
-            mimeType: mimeType.trim() || undefined,
-            fileSize: Number.isFinite(parsedSize) ? parsedSize : undefined,
-          });
-        }}
+        className={`bg-primary flex items-center rounded-lg p-4 ${isPending ? "opacity-50" : ""}`}
+        onPress={handlePickImage}
+        disabled={isPending}
       >
-        <Text className="text-foreground">Create</Text>
+        <Text className="text-primary-foreground font-semibold text-lg">
+          {isPending ? "Uploading..." : "Upload from Library"}
+        </Text>
+      </Pressable>
+      <Pressable
+        className={`bg-secondary flex items-center rounded-lg p-4 ${isPending ? "opacity-50" : ""}`}
+        onPress={handleTakePhoto}
+        disabled={isPending}
+      >
+        <Text className="text-secondary-foreground font-semibold text-lg">
+          {isPending ? "Uploading..." : "Take a Photo"}
+        </Text>
       </Pressable>
       {error?.data?.code === "UNAUTHORIZED" && (
-        <Text className="text-destructive mt-2">
-          You need to be logged in to upload a document
+        <Text className="text-destructive mt-2 text-center font-medium">
+          Sign in to upload documents
         </Text>
       )}
     </View>
