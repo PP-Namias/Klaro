@@ -5,9 +5,59 @@ info:
 servers:
   - url: /
 paths:
+  /api/auth/signin:
+    get:
+      summary: Initiate OAuth sign-in flow
+      description: Redirects user to Discord or Google OAuth provider
+      parameters:
+        - in: query
+          name: provider
+          required: true
+          schema:
+            type: string
+            enum:
+              - discord
+              - google
+          description: OAuth provider to use
+      responses:
+        '302':
+          description: Redirect to OAuth provider
+        '400':
+          description: Invalid provider parameter
+  /api/auth/logout:
+    post:
+      summary: Invalidate session & logout user
+      description: Clears authentication session and removes httpOnly cookie
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Session cleared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
   /api/uploads/sign:
     get:
       summary: Get Cloudinary signed params for client upload
+      description: Returns signed parameters for direct client-to-Cloudinary uploads
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: Signed params
@@ -32,9 +82,22 @@ paths:
                     type: string
                     nullable: true
                     example: "preset"
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
   /api/uploads/server:
     post:
       summary: Upload file server-side to Cloudinary & save to DB
+      description: Authenticated endpoint to upload file directly to Cloudinary and store metadata in database. User ID extracted from session.
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -45,10 +108,7 @@ paths:
                 file:
                   type: string
                   format: binary
-                  description: File to upload (max 50MB)
-                userId:
-                  type: string
-                  description: Optional user ID
+                  description: File to upload (max 50MB, allowed types JPEG/PNG/WebP/PDF)
               required:
                 - file
       responses:
@@ -75,20 +135,34 @@ paths:
                     type: string
                     format: date-time
         '400':
-          description: Invalid request
+          description: Invalid request (missing file)
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
         '413':
-          description: File too large
+          description: File too large (max 50MB)
         '415':
           description: Invalid file type
   /api/uploads/{id}:
     get:
       summary: Get upload metadata by id
+      description: Retrieve upload metadata. User can only access documents they own.
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
+          description: Document ID
       responses:
         '200':
           description: Upload metadata
@@ -101,7 +175,6 @@ paths:
                     type: string
                   userId:
                     type: string
-                    nullable: true
                   fileName:
                     type: string
                   url:
@@ -113,6 +186,28 @@ paths:
                   createdAt:
                     type: string
                     format: date-time
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+        '403':
+          description: Forbidden - document owned by another user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Forbidden
+        '404':
+          description: Document not found
   /api/scheduling/create:
     post:
       summary: Create Cal.com scheduling link
@@ -151,7 +246,7 @@ paths:
           description: OK
 components:
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
+      description: better-auth session token (stored in secure httpOnly cookie, transmitted via Authorization header)
