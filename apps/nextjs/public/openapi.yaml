@@ -1,0 +1,109 @@
+openapi: 3.0.3
+info:
+  title: Klaro API (Uploads & Scheduling)
+  version: 1.0.0
+servers:
+  - url: /
+paths:
+  /api/uploads/sign:
+    get:
+      summary: Get Cloudinary signed params for client upload
+      responses:
+        '200':
+          description: Signed params
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  apiKey:
+                    type: string
+                    example: "123456789"
+                  cloudName:
+                    type: string
+                    example: "demo"
+                  timestamp:
+                    type: integer
+                    example: 1618884477
+                  signature:
+                    type: string
+                    example: "abcdef123456"
+                  uploadPreset:
+                    type: string
+                    nullable: true
+                    example: "preset"
+  /api/uploads/{id}:
+    get:
+      summary: Get upload metadata by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Upload metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  userId:
+                    type: string
+                    nullable: true
+                  fileName:
+                    type: string
+                  url:
+                    type: string
+                  mimeType:
+                    type: string
+                  size:
+                    type: integer
+                  createdAt:
+                    type: string
+                    format: date-time
+  /api/scheduling/create:
+    post:
+      summary: Create Cal.com scheduling link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                providerId:
+                  type: string
+                duration:
+                  type: integer
+      responses:
+        '200':
+          description: Scheduling link
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+  /api/scheduling/webhook:
+    post:
+      summary: Cal.com webhook receiver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

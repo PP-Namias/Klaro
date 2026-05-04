@@ -185,3 +185,11 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 - Feature: sends file metadata (fileName, mimeType, fileSize) to API; invalidates documents.list on success
 - Validation: get_errors ran for file — no immediate errors
 - Next: add persisted upload queue UI and actual file storage upload (S3) integration
+
+2026-05-05 10:00 - BACKEND: Cloudinary sign endpoint + OpenAPI
+- Added Cloudinary sign endpoint at /api/uploads/sign (Next.js API route)
+- Added OpenAPI spec at /openapi.yaml and Swagger UI at /api/docs
+- Updated .env.example with CLOUDINARY_* and CAL_COM_* placeholders
+- Validation: get_errors clean for new files
+- Next: add tests for sign endpoint & server-side upload endpoint to persist URL in DB
+
