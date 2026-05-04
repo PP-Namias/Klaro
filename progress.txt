@@ -210,4 +210,14 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 - Validation: get_errors clean for new routes
 - Next: add integration tests and commit this slice
 
+2026-05-05 10:50 - BACKEND: Cal.com scheduling endpoints
+- Added POST /api/scheduling/create endpoint to generate Cal.com booking links
+- Added POST /api/scheduling/webhook endpoint to receive Cal.com booking event webhooks
+- Endpoints integrate with Cal.com API using CAL_COM_API_KEY and CAL_COM_BASE_URL env vars
+- Webhook receiver logs booking events (ready for DB persistence if needed)
+- Validation: get_errors clean for new routes
+- Updated OpenAPI spec with Cal.com endpoint details
+- Next: commit this slice, then run final typecheck/lint/tests
+
+
 
