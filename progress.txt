@@ -141,3 +141,7 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 2026-05-04 19:45 - OCR RESULT ATTACHMENT
 - Added documents.setOcrResult to store OCR text/confidence and mark document processing.
 - Validation: get_errors clean for packages/api/src/router/documents.ts
+
+2026-05-04 20:05 - OCR SERVICE SCAFFOLD
+- Added OCR helper service with confidence aggregation and cloud fallback check.
+- Validation: get_errors clean for packages/api/src/services/ocr.ts
