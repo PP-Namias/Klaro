@@ -239,6 +239,19 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 - Ready for Vercel deployment with all env vars configured
 - Implementation follows Klaro monorepo conventions and git policy
 
+2026-05-05 14:30 - AI AGENT PROMPT: SUPABASE OAUTH + CLOUDINARY
+- Created comprehensive AI agent guide: .agents/SUPABASE_OAUTH_CLOUDINARY_GUIDE.md
+- Purpose: Template for next phase - Supabase auth (Discord + Google OAuth) + user-gated Cloudinary uploads
+- Content:
+  * 9 implementation slices (setup, client, callbacks, middleware, endpoints, OpenAPI, env config, tests, docs)
+  * Full operating rules (code quality, commits, testing, DB migrations, env/secrets, API design)
+  * Task execution loop matching existing backend API patterns
+  * STOP conditions and mandatory sources of truth
+  * Expected outcomes and optional enhancements
+- Ready to copy-paste for next agent phase
+- Committed: docs(agents): add supabase oauth & cloudinary image upload ai agent prompt guide
+- Next: User can use this prompt to guide next phase implementation or extend backend API as needed
+
 
 
 
