@@ -1,7 +1,10 @@
+import crypto from "crypto";
 import type { NextRequest } from "next/server";
 import { db } from "@klaro/db";
 import { booking as bookingTable } from "@klaro/db/schema";
 import { eq } from "drizzle-orm";
+
+import { env } from "~/env";
 
 function setCorsHeaders(res: Response) {
   res.headers.set("Access-Control-Allow-Origin", "*");
@@ -15,9 +18,62 @@ export const OPTIONS = () => {
   return res;
 };
 
+/**
+ * Validate Cal.com webhook signature (HMAC-SHA256)
+ * Cal.com signs all webhooks with the shared secret
+ */
+function validateWebhookSignature(
+  payload: string,
+  signature: string | null,
+  secret: string
+): boolean {
+  if (!signature) {
+    console.warn("Missing X-Cal-Signature-256 header");
+    return false;
+  }
+
+  const computed = crypto
+    .createHmac("sha256", secret)
+    .update(payload)
+    .digest("hex");
+
+  // Use constant-time comparison to prevent timing attacks
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(computed));
+}
+
 export const POST = async (req: NextRequest) => {
   try {
-    const payload = await req.json();
+    // Read body as string first for signature verification
+    const bodyString = await req.text();
+    const signature = req.headers.get("x-cal-signature-256");
+
+    // Verify webhook signature if secret is configured
+    if (env.CAL_COM_WEBHOOK_SECRET) {
+      const isValid = validateWebhookSignature(
+        bodyString,
+        signature,
+        env.CAL_COM_WEBHOOK_SECRET
+      );
+
+      if (!isValid) {
+        console.error("Invalid Cal.com webhook signature");
+        const res = new Response(
+          JSON.stringify({
+            error: "Unauthorized",
+            details: "Invalid webhook signature",
+          }),
+          {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        setCorsHeaders(res);
+        return res;
+      }
+    }
+
+     // Parse body string as JSON (can't call req.json() again after req.text())
+     const payload = JSON.parse(bodyString);
     const { eventId, eventTitle, eventDescription, startTime, endTime, attendees } = payload;
 
     // Log webhook for debugging
@@ -30,7 +86,6 @@ export const POST = async (req: NextRequest) => {
     });
 
     // Optional: Store webhook data for audit/tracking
-    // In a production system, you'd validate the webhook signature first
     if (!eventId) {
       const res = new Response(
         JSON.stringify({

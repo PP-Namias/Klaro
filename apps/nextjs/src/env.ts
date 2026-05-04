@@ -17,6 +17,7 @@ export const env = createEnv({
    */
   server: {
     POSTGRES_URL: z.url(),
+    CAL_COM_WEBHOOK_SECRET: z.string().optional(),
   },
 
   /**
