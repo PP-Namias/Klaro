@@ -7,6 +7,7 @@ import { analysis, document } from "@klaro/db/schema";
 
 import { protectedProcedure } from "../trpc";
 import { buildOcrResult } from "../services/ocr";
+import { extractTestsFromText } from "../services/extraction";
 
 export const documentsRouter = {
   /**
@@ -145,6 +146,83 @@ export const documentsRouter = {
       return {
         id: updatedDoc.id,
         status: updatedDoc.status,
+      };
+    }),
+
+  /**
+   * run extraction on stored ocr text
+   */
+  runExtraction: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.string().uuid(),
+        ocrText: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User must be authenticated",
+        });
+      }
+
+      const [doc] = await ctx.db
+        .select()
+        .from(document)
+        .where(eq(document.id, input.documentId));
+
+      if (!doc || doc.userId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have access to this document",
+        });
+      }
+
+      const ocrText = input.ocrText ?? doc.ocrText;
+      if (!ocrText) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "OCR text is required before extraction",
+        });
+      }
+
+      const extractedFields = extractTestsFromText(ocrText);
+      const flaggedValues = extractedFields.filter(
+        (item) => item.flag && item.flag !== "normal",
+      );
+
+      const [analysisRow] = await ctx.db
+        .select()
+        .from(analysis)
+        .where(eq(analysis.documentId, input.documentId));
+
+      if (!analysisRow) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Analysis record not found",
+        });
+      }
+
+      await ctx.db
+        .update(analysis)
+        .set({
+          extractedFields,
+          flaggedValues,
+          status: "completed",
+          errorMessage: null,
+        })
+        .where(eq(analysis.id, analysisRow.id));
+
+      await ctx.db
+        .update(document)
+        .set({ status: "analyzed" })
+        .where(eq(document.id, input.documentId));
+
+      return {
+        analysisId: analysisRow.id,
+        extractedCount: extractedFields.length,
+        flaggedCount: flaggedValues.length,
       };
     }),
 

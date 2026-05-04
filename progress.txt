@@ -153,3 +153,7 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 2026-05-04 20:30 - EXTRACTION SERVICE SCAFFOLD
 - Added basic extraction helpers for lab lines, canonical names, and range flagging.
 - Validation: get_errors clean for packages/api/src/services/extraction.ts
+
+2026-05-04 20:45 - EXTRACTION MUTATION
+- Added documents.runExtraction to parse OCR text into structured results and update analysis status.
+- Validation: get_errors clean for packages/api/src/router/documents.ts
