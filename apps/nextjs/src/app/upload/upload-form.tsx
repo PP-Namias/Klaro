@@ -103,7 +103,8 @@ export function UploadForm() {
 
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    selectFile(files[0]);
+    const file = files[0];
+    if (file) selectFile(file);
   };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {

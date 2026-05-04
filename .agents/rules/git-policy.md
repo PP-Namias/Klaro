@@ -1,5 +1,5 @@
 ---
-trigger: model_decision
+trigger: always_on
 description: Established rules for technical one-line commits, PowerShell usage, and structured PR documentation. Apply this rule when staging changes, creating commits, or preparing pull requests.
 ---
 

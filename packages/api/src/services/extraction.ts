@@ -53,7 +53,7 @@ export const extractTestsFromText = (text: string) => {
     const match = lineRegex.exec(line);
     if (!match) continue;
 
-    const name = normalizeName(match[1]);
+    const name = normalizeName(match[1] ?? "");
     const value = Number(match[2]);
     if (!Number.isFinite(value)) continue;
 

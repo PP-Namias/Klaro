@@ -13,25 +13,33 @@ function ItemSeparator() {
   return <View className="h-2" />;
 }
 
-function PostCard(props: Readonly<{
-  post: RouterOutputs["post"]["all"][number];
+function DocumentCard(props: Readonly<{
+  document: RouterOutputs["documents"]["list"][number];
   onDelete: () => void;
 }>) {
+  const createdAt = new Date(props.document.createdAt).toLocaleString();
   return (
     <View className="bg-muted flex flex-row rounded-lg p-4">
       <View className="grow">
         <Link
           asChild
           href={{
-            pathname: "/post/[id]",
-            params: { id: props.post.id },
+            pathname: "/document/[id]",
+            params: { id: props.document.id },
           }}
         >
           <Pressable className="">
             <Text className="text-primary text-xl font-semibold">
-              {props.post.title}
+              {props.document.fileName}
             </Text>
-            <Text className="text-foreground mt-2">{props.post.content}</Text>
+            <Text className="text-foreground mt-2">
+              {props.document.status.toUpperCase()} • {createdAt}
+            </Text>
+            {props.document.mimeType ? (
+              <Text className="text-muted-foreground mt-1">
+                {props.document.mimeType}
+              </Text>
+            ) : null}
           </Pressable>
         </Link>
       </View>
@@ -42,18 +50,19 @@ function PostCard(props: Readonly<{
   );
 }
 
-function CreatePost() {
+function UploadDocument() {
   const queryClient = useQueryClient();
 
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [fileName, setFileName] = useState("");
+  const [mimeType, setMimeType] = useState("application/pdf");
+  const [fileSize, setFileSize] = useState("");
 
   const { mutate, error } = useMutation(
-    trpc.post.create.mutationOptions({
+    trpc.documents.upload.mutationOptions({
       async onSuccess() {
-        setTitle("");
-        setContent("");
-        await queryClient.invalidateQueries(trpc.post.all.queryFilter());
+        setFileName("");
+        setFileSize("");
+        await queryClient.invalidateQueries(trpc.documents.list.queryFilter());
       },
     }),
   );
@@ -62,32 +71,36 @@ function CreatePost() {
     <View className="mt-4 flex gap-2">
       <TextInput
         className="border-input bg-background text-foreground items-center rounded-md border px-3 text-lg leading-tight"
-        value={title}
-        onChangeText={setTitle}
-        placeholder="Title"
+        value={fileName}
+        onChangeText={setFileName}
+        placeholder="File name"
       />
-      {error?.data?.zodError?.fieldErrors.title && (
+      {error?.data?.zodError?.fieldErrors.fileName && (
         <Text className="text-destructive mb-2">
-          {error.data.zodError.fieldErrors.title}
+          {error.data.zodError.fieldErrors.fileName}
         </Text>
       )}
       <TextInput
         className="border-input bg-background text-foreground items-center rounded-md border px-3 text-lg leading-tight"
-        value={content}
-        onChangeText={setContent}
-        placeholder="Content"
+        value={mimeType}
+        onChangeText={setMimeType}
+        placeholder="MIME type"
       />
-      {error?.data?.zodError?.fieldErrors.content && (
-        <Text className="text-destructive mb-2">
-          {error.data.zodError.fieldErrors.content}
-        </Text>
-      )}
+      <TextInput
+        className="border-input bg-background text-foreground items-center rounded-md border px-3 text-lg leading-tight"
+        value={fileSize}
+        onChangeText={setFileSize}
+        placeholder="File size (bytes)"
+        keyboardType="numeric"
+      />
       <Pressable
         className="bg-primary flex items-center rounded-sm p-2"
         onPress={() => {
+          const parsedSize = fileSize.trim() ? Number(fileSize) : undefined;
           mutate({
-            title,
-            content,
+            fileName: fileName.trim(),
+            mimeType: mimeType.trim() || undefined,
+            fileSize: Number.isFinite(parsedSize) ? parsedSize : undefined,
           });
         }}
       >
@@ -95,7 +108,7 @@ function CreatePost() {
       </Pressable>
       {error?.data?.code === "UNAUTHORIZED" && (
         <Text className="text-destructive mt-2">
-          You need to be logged in to create a post
+          You need to be logged in to upload a document
         </Text>
       )}
     </View>
@@ -130,12 +143,17 @@ function MobileAuth() {
 export default function Index() {
   const queryClient = useQueryClient();
 
-  const postQuery = useQuery(trpc.post.all.queryOptions());
+  const documentQuery = useQuery(
+    trpc.documents.list.queryOptions({
+      limit: 20,
+      offset: 0,
+    }),
+  );
 
-  const deletePostMutation = useMutation(
-    trpc.post.delete.mutationOptions({
+  const deleteDocumentMutation = useMutation(
+    trpc.documents.delete.mutationOptions({
       onSettled: () =>
-        queryClient.invalidateQueries(trpc.post.all.queryFilter()),
+        queryClient.invalidateQueries(trpc.documents.list.queryFilter()),
     }),
   );
 
@@ -152,24 +170,24 @@ export default function Index() {
 
         <View className="py-2">
           <Text className="text-primary font-semibold italic">
-            Press on a post
+            Press on a document
           </Text>
         </View>
 
         <LegendList
-          data={postQuery.data ?? []}
+          data={documentQuery.data ?? []}
           estimatedItemSize={20}
           keyExtractor={(item) => item.id}
           ItemSeparatorComponent={ItemSeparator}
           renderItem={(p) => (
-            <PostCard
-              post={p.item}
-              onDelete={() => deletePostMutation.mutate(p.item.id)}
+            <DocumentCard
+              document={p.item}
+              onDelete={() => deleteDocumentMutation.mutate({ id: p.item.id })}
             />
           )}
         />
 
-        <CreatePost />
+        <UploadDocument />
       </View>
     </SafeAreaView>
   );

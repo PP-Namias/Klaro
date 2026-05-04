@@ -8,7 +8,6 @@ import {
 import { createFileRoute } from "@tanstack/react-router";
 
 import type { RouterOutputs } from "@klaro/api";
-import { CreatePostSchema } from "@klaro/db/schema";
 import { cn } from "@klaro/ui";
 import { Button } from "@klaro/ui/button";
 import {
@@ -25,9 +24,14 @@ import { AuthShowcase } from "~/component/auth-showcase";
 import { useTRPC } from "~/lib/trpc";
 
 export const Route = createFileRoute("/")({
-  loader: ({ context }) => {
+  loader: async ({ context }) => {
     const { trpc, queryClient } = context;
-    void queryClient.prefetchQuery(trpc.post.all.queryOptions());
+    await queryClient.prefetchQuery(
+      trpc.documents.list.queryOptions({
+        limit: 10,
+        offset: 0,
+      }),
+    );
   },
   component: RouteComponent,
 });
@@ -41,7 +45,7 @@ function RouteComponent() {
         </h1>
         <AuthShowcase />
 
-        <CreatePostForm />
+        <CreateDocumentForm />
         <div className="w-full max-w-2xl overflow-y-scroll">
           <Suspense
             fallback={
@@ -52,7 +56,7 @@ function RouteComponent() {
               </div>
             }
           >
-            <PostList />
+            <DocumentList />
           </Suspense>
         </div>
       </div>
@@ -60,21 +64,21 @@ function RouteComponent() {
   );
 }
 
-function CreatePostForm() {
+function CreateDocumentForm() {
   const trpc = useTRPC();
 
   const queryClient = useQueryClient();
-  const createPost = useMutation(
-    trpc.post.create.mutationOptions({
+  const createDocument = useMutation(
+    trpc.documents.upload.mutationOptions({
       onSuccess: async () => {
         form.reset();
-        await queryClient.invalidateQueries(trpc.post.pathFilter());
+        await queryClient.invalidateQueries(trpc.documents.pathFilter());
       },
       onError: (err) => {
         toast.error(
           err.data?.code === "UNAUTHORIZED"
-            ? "You must be logged in to post"
-            : "Failed to create post",
+            ? "You must be logged in to upload documents"
+            : "Failed to create document",
         );
       },
     }),
@@ -82,13 +86,11 @@ function CreatePostForm() {
 
   const form = useForm({
     defaultValues: {
-      content: "",
-      title: "",
+      fileName: "",
+      mimeType: "application/pdf",
+      fileSize: undefined as number | undefined,
     },
-    validators: {
-      onSubmit: CreatePostSchema,
-    },
-    onSubmit: (data) => createPost.mutate(data.value),
+    onSubmit: (data) => createDocument.mutate(data.value),
   });
 
   return (
@@ -96,19 +98,18 @@ function CreatePostForm() {
       className="w-full max-w-2xl"
       onSubmit={(event) => {
         event.preventDefault();
-        void form.handleSubmit();
+        form.handleSubmit();
       }}
     >
       <FieldGroup>
-        <form.Field
-          name="title"
-          children={(field) => {
+        <form.Field name="fileName">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
               <Field data-invalid={isInvalid}>
                 <FieldContent>
-                  <FieldLabel htmlFor={field.name}>Bug Title</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>File name</FieldLabel>
                 </FieldContent>
                 <Input
                   id={field.name}
@@ -117,48 +118,86 @@ function CreatePostForm() {
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
                   aria-invalid={isInvalid}
-                  placeholder="Title"
+                  placeholder="lab-results-jan.pdf"
                 />
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>
             );
           }}
-        />
-        <form.Field
-          name="content"
-          children={(field) => {
+        </form.Field>
+        <form.Field name="mimeType">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
               <Field data-invalid={isInvalid}>
                 <FieldContent>
-                  <FieldLabel htmlFor={field.name}>Content</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>MIME type</FieldLabel>
                 </FieldContent>
                 <Input
                   id={field.name}
                   name={field.name}
-                  value={field.state.value}
+                  value={field.state.value ?? ""}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
                   aria-invalid={isInvalid}
-                  placeholder="Content"
+                  placeholder="application/pdf"
                 />
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>
             );
           }}
-        />
+        </form.Field>
+        <form.Field name="fileSize">
+          {(field) => {
+            const isInvalid =
+              field.state.meta.isTouched && !field.state.meta.isValid;
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldContent>
+                  <FieldLabel htmlFor={field.name}>File size (bytes)</FieldLabel>
+                </FieldContent>
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  type="number"
+                  value={field.state.value ?? ""}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    if (!nextValue) {
+                      field.handleChange(undefined);
+                      return;
+                    }
+                    const parsed = Number(nextValue);
+                    field.handleChange(
+                      Number.isFinite(parsed) ? parsed : field.state.value,
+                    );
+                  }}
+                  aria-invalid={isInvalid}
+                  placeholder="120000"
+                />
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            );
+          }}
+        </form.Field>
       </FieldGroup>
       <Button type="submit">Create</Button>
     </form>
   );
 }
 
-function PostList() {
+function DocumentList() {
   const trpc = useTRPC();
-  const { data: posts } = useSuspenseQuery(trpc.post.all.queryOptions());
+  const { data: documents } = useSuspenseQuery(
+    trpc.documents.list.queryOptions({
+      limit: 10,
+      offset: 0,
+    }),
+  );
 
-  if (posts.length === 0) {
+  if (documents.length === 0) {
     return (
       <div className="relative flex w-full flex-col gap-4">
         <PostCardSkeleton pulse={false} />
@@ -166,7 +205,7 @@ function PostList() {
         <PostCardSkeleton pulse={false} />
 
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/10">
-          <p className="text-2xl font-bold text-white">No posts yet</p>
+          <p className="text-2xl font-bold text-white">No documents yet</p>
         </div>
       </div>
     );
@@ -174,26 +213,28 @@ function PostList() {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {posts.map((p) => {
-        return <PostCard key={p.id} post={p} />;
+      {documents.map((doc) => {
+        return <DocumentCard key={doc.id} document={doc} />;
       })}
     </div>
   );
 }
 
-function PostCard(props: { post: RouterOutputs["post"]["all"][number] }) {
+function DocumentCard(
+  props: Readonly<{ document: RouterOutputs["documents"]["list"][number] }>,
+) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const deletePost = useMutation(
-    trpc.post.delete.mutationOptions({
+  const deleteDocument = useMutation(
+    trpc.documents.delete.mutationOptions({
       onSuccess: async () => {
-        await queryClient.invalidateQueries(trpc.post.pathFilter());
+        await queryClient.invalidateQueries(trpc.documents.pathFilter());
       },
       onError: (err) => {
         toast.error(
           err.data?.code === "UNAUTHORIZED"
-            ? "You must be logged in to delete a post"
-            : "Failed to delete post",
+            ? "You must be logged in to delete a document"
+            : "Failed to delete document",
         );
       },
     }),
@@ -202,14 +243,19 @@ function PostCard(props: { post: RouterOutputs["post"]["all"][number] }) {
   return (
     <div className="bg-muted flex flex-row rounded-lg p-4">
       <div className="grow">
-        <h2 className="text-primary text-2xl font-bold">{props.post.title}</h2>
-        <p className="mt-2 text-sm">{props.post.content}</p>
+        <h2 className="text-primary text-2xl font-bold">
+          {props.document.fileName}
+        </h2>
+        <p className="mt-2 text-sm">
+          {props.document.status.toUpperCase()} •{" "}
+          {new Date(props.document.createdAt).toLocaleString()}
+        </p>
       </div>
       <div>
         <Button
           variant="ghost"
           className="text-primary cursor-pointer text-sm font-bold uppercase hover:bg-transparent hover:text-white"
-          onClick={() => deletePost.mutate(props.post.id)}
+          onClick={() => deleteDocument.mutate({ id: props.document.id })}
         >
           Delete
         </Button>
@@ -218,7 +264,7 @@ function PostCard(props: { post: RouterOutputs["post"]["all"][number] }) {
   );
 }
 
-function PostCardSkeleton(props: { pulse?: boolean }) {
+function PostCardSkeleton(props: Readonly<{ pulse?: boolean }>) {
   const { pulse = true } = props;
   return (
     <div className="bg-muted flex flex-row rounded-lg p-4">

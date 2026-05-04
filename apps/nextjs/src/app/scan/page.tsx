@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@klaro/ui/button";
 
 import { SignInButton } from "../_components/sign-in-button";
+import { DocumentsPanel } from "../_components/documents-panel";
 
 import { getSession } from "~/auth/server";
 
@@ -117,6 +118,9 @@ export default async function ScanPage() {
                 <span className={styles.scan__dropzoneTag}>JPG</span>
                 <span className={styles.scan__dropzoneTag}>PDF</span>
                 <span className={styles.scan__dropzoneTag}>Private</span>
+              </div>
+              <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <DocumentsPanel />
               </div>
             </div>
           </div>
