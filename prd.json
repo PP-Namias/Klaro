@@ -903,28 +903,32 @@
       "status": "open"
     },
     "E-300-S1": {
-      "title": "Facilities Data Ingest",
+      "title": "Medical Facility Discovery & Data",
       "owner": "Data Engineer",
-      "estimatePoints": 5,
-      "description": "Ingest and normalize DOH dataset, geocode missing addresses, and expose facilities query API.",
+      "estimatePoints": 8,
+      "description": "Ingest and normalize medical facility data (Hospitals, Clinics, Public/Private). Expose /api/facilities endpoint that provides proximity search, facility type, and metadata (public/private status). Includes a curated sample dataset of local facilities for immediate development.",
       "acceptanceCriteria": [
-        "Facilities API returns facilities within radius sorted by distance",
-        "PhilHealth flag present where available"
+        "Facilities API returns proximity-sorted results within a given radius",
+        "Data identifies facility type (Hospital, Clinic, Rural Health Unit) and ownership (Public, Private)",
+        "Includes sample data for at least 50 medical facilities in target regions"
       ],
       "testCases": ["T-FAC-01", "T-FAC-02"],
       "dependencies": [],
       "status": "open"
     },
     "E-300-S2": {
-      "title": "Map UI & Filters",
+      "title": "GMaps-style Locator UI & Routes",
       "owner": "Frontend Lead",
-      "estimatePoints": 8,
-      "description": "Map and list views with filters for PhilHealth, open-now, and specialty; booking CTA on facility details.",
+      "estimatePoints": 13,
+      "description": "Implement a high-fidelity interactive map (OpenStreetMap/Leaflet) to show nearby medical facilities. Features include: hospital/clinic markers, detail overlays, travel time/route calculation using free routing engines (OSRM), and AI-generated summaries suggesting the 'best' facility based on proximity and type.",
       "acceptanceCriteria": [
-        "Filters update map/list within 1s",
-        "Facility details show booking CTA"
+        "Interactive map shows user location and facility markers",
+        "Clicking a marker shows facility details, type (public/private), and travel time",
+        "Provides route polyline and step-by-step estimated time to arrival",
+        "AI Summary component highlights the best-suggested facility based on user context",
+        "Free implementation (no paid Google Maps API dependencies)"
       ],
-      "testCases": ["T-MAP-01", "T-MAP-02"],
+      "testCases": ["T-MAP-01", "T-MAP-02", "T-MAP-03"],
       "dependencies": ["E-300-S1"],
       "status": "open"
     },

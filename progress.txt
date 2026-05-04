@@ -190,6 +190,13 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 - Updated analysis and document db records with extracted results.
 - Verified type safety (pnpm typecheck passed).
 - Next step: Analysis & LLM (KL-LLM-001) or wiring processServerOcr to frontend.
+
+2026-05-05 01:25 - MEDICAL FACILITY LOCATOR INITIALIZATION
+- Refined Epic E-300 in prd.json with "GMaps-like" requirements (routes, summaries, hospital types).
+- Created sample medical facilities dataset: packages/api/src/data/facilities_sample.json.
+- Created dedicated AI Agent prompt: .agents/FACILITY_LOCATOR_AGENT.md.
+- Next step: Implement E-300-S1 (Facility Discovery & Data).
+
 2026-05-05 09:10 - MOBILE UPLOAD SCAFFOLD
 - Created minimal Expo upload screen scaffold: apps/expo/src/app/upload.tsx
 - Feature: image picker + preview (permission request) using expo-image-picker

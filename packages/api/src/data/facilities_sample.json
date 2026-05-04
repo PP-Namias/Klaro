@@ -1,0 +1,57 @@
+[
+  {
+    "id": "fac_001",
+    "name": "St. Luke's Medical Center - Quezon City",
+    "type": "Hospital",
+    "ownership": "Private",
+    "address": "279 E Rodriguez Sr. Ave, Quezon City, 1112 Metro Manila",
+    "latitude": 14.6225,
+    "longitude": 121.0242,
+    "philhealth": true,
+    "specialties": ["General Medicine", "Cardiology", "Oncology"]
+  },
+  {
+    "id": "fac_002",
+    "name": "Philippine General Hospital (PGH)",
+    "type": "Hospital",
+    "ownership": "Public",
+    "address": "Taft Ave, Ermita, Manila, 1000 Metro Manila",
+    "latitude": 14.5771,
+    "longitude": 120.9884,
+    "philhealth": true,
+    "specialties": ["General Medicine", "Surgery", "Pediatrics"]
+  },
+  {
+    "id": "fac_003",
+    "name": "Makati Medical Center",
+    "type": "Hospital",
+    "ownership": "Private",
+    "address": "2 Amorsolo Street, Legazpi Village, Makati, 1229 Metro Manila",
+    "latitude": 14.5592,
+    "longitude": 121.0145,
+    "philhealth": true,
+    "specialties": ["General Medicine", "Neurology", "Gastroenterology"]
+  },
+  {
+    "id": "fac_004",
+    "name": "Healthway Multi-Specialty Center - SM North",
+    "type": "Clinic",
+    "ownership": "Private",
+    "address": "SM City North EDSA, Quezon City",
+    "latitude": 14.6567,
+    "longitude": 121.0304,
+    "philhealth": false,
+    "specialties": ["Laboratory", "Diagnostics", "Family Medicine"]
+  },
+  {
+    "id": "fac_005",
+    "name": "FriendlyCare Clinic - Shaw",
+    "type": "Clinic",
+    "ownership": "Private",
+    "address": "Shaw Boulevard, Mandaluyong City",
+    "latitude": 14.5888,
+    "longitude": 121.0567,
+    "philhealth": true,
+    "specialties": ["Primary Care", "Dentistry", "Obstetrics"]
+  }
+]
