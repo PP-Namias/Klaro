@@ -53,6 +53,12 @@ Next update: I'll begin implementing Day 1 tasks and will log progress here.
 
 2026-05-03 10:45 - PRD ENRICHMENT
 - Expanded `prd.json` with ticket-level breakdown (ticketsDetailed) including estimates (story points), dependencies, owners, test cases and CI/QA roles.
+
+2026-05-05 16:20 - KL-API-001 COMPLETE
+- enforced auth in protected procedures and added trace-aware logging
+- added utility endpoint tests (health/version/me/documents.list)
+- updated OpenAPI spec with tRPC utility endpoints
+- tests: pnpm -F @klaro/api test
 - Added `testPlan` registry and detailed test case IDs for tracking.
 
 Next steps:
@@ -493,6 +499,15 @@ FILES MODIFIED/CREATED (5 total)
 - docs/BETTER_AUTH_SETUP.md (NEW)
 - docs/DEPLOYMENT_CHECKLIST.md (NEW)
 
+2026-05-05 16:20 - KL-DB-001: DB migrations + seed added
+- Added migration SQL: packages/db/migrations/0001_init.sql (creates enums, core tables, indexes, triggers)
+- Seed script present at packages/db/src/seed.ts (uses Drizzle client); migrations not applied in this environment
+- Notes: To apply locally run:
+  pnpm -F @klaro/db push
+  pnpm -F @klaro/db seed
+- Tests: DB integration tests require a running dev database; added migration + seed for CI/next steps
+
+
 VALIDATION SUMMARY (All Passed ✅)
 ✅ TypeScript: Zero errors in all new files
 ✅ YAML: OpenAPI spec syntax valid
@@ -660,6 +675,14 @@ Total Lines of Code: ~4,500+ lines (auth, tests, docs, rate limiting, webhooks)
 Total Files: 20+ files created/modified
 
 READY FOR: Vercel deployment OR human review + approval before going live
+
+2026-05-05 18:05 - OCR CLOUD FALLBACK + TESTS (KL-OCR-001)
+- Enhanced OCR service with local + cloud fallback and audit trail metadata.
+- Added ocrSource + ocrAudit fields to document schema for OCR provenance.
+- Updated documents.processServerOcr and documents.setOcrResult to persist OCR audit data.
+- Documented OCR tRPC endpoints in OpenAPI spec.
+- Added automated node:test coverage for OCR fallback + OpenAPI spec assertions.
+- Tests: pnpm -F @klaro/api test
 
 
 

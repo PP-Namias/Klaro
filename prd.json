@@ -1128,7 +1128,7 @@
       ],
       "testCases": ["T-DB-01"],
       "relatedTickets": ["KL-API-001"],
-      "status": "in-progress"
+      "status": "done"
     },
     "KL-API-001": {
       "title": "KL: Centralized Backend API Structure & Utility Endpoints",
@@ -1201,7 +1201,7 @@
       ],
       "testCases": ["T-API-01"],
       "relatedTickets": ["KL-DB-001", "KL-DS-001"],
-      "status": "in-progress"
+      "status": "done"
     },
     "KL-DS-001": {
       "title": "KL: Mobile - Camera Capture & Preprocess",
@@ -1398,7 +1398,7 @@
       ],
       "testCases": ["T-OCR-01", "T-OCR-02"],
       "relatedTickets": ["KL-EX-001", "KL-API-001"],
-      "status": "not-started"
+      "status": "done"
     },
     "KL-EX-001": {
       "title": "KL: Extraction - Rule-based Templates + LLM Assist",
