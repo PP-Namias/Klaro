@@ -3,6 +3,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { db } from "@klaro/db";
 import { document as documentTable } from "@klaro/db/schema";
 import { eq } from "drizzle-orm";
+import { assertSession } from "~/lib/session-validation";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -29,6 +30,9 @@ export const GET = async (
   const { id } = params;
 
   try {
+    // require authentication
+    const session = await assertSession();
+
     const doc = await db.query.document.findFirst({
       where: eq(documentTable.id, id),
     });
@@ -38,6 +42,22 @@ export const GET = async (
         status: 404,
         headers: { "Content-Type": "application/json" },
       });
+      setCorsHeaders(res);
+      return res;
+    }
+
+    // verify ownership
+    if (doc.userId !== session.userId) {
+      const res = new Response(
+        JSON.stringify({
+          error: "Forbidden",
+          details: "You do not have permission to access this document",
+        }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       setCorsHeaders(res);
       return res;
     }
@@ -59,6 +79,22 @@ export const GET = async (
     setCorsHeaders(res);
     return res;
   } catch (err) {
+    // Handle auth errors specifically
+    if (err instanceof Error && err.message === "UNAUTHORIZED") {
+      const res = new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          details: "Authentication required",
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      setCorsHeaders(res);
+      return res;
+    }
+
     console.error("GET /api/uploads/:id error:", err);
     const res = new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,

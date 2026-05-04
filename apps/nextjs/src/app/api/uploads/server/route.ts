@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 import { db } from "@klaro/db";
 import { document as documentTable } from "@klaro/db/schema";
+import { assertSession } from "~/lib/session-validation";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -31,9 +32,11 @@ const ALLOWED_TYPES = [
 
 export const POST = async (req: NextRequest) => {
   try {
+    // require authentication
+    const session = await assertSession();
+
     const formData = await req.formData();
     const file = formData.get("file") as File;
-    const userId = formData.get("userId") as string | null;
 
     if (!file) {
       const res = new Response(
@@ -98,11 +101,11 @@ export const POST = async (req: NextRequest) => {
       throw new Error("Failed to get Cloudinary URL");
     }
 
-    // Save to DB
+    // Save to DB with authenticated user ID
     const doc = await db
       .insert(documentTable)
       .values({
-        userId: userId || "guest",
+        userId: session.userId,
         fileName: file.name,
         mimeType: file.type,
         fileSize: file.size,
@@ -129,6 +132,22 @@ export const POST = async (req: NextRequest) => {
     setCorsHeaders(res);
     return res;
   } catch (err) {
+    // Handle auth errors specifically
+    if (err instanceof Error && err.message === "UNAUTHORIZED") {
+      const res = new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          details: "Authentication required",
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      setCorsHeaders(res);
+      return res;
+    }
+
     console.error("POST /api/uploads/server error:", err);
     const res = new Response(
       JSON.stringify({
