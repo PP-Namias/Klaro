@@ -197,6 +197,16 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 - Created dedicated AI Agent prompt: .agents/FACILITY_LOCATOR_AGENT.md.
 - Next step: Implement E-300-S1 (Facility Discovery & Data).
 
+2026-05-05 01:35 - MEDICAL FACILITY LOCATOR: DATA LAYER COMPLETE (E-300-S1-T1)
+- Updated packages/db/schema.ts with ownership field and enum for medical facilities.
+- Updated packages/api/src/router/facilities.ts with:
+  * Proximity-based searchNearby with ownership/type filters.
+  * bestSuggested heuristic procedure with AI-ready summaries.
+  * Corrected facility types and lint fixes.
+- Updated packages/db/src/seed.ts with local medical facility data.
+- Validation: pnpm typecheck and pnpm lint passed for facilities router.
+- Next step: Web Implementation (E-300-S2-T1) using Leaflet.
+
 2026-05-05 09:10 - MOBILE UPLOAD SCAFFOLD
 - Created minimal Expo upload screen scaffold: apps/expo/src/app/upload.tsx
 - Feature: image picker + preview (permission request) using expo-image-picker

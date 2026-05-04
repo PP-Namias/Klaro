@@ -53,6 +53,9 @@ export const sessionTypeEnum = pgEnum("session_type", [
   "async_review",
 ]);
 
+export const ownershipEnum = pgEnum("ownership", ["public", "private"]);
+
+
 // Core domain tables
 export const document = pgTable(
   "document",
@@ -162,7 +165,8 @@ export const facility = pgTable(
   {
     id: uuid("id").notNull().primaryKey().defaultRandom(),
     name: varchar("name", { length: 255 }).notNull(),
-    facilityType: varchar("facility_type", { length: 100 }), // clinic, hospital, diagnostic_center
+    facilityType: varchar("facility_type", { length: 100 }), // hospital, clinic, health_unit
+    ownership: ownershipEnum("ownership").default("private").notNull(),
     address: text("address").notNull(),
     latitude: decimal("latitude", { precision: 10, scale: 8 }),
     longitude: decimal("longitude", { precision: 11, scale: 8 }),
@@ -179,8 +183,10 @@ export const facility = pgTable(
   (t) => [
     index("facility_location_idx").on(t.latitude, t.longitude),
     index("facility_type_idx").on(t.facilityType),
+    index("facility_ownership_idx").on(t.ownership),
   ],
 );
+
 
 export const booking = pgTable(
   "booking",

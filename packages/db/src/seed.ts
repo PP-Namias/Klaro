@@ -56,21 +56,54 @@ async function seed() {
     isActive: true,
   });
 
-  await db.insert(facility).values({
-    id: facilityId,
-    name: "Klaro Wellcare Clinic",
-    facilityType: "clinic",
-    address: "Ortigas Center, Pasig City",
-    latitude: "14.5866",
-    longitude: "121.0635",
-    phoneNumber: "+63 2 8123 4567",
-    isPhilHealthAccredited: true,
-    acceptedSpecialties: ["Internal Medicine", "Endocrinology"],
-    openingHours: {
-      weekdays: "09:00-18:00",
-      saturday: "09:00-13:00",
+  await db.insert(facility).values([
+    {
+      id: facilityId,
+      name: "Klaro Wellcare Clinic",
+      facilityType: "clinic",
+      ownership: "private",
+      address: "Ortigas Center, Pasig City",
+      latitude: "14.5866",
+      longitude: "121.0635",
+      phoneNumber: "+63 2 8123 4567",
+      isPhilHealthAccredited: true,
+      acceptedSpecialties: ["Internal Medicine", "Endocrinology"],
+      openingHours: {
+        weekdays: "09:00-18:00",
+        saturday: "09:00-13:00",
+      },
     },
-  });
+    {
+      name: "St. Luke's Medical Center - Quezon City",
+      facilityType: "hospital",
+      ownership: "private",
+      address: "279 E Rodriguez Sr. Ave, Quezon City, 1112 Metro Manila",
+      latitude: "14.6225",
+      longitude: "121.0242",
+      isPhilHealthAccredited: true,
+      acceptedSpecialties: ["General Medicine", "Cardiology", "Oncology"],
+    },
+    {
+      name: "Philippine General Hospital (PGH)",
+      facilityType: "hospital",
+      ownership: "public",
+      address: "Taft Ave, Ermita, Manila, 1000 Metro Manila",
+      latitude: "14.5771",
+      longitude: "120.9884",
+      isPhilHealthAccredited: true,
+      acceptedSpecialties: ["General Medicine", "Surgery", "Pediatrics"],
+    },
+    {
+      name: "Makati Medical Center",
+      facilityType: "hospital",
+      ownership: "private",
+      address: "2 Amorsolo Street, Legazpi Village, Makati, 1229 Metro Manila",
+      latitude: "14.5592",
+      longitude: "121.0145",
+      isPhilHealthAccredited: true,
+      acceptedSpecialties: ["General Medicine", "Neurology", "Gastroenterology"],
+    },
+  ]);
 
   await db.insert(document).values({
     id: documentId,
