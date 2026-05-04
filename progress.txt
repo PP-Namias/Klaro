@@ -169,3 +169,14 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 2026-05-04 21:35 - WEB UPLOAD UI (QUEUE)
 - Wired upload form to documents.upload and added queued status messaging.
 - Validation: get_errors clean for apps/nextjs/src/app/upload/upload-form.tsx
+
+2026-05-04 23:40 - WORKSPACE COMMITTED
+- Fixed TS2345 in extraction.ts and upload-form.tsx.
+- Committed API domain routers, DB schema, seed script, and web upload UI changes.
+- Workspace is fully typecheck and lint clean.
+- Next step: proceed with Mobile Upload UI (KL-DS-001) or OCR pipeline integration.
+2026-05-05 09:10 - MOBILE UPLOAD SCAFFOLD
+- Created minimal Expo upload screen scaffold: apps/expo/src/app/upload.tsx
+- Feature: image picker + preview (permission request) using expo-image-picker
+- Validation: added file, will run typecheck/lint for touched workspace
+- Next: wire upload to documents.upload API and add upload queue UI
