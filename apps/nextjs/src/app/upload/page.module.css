@@ -273,6 +273,11 @@
   font-size: 0.92rem;
 }
 
+.upload__status {
+  color: var(--muted-foreground);
+  font-size: 0.92rem;
+}
+
 .upload__preview {
   background: color-mix(in oklab, var(--card) 70%, transparent);
   border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);

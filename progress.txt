@@ -165,3 +165,7 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 2026-05-04 21:20 - WEB UPLOAD UI (PDF PREVIEW)
 - Added PDF preview via embed with page selection input.
 - Validation: get_errors clean for apps/nextjs/src/app/upload/upload-form.tsx
+
+2026-05-04 21:35 - WEB UPLOAD UI (QUEUE)
+- Wired upload form to documents.upload and added queued status messaging.
+- Validation: get_errors clean for apps/nextjs/src/app/upload/upload-form.tsx

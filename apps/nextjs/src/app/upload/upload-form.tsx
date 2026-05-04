@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 import { Button } from "@klaro/ui/button";
 import { Input } from "@klaro/ui/input";
+import { toast } from "@klaro/ui/toast";
+
+import { useTRPC } from "~/trpc/react";
 
 import styles from "./page.module.css";
 
@@ -34,6 +38,28 @@ export function UploadForm() {
   const [selected, setSelected] = useState<SelectedFile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pdfPage, setPdfPage] = useState(1);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+
+  const trpc = useTRPC();
+  const uploadDocument = useMutation(
+    trpc.documents.upload.mutationOptions({
+      onSuccess: (result) => {
+        setUploadStatus("Document queued for analysis.");
+        toast.success("Document queued for analysis.");
+        if (result?.analysisId) {
+          toast.message(`Analysis created: ${result.analysisId}`);
+        }
+      },
+      onError: (err) => {
+        const message =
+          err.data?.code === "UNAUTHORIZED"
+            ? "Sign in to upload documents."
+            : "Could not upload the document.";
+        setUploadStatus(message);
+        toast.error(message);
+      },
+    }),
+  );
 
   useEffect(() => {
     return () => {
@@ -50,6 +76,7 @@ export function UploadForm() {
     setSelected(null);
     setError(null);
     setPdfPage(1);
+    setUploadStatus(null);
   };
 
   const selectFile = (file: File) => {
@@ -71,6 +98,7 @@ export function UploadForm() {
     setError(null);
     setSelected({ file, previewUrl, kind });
     setPdfPage(1);
+    setUploadStatus(null);
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -86,6 +114,15 @@ export function UploadForm() {
 
   const handleUploadClick = () => {
     inputRef.current?.click();
+  };
+
+  const handleSubmit = () => {
+    if (!selected) return;
+    uploadDocument.mutate({
+      fileName: selected.file.name,
+      fileSize: selected.file.size,
+      mimeType: selected.file.type,
+    });
   };
 
   return (
@@ -142,6 +179,9 @@ export function UploadForm() {
       </div>
 
       {error ? <p className={styles.upload__error}>{error}</p> : null}
+      {uploadStatus ? (
+        <p className={styles.upload__status}>{uploadStatus}</p>
+      ) : null}
 
       {selected ? (
         <div className={styles.upload__preview}>
@@ -194,8 +234,13 @@ export function UploadForm() {
             <Button type="button" variant="outline" onClick={clearSelection}>
               Remove file
             </Button>
-            <Button type="button" disabled className={styles.upload__submit}>
-              Upload and analyze
+            <Button
+              type="button"
+              className={styles.upload__submit}
+              disabled={!selected || uploadDocument.isPending}
+              onClick={handleSubmit}
+            >
+              {uploadDocument.isPending ? "Queueing..." : "Upload and analyze"}
             </Button>
           </div>
         </div>
