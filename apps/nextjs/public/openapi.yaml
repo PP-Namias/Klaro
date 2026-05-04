@@ -208,6 +208,111 @@ paths:
                     example: Forbidden
         '404':
           description: Document not found
+  /api/documents/scan:
+    get:
+      summary: Get document scan endpoint metadata
+      description: Returns information about the /api/documents/scan endpoint
+      responses:
+        '200':
+          description: Endpoint metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  endpoint:
+                    type: string
+                    example: /api/documents/scan
+                  method:
+                    type: string
+                    example: POST
+                  description:
+                    type: string
+                  contentType:
+                    type: string
+                    example: multipart/form-data
+    post:
+      summary: Upload and scan medical documents
+      description: Authenticated endpoint to upload medical documents (images or PDFs) and initiate OCR processing. Returns document and analysis IDs.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Medical document file (JPEG, PNG, WebP, or PDF)
+              required:
+                - file
+      responses:
+        '201':
+          description: Document created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: 123e4567-e89b-12d3-a456-426614174000
+                  analysisId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum:
+                      - uploaded
+                      - processing
+                    example: uploaded
+                  message:
+                    type: string
+                  file:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      size:
+                        type: integer
+                      type:
+                        type: string
+        '400':
+          description: Bad request (missing file, unsupported type)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: File type not supported. Allowed: JPEG, PNG, WebP, PDF
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+        '413':
+          description: Payload too large (file exceeds 50MB)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: File size exceeds 50MB limit
+        '500':
+          description: Internal server error
   /api/scheduling/create:
     post:
       summary: Create Cal.com scheduling link
@@ -244,6 +349,232 @@ paths:
       responses:
         '200':
           description: OK
+  /api/trpc/health:
+    post:
+      summary: Health check
+      description: Returns API health and version metadata
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  version:
+                    type: string
+                    example: 1.0.0
+                  timestamp:
+                    type: string
+                    format: date-time
+  /api/trpc/version:
+    post:
+      summary: API version
+      description: Returns API version metadata
+      responses:
+        '200':
+          description: Version metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: 1.0.0
+                  timestamp:
+                    type: string
+                    format: date-time
+  /api/trpc/me:
+    post:
+      summary: Get current user
+      description: Returns authenticated user profile basics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  email:
+                    type: string
+                  name:
+                    type: string
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/trpc/documents.list:
+    post:
+      summary: List user documents
+      description: Returns paginated documents for the authenticated user
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit:
+                  type: integer
+                  example: 10
+                offset:
+                  type: integer
+                  example: 0
+      responses:
+        '200':
+          description: User documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    fileName:
+                      type: string
+                    mimeType:
+                      type: string
+                    fileSize:
+                      type: integer
+                    storageUrl:
+                      type: string
+                    status:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/trpc/documents.setOcrResult:
+    post:
+      summary: Attach OCR result to a document
+      description: Stores OCR text/blocks for a document and marks it as processing.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                documentId:
+                  type: string
+                  format: uuid
+                ocrText:
+                  type: string
+                confidence:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                source:
+                  type: string
+                  enum: [local, cloud]
+                blocks:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      text:
+                        type: string
+                      confidence:
+                        type: number
+                        minimum: 0
+                        maximum: 1
+              required:
+                - documentId
+                - ocrText
+      responses:
+        '200':
+          description: OCR result stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+        '401':
+          description: Not authenticated
+        '403':
+          description: Forbidden
+  /api/trpc/documents.processServerOcr:
+    post:
+      summary: Process document image with OCR (server-side)
+      description: Runs local OCR with optional cloud fallback and extracts tests.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                documentId:
+                  type: string
+                  format: uuid
+                base64Image:
+                  type: string
+                  description: Base64-encoded image payload (no data URI prefix).
+              required:
+                - documentId
+                - base64Image
+      responses:
+        '200':
+          description: OCR processed and extraction results returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ocrResult:
+                    type: object
+                    properties:
+                      text:
+                        type: string
+                      confidence:
+                        type: number
+                      source:
+                        type: string
+                        enum: [local, cloud]
+                  extractedTests:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Not authenticated
+        '403':
+          description: Forbidden
 components:
   securitySchemes:
     BearerAuth:

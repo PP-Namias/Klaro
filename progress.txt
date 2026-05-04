@@ -582,6 +582,31 @@ CORE AUTH IMPLEMENTATION (Slices 1-6): PRODUCTION READY
 ✅ All upload endpoints user-gated with ownership checks
 ✅ OpenAPI spec documented with auth endpoints
 ✅ OAuth signin/logout endpoints fully functional
+✅ Integration tests comprehensive
+✅ Deployment documentation complete
+
+ENHANCED FEATURES (Slices 7-8): OPTIONAL READY
+✅ Cal.com webhook signature validation (HMAC-SHA256)
+✅ Rate limiting for auth + upload endpoints
+
+2026-05-05 16:30 - KL-DS-001: DOCUMENT SCAN ENDPOINT COMPLETE
+- Created /api/documents/scan REST endpoint (POST + GET)
+  * POST: Accepts multipart/form-data with medical document file
+  * Validates file type (JPEG, PNG, WebP, PDF) and size (≤50MB)
+  * Returns { id, analysisId, status, message, file }
+  * GET: Returns endpoint metadata
+- Added comprehensive test suite (__tests__/route.test.ts)
+  * 11 test cases covering success, auth, file type, size validation
+  * Tests: GET metadata, 401 unauth, 400 missing/invalid file, 413 size limit, 201 success
+  * Verified: JPEG, PNG, WebP, PDF file types accepted
+- Updated OpenAPI spec (apps/nextjs/public/openapi.yaml)
+  * Added GET /api/documents/scan endpoint description
+  * Added POST /api/documents/scan with multipart/form-data schema
+  * Documented response schemas and error codes (201/400/401/413/500)
+- Updated prd.json to mark KL-DS-001 as done
+- Validation: TypeScript/Lint clean for new files
+- Next: Identify and implement next backend ticket from prd.json
+
 ✅ Comprehensive integration test suite (20+ tests)
 ✅ Production documentation (setup + deployment guides)
 

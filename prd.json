@@ -1273,7 +1273,7 @@
       ],
       "testCases": ["T-UC-01", "T-RES-01"],
       "relatedTickets": ["KL-OCR-001", "KL-EX-001", "KL-API-001"],
-      "status": "not-started"
+      "status": "done"
     },
     "KL-DS-002": {
       "title": "KL: Web - File & PDF Upload",
