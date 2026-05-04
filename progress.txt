@@ -157,3 +157,7 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 2026-05-04 20:45 - EXTRACTION MUTATION
 - Added documents.runExtraction to parse OCR text into structured results and update analysis status.
 - Validation: get_errors clean for packages/api/src/router/documents.ts
+
+2026-05-04 21:05 - WEB UPLOAD UI (BASE)
+- Added upload page with drag-and-drop intake, validation, and image preview placeholder flow.
+- Validation: get_errors clean for apps/nextjs/src/app/upload/page.tsx and upload-form.tsx
