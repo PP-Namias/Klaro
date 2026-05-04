@@ -1,9 +1,21 @@
 import React, {useState} from 'react'
 import {View, Text, Button, Image, StyleSheet, Alert} from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
+import {useMutation, useQueryClient} from '@tanstack/react-query'
+import {trpc} from '~/utils/api'
 
 export default function UploadScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null)
+
+  const queryClient = useQueryClient()
+
+  const {mutate, isPending, error} = useMutation(
+    trpc.documents.upload.mutationOptions({
+      async onSuccess() {
+        await queryClient.invalidateQueries(trpc.documents.list.queryFilter())
+      },
+    }),
+  )
 
   async function pickImage() {
     const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -18,8 +30,21 @@ export default function UploadScreen() {
       allowsEditing: true,
     })
 
-    if (!result.cancelled) {
-      setImageUri(result.assets && result.assets[0]?.uri ? result.assets[0].uri : (result as any).uri)
+    if (!result.canceled && result.assets?.length) {
+      const asset = result.assets[0]
+      setImageUri(asset.uri)
+
+      const uriParts = asset.uri.split('/')
+      const fallbackName = uriParts[uriParts.length - 1] ?? `upload-${Date.now()}.jpg`
+      const fileName = (asset as any).fileName ?? fallbackName
+      const mimeType = (asset as any).type ?? (asset as any).mimeType ?? 'image/jpeg'
+      const fileSize = (asset as any).fileSize
+
+      mutate({
+        fileName,
+        mimeType,
+        fileSize: fileSize ? fileSize : undefined,
+      })
     }
   }
 

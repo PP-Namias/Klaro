@@ -180,3 +180,8 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
 - Feature: image picker + preview (permission request) using expo-image-picker
 - Validation: added file, will run typecheck/lint for touched workspace
 - Next: wire upload to documents.upload API and add upload queue UI
+2026-05-05 09:26 - MOBILE UPLOAD: API WIRING
+- Wired Expo upload screen to tRPC documents.upload mutation
+- Feature: sends file metadata (fileName, mimeType, fileSize) to API; invalidates documents.list on success
+- Validation: get_errors ran for file — no immediate errors
+- Next: add persisted upload queue UI and actual file storage upload (S3) integration
