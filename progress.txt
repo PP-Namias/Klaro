@@ -236,9 +236,6 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
   2. feat(api): add server-side upload + get metadata + cloudinary integration
   3. feat(api): add cal.com scheduling create + webhook endpoints
   4. docs: add cloudinary + cal.com api testing & deployment guide
-- Ready for Vercel deployment with all env vars configured
-- Implementation follows Klaro monorepo conventions and git policy
-
 2026-05-05 14:30 - AI AGENT PROMPT: SUPABASE OAUTH + CLOUDINARY
 - Created comprehensive AI agent guide: .agents/SUPABASE_OAUTH_CLOUDINARY_GUIDE.md
 - Purpose: Template for next phase - Supabase auth (Discord + Google OAuth) + user-gated Cloudinary uploads
@@ -250,7 +247,66 @@ Next: commit this cleanup slice, then begin the next unblocked PRD task
   * Expected outcomes and optional enhancements
 - Ready to copy-paste for next agent phase
 - Committed: docs(agents): add supabase oauth & cloudinary image upload ai agent prompt guide
-- Next: User can use this prompt to guide next phase implementation or extend backend API as needed
+
+2026-05-05 14:45 - AUTH INTEGRATION: BETTER-AUTH ADAPTATION
+**Note:** Project already uses better-auth instead of raw Supabase. Adapted the OAuth guide to leverage existing framework.
+
+SLICE 1 COMPLETE: Add Google OAuth Provider + Environment Variables
+- Added Google OAuth support to better-auth initAuth function (packages/auth/src/index.ts)
+- Updated auth server to pass Google credentials when available (apps/nextjs/src/auth/server.ts)
+- Added AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET to env configuration (packages/auth/env.ts)
+- Updated .env.example with Google OAuth placeholders
+- Validation: Imports and types correct
+- Committed: feat(auth): add google oauth provider + environment variable setup
+
+SLICE 2 COMPLETE: User-Gate Upload Endpoints + Session Validation
+- Created session validation helper (apps/nextjs/src/lib/session-validation.ts)
+  * validateSession(): extract session from better-auth, return user ID + email
+  * assertSession(): throw 401 if not authenticated
+- Updated POST /api/uploads/server to require auth + use session.userId (NOT form data)
+  * Validates authentication before accepting file
+  * Persists document with authenticated user ID
+  * Handles 401 Unauthorized errors gracefully
+- Updated GET /api/uploads/{id} to require auth + validate ownership
+  * Checks session before querying document
+  * Verifies document.userId === session.userId (403 if not owner)
+  * Returns 404 for non-existent documents
+- Updated GET /api/uploads/sign to optionally require auth (recommended for security)
+- Validation: All endpoints now require authentication; ownership checks prevent cross-user access
+- Committed: feat(auth): add session validation + user-gated upload endpoints & ownership checks
+
+REMAINING SLICES (3-9): Ready to Implement
+
+SLICE 3: Update OpenAPI Spec + Swagger UI
+- Update /openapi.yaml to document auth endpoints (signin, callback, logout)
+- Add 401/403 error response schemas
+- Mark protected endpoints with security requirement
+- Update Swagger UI to show auth flow
+
+SLICE 4: Create OAuth Initiation Endpoints (signin, logout)
+- POST /api/auth/signin?provider=discord|google → redirect to OAuth provider
+- POST /api/auth/logout → invalidate session
+- Return proper redirects and error handling
+
+SLICE 5: Add Integration Tests
+- Test OAuth flow (mock Discord/Google API)
+- Test user creation in DB
+- Test session token generation
+- Test file upload with authenticated user
+- Test ownership validation
+
+SLICE 6: Documentation + Deployment Guide
+- Create docs/BETTER_AUTH_SETUP.md with Discord/Google OAuth setup steps
+- Create docs/DEPLOYMENT_CHECKLIST.md with Vercel env var setup
+- Update progress.txt with final status
+
+SLICE 7-9: Optional Enhancements (if time permits)
+- Cal.com webhook signature validation
+- Rate limiting for endpoints
+- Monitoring and error logging setup
+
+STATUS: 2/9 slices complete. Auth foundation solid. Ready to expand to remaining slices or hand off for next-phase implementation.
+
 
 
 
