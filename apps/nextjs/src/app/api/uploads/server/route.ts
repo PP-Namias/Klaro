@@ -33,9 +33,8 @@ const ALLOWED_TYPES = [
 
 export const POST = async (req: NextRequest) => {
   try {
-    // require authentication
-  try {
     // Rate limit: 10 uploads per hour per user
+
     const { allowed, remaining, resetAt } = checkRateLimit(
       `upload:${req.headers.get("x-forwarded-for") || "unknown"}`,
       RATE_LIMITS.uploads.server.maxRequests,
@@ -129,6 +128,10 @@ export const POST = async (req: NextRequest) => {
       .returning();
 
     const savedDoc = doc[0];
+    if (!savedDoc) {
+      throw new Error("Failed to save document metadata");
+    }
+
     const body = {
       id: savedDoc.id,
       userId: savedDoc.userId,
@@ -138,6 +141,7 @@ export const POST = async (req: NextRequest) => {
       size: savedDoc.fileSize,
       createdAt: savedDoc.createdAt.toISOString(),
     };
+
 
     const res = new Response(JSON.stringify(body), {
       status: 201,
