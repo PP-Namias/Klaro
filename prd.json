@@ -1458,7 +1458,7 @@
       ],
       "testCases": ["T-EX-01", "T-EX-02"],
       "relatedTickets": ["KL-OCR-001", "KL-LLM-001"],
-      "status": "not-started"
+      "status": "done"
     },
     "KL-LLM-001": {
       "title": "KL: LLM - Plain-language Templates & Safety",

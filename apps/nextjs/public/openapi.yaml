@@ -575,6 +575,90 @@ paths:
           description: Not authenticated
         '403':
           description: Forbidden
+  /api/trpc/documents.runExtraction:
+    post:
+      summary: Extract lab test values from OCR text
+      description: Runs rule-based + regex extraction on OCR text to produce structured test results. Supports Philippine lab formats with test name canonicalization and abnormal value flagging.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                documentId:
+                  type: string
+                  format: uuid
+                  description: Document ID with OCR text
+                ocrText:
+                  type: string
+                  description: Optional override OCR text (uses stored text if not provided)
+              required:
+                - documentId
+      responses:
+        '200':
+          description: Extraction completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  analysisId:
+                    type: string
+                    format: uuid
+                  extractedCount:
+                    type: integer
+                    description: Number of tests extracted
+                    example: 12
+                  flaggedCount:
+                    type: integer
+                    description: Number of tests with abnormal values
+                    example: 3
+                  accuracy:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                    description: Extraction confidence score
+                    example: 0.95
+                  method:
+                    type: string
+                    enum: [regex, llm, hybrid]
+                    description: Extraction method used
+                    example: regex
+        '400':
+          description: Bad request (OCR text missing)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "OCR text is required before extraction"
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+        '403':
+          description: Forbidden (no access to document)
+        '404':
+          description: Not found (document or analysis record not found)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Analysis record not found"
 components:
   securitySchemes:
     BearerAuth:

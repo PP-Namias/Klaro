@@ -713,3 +713,24 @@ READY FOR: Vercel deployment OR human review + approval before going live
 
 
 
+2026-05-05 16:50 - KL-EX-001: EXTRACTION SERVICE COMPLETE ?
+============================================================
+- Created comprehensive extraction service (packages/api/src/services/extraction.ts)
+  * 120+ test name canonicalization variants for Philippine labs
+  * 4 regex patterns for common lab result formats
+  * Reference range-based abnormal value detection
+  * Support for standard, abbreviated, and tab-separated formats
+  * Handles missing units and reference ranges gracefully
+- Added Zod validation schemas (packages/validators/src/extraction.ts)
+  * ExtractedTest, ExtractedTestsSchema, ExtractionResult schemas
+  * Type-safe schema validation for extraction output
+- Updated tRPC documents router
+  * Enhanced documents.runExtraction procedure
+  * Now returns accuracy metric and extraction method
+  * Properly handles flagged abnormal values
+- Created comprehensive test suite (src/__tests__/extraction.test.ts)
+  * 32 test cases: regex patterns, canonicalization, multi-test, edge cases
+  * All 32 tests PASSING with >90% accuracy on standard formats
+- Updated OpenAPI spec with /api/trpc/documents.runExtraction documentation
+- Validation: All tests pass (32/32), no lint/type errors
+- Next: KL-LLM-001 (Plain-language) or KL-DS-002 (Web Upload UI)

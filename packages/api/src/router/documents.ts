@@ -6,7 +6,11 @@ import { z } from "zod/v4";
 import { analysis, document } from "@klaro/db/schema";
 
 import { protectedProcedure } from "../trpc";
-import { buildOcrResult } from "../services/ocr";
+import {
+  buildOcrAudit,
+  buildOcrResult,
+  getOcrConfidenceThreshold,
+} from "../services/ocr";
 import { extractTestsFromText } from "../services/extraction";
 
 export const documentsRouter = {
@@ -74,7 +78,7 @@ export const documentsRouter = {
   setOcrResult: protectedProcedure
     .input(
       z.object({
-        documentId: z.string().uuid(),
+        documentId: z.uuid(),
         ocrText: z.string().min(1),
         confidence: z.number().min(0).max(1).optional(),
         blocks: z
@@ -114,17 +118,25 @@ export const documentsRouter = {
         source: input.source,
       });
 
+      const audit = buildOcrAudit({
+        local: result.source === "local" ? result : undefined,
+        cloud: result.source === "cloud" ? result : undefined,
+        selected: result,
+        usedCloudFallback: result.source === "cloud",
+        threshold: getOcrConfidenceThreshold(),
+      });
+
       const updatePayload: Partial<typeof document.$inferInsert> = {
         ocrText: result.text,
         status: "processing",
+        ocrSource: result.source,
+        ocrAudit: audit,
       };
 
-      const resolvedConfidence =
-        input.confidence !== undefined
-          ? input.confidence
-          : input.blocks && input.blocks.length > 0
-            ? result.confidence
-            : undefined;
+      let resolvedConfidence = input.confidence;
+      if (resolvedConfidence === undefined && input.blocks?.length) {
+        resolvedConfidence = result.confidence;
+      }
 
       if (resolvedConfidence !== undefined) {
         updatePayload.confidence = resolvedConfidence.toFixed(2);
@@ -155,7 +167,7 @@ export const documentsRouter = {
   runExtraction: protectedProcedure
     .input(
       z.object({
-        documentId: z.string().uuid(),
+        documentId: z.uuid(),
         ocrText: z.string().optional(),
       }),
     )
@@ -188,9 +200,7 @@ export const documentsRouter = {
       }
 
       const extractedFields = extractTestsFromText(ocrText);
-      const flaggedValues = extractedFields.filter(
-        (item) => item.flag && item.flag !== "normal",
-      );
+      const flaggedValues = extractedFields.filter((item) => item.flagged === true);
 
       const [analysisRow] = await ctx.db
         .select()
@@ -204,25 +214,34 @@ export const documentsRouter = {
         });
       }
 
+      const extractionAccuracy =
+        extractedFields.length > 0
+          ? (extractedFields.filter((e) => e.value).length /
+              extractedFields.length) *
+            100
+          : 0;
+
       await ctx.db
         .update(analysis)
         .set({
           extractedFields,
           flaggedValues,
-          status: "completed",
+          status: "extraction_complete",
           errorMessage: null,
         })
         .where(eq(analysis.id, analysisRow.id));
 
       await ctx.db
         .update(document)
-        .set({ status: "analyzed" })
+        .set({ status: "extracted" })
         .where(eq(document.id, input.documentId));
 
       return {
         analysisId: analysisRow.id,
         extractedCount: extractedFields.length,
         flaggedCount: flaggedValues.length,
+        accuracy: extractionAccuracy / 100,
+        method: "regex",
       };
     }),
 
@@ -259,7 +278,7 @@ export const documentsRouter = {
    * Get a specific document by ID with its analysis
    */
   byId: protectedProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.uuid() }))
     .query(async ({ ctx, input }) => {
       if (!ctx.session?.user?.id) {
         throw new TRPCError({
@@ -296,7 +315,7 @@ export const documentsRouter = {
    * Get document analysis results
    */
   getAnalysis: protectedProcedure
-    .input(z.object({ documentId: z.string().uuid() }))
+    .input(z.object({ documentId: z.uuid() }))
     .query(async ({ ctx, input }) => {
       if (!ctx.session?.user?.id) {
         throw new TRPCError({
@@ -337,7 +356,7 @@ export const documentsRouter = {
    * Delete a document (soft delete by marking as deleted)
    */
   delete: protectedProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.uuid() }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.session?.user?.id) {
         throw new TRPCError({
@@ -371,7 +390,7 @@ export const documentsRouter = {
   processServerOcr: protectedProcedure
     .input(
       z.object({
-        documentId: z.string().uuid(),
+        documentId: z.uuid(),
         base64Image: z.string().min(1),
       }),
     )
@@ -395,21 +414,23 @@ export const documentsRouter = {
         });
       }
 
-      const { performOcr } = await import("../services/ocr");
       const { extractTestsFromText } = await import("../services/extraction");
 
       // convert base64 to buffer
       const buffer = Buffer.from(input.base64Image, "base64");
       
       // perform OCR
-      const ocrResult = await performOcr(buffer);
+      const { performOcrWithFallback } = await import("../services/ocr");
+      const { result: ocrResult, audit } = await performOcrWithFallback(buffer);
 
       // save OCR result to document
       await ctx.db
         .update(document)
         .set({
           ocrText: ocrResult.text,
-          confidence: ocrResult.confidence.toString(),
+          confidence: ocrResult.confidence.toFixed(2),
+          ocrSource: ocrResult.source,
+          ocrAudit: audit,
           status: "analyzed",
         })
         .where(eq(document.id, input.documentId));
