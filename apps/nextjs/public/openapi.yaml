@@ -1003,6 +1003,22 @@ paths:
     post:
       summary: Update doctor profile
       description: Updates the signed-in doctor's profile fields and available session types.
+  /api/trpc/doctor.createAvailability:
+    post:
+      summary: Create doctor availability
+      description: Creates an availability timeslot for the signed-in doctor's profile. Protected endpoint.
+  /api/trpc/doctor.listAvailability:
+    post:
+      summary: List doctor availability
+      description: Lists availability timeslots for a given doctor id.
+  /api/trpc/doctor.updateAvailability:
+    post:
+      summary: Update doctor availability
+      description: Updates an existing availability timeslot. Protected - owner only.
+  /api/trpc/doctor.deleteAvailability:
+    post:
+      summary: Delete doctor availability
+      description: Deletes an availability timeslot. Protected - owner only.
   /api/trpc/admin.togglePrcVerification:
     post:
       summary: Toggle PRC verification

@@ -6,6 +6,7 @@ import {
   booking,
   document,
   doctor,
+  doctorAvailability,
   facility,
   payment,
   user,
@@ -55,6 +56,24 @@ async function seed() {
     availableSessionTypes: ["chat_consult", "video_consult", "async_review"],
     isActive: true,
   });
+
+  // Seed sample availability for the seeded doctor
+  await db.insert(doctorAvailability).values([
+    {
+      id: randomUUID(),
+      doctorId,
+      dayOfWeek: "Monday",
+      startTime: "09:00:00",
+      endTime: "12:00:00",
+    },
+    {
+      id: randomUUID(),
+      doctorId,
+      dayOfWeek: "Wednesday",
+      startTime: "13:00:00",
+      endTime: "17:00:00",
+    },
+  ]);
 
   await db.insert(facility).values([
     {

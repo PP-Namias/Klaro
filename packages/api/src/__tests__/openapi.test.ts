@@ -36,6 +36,10 @@ describe("OpenAPI spec", () => {
     assert.ok(spec.includes("/api/trpc/doctor.getDoctorById"));
     assert.ok(spec.includes("/api/trpc/doctor.createDoctor"));
     assert.ok(spec.includes("/api/trpc/doctor.updateDoctor"));
+    assert.ok(spec.includes("/api/trpc/doctor.createAvailability"));
+    assert.ok(spec.includes("/api/trpc/doctor.listAvailability"));
+    assert.ok(spec.includes("/api/trpc/doctor.updateAvailability"));
+    assert.ok(spec.includes("/api/trpc/doctor.deleteAvailability"));
     assert.ok(spec.includes("/api/trpc/admin.togglePrcVerification"));
     assert.ok(spec.includes("/api/trpc/facilities.list"));
     assert.ok(spec.includes("/api/trpc/facilities.searchNearby"));
