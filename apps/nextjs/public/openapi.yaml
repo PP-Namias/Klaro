@@ -659,6 +659,132 @@ paths:
                   error:
                     type: string
                     example: "Analysis record not found"
+  /api/trpc/documents.generateAnalysis:
+    post:
+      summary: Generate plain-language analysis (LLM)
+      description: Generates plain-language medical explanations, questions to ask doctor, and severity scores using LLM service. Requires extraction to be complete.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                documentId:
+                  type: string
+                  format: uuid
+                  description: Document ID with extracted tests
+                dialect:
+                  type: string
+                  enum: [Filipino, Bisaya, Ilocano]
+                  default: Filipino
+                  description: Target dialect for explanations
+              required:
+                - documentId
+      responses:
+        '200':
+          description: Analysis generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  analysisId:
+                    type: string
+                    format: uuid
+                  summary:
+                    type: string
+                    description: Plain-language summary of results (max 500 chars, grade 8 reading level)
+                    example: "Maganda! Ang lahat ng results ay normal."
+                  tests:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "White Blood Cell Count"
+                        value:
+                          type: string
+                          example: "7.5 K/uL"
+                        interpretation:
+                          type: string
+                          description: Plain-language interpretation
+                        recommendation:
+                          type: string
+                          description: Suggested action if abnormal
+                  tanqmoCard:
+                    type: object
+                    description: "Itatanong Mo Sa Doktor (Questions to Ask Doctor) card"
+                    properties:
+                      title:
+                        type: string
+                        example: "Itatanong Mo Sa Doktor"
+                      questions:
+                        type: array
+                        items:
+                          type: string
+                          maxLength: 100
+                        minItems: 1
+                        maxItems: 5
+                        example: ["Bakit mataas ang aking leukocytes?", "Kailangan ko ba ng gamot?"]
+                      severity:
+                        type: string
+                        enum: [LOW, MODERATE, HIGH]
+                        example: "MODERATE"
+                      disclaimer:
+                        type: string
+                        description: Safety disclaimer (shown if severity is HIGH)
+                        example: "⚠️ May abnormal na resulta. Dapat makita ang doktor."
+                      bookingCta:
+                        type: string
+                        description: Call-to-action for booking (shown if severity is HIGH)
+                        example: "📞 Mag-book ng appointment sa doktor ngayon"
+                  severity:
+                    type: string
+                    enum: [LOW, MODERATE, HIGH]
+                    description: Overall severity assessment
+                    example: "MODERATE"
+                  dialect:
+                    type: string
+                    enum: [Filipino, Bisaya, Ilocano]
+                    example: "Filipino"
+        '400':
+          description: Bad request (extraction not complete)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Document must be extracted before analysis can be generated"
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+        '403':
+          description: Forbidden (no access to document)
+        '404':
+          description: Not found (document or analysis record not found)
+        '500':
+          description: Internal server error (LLM API call failed)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to generate analysis: API rate limit exceeded"
 components:
   securitySchemes:
     BearerAuth:
