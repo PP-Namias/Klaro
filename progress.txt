@@ -33,6 +33,11 @@ Immediate next steps (first 48 hours)
 - Added `docs/API_ROUTES.md` for copy-paste route guidance
 - Validation: `pnpm exec tsx --test ..\\api\\src\\router\\__tests__\\auth.test.ts ..\\api\\src\\router\\__tests__\\documents.test.ts ..\\api\\src\\router\\__tests__\\facilities.test.ts ..\\api\\src\\__tests__\\openapi.test.ts` from `packages/db` (33/33 passing)
 
+2026-05-06 - VERCEL AUTOMATION STARTED
+- Added `.github/workflows/vercel-deploy.yml` to deploy the single `apps/nextjs` project to Vercel on push to `main`
+- Reworked `docs/DEPLOYMENT_GUIDE.md` and `docs/DEPLOYMENT_CHECKLIST.md` to describe the one-deployment flow for frontend + backend API
+- Next step: configure `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` in GitHub secrets, then push to `main` to deploy automatically
+
 
 Progress log
 ------------
