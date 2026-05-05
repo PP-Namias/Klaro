@@ -12,6 +12,71 @@ import { protectedProcedure } from "../trpc";
 import { assembleDocumentContext } from "../services/contextAssembler";
 import { callLLMAPI } from "../services/llm";
 
+type ChatSeverity = "LOW" | "MODERATE" | "HIGH";
+
+type ChatSafety = {
+  severity: ChatSeverity;
+  disclaimer?: string;
+  bookingSuggestion?: string;
+  suggestedActions: string[];
+};
+
+const getChatSeverity = (docAnalysis: {
+  tanqmoCard?: unknown;
+  flaggedValues?: unknown;
+}): ChatSeverity => {
+  const tanqmoCard = docAnalysis.tanqmoCard;
+
+  if (
+    tanqmoCard &&
+    typeof tanqmoCard === "object" &&
+    "severity" in tanqmoCard &&
+    typeof tanqmoCard.severity === "string"
+  ) {
+    const severity = tanqmoCard.severity.toUpperCase();
+    if (severity === "HIGH" || severity === "MODERATE" || severity === "LOW") {
+      return severity;
+    }
+  }
+
+  if (Array.isArray(docAnalysis.flaggedValues) && docAnalysis.flaggedValues.length > 0) {
+    return docAnalysis.flaggedValues.length >= 2 ? "HIGH" : "MODERATE";
+  }
+
+  return "LOW";
+};
+
+const buildChatSafety = (docAnalysis: {
+  tanqmoCard?: unknown;
+  flaggedValues?: unknown;
+}): ChatSafety => {
+  const severity = getChatSeverity(docAnalysis);
+
+  if (severity === "HIGH") {
+    return {
+      severity,
+      disclaimer:
+        "⚠️ Ang ilang resulta ay hindi normal. Mag-book ng appointment sa doktor sa lalong madaling panahon.",
+      bookingSuggestion: "📞 Mag-book ng appointment sa doktor ngayon",
+      suggestedActions: ["bookAppointment"],
+    };
+  }
+
+  if (severity === "MODERATE") {
+    return {
+      severity,
+      disclaimer:
+        "May ilang resulta na lumalabas sa normal na saklaw. Mas mabuting magpatingin sa doktor.",
+      suggestedActions: ["scheduleCheckup"],
+    };
+  }
+
+  return {
+    severity,
+    suggestedActions: ["continueChat"],
+  };
+};
+
 export const chatRouter = {
   /**
    * Send a chat message about a document analysis
@@ -24,26 +89,32 @@ export const chatRouter = {
         dialect: z.enum(["Filipino", "Bisaya", "Ilocano"]).default("Filipino"),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "User must be authenticated",
-        });
-      }
-
-      // Verify analysis exists and belongs to user
-      const [doc_analysis] = await ctx.db
+    .use(async ({ ctx, input, next }) => {
+      const [docAnalysis] = await ctx.db
         .select()
         .from(analysis)
         .where(eq(analysis.id, input.analysisId));
 
-      if (!doc_analysis || doc_analysis.userId !== ctx.session.user.id) {
+      if (!docAnalysis || docAnalysis.userId !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have access to this analysis",
         });
       }
+
+      return next({
+        ctx: {
+          ...ctx,
+          chatSafety: buildChatSafety(docAnalysis),
+          chatAnalysis: docAnalysis,
+        },
+      });
+    })
+    .mutation(async ({ ctx, input }) => {
+      const docAnalysis = ctx.chatAnalysis as {
+        extractedFields?: Record<string, unknown> | null;
+        plainLanguageSummary?: string | null;
+      };
 
       // Save user message
       await ctx.db.insert(chatMessage).values({
@@ -71,17 +142,22 @@ export const chatRouter = {
       // Assemble context from analysis + recent messages
       const context = assembleDocumentContext(
         {
-          extractedFields: doc_analysis.extractedFields as Record<
+          extractedFields: docAnalysis.extractedFields as Record<
             string,
             unknown
           > | null,
-          plainLanguageSummary: doc_analysis.plainLanguageSummary,
+          plainLanguageSummary: docAnalysis.plainLanguageSummary,
         },
         recentMessages,
       );
 
-      const systemPrompt = `You are a helpful health assistant. Keep responses brief, supportive, and ask one follow-up question when appropriate.`;
-      const prompt = `Context:\n${context}\n\nUser message:\n${input.content}\n\nRespond briefly and include one follow-up question.`;
+      const systemPrompt = `You are a helpful health assistant. Keep responses brief, supportive, and ask one follow-up question when appropriate. If safety guidance is present, include it before any other advice.`;
+      const safetyPrefix = ctx.chatSafety?.severity === "HIGH" && ctx.chatSafety.bookingSuggestion
+        ? `${ctx.chatSafety.disclaimer}\n${ctx.chatSafety.bookingSuggestion}\n\n`
+        : ctx.chatSafety?.disclaimer
+          ? `${ctx.chatSafety.disclaimer}\n\n`
+          : "";
+      const prompt = `Context:\n${context}\n\nSafety guidance:\n${ctx.chatSafety?.severity ?? "LOW"}\n\nUser message:\n${input.content}\n\nRespond briefly and include one follow-up question.`;
 
       // Call LLM (falls back to empty string if API key not configured)
       let llmOutput = "";
@@ -93,7 +169,7 @@ export const chatRouter = {
       }
 
       // Fallback if LLM not configured
-      const assistantContent = llmOutput || `${doc_analysis.plainLanguageSummary || "I reviewed your results."}\n\nFollow-up: Can you tell me if you have any new symptoms or concerns?`;
+      const assistantContent = `${safetyPrefix}${llmOutput || `${docAnalysis.plainLanguageSummary || "I reviewed your results."}\n\nFollow-up: Can you tell me if you have any new symptoms or concerns?`}`;
 
       const assistantMessage = {
         role: "assistant",
@@ -117,6 +193,8 @@ export const chatRouter = {
           dialect: input.dialect,
         },
         assistantMessage,
+        suggestedActions: ctx.chatSafety?.suggestedActions ?? [],
+        safety: ctx.chatSafety,
       };
     }),
 

@@ -1568,7 +1568,8 @@
           "title": "Add safety middleware (severity-based)",
           "owner": "AI Lead",
           "estimate": "1d",
-          "acceptance": "High severity → auto-add booking suggestion; blocked queries logged"
+          "acceptance": "High severity → auto-add booking suggestion; blocked queries logged",
+          "status": "done"
         },
         {
           "id": "KL-CHAT-001-d",

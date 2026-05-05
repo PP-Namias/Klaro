@@ -788,7 +788,7 @@ paths:
   /api/trpc/chat.sendMessage:
     post:
       summary: Send a chat message about an analysis
-      description: Creates a user message, assembles recent document context, and returns an assistant response with a follow-up question.
+      description: Creates a user message, assembles recent document context, and returns an assistant response with a follow-up question. High-severity analyses prepend safety guidance and a booking suggestion.
       security:
         - BearerAuth: []
       requestBody:
@@ -846,6 +846,21 @@ paths:
                       dialect:
                         type: string
                         enum: [Filipino, Bisaya, Ilocano]
+                  suggestedActions:
+                    type: array
+                    items:
+                      type: string
+                    example: ["continueChat"]
+                  safety:
+                    type: object
+                    properties:
+                      severity:
+                        type: string
+                        enum: [LOW, MODERATE, HIGH]
+                      disclaimer:
+                        type: string
+                      bookingSuggestion:
+                        type: string
               examples:
                 default:
                   value:
@@ -857,6 +872,10 @@ paths:
                       role: assistant
                       content: "Mukhang normal ang karamihan ng resulta mo. May nararamdaman ka bang iba?"
                       dialect: Filipino
+                    suggestedActions:
+                      - continueChat
+                    safety:
+                      severity: LOW
         '400':
           description: Validation error
           content:
