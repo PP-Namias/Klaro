@@ -7,11 +7,7 @@ import { analysis, document } from "@klaro/db/schema";
 import type { ExtractedTest } from "@klaro/validators/extraction";
 
 import { protectedProcedure } from "../trpc";
-import {
-  buildOcrAudit,
-  buildOcrResult,
-  getOcrConfidenceThreshold,
-} from "../services/ocr";
+import { buildOcrResult } from "../services/ocr";
 import { extractTestsFromText } from "../services/extraction";
 import { generatePlainLanguageExplanation } from "../services/llm";
 
@@ -118,14 +114,6 @@ export const documentsRouter = {
         text: input.ocrText,
         blocks: input.blocks,
         source: input.source,
-      });
-
-      const audit = buildOcrAudit({
-        local: result.source === "local" ? result : undefined,
-        cloud: result.source === "cloud" ? result : undefined,
-        selected: result,
-        usedCloudFallback: result.source === "cloud",
-        threshold: getOcrConfidenceThreshold(),
       });
 
       const updatePayload: Partial<typeof document.$inferInsert> = {
@@ -418,10 +406,10 @@ export const documentsRouter = {
 
       // convert base64 to buffer
       const buffer = Buffer.from(input.base64Image, "base64");
-      
+
       // perform OCR
-      const { performOcrWithFallback } = await import("../services/ocr");
-      const { result: ocrResult, audit } = await performOcrWithFallback(buffer);
+      const { performOcr } = await import("../services/ocr");
+      const ocrResult = await performOcr(buffer);
 
       // save OCR result to document
       await ctx.db
