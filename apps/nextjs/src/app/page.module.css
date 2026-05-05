@@ -1,3 +1,5 @@
+@reference "../styles/globals.css";
+
 .landing {
   position: relative;
   min-height: 100vh;
@@ -41,7 +43,7 @@
   width: min(100%, 1220px);
   flex-direction: column;
   gap: 2.5rem;
-  padding: 1.5rem;
+  padding: 1.5rem 4rem;
 }
 
 .landing__nav {
@@ -137,6 +139,7 @@
 }
 
 .landing__title {
+  font-family: var(--font-cormorant);
   max-width: 10ch;
   font-size: clamp(3.5rem, 8vw, 6.4rem);
   font-weight: 600;
@@ -245,8 +248,7 @@
 }
 
 .landing__resultTitle {
-  font-size: 1.4rem;
-  font-weight: 600;
+  @apply section-header;
   letter-spacing: -0.04em;
 }
 
@@ -318,8 +320,7 @@
 }
 
 .landing__featureTitle {
-  font-size: 1.05rem;
-  font-weight: 600;
+  @apply section-header;
 }
 
 .landing__featureBody {
