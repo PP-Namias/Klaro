@@ -11,31 +11,28 @@ Maintain a scalable and predictable monorepo structure using Turborepo and featu
 ## Tech Stack
 
 - **Monorepo**: Turborepo
-- **Package Manager**: Bun
-- **Frontend**: SvelteKit (v5 Runes)
-- **3D Engine**: Threlte / Three.js
-- **CMS**: Sanity (apps/studio)
-- **Animations**: GSAP (GreenSock)
-- **Styling**: Tailwind CSS + Vanilla CSS (BEM)
-- **Tooling**: ESLint, Stylelint, Prettier, TypeScript
+- **Package Manager**: pnpm
+- **Frontend (Web)**: Next.js (App Router)
+- **Frontend (Mobile)**: Expo / React Native
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: Better-Auth
+- **Styling**: Tailwind CSS + CSS Modules
+- **Tooling**: ESLint, Prettier, TypeScript, tRPC
 
 ## Project Tree
 
 ```text
 .
 ├── apps/
-│   ├── studio/          # Sanity CMS management
-│   └── web/             # SvelteKit + Threlte frontend
-│       ├── src/
-│       │   ├── lib/
-│       │   │   ├── components/  # Feature-based components
-│       │   │   ├── layouts/     # Page layouts
-│       │   │   └── styles/      # Design tokens (BEM/CSS Variables)
-│       │   └── routes/          # SvelteKit routing
+│   ├── nextjs/          # Next.js web application
+│   ├── expo/            # Expo mobile application
+│   └── tanstack-start/  # Experimental web application
 ├── packages/
-│   ├── eslint-config/   # Shared linting rules
-│   ├── stylelint-config/# Shared CSS styling rules
-│   └── typescript-config/# Shared TS configurations
+│   ├── api/             # Shared API routers & logic
+│   ├── auth/            # Better-Auth configuration
+│   ├── db/              # Drizzle schemas & connection
+│   ├── ui/              # Shared UI components (Tailwind + Radix)
+│   └── validators/      # Shared Zod schemas
 ├── .agent/              # Agent skills, rules, and workflows
 ├── turbo.json           # Turborepo pipeline config
 └── package.json         # Root dependencies and workspace scripts
@@ -44,23 +41,23 @@ Maintain a scalable and predictable monorepo structure using Turborepo and featu
 ## Rules
 
 - MUST follow the monorepo structure above.
-- MUST use feature-based structure within apps (e.g., `lib/features/`).
-- MUST NOT import across features directly; use a public API or bridge.
-- MUST isolate business logic/state from the UI components.
+- MUST use feature-based isolation (e.g., in `apps/nextjs/src/app/_components`).
+- MUST NOT import across features directly; use public APIs or shared packages.
+- MUST isolate business logic/state from UI components.
 
 ## Guidelines
 
-- Prefer modular and composable design.
 - Keep shared logic in `packages/` if used by multiple apps.
-- Use Sanity for content-driven data and Svelte for presentation.
+- Use `packages/db` for all database interactions to ensure consistency.
+- Prefer modular and composable design for UI components in `packages/ui`.
 
 ## Checks
 
 - No circular dependencies between packages.
-- Clear separation between UI and Data Fetching logic.
+- Clear separation between UI and Data Fetching logic (e.g., tRPC/Server Actions).
 
 ## Anti-patterns
 
 - Shared global state without boundaries.
-- Logic inside Svelte components that should be in a store or utility.
-- Hardcoding content that should be in Sanity.
+- Hardcoding sensitive environment variables (use the env validation system).
+- Duplicating business logic across apps instead of using `packages/`.

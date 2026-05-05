@@ -6,23 +6,28 @@ trigger: always_on
 
 ## The Why
 
-**Ego Ipse** is a premium, high-fidelity personal portfolio and identity platform designed to showcase projects through an organic and interactive web experience. The project emphasizes visual excellence, fluid motion, and a deeply technical design language, moving away from generic web aesthetics toward a more sophisticated, curated digital presence.
+**Klaro** is a premium health-tech platform designed for medical document processing and lab result extraction. It focuses on providing clarity and technical precision to health data through an integrated web and mobile experience. The project emphasizes visual excellence, data integrity, and a professional, high-fidelity user interface.
 
 ## The System
 
 - **Apps**:
-  - `/apps/web`: A SvelteKit + Threlte (Three.js) frontend for the main interactive experience.
-  - `/apps/studio`: A Sanity Studio instance for content management.
+  - `/apps/nextjs`: The main Next.js web application for result management and document processing.
+  - `/apps/expo`: The mobile application built with Expo for on-the-go health tracking.
+  - `/apps/tanstack-start`: Experimental web implementation using TanStack Start.
 - **Packages**:
-  - Centralized configurations for ESLint, Stylelint, and TypeScript to ensure monorepo consistency.
-- **Infrastructure**: Powered by Turborepo and Bun for fast, efficient build pipelines.
+  - `packages/api`: Shared API logic and tRPC routers.
+  - `packages/auth`: Centralized authentication handling with Better-Auth.
+  - `packages/db`: Drizzle ORM schemas and database client.
+  - `packages/ui`: Shared UI component library using Tailwind CSS and Radix UI.
+  - `packages/validators`: Shared Zod validation schemas.
+- **Infrastructure**: Powered by Turborepo and pnpm for fast, efficient monorepo management.
 
 ## Decision Making Context
 
-Every technical decision should support the "Premium" nature of the project. If a change compromises the visual fidelity or the "organic" feel of the interactions, it must be reconsidered. Performance is critical, but never at the expense of necessary high-fidelity animations (leveraging GSAP and Threlte).
+Technical decisions should prioritize reliability, performance, and the professional nature of medical data management. Every UI change must maintain high visual fidelity and a clean, technical aesthetic. Security and data privacy are paramount.
 
 ## Awareness Rules
 
-- MUST be aware that changes in `packages/` affect the entire monorepo.
-- MUST keep Sanity schemas in sync with SvelteKit data fetching.
-- MUST maintain the "Thin Geist" aesthetic (200 weight, 0.34% tracking) across all new UI.
+- MUST be aware that changes in `packages/` affect multiple applications (Web, Mobile).
+- MUST keep database schemas in sync with API and UI requirements.
+- MUST maintain a clean, professional aesthetic across all new UI components.
