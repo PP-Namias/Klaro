@@ -85,17 +85,16 @@ overrides:
 importers:
 
   .:
-    dependencies:
+    devDependencies:
+      '@klaro/prettier-config':
+        specifier: workspace:*
+        version: link:tooling/prettier
       '@supabase/ssr':
         specifier: ^0.10.2
         version: 0.10.2(@supabase/supabase-js@2.105.1(bufferutil@4.0.8)(utf-8-validate@6.0.4))
       '@supabase/supabase-js':
         specifier: ^2.105.1
         version: 2.105.1(bufferutil@4.0.8)(utf-8-validate@6.0.4)
-    devDependencies:
-      '@klaro/prettier-config':
-        specifier: workspace:*
-        version: link:tooling/prettier
       '@turbo/gen':
         specifier: ^2.5.8
         version: 2.5.8(@types/node@24.9.1)(typescript@5.9.3)
@@ -105,6 +104,9 @@ importers:
       dotenv-cli:
         specifier: ^10.0.0
         version: 10.0.0
+      jiti:
+        specifier: ^2.6.1
+        version: 2.6.1
       prettier:
         specifier: 'catalog:'
         version: 3.6.2
@@ -342,7 +344,7 @@ importers:
         specifier: 'catalog:'
         version: 9.38.0(jiti@2.6.1)
       jiti:
-        specifier: ^2.5.1
+        specifier: ^2.6.1
         version: 2.6.1
       prettier:
         specifier: 'catalog:'
