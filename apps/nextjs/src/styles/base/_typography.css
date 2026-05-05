@@ -1,0 +1,34 @@
+@theme {
+  --tracking-normal: -0.0034em;
+
+  /* Text Styles — size & line-height only */
+  --text-hero-title: 4.4rem;
+  --text-hero-title--line-height: 1.02;
+
+  --text-hero-subheading: 2.3rem;
+  --text-hero-subheading--line-height: 1.2;
+
+  --text-hero-subtitle: 1.20rem;
+  --text-hero-subtitle--line-height: 1.3;
+
+  --text-button: 1rem;
+}
+
+@utility section-header {
+  font-family: var(--font-cormorant);
+  font-weight: 400;
+  font-size: 2.8rem;
+}
+
+@utility card-title {
+  font-family: var(--font-cormorant);
+  font-weight: 500;
+  font-size: 1.8rem;
+  line-height: 1.2;
+}
+
+@utility card-description {
+  font-family: var(--font-geist);
+  font-size: 1.1rem;
+  line-height: 1.4;
+}

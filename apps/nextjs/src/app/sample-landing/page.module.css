@@ -1,17 +1,18 @@
+@reference "../../styles/globals.css";
+
 .page {
   background-color: #f9fafb;
   min-height: 100vh;
-  padding-top: 0.125rem;
-  font-family: sans-serif;
+  padding-top: 0;
 }
 
 .main {
-  max-width: 1610px;
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 3rem;
-  padding: 0 2rem;
+  padding: 0 4rem;
 }
 
 .section {
@@ -23,31 +24,29 @@
 
 /* Titles */
 .title {
+  @apply section-header;
   width: max-content;
   height: max-content;
   /* background-color: #4b5563; */
   color: #000000;
-  padding: 0;
-  font-size: 2.70rem;
   letter-spacing: 0px;
   margin: 0;
 }
 
 .titleSection2 {
+  @apply section-header;
   text-align: center;
   width: 100%;
   color: #000000;
-  padding: 0;
-  font-size: 2.80rem;
   letter-spacing: 0px;
   margin: 0 0 3rem 0;
 }
 
 .titleCenter {
+  @apply section-header;
   text-align: center;
   width: 100%;
   color: #000000;
-  font-size: 2.80rem;
   letter-spacing: 0px;
   margin: 6rem 0 3rem 0;
 }
@@ -56,7 +55,7 @@
 .grid3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 3rem;
+  gap: 1.5rem;
 }
 
 .grid2 {
@@ -92,10 +91,11 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 1.5rem;
   border-radius: 24px;
-  padding: 2rem;
-  border: 1px solid #dedede;
+  padding: 1.5rem;
+  border: 1px solid #eeeeee;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.06);
   min-height: 400px;
 }
 
@@ -107,26 +107,30 @@
 
 .cardImagePlaceholder {
   width: 100%;
-  min-height: 250px;
-  background-color: #f3f4f6;
-  border-radius: 8px;
+  min-height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
-  font-weight: bold;
+  overflow: hidden;
+}
+
+.clarityImage {
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.cardMedium:hover .clarityImage {
+  transform: scale(1.05);
 }
 
 .cardTitle {
-  color: #374151;
-  font-size: 28px;
-  font-weight: 500;
+  @apply card-title;
+  color: #000000;
   margin: 0;
 }
 
 .cardBody {
-  font-size: 1.40rem;
-  line-height: 1.3;
+  @apply card-description;
   color: #8C8C8C;
   margin: 0;
 }
@@ -369,9 +373,8 @@
 
 /* --- New Layout Classes for Sections 2 & 3 --- */
 .cardTitleDark {
+  @apply section-header;
   color: #000000;
-  font-size: 1.75rem;
-  font-weight: 600;
   margin: 0;
 }
 
@@ -538,8 +541,8 @@
 /* --- Layout Classes for Sections 4 & 5 --- */
 
 .titleLeft {
+  @apply section-header;
   color: #000000;
-  font-size: 2.80rem;
   letter-spacing: 0px;
   margin: 0 0 3rem 0;
   text-align: left;
@@ -561,8 +564,7 @@
 }
 
 .secureTitle {
-  font-size: 2.5rem;
-  font-weight: 600;
+  @apply section-header;
   color: #000000;
   margin: 0;
 }
@@ -677,6 +679,190 @@
 }
 
 .titleCenterCta {
+  @apply section-header;
+  color: #000000;
+  letter-spacing: 0px;
+  margin: 0 0 3rem 0;
+}
+
+.ctaImageLarge {
+  width: 400px;
+  height: 400px;
+  background-color: #e5e5e5;
+  border-radius: 24px;
+  margin-bottom: 3rem;
+}
+
+.ctaSubtitle {
+  font-size: 1.25rem;
+  color: #000;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0 0 2rem 0;
+}
+
+.ctaButtonContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+
+
+/* --- Layout Classes for Footer --- */
+.footerFinal {
+  background-color: #f3f4f6;
+  width: 100%;
+  padding: 4rem 2rem;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+.footerContentFinal {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  min-height: 250px;
+}
+
+.footerLeft {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.footerLogoPlaceholder {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #000;
+  display: flex;
+  align-items: center;
+}
+
+.footerCopyright {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 500;
+}
+
+.footerRight {
+  display: flex;
+  flex-direction: row;
+  gap: 6rem;
+  position: relative;
+}
+
+.footerLinkGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.footerLinkGroup h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin: 0 0 0.5rem 0;
+}
+
+.footerLinkGroup a {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footerSocials {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.testimonialContent {
+  display: flex;
+  flex-direction: column;
+  width: 55%;
+  gap: 2rem;
+}
+
+.testimonialName {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #000;
+  margin: 0;
+  margin-bottom: 0.25rem;
+}
+
+.testimonialRole {
+  font-size: 1rem;
+  color: #8C8C8C;
+  margin: 0;
+}
+
+.testimonialQuote {
+  font-size: 1.75rem;
+  color: #374151;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.testimonialImageWide {
+  width: 40%;
+  background-color: #e5e5e5;
+  border-radius: 16px;
+}
+
+.cardTestimonialTall {
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  border-radius: 24px;
+  padding: 2rem;
+  border: 1px solid #dedede;
+  justify-content: space-between;
+  min-height: 400px;
+}
+
+.testimonialHeader {
+  display: flex;
+  flex-direction: column;
+}
+
+.testimonialQuoteSmall {
+  font-size: 1.15rem;
+  color: #000;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.testimonialImageSmall {
+  width: 100%;
+  min-height: 250px;
+  background-color: #e5e5e5;
+  border-radius: 16px;
+  margin-top: auto;
+}
+
+/* --- Layout Classes for Section 6 (CTA) --- */
+.sectionCtaFinal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 6rem;
+  margin-bottom: 6rem;
+}
+
+.titleCenterCta {
   color: #000000;
   font-size: 3rem;
   letter-spacing: 0px;
@@ -705,35 +891,6 @@
   flex-direction: row;
   gap: 1rem;
   margin-bottom: 2rem;
-}
-
-.btnBlack {
-  background-color: #000000;
-  color: #ffffff;
-  padding: 0.75rem 2rem;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 1rem;
-  border: none;
-  cursor: pointer;
-}
-
-.btnOutline {
-  background-color: transparent;
-  color: #000000;
-  padding: 0.75rem 2rem;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 1rem;
-  border: 1px solid #d1d5db;
-  cursor: pointer;
-}
-
-.ctaSmallText {
-  font-size: 1rem;
-  color: #6b7280;
-  font-weight: 400;
-  margin: 0;
 }
 
 /* --- Layout Classes for Footer --- */
@@ -828,74 +985,112 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 3rem;
+  padding: 1.5rem 4rem;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
 }
 
 .headerLogo {
-  font-size: 1.5rem;
+  font-family: var(--font-cormorant);
+  font-size: 1.8rem;
   font-weight: 600;
   display: flex;
   align-items: center;
-  color: #000;
+  color: #ffffff;
 }
 
 .headerLinks {
   display: flex;
   align-items: center;
-  gap: 2.5rem;
+  gap: 1.8rem;
 }
 
 .headerLink {
-  color: #374151;
+  color: #ffffff;
   text-decoration: none;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .headerBtn {
-  background-color: #000;
-  color: #fff;
-  padding: 0.6rem 1.2rem;
+  font-size: var(--text-button);
+  background-color: #ffffff;
+  color: #000000;
+  padding: 0.4rem 1.2rem;
   border-radius: 6px;
   border: none;
-  font-weight: 600;
   cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .heroMask {
+    top: 220px;
+    right: 50%;
+    transform: translateX(50%);
+    width: 280px;
+    height: 280px;
+    opacity: 0.65;
+  }
+
+  .heroContent {
+    margin-bottom: 2.5rem;
+  }
 }
 
 .heroSection {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 4rem;
+  padding-bottom: 3.6rem;
+  padding-top: 10rem;
   width: 100%;
   position: relative;
+  border-bottom: 1px solid #cfcfcfff;
 }
 
 .heroContent {
   text-align: center;
   margin-bottom: 4rem;
+  position: relative;
+  z-index: 2;
 }
 
 .heroTitle {
-  font-size: 4.5rem;
-  color: #000;
+  font-family: var(--font-cormorant);
+  font-size: var(--text-hero-title);
+  line-height: var(--text-hero-title--line-height);
   font-weight: 400;
-  line-height: 1.1;
-  margin: 0 0 1.5rem 0;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
 }
 
-.heroTitleItalic {
+.heroSubheading {
+  font-family: var(--font-cormorant);
+  font-size: var(--text-hero-subheading);
+  line-height: var(--text-hero-subheading--line-height);
+  font-weight: 400;
   font-style: italic;
+  color: #ffffff;
+  margin-bottom: 0.8rem;
 }
 
 .heroSubtitle {
-  font-size: 1.5rem;
-  color: #6b7280;
-  margin: 0 0 2.5rem 0;
-  line-height: 1.4;
+  font-size: var(--text-hero-subtitle);
+  line-height: var(--text-hero-subtitle--line-height);
+  font-family: var(--font-geist);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 2rem 0;
 }
 
 .heroButtons {
@@ -904,32 +1099,30 @@
   gap: 1rem;
 }
 
-.scannerWrapper {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  position: relative;
-  padding: 2rem;
+.btnBlack {
+  font-size: var(--text-button);
+  background-color: #000000;
+  color: #ffffff;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.scannerWrapper::before {
-  content: "";
-  position: absolute;
-  bottom: -50px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 500px;
-  background: radial-gradient(circle, rgba(255,200,225,0.4) 0%, rgba(255,255,255,0) 70%);
-  z-index: -1;
-  border-radius: 50%;
-}
-
-.scannerImagePlaceholder {
-  width: 100%;
-  height: 600px;
+.btnOutline {
+  font-size: var(--text-button);
   background-color: #ffffff;
-  border-radius: 32px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f3f4f6;
+  color: #000000;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0ff;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
