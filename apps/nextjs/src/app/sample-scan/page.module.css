@@ -1,0 +1,28 @@
+@reference "../../styles/globals.css";
+
+.canvas {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f6f5f2;
+  padding: 2rem;
+}
+
+.canvasInner {
+  width: min(1200px, 100%);
+  min-height: 70vh;
+  border: 1px dashed #c7c1b8;
+  border-radius: 24px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.canvasLabel {
+  font-size: 1.1rem;
+  color: #6b5f54;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
