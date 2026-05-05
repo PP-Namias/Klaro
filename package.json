@@ -15,6 +15,7 @@
     "db:studio": "turbo -F @klaro/db studio",
     "dev": "turbo watch dev --continue",
     "dev:next": "turbo watch dev -F @klaro/nextjs...",
+    "dev:next:no-env": "cross-env SKIP_ENV_VALIDATION=true turbo watch dev -F @klaro/nextjs...",
     "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",
     "format:fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
     "lint": "turbo run lint --continue -- --cache --cache-location .cache/.eslintcache",
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@klaro/prettier-config": "workspace:*",
     "@turbo/gen": "^2.5.8",
+    "cross-env": "^10.1.0",
     "dotenv-cli": "^10.0.0",
     "prettier": "catalog:",
     "turbo": "^2.5.8",

@@ -6,11 +6,7 @@ import { z } from "zod/v4";
 import { analysis, document } from "@klaro/db/schema";
 
 import { protectedProcedure } from "../trpc";
-import {
-  buildOcrAudit,
-  buildOcrResult,
-  getOcrConfidenceThreshold,
-} from "../services/ocr";
+import { buildOcrResult } from "../services/ocr";
 import { extractTestsFromText } from "../services/extraction";
 
 export const documentsRouter = {
@@ -118,19 +114,9 @@ export const documentsRouter = {
         source: input.source,
       });
 
-      const audit = buildOcrAudit({
-        local: result.source === "local" ? result : undefined,
-        cloud: result.source === "cloud" ? result : undefined,
-        selected: result,
-        usedCloudFallback: result.source === "cloud",
-        threshold: getOcrConfidenceThreshold(),
-      });
-
       const updatePayload: Partial<typeof document.$inferInsert> = {
         ocrText: result.text,
         status: "processing",
-        ocrSource: result.source,
-        ocrAudit: audit,
       };
 
       let resolvedConfidence = input.confidence;
@@ -226,14 +212,14 @@ export const documentsRouter = {
         .set({
           extractedFields,
           flaggedValues,
-          status: "extraction_complete",
+          status: "completed",
           errorMessage: null,
         })
         .where(eq(analysis.id, analysisRow.id));
 
       await ctx.db
         .update(document)
-        .set({ status: "extracted" })
+        .set({ status: "analyzed" })
         .where(eq(document.id, input.documentId));
 
       return {
@@ -418,10 +404,10 @@ export const documentsRouter = {
 
       // convert base64 to buffer
       const buffer = Buffer.from(input.base64Image, "base64");
-      
+
       // perform OCR
-      const { performOcrWithFallback } = await import("../services/ocr");
-      const { result: ocrResult, audit } = await performOcrWithFallback(buffer);
+      const { performOcr } = await import("../services/ocr");
+      const ocrResult = await performOcr(buffer);
 
       // save OCR result to document
       await ctx.db
@@ -429,15 +415,13 @@ export const documentsRouter = {
         .set({
           ocrText: ocrResult.text,
           confidence: ocrResult.confidence.toFixed(2),
-          ocrSource: ocrResult.source,
-          ocrAudit: audit,
           status: "analyzed",
         })
         .where(eq(document.id, input.documentId));
 
       // extract tests
       const tests = extractTestsFromText(ocrResult.text);
-      const flagged = tests.filter((t) => t.flag === "low" || t.flag === "high");
+      const flagged = tests.filter((t) => t.flagged);
 
       // update analysis
       await ctx.db
