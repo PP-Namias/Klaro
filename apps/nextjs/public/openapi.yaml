@@ -290,7 +290,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: File type not supported. Allowed: JPEG, PNG, WebP, PDF
+                    example: "File type not supported. Allowed: JPEG, PNG, WebP, PDF"
         '401':
           description: Unauthorized
           content:
@@ -785,6 +785,189 @@ paths:
                   error:
                     type: string
                     example: "Failed to generate analysis: API rate limit exceeded"
+  /api/trpc/chat.sendMessage:
+    post:
+      summary: Send a chat message about an analysis
+      description: Creates a user message, assembles recent document context, and returns an assistant response with a follow-up question.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                analysisId:
+                  type: string
+                  format: uuid
+                  description: Analysis record to chat about
+                content:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+                  example: "Ano ibig sabihin ng WBC ko?"
+                dialect:
+                  type: string
+                  enum: [Filipino, Bisaya, Ilocano]
+                  default: Filipino
+                  example: Filipino
+              required:
+                - analysisId
+                - content
+      responses:
+        '200':
+          description: Assistant response generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userMessage:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        example: user
+                      content:
+                        type: string
+                      dialect:
+                        type: string
+                        enum: [Filipino, Bisaya, Ilocano]
+                  assistantMessage:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        example: assistant
+                      content:
+                        type: string
+                        example: "Mukhang normal ang karamihan ng resulta mo. May nararamdaman ka bang iba?"
+                      dialect:
+                        type: string
+                        enum: [Filipino, Bisaya, Ilocano]
+              examples:
+                default:
+                  value:
+                    userMessage:
+                      role: user
+                      content: "Ano ibig sabihin ng WBC ko?"
+                      dialect: Filipino
+                    assistantMessage:
+                      role: assistant
+                      content: "Mukhang normal ang karamihan ng resulta mo. May nararamdaman ka bang iba?"
+                      dialect: Filipino
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "content must be at least 1 character"
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+        '403':
+          description: Forbidden - analysis owned by another user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Forbidden
+  /api/trpc/chat.getHistory:
+    post:
+      summary: Get chat history for an analysis
+      description: Returns the stored chat transcript for the authenticated user.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                analysisId:
+                  type: string
+                  format: uuid
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 200
+                  default: 50
+              required:
+                - analysisId
+      responses:
+        '200':
+          description: Chat messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    role:
+                      type: string
+                    content:
+                      type: string
+                    dialect:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+        '401':
+          description: Not authenticated
+        '403':
+          description: Forbidden - analysis owned by another user
+  /api/trpc/chat.clearHistory:
+    post:
+      summary: Clear chat history for an analysis
+      description: Deletes all stored chat messages for the authenticated user and analysis.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                analysisId:
+                  type: string
+                  format: uuid
+              required:
+                - analysisId
+      responses:
+        '200':
+          description: Chat history cleared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          description: Not authenticated
+        '403':
+          description: Forbidden - analysis owned by another user
 components:
   securitySchemes:
     BearerAuth:

@@ -29,5 +29,8 @@ describe("OpenAPI spec", () => {
     assert.ok(spec.includes("/api/trpc/documents.list"));
     assert.ok(spec.includes("/api/trpc/documents.setOcrResult"));
     assert.ok(spec.includes("/api/trpc/documents.processServerOcr"));
+    assert.ok(spec.includes("/api/trpc/chat.sendMessage"));
+    assert.ok(spec.includes("/api/trpc/chat.getHistory"));
+    assert.ok(spec.includes("/api/trpc/chat.clearHistory"));
   });
 });

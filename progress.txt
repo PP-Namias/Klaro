@@ -19,6 +19,7 @@ Immediate next steps (first 48 hours)
 5) Wire a mock doctor list, booking create API, and Stripe test payment
  
 2026-05-05 - KL-CHAT-001-a completed: added `packages/api/src/services/contextAssembler.ts` and integrated with `packages/api/src/router/chat.ts` to assemble context from analysis + recent messages. LLM call stubbed via `callLLMAPI`. Unit tests and OpenAPI sync pending. — AI Agent
+2026-05-05 - KL-CHAT-001-b completed: documented chat endpoints in `apps/nextjs/public/openapi.yaml` and added router coverage for success, validation, and auth boundaries in `packages/api/src/router/__tests__/chat.test.ts`. Typecheck hit unrelated pre-existing errors in `packages/api/src/__tests__/extraction.test.ts` and `packages/api/src/__tests__/llm.test.ts`; touched files are clean. — AI Agent
 
 Progress log
 ------------

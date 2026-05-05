@@ -1560,7 +1560,8 @@
           "title": "Implement tRPC chat endpoint",
           "owner": "Backend Engineer",
           "estimate": "1d",
-          "acceptance": "Endpoint accepts {documentId, message}; returns {response, followUp, suggestedActions}"
+          "acceptance": "Endpoint accepts {documentId, message}; returns {response, followUp, suggestedActions}",
+          "status": "done"
         },
         {
           "id": "KL-CHAT-001-c",

@@ -71,7 +71,10 @@ export const chatRouter = {
       // Assemble context from analysis + recent messages
       const context = assembleDocumentContext(
         {
-          extractedFields: doc_analysis.extractedFields as any,
+          extractedFields: doc_analysis.extractedFields as Record<
+            string,
+            unknown
+          > | null,
           plainLanguageSummary: doc_analysis.plainLanguageSummary,
         },
         recentMessages,
@@ -99,7 +102,7 @@ export const chatRouter = {
       };
 
       // Save assistant message
-      const [savedMessage] = await ctx.db.insert(chatMessage).values({
+      await ctx.db.insert(chatMessage).values({
         analysisId: input.analysisId,
         userId: ctx.session.user.id,
         role: "assistant",

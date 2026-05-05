@@ -1,12 +1,10 @@
-import type { JSONValue } from "@klaro/validators";
-
 /**
  * Assemble document + analysis + recent messages into a single context string
  * used to prompt LLM for chat responses.
  */
 export function assembleDocumentContext(
   analysis: {
-    extractedFields?: Record<string, JSONValue> | null;
+    extractedFields?: Record<string, unknown> | null;
     plainLanguageSummary?: string | null;
   },
   recentMessages?: Array<{ role: string; content: string; dialect?: string }>,
