@@ -17,6 +17,8 @@ Immediate next steps (first 48 hours)
 3) Build deterministic field extractor for the 5 demo formats
 4) Create LLM prompt templates for plain-language summary + tanong-mo card
 5) Wire a mock doctor list, booking create API, and Stripe test payment
+ 
+2026-05-05 - KL-CHAT-001-a completed: added `packages/api/src/services/contextAssembler.ts` and integrated with `packages/api/src/router/chat.ts` to assemble context from analysis + recent messages. LLM call stubbed via `callLLMAPI`. Unit tests and OpenAPI sync pending. — AI Agent
 
 Progress log
 ------------

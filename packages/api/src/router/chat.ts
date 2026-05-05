@@ -9,6 +9,8 @@ import {
 } from "@klaro/db/schema";
 
 import { protectedProcedure } from "../trpc";
+import { assembleDocumentContext } from "../services/contextAssembler";
+import { callLLMAPI } from "../services/llm";
 
 export const chatRouter = {
   /**
@@ -52,11 +54,47 @@ export const chatRouter = {
         dialect: input.dialect,
       });
 
-      // TODO: Call LLM service to generate assistant response
-      // For now, return placeholder response
+      // Fetch recent messages for context (last 5)
+      const recent = await ctx.db
+        .select()
+        .from(chatMessage)
+        .where(eq(chatMessage.analysisId, input.analysisId))
+        .orderBy(chatMessage.createdAt)
+        .limit(5);
+
+      const recentMessages = recent.map((m) => ({
+        role: m.role,
+        content: m.content,
+        dialect: m.dialect,
+      }));
+
+      // Assemble context from analysis + recent messages
+      const context = assembleDocumentContext(
+        {
+          extractedFields: doc_analysis.extractedFields as any,
+          plainLanguageSummary: doc_analysis.plainLanguageSummary,
+        },
+        recentMessages,
+      );
+
+      const systemPrompt = `You are a helpful health assistant. Keep responses brief, supportive, and ask one follow-up question when appropriate.`;
+      const prompt = `Context:\n${context}\n\nUser message:\n${input.content}\n\nRespond briefly and include one follow-up question.`;
+
+      // Call LLM (falls back to empty string if API key not configured)
+      let llmOutput = "";
+      try {
+        llmOutput = await callLLMAPI(prompt, systemPrompt);
+      } catch (err) {
+        console.error("LLM call failed:", err);
+        llmOutput = "";
+      }
+
+      // Fallback if LLM not configured
+      const assistantContent = llmOutput || `${doc_analysis.plainLanguageSummary || "I reviewed your results."}\n\nFollow-up: Can you tell me if you have any new symptoms or concerns?`;
+
       const assistantMessage = {
         role: "assistant",
-        content: "This is a placeholder LLM response. Chat integration coming soon.",
+        content: assistantContent,
         dialect: input.dialect,
       };
 

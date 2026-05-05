@@ -1552,7 +1552,8 @@
           "title": "Create context assembler service",
           "owner": "AI Engineer",
           "estimate": "1d",
-          "acceptance": "Assembles document context + history into single string"
+          "acceptance": "Assembles document context + history into single string",
+          "status": "done"
         },
         {
           "id": "KL-CHAT-001-b",
@@ -1585,7 +1586,7 @@
       ],
       "testCases": ["T-CHAT-01"],
       "relatedTickets": ["KL-LLM-001", "KL-LOC-001", "KL-EX-001"],
-      "status": "not-started"
+      "status": "in-progress"
     },
     "KL-LOC-001": {
       "title": "KL: Localization - Dialect Detection & Simplify Action",
