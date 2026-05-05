@@ -28,15 +28,14 @@
   },
   "devDependencies": {
     "@klaro/prettier-config": "workspace:*",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.105.1",
     "@turbo/gen": "^2.5.8",
     "dotenv-cli": "^10.0.0",
+    "jiti": "^2.6.1",
     "prettier": "catalog:",
     "turbo": "^2.5.8",
     "typescript": "catalog:"
   },
-  "prettier": "@klaro/prettier-config",
-  "dependencies": {
-    "@supabase/ssr": "^0.10.2",
-    "@supabase/supabase-js": "^2.105.1"
-  }
+  "prettier": "@klaro/prettier-config"
 }
