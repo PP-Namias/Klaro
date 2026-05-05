@@ -52,6 +52,46 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
+  /api/auth/session:
+    post:
+      summary: Get current user session
+      description: Returns authenticated user profile information (id, email, name, emailVerified)
+      security:
+        - BearerAuth: []
+      tags:
+        - auth
+      responses:
+        '200':
+          description: Current user session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  email:
+                    type: string
+                    format: email
+                    example: "user@example.com"
+                  name:
+                    type: string
+                    example: "John Doe"
+                  emailVerified:
+                    type: boolean
+                    example: true
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
   /api/uploads/sign:
     get:
       summary: Get Cloudinary signed params for client upload
