@@ -24,6 +24,8 @@ Immediate next steps (first 48 hours)
 2026-05-06 - KL-MAP-001 completed: added free Nominatim geocoding helpers, DOH facility CSV ingestion script, facilities router cleanup for distance/specialty ranking, and OpenAPI/test coverage for nearby hospitals and clinics. Validation: `pnpm -F @klaro/db exec tsx --test ../api/src/services/__tests__/facilityImport.test.ts ../api/src/router/__tests__/facilities.test.ts ../api/src/__tests__/openapi.test.ts`. — AI Agent
 2026-05-05 - KL-DR-001 in progress: added doctor router aliases for create/list/get/update, added admin PRC verification toggle alias, and documented the doctor API contracts in OpenAPI. Validation: `pnpm exec tsx --test packages/api/src/router/__tests__/doctor.test.ts packages/api/src/__tests__/openapi.test.ts` from `packages/db`. — AI Agent
 
+2026-05-06 - KL-FE-001-auth completed: Phase 1 Auth Integration complete. Added session validation schemas to `packages/validators/src/auth.ts` (signInInputSchema, sessionSchema, logoutResponseSchema with TypeScript type exports). Updated `apps/nextjs/public/openapi.yaml` with /api/auth/session POST endpoint (200/401 responses). Created comprehensive auth tests in `packages/api/src/router/__tests__/auth.test.ts` (9 tests covering validation, email format, UUID format, required fields, provider enum). All tests passing. Commit: 2947ee8 `feat(auth): session validation types, OpenAPI docs & tests (KL-FE-001-auth)`. — AI Agent
+
 Progress log
 ------------
 2026-05-03 09:20 - INIT
