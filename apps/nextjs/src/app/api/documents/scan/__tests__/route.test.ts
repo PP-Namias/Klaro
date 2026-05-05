@@ -166,11 +166,9 @@ describe("/api/documents/scan", () => {
 
       expect(response.status).toBe(201);
       const data = await response.json();
-      expect(data.file).toHaveProperty("name");
-      expect(data.file).toHaveProperty("size");
-      expect(data.file).toHaveProperty("type");
-      expect(data.file.name).toBe("my_scan.jpg");
-      expect(data.file.type).toBe("image/jpeg");
+      expect(data).toHaveProperty("fileName");
+      expect(data).toHaveProperty("fileSize");
+      expect(data.fileName).toBe("my_scan.jpg");
     });
 
     it("should return 201 with proper status code on success", async () => {

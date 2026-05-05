@@ -91,7 +91,7 @@
     }
   },
   "backendApiRoadmap": {
-    "status": "Centralized tRPC backend scaffolded in packages/api; core router logic now writes to DB (analysis creation, doctor updates, booking cancel/reschedule, payment webhook updates). Migrations and a seed script are in place, and web/mobile/TanStack clients are wired to documents APIs.",
+  "status": "Centralized tRPC backend scaffolded in packages/api; core router logic now writes to DB (analysis creation, doctor updates, booking cancel/reschedule, payment webhook updates). Migrations and a seed script are in place, web/mobile/TanStack clients are wired to documents APIs, and the frontend route contracts for /login, /scan, and /maps are documented and validated.",
     "singleSourceOfTruth": "packages/api",
     "currentRouterInventory": [
       "auth",
@@ -113,7 +113,8 @@
       "payments.handleWebhook updates payment + booking status",
       "admin.verifyDoctor persists verification state",
       "facility/doctor filters now combine properly",
-      "seed script added for demo documents, analysis, booking, and payment"
+      "seed script added for demo documents, analysis, booking, and payment",
+      "auth, scan, and facilities route contracts added to OpenAPI with tests and examples"
     ],
     "nextBackendWork": [
       "Implement OCR, LLM, Stripe, and email services behind the existing routers",

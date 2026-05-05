@@ -9,6 +9,8 @@ paths:
     get:
       summary: Initiate OAuth sign-in flow
       description: Redirects user to Discord or Google OAuth provider
+      tags:
+        - auth
       parameters:
         - in: query
           name: provider
@@ -28,6 +30,8 @@ paths:
     post:
       summary: Invalidate session & logout user
       description: Clears authentication session and removes httpOnly cookie
+      tags:
+        - auth
       security:
         - BearerAuth: []
       responses:
@@ -53,7 +57,7 @@ paths:
                     type: string
                     example: Unauthorized
   /api/auth/session:
-    post:
+    get:
       summary: Get current user session
       description: Returns authenticated user profile information (id, email, name, emailVerified)
       security:
@@ -1031,66 +1035,142 @@ paths:
     post:
       summary: List doctors
       description: Returns active doctors with specialization filtering and pagination inputs.
+      responses:
+        '200':
+          description: Doctor list
+        '401':
+          description: Not authenticated
   /api/trpc/doctor.getDoctorById:
     post:
       summary: Get doctor profile by id
       description: Returns a single doctor profile including PRC status, pricing, and specialties.
+      responses:
+        '200':
+          description: Doctor profile
+        '404':
+          description: Doctor not found
   /api/trpc/doctor.createDoctor:
     post:
       summary: Create doctor profile
       description: Registers a new doctor profile and marks it pending verification.
+      responses:
+        '201':
+          description: Doctor created
+        '400':
+          description: Invalid input
   /api/trpc/doctor.updateDoctor:
     post:
       summary: Update doctor profile
       description: Updates the signed-in doctor's profile fields and available session types.
+      responses:
+        '200':
+          description: Doctor updated
+        '401':
+          description: Not authenticated
   /api/trpc/doctor.createAvailability:
     post:
       summary: Create doctor availability
       description: Creates an availability timeslot for the signed-in doctor's profile. Protected endpoint.
+      responses:
+        '201':
+          description: Availability created
+        '401':
+          description: Not authenticated
   /api/trpc/doctor.listAvailability:
     post:
       summary: List doctor availability
       description: Lists availability timeslots for a given doctor id.
+      responses:
+        '200':
+          description: Availability list
   /api/trpc/doctor.updateAvailability:
     post:
       summary: Update doctor availability
       description: Updates an existing availability timeslot. Protected - owner only.
+      responses:
+        '200':
+          description: Availability updated
+        '401':
+          description: Not authenticated
+        '403':
+          description: Forbidden
   /api/trpc/doctor.deleteAvailability:
     post:
       summary: Delete doctor availability
       description: Deletes an availability timeslot. Protected - owner only.
+      responses:
+        '200':
+          description: Availability deleted
+        '401':
+          description: Not authenticated
+        '403':
+          description: Forbidden
   /api/trpc/admin.togglePrcVerification:
     post:
       summary: Toggle PRC verification
       description: Admin-only endpoint for approving or rejecting a doctor's PRC verification.
+      responses:
+        '200':
+          description: Verification toggled
+        '401':
+          description: Not authenticated
+        '403':
+          description: Forbidden
   /api/trpc/facilities.list:
     post:
       summary: List medical facilities
       description: Returns clinics, hospitals, and health units with ownership and PhilHealth filters.
+      responses:
+        '200':
+          description: Facilities list
   /api/trpc/facilities.byId:
     post:
       summary: Get facility details by id
       description: Returns one facility record with location, specialties, and operating hours.
+      responses:
+        '200':
+          description: Facility details
+        '404':
+          description: Facility not found
   /api/trpc/facilities.searchNearby:
     post:
       summary: Search facilities near a coordinate
       description: Returns distance-sorted nearby clinics and hospitals using latitude and longitude.
+      responses:
+        '200':
+          description: Nearby facilities
+        '400':
+          description: Invalid coordinates
   /api/trpc/facilities.bestSuggested:
     post:
       summary: Suggest the best nearby facility
       description: Returns a ranked facility summary optimized for type, PhilHealth, and distance.
+      responses:
+        '200':
+          description: Best suggested facility
   /api/trpc/facilities.searchBySpecialty:
     post:
       summary: Search facilities by specialty
       description: Returns facilities matching a specialty such as Cardiology or Internal Medicine.
+      responses:
+        '200':
+          description: Specialty matches
   /api/trpc/facilities.getTypes:
     post:
       summary: List supported facility types
       description: Returns the map filter values used by the facilities UI.
+      responses:
+        '200':
+          description: Facility types
   /api/trpc/facilities.getOperatingHours:
     post:
       summary: Get facility operating hours
       description: Returns the opening-hours metadata for a facility id.
+      responses:
+        '200':
+          description: Opening hours
+        '404':
+          description: Facility not found
 components:
   securitySchemes:
     BearerAuth:

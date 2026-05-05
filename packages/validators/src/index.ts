@@ -9,3 +9,30 @@ export const unused = z.string().describe(
 
 export { signInInputSchema, sessionSchema, logoutResponseSchema } from "./auth";
 export type { SignInInput, Session, LogoutResponse } from "./auth";
+
+export {
+  uploadDocumentInputSchema,
+  uploadDocumentSchema,
+  documentStatusEnum,
+  documentSchema,
+  uploadResponseSchema,
+  uploadDocumentResponseSchema,
+} from "./documents";
+export type {
+  UploadDocumentInput,
+  UploadDocumentRequest,
+  Document,
+  UploadResponse,
+  UploadDocumentResponse,
+} from "./documents";
+
+export {
+  facilityTypeEnum,
+  searchNearbySchema,
+  facilityResponseSchema,
+} from "./facilities";
+export type {
+  FacilityType,
+  SearchNearbyInput,
+  FacilityResponse,
+} from "./facilities";

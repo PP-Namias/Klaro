@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import {
   pgTable,
   text,
@@ -10,11 +10,8 @@ import {
   decimal,
   jsonb,
   index,
-  primaryKey,
-  foreignKey,
   pgEnum,
 } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { user } from "./auth-schema";
 
@@ -279,16 +276,35 @@ export const chatMessageRelations = relations(chatMessage, ({ one }) => ({
   }),
 }));
 
+export const doctorAvailability = pgTable(
+  "doctor_availability",
+  {
+    id: uuid("id").notNull().primaryKey().defaultRandom(),
+    doctorId: uuid("doctor_id")
+      .notNull()
+      .references(() => doctor.id, { onDelete: "cascade" }),
+    dayOfWeek: varchar("day_of_week", { length: 10 }).notNull(), // e.g., Monday
+    startTime: varchar("start_time", { length: 8 }).notNull(), // HH:MM:SS
+    endTime: varchar("end_time", { length: 8 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (t) => [index("doctor_availability_doctor_id_idx").on(t.doctorId)],
+);
+
 export const doctorRelations = relations(doctor, ({ one, many }) => ({
   user: one(user, {
     fields: [doctor.userId],
     references: [user.id],
   }),
+  availability: many(doctorAvailability),
   bookings: many(booking),
 }));
 
 export const facilityRelations = relations(facility, ({ many }) => ({
-  // TODO: Add facility-doctor association table if needed
 }));
 
 export const bookingRelations = relations(booking, ({ one, many }) => ({
@@ -326,21 +342,21 @@ export const CreateDocumentSchema = z.object({
 });
 
 export const CreateAnalysisSchema = z.object({
-  documentId: z.string().uuid(),
+  documentId: z.uuid(),
   extractedFields: z.record(z.string(), z.any()).optional(),
   flaggedValues: z.array(z.any()).optional(),
 });
 
 export const CreateBookingSchema = z.object({
-  doctorId: z.string().uuid(),
+  doctorId: z.uuid(),
   sessionType: z.enum(["chat_consult", "video_consult", "async_review"]),
   scheduledAt: z.date(),
-  documentId: z.string().uuid().optional(),
+  documentId: z.uuid().optional(),
   notes: z.string().optional(),
 });
 
 export const CreatePaymentSchema = z.object({
-  bookingId: z.string().uuid(),
+  bookingId: z.uuid(),
   amount: z.number().positive(),
   currency: z.string().max(3).default("PHP"),
 });

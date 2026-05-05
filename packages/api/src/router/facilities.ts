@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import { facility } from "@klaro/db/schema";
+import { searchNearbySchema } from "@klaro/validators";
 
 import { publicProcedure } from "../trpc";
 
@@ -15,7 +16,7 @@ const facilityTypeOrder = [
   "health_unit",
   "rural_health_unit",
   "birthing_home",
-];
+] as const;
 
 const calculateDistanceKm = (
   latitude1: number,
@@ -94,12 +95,12 @@ export const facilitiesRouter = {
         );
       }
 
-      const whereClause =
-        conditions.length === 0
-          ? undefined
-          : conditions.length === 1
-            ? conditions[0]
-            : and(...conditions);
+      let whereClause = undefined;
+      if (conditions.length === 1) {
+        whereClause = conditions[0];
+      } else if (conditions.length > 1) {
+        whereClause = and(...conditions);
+      }
 
       const facilities = await ctx.db
         .select()
@@ -115,7 +116,7 @@ export const facilitiesRouter = {
    * Get facility by ID
    */
   byId: publicProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.uuid() }))
     .query(async ({ ctx, input }) => {
       const [fac] = await ctx.db
         .select()
@@ -137,16 +138,7 @@ export const facilitiesRouter = {
    * Returns facilities within a radius (in km)
    */
   searchNearby: publicProcedure
-    .input(
-      z.object({
-        latitude: z.number().min(-90).max(90),
-        longitude: z.number().min(-180).max(180),
-        radiusKm: z.number().min(1).max(100).default(10),
-        facilityType: z.string().optional(),
-        ownership: z.enum(["public", "private"]).optional(),
-        limit: z.number().min(1).max(100).default(20),
-      }),
-    )
+    .input(searchNearbySchema)
     .query(async ({ ctx, input }) => {
       const conditions = [];
 
@@ -158,12 +150,16 @@ export const facilitiesRouter = {
         conditions.push(eq(facility.ownership, input.ownership));
       }
 
-      const whereClause =
-        conditions.length === 0
-          ? undefined
-          : conditions.length === 1
-            ? conditions[0]
-            : and(...conditions);
+      if (input.philHealthOnly) {
+        conditions.push(eq(facility.isPhilHealthAccredited, true));
+      }
+
+      let whereClause = undefined;
+      if (conditions.length === 1) {
+        whereClause = conditions[0];
+      } else if (conditions.length > 1) {
+        whereClause = and(...conditions);
+      }
 
       const facilities = await ctx.db
         .select()
@@ -172,7 +168,26 @@ export const facilitiesRouter = {
         .limit(input.limit);
 
       const filteredFacilities = facilities
+        .filter((fac) => {
+          if (input.facilityType && fac.facilityType !== input.facilityType) {
+            return false;
+          }
+
+          if (input.ownership && fac.ownership !== input.ownership) {
+            return false;
+          }
+
+          if (input.philHealthOnly && !fac.isPhilHealthAccredited) {
+            return false;
+          }
+
+          return true;
+        })
         .map((fac) => {
+          if (fac.latitude === null || fac.longitude === null) {
+            return null;
+          }
+
           const latitude = Number(fac.latitude);
           const longitude = Number(fac.longitude);
 
@@ -187,7 +202,12 @@ export const facilitiesRouter = {
             longitude,
           );
 
-          return { facility: fac, distance: distanceKm };
+          return {
+            facility: fac,
+            distance: distanceKm,
+            latitude,
+            longitude,
+          };
         })
         .filter((item) => item && item.distance <= input.radiusKm)
         .sort((a, b) => (a?.distance ?? 0) - (b?.distance ?? 0))
@@ -195,6 +215,8 @@ export const facilitiesRouter = {
 
       return filteredFacilities.map((item) => ({
         ...item?.facility,
+        latitude: item?.latitude,
+        longitude: item?.longitude,
         distance: item?.distance,
       }));
     }),
@@ -298,7 +320,7 @@ export const facilitiesRouter = {
    * Get operating hours for a facility
    */
   getOperatingHours: publicProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.uuid() }))
     .query(async ({ ctx, input }) => {
       const [fac] = await ctx.db
         .select()
