@@ -32,5 +32,9 @@ describe("OpenAPI spec", () => {
     assert.ok(spec.includes("/api/trpc/chat.sendMessage"));
     assert.ok(spec.includes("/api/trpc/chat.getHistory"));
     assert.ok(spec.includes("/api/trpc/chat.clearHistory"));
+    assert.ok(spec.includes("/api/trpc/facilities.list"));
+    assert.ok(spec.includes("/api/trpc/facilities.searchNearby"));
+    assert.ok(spec.includes("/api/trpc/facilities.bestSuggested"));
+    assert.ok(spec.includes("/api/trpc/facilities.searchBySpecialty"));
   });
 });

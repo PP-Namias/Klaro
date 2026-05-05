@@ -987,6 +987,34 @@ paths:
           description: Not authenticated
         '403':
           description: Forbidden - analysis owned by another user
+  /api/trpc/facilities.list:
+    post:
+      summary: List medical facilities
+      description: Returns clinics, hospitals, and health units with ownership and PhilHealth filters.
+  /api/trpc/facilities.byId:
+    post:
+      summary: Get facility details by id
+      description: Returns one facility record with location, specialties, and operating hours.
+  /api/trpc/facilities.searchNearby:
+    post:
+      summary: Search facilities near a coordinate
+      description: Returns distance-sorted nearby clinics and hospitals using latitude and longitude.
+  /api/trpc/facilities.bestSuggested:
+    post:
+      summary: Suggest the best nearby facility
+      description: Returns a ranked facility summary optimized for type, PhilHealth, and distance.
+  /api/trpc/facilities.searchBySpecialty:
+    post:
+      summary: Search facilities by specialty
+      description: Returns facilities matching a specialty such as Cardiology or Internal Medicine.
+  /api/trpc/facilities.getTypes:
+    post:
+      summary: List supported facility types
+      description: Returns the map filter values used by the facilities UI.
+  /api/trpc/facilities.getOperatingHours:
+    post:
+      summary: Get facility operating hours
+      description: Returns the opening-hours metadata for a facility id.
 components:
   securitySchemes:
     BearerAuth:

@@ -1699,7 +1699,7 @@
       ],
       "testCases": ["T-FAC-01"],
       "relatedTickets": ["KL-MAP-002", "KL-API-001"],
-      "status": "in-progress"
+      "status": "done"
     },
     "KL-MAP-002": {
       "title": "KL: Map UI - Mobile & Web",
@@ -2537,8 +2537,8 @@
       "Facility details include booking CTA"
     ],
     "testCases": ["T-MAP-01"],
-    "relatedTickets": ["KL-MAP-001"],
-    "status": "open"
+    "relatedTickets": ["KL-MAP-002"],
+    "status": "done"
   },
   "KL-DR-001": {
     "title": "KL: Doctors - Model, CRUD & Profile",

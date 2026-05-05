@@ -7,6 +7,62 @@ import { facility } from "@klaro/db/schema";
 
 import { publicProcedure } from "../trpc";
 
+const facilityTypeOrder = [
+  "hospital",
+  "clinic",
+  "medical_center",
+  "diagnostic_center",
+  "health_unit",
+  "rural_health_unit",
+  "birthing_home",
+];
+
+const calculateDistanceKm = (
+  latitude1: number,
+  longitude1: number,
+  latitude2: number,
+  longitude2: number,
+) => {
+  const earthRadiusKm = 6371;
+  const latitudeDelta = ((latitude2 - latitude1) * Math.PI) / 180;
+  const longitudeDelta = ((longitude2 - longitude1) * Math.PI) / 180;
+  const latitude1Radians = (latitude1 * Math.PI) / 180;
+  const latitude2Radians = (latitude2 * Math.PI) / 180;
+
+  const a =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(latitude1Radians) *
+      Math.cos(latitude2Radians) *
+      Math.sin(longitudeDelta / 2) ** 2;
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const parseSpecialties = (specialties: unknown) => {
+  if (!Array.isArray(specialties)) {
+    return [];
+  }
+
+  return specialties
+    .map((specialty) => (typeof specialty === "string" ? specialty.trim() : ""))
+    .filter((specialty) => specialty.length > 0);
+};
+
+const matchesSpecialty = (specialties: unknown, specialty: string) => {
+  const normalizedSpecialty = specialty.trim().toLowerCase();
+
+  return parseSpecialties(specialties).some(
+    (value) => value.toLowerCase() === normalizedSpecialty,
+  );
+};
+
+const facilityTypeRank = (type: string | null | undefined) => {
+  const normalizedType = type?.toLowerCase() ?? "";
+  const rank = facilityTypeOrder.indexOf(normalizedType);
+
+  return rank === -1 ? facilityTypeOrder.length : rank;
+};
+
 export const facilitiesRouter = {
   /**
    * List all facilities (with optional filtering)
@@ -92,8 +148,6 @@ export const facilitiesRouter = {
       }),
     )
     .query(async ({ ctx, input }) => {
-      // TODO: Implement proper geospatial query using PostGIS
-      // For now, fetch all facilities and filter in application
       const conditions = [];
 
       if (input.facilityType) {
@@ -117,26 +171,21 @@ export const facilitiesRouter = {
         .where(whereClause)
         .limit(input.limit);
 
-      // Simple distance calculation (Haversine formula)
       const filteredFacilities = facilities
         .map((fac) => {
-          if (!fac.latitude || !fac.longitude) return null;
+          const latitude = Number(fac.latitude);
+          const longitude = Number(fac.longitude);
 
-          const lat1 = (input.latitude * Math.PI) / 180;
-          const lat2 = (parseFloat(fac.latitude) * Math.PI) / 180;
-          const deltaLat =
-            ((parseFloat(fac.latitude) - input.latitude) * Math.PI) / 180;
-          const deltaLng =
-            ((parseFloat(fac.longitude) - input.longitude) * Math.PI) / 180;
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            return null;
+          }
 
-          const a =
-            Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-            Math.cos(lat1) *
-              Math.cos(lat2) *
-              Math.sin(deltaLng / 2) *
-              Math.sin(deltaLng / 2);
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          const distanceKm = 6371 * c;
+          const distanceKm = calculateDistanceKm(
+            input.latitude,
+            input.longitude,
+            latitude,
+            longitude,
+          );
 
           return { facility: fac, distance: distanceKm };
         })
@@ -163,7 +212,6 @@ export const facilitiesRouter = {
       }),
     )
     .query(async ({ ctx, input }) => {
-      // Heuristic: find nearest hospital or clinic with PhilHealth if possible
       const facilities = await ctx.db
         .select()
         .from(facility)
@@ -176,21 +224,30 @@ export const facilitiesRouter = {
 
       const sorted = facilities
         .map((fac) => {
-          if (!fac.latitude || !fac.longitude) return null;
-          const dist = 6371 * 2 * Math.atan2(Math.sqrt(
-            Math.sin(((parseFloat(fac.latitude) - input.latitude) * Math.PI / 180) / 2) ** 2 +
-            Math.cos((input.latitude * Math.PI) / 180) * Math.cos((parseFloat(fac.latitude) * Math.PI) / 180) *
-            Math.sin(((parseFloat(fac.longitude) - input.longitude) * Math.PI / 180) / 2) ** 2
-          ), Math.sqrt(1 - (
-            Math.sin(((parseFloat(fac.latitude) - input.latitude) * Math.PI / 180) / 2) ** 2 +
-            Math.cos((input.latitude * Math.PI) / 180) * Math.cos((parseFloat(fac.latitude) * Math.PI) / 180) *
-            Math.sin(((parseFloat(fac.longitude) - input.longitude) * Math.PI / 180) / 2) ** 2
-          )));
-          return { ...fac, distance: dist };
+          const latitude = Number(fac.latitude);
+          const longitude = Number(fac.longitude);
+
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            return null;
+          }
+
+          return {
+            ...fac,
+            distance: calculateDistanceKm(
+              input.latitude,
+              input.longitude,
+              latitude,
+              longitude,
+            ),
+          };
         })
         .filter((f): f is (typeof facilities[0] & { distance: number }) => f !== null)
         .sort((a, b) => {
-          // Boost PhilHealth accredited
+          const typeRankDelta =
+            facilityTypeRank(a.facilityType) - facilityTypeRank(b.facilityType);
+
+          if (typeRankDelta !== 0) return typeRankDelta;
+
           if (a.isPhilHealthAccredited && !b.isPhilHealthAccredited) return -1;
           if (!a.isPhilHealthAccredited && b.isPhilHealthAccredited) return 1;
           return a.distance - b.distance;
@@ -200,7 +257,7 @@ export const facilitiesRouter = {
       if (!best) return null;
 
       // In a real implementation, this summary would be generated by an LLM
-      const summary = `Best suggested ${best.facilityType} based on your location is ${best.name}. It is a ${best.ownership} facility ${best.isPhilHealthAccredited ? "with PhilHealth accreditation" : ""}. Estimated travel distance is ${best.distance.toFixed(1)} km.`;
+      const summary = `Best suggested ${best.facilityType ?? "facility"} based on your location is ${best.name}. It is a ${best.ownership} facility ${best.isPhilHealthAccredited ? "with PhilHealth accreditation" : ""}. Estimated travel distance is ${best.distance.toFixed(1)} km.`;
 
       return {
         ...best,
@@ -219,29 +276,21 @@ export const facilitiesRouter = {
       }),
     )
     .query(async ({ ctx, input }) => {
-      // This would search through facilities that offer specific specialties
-      // Implementation depends on how specialties are stored (jsonb array)
       const facilities = await ctx.db
         .select()
         .from(facility)
         .limit(input.limit);
 
-      // Filter facilities that have the requested specialty
-      // TODO: Implement proper JSONB array filtering
-      return facilities;
+      return facilities.filter((item) =>
+        matchesSpecialty(item.acceptedSpecialties, input.specialty),
+      );
     }),
 
   /**
    * List facility types (for filtering)
    */
   getTypes: publicProcedure.query(() => {
-    // Return hardcoded facility types for now
-    return [
-      "hospital",
-      "clinic",
-      "health_unit",
-      "diagnostic_center",
-    ];
+    return facilityTypeOrder;
   }),
 
 
