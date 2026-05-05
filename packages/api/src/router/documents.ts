@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import { analysis, document } from "@klaro/db/schema";
+import type { ExtractedTest } from "@klaro/validators/extraction";
 
 import { protectedProcedure } from "../trpc";
 import {
@@ -438,7 +439,7 @@ export const documentsRouter = {
 
       // extract tests
       const tests = extractTestsFromText(ocrResult.text);
-      const flagged = tests.filter((t) => t.flag === "low" || t.flag === "high");
+      const flagged = tests.filter((t) => t.flagged === true);
 
       // update analysis
       await ctx.db
@@ -512,7 +513,7 @@ export const documentsRouter = {
       try {
         // Generate plain-language explanation
         const llmResponse = await generatePlainLanguageExplanation(
-          analysisRecord.extractedFields as any,
+          analysisRecord.extractedFields as ExtractedTest[],
           input.dialect,
         );
 

@@ -2322,7 +2322,7 @@
     ],
     "testCases": ["T-OCR-01", "T-OCR-02"],
     "relatedTickets": ["KL-EX-001"],
-    "status": "open"
+    "status": "done"
   },
   "KL-EX-001": {
     "title": "KL: Extraction - Rule-based Templates + LLM Assist",

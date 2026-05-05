@@ -903,13 +903,12 @@ COMMITS READY:
 
 READY FOR: Vercel deployment OR human review + approval before going live
 
-2026-05-05 18:05 - OCR CLOUD FALLBACK + TESTS (KL-OCR-001)
-- Enhanced OCR service with local + cloud fallback and audit trail metadata.
-- Added ocrSource + ocrAudit fields to document schema for OCR provenance.
-- Updated documents.processServerOcr and documents.setOcrResult to persist OCR audit data.
-- Documented OCR tRPC endpoints in OpenAPI spec.
-- Added automated node:test coverage for OCR fallback + OpenAPI spec assertions.
-- Tests: pnpm -F @klaro/api test
+2026-05-05 18:05 - KL-OCR-001 COMPLETE
+- Added OCR fallback/audit helpers in packages/api/src/services/ocr.ts.
+- Kept OCR output normalized through buildOcrResult and added OCR confidence threshold parsing.
+- Wired documents router to shared ExtractedTest types and fixed flagged-value filtering.
+- Extended OCR tests with audit generation and env-threshold coverage.
+- Validation: touched files passed get_errors; package typecheck still has unrelated pre-existing test errors.
 
 
 
