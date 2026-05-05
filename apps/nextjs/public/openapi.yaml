@@ -987,6 +987,26 @@ paths:
           description: Not authenticated
         '403':
           description: Forbidden - analysis owned by another user
+  /api/trpc/doctor.listDoctors:
+    post:
+      summary: List doctors
+      description: Returns active doctors with specialization filtering and pagination inputs.
+  /api/trpc/doctor.getDoctorById:
+    post:
+      summary: Get doctor profile by id
+      description: Returns a single doctor profile including PRC status, pricing, and specialties.
+  /api/trpc/doctor.createDoctor:
+    post:
+      summary: Create doctor profile
+      description: Registers a new doctor profile and marks it pending verification.
+  /api/trpc/doctor.updateDoctor:
+    post:
+      summary: Update doctor profile
+      description: Updates the signed-in doctor's profile fields and available session types.
+  /api/trpc/admin.togglePrcVerification:
+    post:
+      summary: Toggle PRC verification
+      description: Admin-only endpoint for approving or rejecting a doctor's PRC verification.
   /api/trpc/facilities.list:
     post:
       summary: List medical facilities

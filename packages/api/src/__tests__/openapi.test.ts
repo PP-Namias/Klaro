@@ -32,6 +32,11 @@ describe("OpenAPI spec", () => {
     assert.ok(spec.includes("/api/trpc/chat.sendMessage"));
     assert.ok(spec.includes("/api/trpc/chat.getHistory"));
     assert.ok(spec.includes("/api/trpc/chat.clearHistory"));
+    assert.ok(spec.includes("/api/trpc/doctor.listDoctors"));
+    assert.ok(spec.includes("/api/trpc/doctor.getDoctorById"));
+    assert.ok(spec.includes("/api/trpc/doctor.createDoctor"));
+    assert.ok(spec.includes("/api/trpc/doctor.updateDoctor"));
+    assert.ok(spec.includes("/api/trpc/admin.togglePrcVerification"));
     assert.ok(spec.includes("/api/trpc/facilities.list"));
     assert.ok(spec.includes("/api/trpc/facilities.searchNearby"));
     assert.ok(spec.includes("/api/trpc/facilities.bestSuggested"));

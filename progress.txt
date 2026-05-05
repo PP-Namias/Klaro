@@ -22,6 +22,7 @@ Immediate next steps (first 48 hours)
 2026-05-05 - KL-CHAT-001-b completed: documented chat endpoints in `apps/nextjs/public/openapi.yaml` and added router coverage for success, validation, and auth boundaries in `packages/api/src/router/__tests__/chat.test.ts`. Typecheck hit unrelated pre-existing errors in `packages/api/src/__tests__/extraction.test.ts` and `packages/api/src/__tests__/llm.test.ts`; touched files are clean. — AI Agent
 2026-05-05 - KL-CHAT-001-c completed: added severity-based chat safety middleware in `packages/api/src/router/chat.ts` so high-severity analyses prepend a disclaimer and booking CTA; updated chat tests and OpenAPI response docs to cover suggested actions. — AI Agent
 2026-05-06 - KL-MAP-001 completed: added free Nominatim geocoding helpers, DOH facility CSV ingestion script, facilities router cleanup for distance/specialty ranking, and OpenAPI/test coverage for nearby hospitals and clinics. Validation: `pnpm -F @klaro/db exec tsx --test ../api/src/services/__tests__/facilityImport.test.ts ../api/src/router/__tests__/facilities.test.ts ../api/src/__tests__/openapi.test.ts`. — AI Agent
+2026-05-05 - KL-DR-001 in progress: added doctor router aliases for create/list/get/update, added admin PRC verification toggle alias, and documented the doctor API contracts in OpenAPI. Validation: `pnpm exec tsx --test packages/api/src/router/__tests__/doctor.test.ts packages/api/src/__tests__/openapi.test.ts` from `packages/db`. — AI Agent
 
 Progress log
 ------------

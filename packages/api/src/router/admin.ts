@@ -14,64 +14,65 @@ const isAdmin = (userId: string) => {
   return true;
 };
 
+const verifyDoctor = protectedProcedure
+  .input(
+    z.object({
+      doctorId: z.string().uuid(),
+      approved: z.boolean(),
+      reason: z.string().optional(),
+    }),
+  )
+  .mutation(async ({ ctx, input }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User must be authenticated",
+      });
+    }
+
+    if (!isAdmin(ctx.session.user.id)) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only admins can verify doctors",
+      });
+    }
+
+    const [doc] = await ctx.db
+      .select()
+      .from(doctor)
+      .where(eq(doctor.id, input.doctorId));
+
+    if (!doc) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Doctor not found",
+      });
+    }
+
+    const updatedStatus = input.approved ? "verified" : "rejected";
+
+    const [updatedDoctor] = await ctx.db
+      .update(doctor)
+      .set({
+        prcStatus: updatedStatus,
+        isActive: input.approved,
+      })
+      .where(eq(doctor.id, input.doctorId))
+      .returning();
+
+    return {
+      success: true,
+      doctorId: updatedDoctor?.id ?? doc.id,
+      status: updatedStatus,
+    };
+  });
+
 export const adminRouter = {
   /**
    * Verify a doctor's credentials (admin only)
    */
-  verifyDoctor: protectedProcedure
-    .input(
-      z.object({
-        doctorId: z.string().uuid(),
-        approved: z.boolean(),
-        reason: z.string().optional(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "User must be authenticated",
-        });
-      }
-
-      if (!isAdmin(ctx.session.user.id)) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only admins can verify doctors",
-        });
-      }
-
-      // Find and update doctor
-      const [doc] = await ctx.db
-        .select()
-        .from(doctor)
-        .where(eq(doctor.id, input.doctorId));
-
-      if (!doc) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Doctor not found",
-        });
-      }
-
-      const updatedStatus = input.approved ? "verified" : "rejected";
-
-      const [updatedDoctor] = await ctx.db
-        .update(doctor)
-        .set({
-          prcStatus: updatedStatus,
-          isActive: input.approved,
-        })
-        .where(eq(doctor.id, input.doctorId))
-        .returning();
-
-      // Update verification status
-      return {
-        success: true,
-        doctorId: updatedDoctor?.id ?? doc.id,
-        status: updatedStatus,
-      };
-    }),
+  verifyDoctor,
+  togglePrcVerification: verifyDoctor,
 
   /**
    * Get unverified doctors for review
