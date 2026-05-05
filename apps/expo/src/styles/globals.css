@@ -5,3 +5,4 @@
 @import "nativewind/theme";
 
 @import "@klaro/tailwind-config/theme";
+@import "./_typography.css";
