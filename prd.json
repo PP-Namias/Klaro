@@ -1525,7 +1525,7 @@
       ],
       "testCases": ["T-LANG-01", "T-LANG-02"],
       "relatedTickets": ["KL-EX-001", "KL-CHAT-001"],
-      "status": "not-started"
+      "status": "done"
     },
     "KL-CHAT-001": {
       "title": "KL: Chat - Context Assembler & Endpoint",
