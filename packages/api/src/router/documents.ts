@@ -12,6 +12,7 @@ import {
   getOcrConfidenceThreshold,
 } from "../services/ocr";
 import { extractTestsFromText } from "../services/extraction";
+import { generatePlainLanguageExplanation } from "../services/llm";
 
 export const documentsRouter = {
   /**
@@ -453,5 +454,118 @@ export const documentsRouter = {
         ocrResult,
         extractedTests: tests,
       };
+    }),
+
+  /**
+   * Generate plain-language explanation using LLM service
+   * Requires extracted test fields to be present
+   */
+  generateAnalysis: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.uuid(),
+        dialect: z.enum(["Filipino", "Bisaya", "Ilocano"]).default("Filipino"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User must be authenticated",
+        });
+      }
+
+      // Fetch document and verify ownership
+      const [doc] = await ctx.db
+        .select()
+        .from(document)
+        .where(eq(document.id, input.documentId));
+
+      if (!doc || doc.userId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have access to this document",
+        });
+      }
+
+      // Fetch analysis with extracted fields
+      const [analysisRecord] = await ctx.db
+        .select()
+        .from(analysis)
+        .where(eq(analysis.documentId, input.documentId));
+
+      if (!analysisRecord) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Analysis record not found",
+        });
+      }
+
+      // Ensure extraction is complete
+      if (!analysisRecord.extractedFields || analysisRecord.extractedFields.length === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Document must be extracted before analysis can be generated",
+        });
+      }
+
+      try {
+        // Generate plain-language explanation
+        const llmResponse = await generatePlainLanguageExplanation(
+          analysisRecord.extractedFields as any,
+          input.dialect,
+        );
+
+        // Build Tanong-Mo card
+        const tanqmoCard = {
+          title:
+            input.dialect === "Filipino"
+              ? "Itatanong Mo Sa Doktor"
+              : input.dialect === "Bisaya"
+                ? "Pangutanon Para Sa Doktor"
+                : "Itatanong Mo Sa Doktor",
+          questions: llmResponse.questionsForDoctor.slice(0, 5),
+          severity: llmResponse.severity,
+          disclaimer: llmResponse.disclaimer,
+          bookingCta: llmResponse.bookingPrompt,
+        };
+
+        // Update analysis record with generated content
+        const [updated] = await ctx.db
+          .update(analysis)
+          .set({
+            plainLanguageSummary: llmResponse.summary,
+            tanqmoCard,
+            status: "completed",
+            errorMessage: null,
+          })
+          .where(eq(analysis.id, analysisRecord.id))
+          .returning();
+
+        return {
+          analysisId: updated?.id,
+          summary: llmResponse.summary,
+          tests: llmResponse.tests,
+          tanqmoCard,
+          severity: llmResponse.severity,
+          dialect: input.dialect,
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+        // Update analysis with error
+        await ctx.db
+          .update(analysis)
+          .set({
+            status: "error",
+            errorMessage,
+          })
+          .where(eq(analysis.id, analysisRecord.id));
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to generate analysis: ${errorMessage}`,
+        });
+      }
     }),
 } satisfies TRPCRouterRecord;
