@@ -290,7 +290,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: File type not supported. Allowed: JPEG, PNG, WebP, PDF
+                    example: "File type not supported. Allowed: JPEG, PNG, WebP, PDF"
         '401':
           description: Unauthorized
           content:
