@@ -1,0 +1,8 @@
+
+
+@theme {
+  --font-cormorant: "Cormorant Garamond", serif;
+  --font-geist: "Geist", sans-serif;
+  --font-sans: var(--font-geist);
+  --tracking-normal: -0.0034em;
+}
