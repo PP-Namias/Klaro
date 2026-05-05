@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import FacilitiesClient from "./_components/FacilitiesClient";
+import FacilitiesClient from "../../components/facilities/FacilitiesClient";
 
 export const metadata = {
   title: "Medical Facility Locator | Klaro",
