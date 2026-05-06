@@ -5,6 +5,7 @@ import { cn } from "@klaro/ui";
 import { ThemeProvider, ThemeToggle } from "@klaro/ui/theme";
 import { Toaster } from "@klaro/ui/toast";
 
+import { LenisProvider } from "~/components/lenis-provider";
 import { env } from "~/env";
 import { TRPCReactProvider } from "~/trpc/react";
 
@@ -33,13 +34,6 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "black" },
-  ],
-};
-
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
@@ -63,11 +57,13 @@ export default function RootLayout(props: { children: React.ReactNode }) {
         )}
       >
         <ThemeProvider>
-          <TRPCReactProvider>{props.children}</TRPCReactProvider>
-          <div className="absolute right-4 bottom-4">
-            <ThemeToggle />
-          </div>
-          <Toaster />
+          <LenisProvider>
+            <TRPCReactProvider>{props.children}</TRPCReactProvider>
+            <div className="absolute right-4 bottom-4">
+              <ThemeToggle />
+            </div>
+            <Toaster />
+          </LenisProvider>
         </ThemeProvider>
       </body>
     </html>
