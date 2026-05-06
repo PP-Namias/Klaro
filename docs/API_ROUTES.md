@@ -1,6 +1,12 @@
 # Klaro API Routes
 
-This document summarizes the backend contracts for the three frontend routes that now have working backend support.
+This document maps the frontend routes to the backend contracts that power them.
+
+Frontend to backend mapping:
+
+- `/login` -> `/api/auth/signin`, `/api/auth/logout`, `/api/auth/session`
+- `/scan` -> `/api/documents/scan`
+- `/maps` -> `/api/trpc/facilities.searchNearby`
 
 ## `GET /api/auth/signin`
 
@@ -15,6 +21,12 @@ Starts OAuth for the selected provider.
 - `302`: Redirects to the OAuth provider
 - `400`: Invalid provider
 
+### Swagger notes
+
+- Tags: `auth`
+- Security: none, because this endpoint starts sign-in
+- Providers: `discord`, `google`
+
 ### Example request
 
 `GET /api/auth/signin?provider=discord`
@@ -26,6 +38,12 @@ Clears the current session.
 ### Logout security
 
 - `BearerAuth`
+
+### Swagger notes
+
+- Tags: `auth`
+- Returns `200` when the session cookie/token is cleared
+- Returns `401` if the caller is not authenticated
 
 ### Responses
 
@@ -67,6 +85,12 @@ Returns the current authenticated user.
 }
 ```
 
+### Swagger notes
+
+- Tags: `auth`
+- Security: `BearerAuth`
+- Response schema includes `id`, `email`, `name`, and `emailVerified`
+
 ## `POST /api/documents/scan`
 
 Uploads a medical document, validates it, stores it, and queues analysis.
@@ -88,6 +112,15 @@ Uploads a medical document, validates it, stores it, and queues analysis.
 - WebP
 - PDF
 - Max size: 50MB
+
+### Swagger notes
+
+- Tags: `documents`
+- Security: `BearerAuth`
+- Request body: `multipart/form-data`
+- Required field: `file`
+- Optional field: `dialect` with `Filipino`, `Bisaya`, or `Ilocano`
+- Error responses: `400`, `401`, `413`
 
 ### Scan responses
 
@@ -127,6 +160,14 @@ Searches nearby facilities from a user location.
 
 - `200`: Array of nearby facilities sorted by distance
 - `400`: Invalid coordinates
+
+### Swagger notes
+
+- Tags: `facilities`
+- Security: public lookup, unless the consuming route adds auth gating
+- Required inputs: `latitude`, `longitude`
+- Optional filters: `radiusKm`, `limit`, `facilityType`, `philHealthOnly`
+- Facilities are returned sorted from nearest to farthest
 
 ### Facilities example request
 

@@ -23,6 +23,12 @@ describe("OpenAPI spec", () => {
     const spec = readFileSync(openapiPath, "utf-8");
 
     assert.ok(spec.includes("openapi:"));
+    assert.ok(spec.includes("/api/auth/signin"));
+    assert.ok(spec.includes("/api/auth/logout"));
+    assert.ok(spec.includes("/api/auth/session"));
+    assert.ok(spec.includes("/api/documents/scan"));
+    assert.ok(spec.includes("/api/trpc/facilities.searchNearby"));
+    assert.ok(spec.includes("BearerAuth"));
     assert.ok(spec.includes("/api/trpc/health"));
     assert.ok(spec.includes("/api/trpc/version"));
     assert.ok(spec.includes("/api/trpc/me"));
