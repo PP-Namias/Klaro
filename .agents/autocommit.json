@@ -5,6 +5,10 @@
   "files": [
     ".reports/impeccable.json",
     "DESIGN.md",
-    " .reports/content-review.json"
+    " .reports/content-review.json",
+    "apps/nextjs/src/app/api/maps/nearby/route.ts",
+    "apps/nextjs/src/app/api/maps/nearby/__tests__/route.test.ts",
+    "apps/nextjs/public/openapi.yaml",
+    "packages/api/src/__tests__/openapi.test.ts"
   ]
 }

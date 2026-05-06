@@ -96,6 +96,30 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
+    /auth/callback:
+      get:
+        summary: OAuth callback handler
+        description: Receives OAuth provider callback (code or error) and redirects to frontend paths. Used by Discord/Google OAuth flows.
+        tags:
+          - auth
+        parameters:
+          - in: query
+            name: code
+            required: false
+            schema:
+              type: string
+            description: Authorization code returned by OAuth provider
+          - in: query
+            name: error
+            required: false
+            schema:
+              type: string
+            description: Error code returned by OAuth provider
+        responses:
+          '302':
+            description: Redirect to frontend (success or error page)
+          '400':
+            description: Missing parameters or invalid request
   /api/uploads/sign:
     get:
       summary: Get Cloudinary signed params for client upload
@@ -1056,6 +1080,46 @@ paths:
       responses:
         '201':
           description: Doctor created
+  /api/maps/nearby:
+    get:
+      summary: Search nearby facilities (REST alias)
+      description: Proxy endpoint that returns nearby medical facilities. Mirrors tRPC `facilities.searchNearby`.
+      tags:
+        - maps
+      parameters:
+        - in: query
+          name: latitude
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: longitude
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: radiusKm
+          required: false
+          schema:
+            type: number
+            default: 10
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A list of nearby facilities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '400':
+          description: Invalid input
         '400':
           description: Invalid input
   /api/trpc/doctor.updateDoctor:
@@ -1173,6 +1237,49 @@ paths:
           description: Facility not found
 components:
   securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Facility:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        facilityType:
+          type: string
+        address:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        distance:
+          type: number
+          description: Distance in km
+        phoneNumber:
+          type: string
+          nullable: true
+        isPhilHealthAccredited:
+          type: boolean
+      required: [id, name, address, latitude, longitude, distance, isPhilHealthAccredited]
+  examples:
+    NearbyResponseExample:
+      summary: Example nearby facilities response
+      value:
+        - id: "11111111-1111-1111-1111-111111111111"
+          name: "St. Lucia Hospital"
+          facilityType: "hospital"
+          address: "123 Health St, Manila"
+          latitude: 14.5995
+          longitude: 120.9842
+          distance: 1.2
+          phoneNumber: "+63 2 1234 5678"
+          isPhilHealthAccredited: true
     BearerAuth:
       type: http
       scheme: bearer
