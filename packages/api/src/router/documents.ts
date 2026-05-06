@@ -131,7 +131,6 @@ export const documentsRouter = {
       const updatePayload: Partial<typeof document.$inferInsert> = {
         ocrText: result.text,
         status: "processing",
-        ocrAudit: audit,
       };
 
       let resolvedConfidence = input.confidence;
@@ -430,7 +429,6 @@ export const documentsRouter = {
         .set({
           ocrText: ocrResult.text,
           confidence: ocrResult.confidence.toFixed(2),
-          ocrAudit: audit,
           status: "analyzed",
         })
         .where(eq(document.id, input.documentId));
