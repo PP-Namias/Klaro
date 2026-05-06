@@ -25,7 +25,7 @@ export const POST = async (req: NextRequest) => {
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       setCorsHeaders(res);
       return res;
@@ -42,7 +42,7 @@ export const POST = async (req: NextRequest) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       setCorsHeaders(res);
       return res;
@@ -73,7 +73,7 @@ export const POST = async (req: NextRequest) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
     setCorsHeaders(res);
     return res;

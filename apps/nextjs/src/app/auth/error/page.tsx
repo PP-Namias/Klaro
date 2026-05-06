@@ -1,9 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+
 import { Button } from "@klaro/ui/button";
+
 import styles from "./page.module.css";
 
 function AuthErrorContent() {
@@ -47,22 +49,26 @@ function AuthErrorContent() {
         <div className={styles.authErrorBlock__content}>
           <div className={styles.authErrorBlock__header}>
             <h1 className={styles.authErrorBlock__title}>Sign In Incomplete</h1>
-            <p className={styles.authErrorBlock__eyebrow}>Authentication Error</p>
+            <p className={styles.authErrorBlock__eyebrow}>
+              Authentication Error
+            </p>
           </div>
 
           <div className={styles.authErrorBlock__message}>
             <p className={styles.authErrorBlock__copy}>
-              We encountered an issue while signing you in with {providerName}. This happens sometimes due to network issues or provider delays—it's not your fault.
+              We encountered an issue while signing you in with {providerName}.
+              This happens sometimes due to network issues or provider
+              delays—it's not your fault.
             </p>
-            <p className={styles.authErrorBlock__subcopy}>
-              {errorMessage}
-            </p>
+            <p className={styles.authErrorBlock__subcopy}>{errorMessage}</p>
           </div>
 
           {errorCode && (
             <div className={styles.authErrorBlock__errorInfo}>
               <p className={styles.authErrorBlock__errorLabel}>Error Code:</p>
-              <code className={styles.authErrorBlock__errorCode}>{errorCode}</code>
+              <code className={styles.authErrorBlock__errorCode}>
+                {errorCode}
+              </code>
             </div>
           )}
 
@@ -73,14 +79,19 @@ function AuthErrorContent() {
               </Button>
             </Link>
             <Link href="/" className={styles.authErrorBlock__link}>
-              <Button variant="secondary" className={styles.authErrorBlock__buttonSecondary}>
+              <Button
+                variant="secondary"
+                className={styles.authErrorBlock__buttonSecondary}
+              >
                 Back to Home
               </Button>
             </Link>
           </div>
 
           <div className={styles.authErrorBlock__suggestions}>
-            <p className={styles.authErrorBlock__suggestionLabel}>What to try:</p>
+            <p className={styles.authErrorBlock__suggestionLabel}>
+              What to try:
+            </p>
             <ul className={styles.authErrorBlock__suggestionList}>
               <li className={styles.authErrorBlock__suggestionItem}>
                 Return to the login page and try signing in again
@@ -100,26 +111,38 @@ function AuthErrorContent() {
 
         <div className={styles.authErrorBlock__sidebar}>
           <div className={styles.authErrorBlock__sidebarCard}>
-            <h3 className={styles.authErrorBlock__sidebarTitle}>Your Account Is Safe</h3>
+            <h3 className={styles.authErrorBlock__sidebarTitle}>
+              Your Account Is Safe
+            </h3>
             <p className={styles.authErrorBlock__sidebarText}>
-              This authentication error does not affect your account or any stored health information. Everything is secure.
+              This authentication error does not affect your account or any
+              stored health information. Everything is secure.
             </p>
           </div>
 
           <div className={styles.authErrorBlock__sidebarCard}>
-            <h3 className={styles.authErrorBlock__sidebarTitle}>Still Having Issues?</h3>
+            <h3 className={styles.authErrorBlock__sidebarTitle}>
+              Still Having Issues?
+            </h3>
             <p className={styles.authErrorBlock__sidebarText}>
-              If this error persists after several attempts, please contact our support team. We're here to help you get back in.
+              If this error persists after several attempts, please contact our
+              support team. We're here to help you get back in.
             </p>
-            <Link href="/support" className={styles.authErrorBlock__supportLink}>
+            <Link
+              href="/support"
+              className={styles.authErrorBlock__supportLink}
+            >
               Contact Support
             </Link>
           </div>
 
           <div className={styles.authErrorBlock__sidebarCard}>
-            <h3 className={styles.authErrorBlock__sidebarTitle}>How We Protect You</h3>
+            <h3 className={styles.authErrorBlock__sidebarTitle}>
+              How We Protect You
+            </h3>
             <p className={styles.authErrorBlock__sidebarText}>
-              Klaro uses industry-standard encryption for all authentication flows. Your credentials are never stored on our servers.
+              Klaro uses industry-standard encryption for all authentication
+              flows. Your credentials are never stored on our servers.
             </p>
           </div>
         </div>
@@ -127,11 +150,6 @@ function AuthErrorContent() {
     </main>
   );
 }
-
 export default function AuthErrorPage() {
-  return (
-    <Suspense fallback={<main className={styles.authErrorBlock} />}>
-      <AuthErrorContent />
-    </Suspense>
-  );
+  return <AuthErrorContent />;
 }

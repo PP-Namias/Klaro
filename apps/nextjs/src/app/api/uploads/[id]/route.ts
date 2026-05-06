@@ -1,5 +1,7 @@
 import type { NextRequest } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
+import { eq } from "drizzle-orm";
+
 import { db } from "@klaro/db";
 import { assertSession } from "~/lib/session-validation";
 
@@ -23,7 +25,7 @@ export const OPTIONS = () => {
 
 export const GET = async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) => {
   const { id } = params;
 
@@ -54,7 +56,7 @@ export const GET = async (
         {
           status: 403,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       setCorsHeaders(res);
       return res;
@@ -87,17 +89,20 @@ export const GET = async (
         {
           status: 401,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       setCorsHeaders(res);
       return res;
     }
 
     console.error("GET /api/uploads/:id error:", err);
-    const res = new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    const res = new Response(
+      JSON.stringify({ error: "Internal server error" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
     setCorsHeaders(res);
     return res;
   }

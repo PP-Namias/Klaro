@@ -27,7 +27,6 @@ interface Facility {
   distance?: number;
 }
 
-
 interface FacilityMapProps {
   facilities: Facility[];
   center: [number, number];
@@ -35,7 +34,13 @@ interface FacilityMapProps {
   onMarkerClick?: (facility: Facility) => void;
 }
 
-function ChangeView({ center, zoom }: { center: [number, number]; zoom: number }) {
+function ChangeView({
+  center,
+  zoom,
+}: {
+  center: [number, number];
+  zoom: number;
+}) {
   const map = useMap();
   useEffect(() => {
     map.setView(center, zoom);
@@ -55,7 +60,8 @@ export default function FacilityMap({
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return <div className="h-full w-full bg-slate-100 animate-pulse" />;
+  if (!isMounted)
+    return <div className="h-full w-full animate-pulse bg-slate-100" />;
 
   return (
     <MapContainer
@@ -86,13 +92,18 @@ export default function FacilityMap({
           >
             <Popup>
               <div className="p-1">
-                <h3 className="font-bold text-sm">{fac.name ?? "Unknown Facility"}</h3>
+                <h3 className="text-sm font-bold">
+                  {fac.name ?? "Unknown Facility"}
+                </h3>
                 <p className="text-xs text-slate-500 capitalize">
-                  {fac.facilityType ?? "Medical Facility"} • {fac.ownership ?? "Private"}
+                  {fac.facilityType ?? "Medical Facility"} •{" "}
+                  {fac.ownership ?? "Private"}
                 </p>
-                <p className="text-xs mt-1">{fac.address ?? "No address provided"}</p>
+                <p className="mt-1 text-xs">
+                  {fac.address ?? "No address provided"}
+                </p>
                 {fac.distance !== undefined && (
-                  <p className="text-xs font-semibold mt-1 text-blue-600">
+                  <p className="mt-1 text-xs font-semibold text-blue-600">
                     {fac.distance.toFixed(1)} km away
                   </p>
                 )}
@@ -101,7 +112,6 @@ export default function FacilityMap({
           </Marker>
         );
       })}
-
     </MapContainer>
   );
 }

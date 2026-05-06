@@ -1,5 +1,5 @@
-import Constants from "expo-constants";
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 
 /**
  * Extend this function when going to production by

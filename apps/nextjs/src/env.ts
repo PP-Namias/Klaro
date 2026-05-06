@@ -25,7 +25,10 @@ export const env = createEnv({
    * For them to be exposed to the client, prefix them with `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_SUPABASE_URL: z.string().url().default("http://localhost:54321"),
+    NEXT_PUBLIC_SUPABASE_URL: z
+      .string()
+      .url()
+      .default("http://localhost:54321"),
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().default("dummy-key"),
   },
   /**

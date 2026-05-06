@@ -83,8 +83,7 @@ export function DocumentsPanel() {
     });
   };
 
-  const isUnauthorized =
-    documentsQuery.error?.data?.code === "UNAUTHORIZED";
+  const isUnauthorized = documentsQuery.error?.data?.code === "UNAUTHORIZED";
   const documents = documentsQuery.data ?? [];
 
   return (
@@ -127,7 +126,9 @@ export function DocumentsPanel() {
           </Field>
           <Field>
             <FieldContent>
-              <FieldLabel htmlFor="document-file-size">File size (bytes)</FieldLabel>
+              <FieldLabel htmlFor="document-file-size">
+                File size (bytes)
+              </FieldLabel>
             </FieldContent>
             <Input
               id="document-file-size"

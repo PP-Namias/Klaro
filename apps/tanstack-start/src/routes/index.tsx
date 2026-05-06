@@ -155,7 +155,9 @@ function CreateDocumentForm() {
             return (
               <Field data-invalid={isInvalid}>
                 <FieldContent>
-                  <FieldLabel htmlFor={field.name}>File size (bytes)</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>
+                    File size (bytes)
+                  </FieldLabel>
                 </FieldContent>
                 <Input
                   id={field.name}

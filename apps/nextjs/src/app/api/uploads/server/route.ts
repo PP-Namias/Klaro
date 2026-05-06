@@ -1,8 +1,14 @@
 import type { NextRequest } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
+
 import { db } from "@klaro/db";
 import { document as documentTable } from "@klaro/db/schema";
-import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "~/lib/rate-limit";
+
+import {
+  checkRateLimit,
+  RATE_LIMITS,
+  rateLimitResponse,
+} from "~/lib/rate-limit";
 import { assertSession } from "~/lib/session-validation";
 
 cloudinary.config({
@@ -38,7 +44,7 @@ export const POST = async (req: NextRequest) => {
     const { allowed, remaining, resetAt } = checkRateLimit(
       `upload:${req.headers.get("x-forwarded-for") || "unknown"}`,
       RATE_LIMITS.uploads.server.maxRequests,
-      RATE_LIMITS.uploads.server.windowMs
+      RATE_LIMITS.uploads.server.windowMs,
     );
 
     if (!allowed) {
@@ -52,13 +58,10 @@ export const POST = async (req: NextRequest) => {
     const file = formData.get("file") as File;
 
     if (!file) {
-      const res = new Response(
-        JSON.stringify({ error: "No file provided" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const res = new Response(JSON.stringify({ error: "No file provided" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
       setCorsHeaders(res);
       return res;
     }
@@ -70,7 +73,7 @@ export const POST = async (req: NextRequest) => {
         {
           status: 413,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       setCorsHeaders(res);
       return res;
@@ -85,7 +88,7 @@ export const POST = async (req: NextRequest) => {
         {
           status: 415,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       setCorsHeaders(res);
       return res;
@@ -104,7 +107,7 @@ export const POST = async (req: NextRequest) => {
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
-        }
+        },
       );
       stream.end(buffer);
     });
@@ -142,7 +145,6 @@ export const POST = async (req: NextRequest) => {
       createdAt: savedDoc.createdAt.toISOString(),
     };
 
-
     const res = new Response(JSON.stringify(body), {
       status: 201,
       headers: { "Content-Type": "application/json" },
@@ -160,7 +162,7 @@ export const POST = async (req: NextRequest) => {
         {
           status: 401,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       setCorsHeaders(res);
       return res;
@@ -175,7 +177,7 @@ export const POST = async (req: NextRequest) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
     setCorsHeaders(res);
     return res;

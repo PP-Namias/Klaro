@@ -1,8 +1,9 @@
 import crypto from "crypto";
 import type { NextRequest } from "next/server";
+import { eq } from "drizzle-orm";
+
 import { db } from "@klaro/db";
 import { booking as bookingTable } from "@klaro/db/schema";
-import { eq } from "drizzle-orm";
 
 import { env } from "~/env";
 
@@ -25,7 +26,7 @@ export const OPTIONS = () => {
 function validateWebhookSignature(
   payload: string,
   signature: string | null,
-  secret: string
+  secret: string,
 ): boolean {
   if (!signature) {
     console.warn("Missing X-Cal-Signature-256 header");
@@ -52,7 +53,7 @@ export const POST = async (req: NextRequest) => {
       const isValid = validateWebhookSignature(
         bodyString,
         signature,
-        env.CAL_COM_WEBHOOK_SECRET
+        env.CAL_COM_WEBHOOK_SECRET,
       );
 
       if (!isValid) {
@@ -65,16 +66,23 @@ export const POST = async (req: NextRequest) => {
           {
             status: 401,
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
         setCorsHeaders(res);
         return res;
       }
     }
 
-     // Parse body string as JSON (can't call req.json() again after req.text())
-     const payload = JSON.parse(bodyString);
-    const { eventId, eventTitle, eventDescription, startTime, endTime, attendees } = payload;
+    // Parse body string as JSON (can't call req.json() again after req.text())
+    const payload = JSON.parse(bodyString);
+    const {
+      eventId,
+      eventTitle,
+      eventDescription,
+      startTime,
+      endTime,
+      attendees,
+    } = payload;
 
     // Log webhook for debugging
     console.log("Cal.com webhook received:", {
@@ -94,7 +102,7 @@ export const POST = async (req: NextRequest) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       setCorsHeaders(res);
       return res;
@@ -124,7 +132,7 @@ export const POST = async (req: NextRequest) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
     setCorsHeaders(res);
     return res;

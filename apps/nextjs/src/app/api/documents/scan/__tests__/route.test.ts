@@ -1,8 +1,8 @@
-import { describe, it, expect } from "node:test";
+import { describe, expect, it } from "node:test";
 
 /**
  * Tests for /api/documents/scan endpoint
- * 
+ *
  * Covers:
  * - Successful file upload (JPEG, PNG, WebP, PDF)
  * - File type validation

@@ -1,8 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
+
 import { db } from "@klaro/db";
 import { analysis, document as documentTable } from "@klaro/db/schema";
-import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "~/lib/rate-limit";
+
+import {
+  checkRateLimit,
+  RATE_LIMITS,
+  rateLimitResponse,
+} from "~/lib/rate-limit";
 import { assertSession } from "~/lib/session-validation";
 
 cloudinary.config({
@@ -23,10 +30,10 @@ const DIALECTS = ["Filipino", "Bisaya", "Ilocano"] as const;
 
 /**
  * POST /api/documents/scan
- * 
+ *
  * Unified document scanning endpoint that accepts a file (image/PDF),
  * creates a document record, and triggers OCR processing.
- * 
+ *
  * Accepts: multipart/form-data with 'file' field
  * Returns: { id, analysisId, status, message }
  */
@@ -52,7 +59,7 @@ export async function POST(request: NextRequest) {
     if (!file || !(file instanceof File)) {
       return NextResponse.json(
         { error: "Missing 'file' field in request" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -61,7 +68,7 @@ export async function POST(request: NextRequest) {
       if (!DIALECTS.includes(dialectInput as (typeof DIALECTS)[number])) {
         return NextResponse.json(
           { error: "Invalid dialect. Allowed: Filipino, Bisaya, Ilocano" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -70,15 +77,17 @@ export async function POST(request: NextRequest) {
     if (!ALLOWED_TYPES.has(file.type)) {
       return NextResponse.json(
         { error: "File type not supported. Allowed: JPEG, PNG, WebP, PDF" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Validate file size (50MB limit)
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: `File size exceeds 50MB limit (${(file.size / (1024 * 1024)).toFixed(2)}MB)` },
-        { status: 413 }
+        {
+          error: `File size exceeds 50MB limit (${(file.size / (1024 * 1024)).toFixed(2)}MB)`,
+        },
+        { status: 413 },
       );
     }
 
@@ -103,7 +112,8 @@ export async function POST(request: NextRequest) {
       stream.end(buffer);
     });
 
-    const cloudinaryUrl = (uploadResponse as { secure_url?: string })?.secure_url;
+    const cloudinaryUrl = (uploadResponse as { secure_url?: string })
+      ?.secure_url;
     if (!cloudinaryUrl) {
       throw new Error("Failed to get Cloudinary URL");
     }
@@ -152,7 +162,7 @@ export async function POST(request: NextRequest) {
     console.error("POST /api/documents/scan error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

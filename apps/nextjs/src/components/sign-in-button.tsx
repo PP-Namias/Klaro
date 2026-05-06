@@ -1,16 +1,15 @@
 import type { ReactNode } from "react";
-
 import { redirect } from "next/navigation";
 
 import { Button } from "@klaro/ui/button";
 
 import { auth } from "~/auth/server";
 
-type SignInButtonProps = {
+interface SignInButtonProps {
   children: ReactNode;
   className?: string;
   callbackURL?: string;
-};
+}
 
 export function SignInButton({
   children,
