@@ -4,7 +4,7 @@
   width: 100vw;
   overflow: hidden;
   background-color: #fcfcfc;
-  background-image: url('/scan-bg.svg');
+  background-image: url("/scan-bg.svg");
   background-position: center 690px; /* locked 690px to end my pain in this part  */
   background-repeat: no-repeat;
   background-size: 85vw auto;
@@ -25,7 +25,8 @@
   flex-direction: column;
   align-items: center;
   padding: 2rem;
-  padding-top: 3rem;
+  padding-top: 0;
+  padding-bottom: 1.8rem;
   z-index: 10;
 }
 
@@ -36,15 +37,16 @@
   border-right: 1px solid #eaeaea;
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: 1.25rem 0.75rem;
   font-family: var(--font-geist);
   z-index: 20;
-  transition: width 0.3s ease, padding 0.3s ease;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.02);
+  overflow-x: hidden;
 }
 
 .sidebarCollapsed {
   width: 72px;
-  padding: 1rem 0.5rem;
+  padding: 1.25rem 0.5rem;
 }
 
 .sidebarCollapsed .sidebarHeader {
@@ -58,7 +60,7 @@
 
 .sidebarCollapsed .navItem {
   justify-content: center;
-  padding: 0.75rem 0;
+  padding: 0.6rem 0;
 }
 
 .sidebarCollapsed .bookDoctorBtn {
@@ -72,7 +74,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .sidebarActionBtn {
@@ -90,7 +92,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   padding-left: 0.25rem;
 }
 
@@ -98,36 +100,39 @@
   flex: 1;
   padding: 0.5rem 1rem;
   border-radius: 12px;
-  border: 1px solid #eaeaea;
+  border: 1px solid #dadada;
   background: white;
-  font-size: 0.875rem;
-  color: #111;
+  font-size: 0.9375rem;
+  color: #000;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .sidebarDivider {
   border: none;
-  border-top: 1px solid #eaeaea;
-  margin: 0.5rem 0;
+  border-top: 1px solid #f0f0f0;
+  margin: 0.25rem 0;
   width: 100%;
 }
 
 .chatClaraAvatar {
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background-color: #f0f0f0;
-  border: 1px solid #eaeaea;
+  border: 1px solid #dadada;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
 }
 
 .chatClaraStatus {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
+  bottom: 1px;
+  right: 1px;
+  width: 11px;
+  height: 11px;
   background-color: #22c55e;
   border-radius: 50%;
   border: 2px solid white;
@@ -136,7 +141,7 @@
 .sidebarNav {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
   flex: 1;
 }
 
@@ -144,24 +149,27 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem;
+  padding: 0.6rem 0.75rem;
   border-radius: 8px;
-  color: #666;
-  font-size: 0.875rem;
-  font-weight: 500;
+  color: #000;
+  font-size: 0.9375rem;
+  font-weight: 400;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
-.navItem:hover, .navItemActive {
+.navItem:hover,
+.navItemActive {
   background-color: #f5f5f5;
-  color: #111;
+  color: #000;
 }
 
 .sidebarFooter {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
   padding-top: 1rem;
   margin-top: auto;
 }
@@ -174,12 +182,14 @@
   width: 100%;
   padding: 0.65rem;
   border-radius: 12px;
-  border: 1px solid #eaeaea;
+  border: 1px solid #dadada;
   background: white;
-  font-size: 0.875rem;
-  color: #111;
+  font-size: 0.9375rem;
+  color: #000;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 /* Navbar Styles */
@@ -187,45 +197,53 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 2rem;
+  padding: 1rem 2rem;
+  width: 100%;
   z-index: 20;
 }
 
 .navLogo {
+  font-family: var(--font-cormorant);
+  font-size: 1.6rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-cormorant);
-  color: #111;
-}
-
-.navLogoImage {
-  filter: brightness(0);
+  color: #000000;
 }
 
 .navLinks {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  font-family: var(--font-geist);
-  font-size: 0.875rem;
-  color: #333;
+  gap: 1.8rem;
 }
 
 .navLink {
+  color: #000000;
   text-decoration: none;
-  color: inherit;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 400;
 }
 
 .navSignInBtn {
-  background-color: #111;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-weight: 500;
+  font-size: var(--text-button);
+  background-color: #000000;
+  color: #ffffff;
+  padding: 0.4rem 1.2rem;
+  border-radius: 4px;
   border: none;
   cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.navSignInBtn:hover {
+  background-color: #1a1a1a;
+  transform: translateY(-1px);
 }
 
 /* Scanner UI Styles */
@@ -238,25 +256,32 @@
 
 .title {
   font-family: var(--font-cormorant);
-  font-size: 2.75rem;
+  font-size: 2.85rem;
   font-weight: 500;
   color: #111;
   text-align: center;
-  margin-bottom: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 0.25rem;
 }
 
 .subtitle {
   font-family: var(--font-geist);
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   color: #666;
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.3;
+}
+
+.claraText {
+  font-weight: 500;
+  color: #000;
 }
 
 .cardGrid {
   display: flex;
-  gap: 1.5rem;
-  margin-bottom: 3rem;
+  gap: 1rem;
+  margin-bottom: 3.8rem;
   width: 100%;
   max-width: 900px;
   justify-content: center;
@@ -266,154 +291,225 @@
   flex: 1;
   background-color: #ffffff;
   border: 1px solid #eaeaea;
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
   min-height: 240px;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+  cursor: pointer;
+}
+
+.scanCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+  border-color: #d1d1d1;
 }
 
 .scanCardTitle {
   font-family: var(--font-cormorant);
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+  font-weight: 500;
   color: #111;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   line-height: 1.2;
 }
 
 .scanCardDesc {
   font-family: var(--font-geist);
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   color: #999;
   line-height: 1.4;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .scanCardImageContainer {
   margin-top: auto;
   position: relative;
   width: 100%;
-  height: 90px;
+  height: 130px;
   display: flex;
   justify-content: center;
 }
 
 .workspaceWrapper {
   width: 100%;
-  max-width: 760px;
+  max-width: 840px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.claraChatBubble {
-  display: inline-flex;
+.claraChatWrapper {
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: #f4f4f5;
-  padding: 0.35rem 0.75rem;
-  border-radius: 20px;
-  margin-bottom: 0.5rem;
-  font-family: var(--font-geist);
-  font-size: 0.875rem;
-  color: #333;
-  border: 1px solid #eaeaea;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
-.claraBubbleAvatar {
+.claraChatAvatar {
   position: relative;
-  width: 24px;
-  height: 24px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background-color: #f0f0f0;
+  border: 1px solid #dadada;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  flex-shrink: 0;
+}
+
+.claraChatBubble {
+  background: #f1f1f2;
+  padding: 0.45rem 1.1rem;
+  border-radius: 14px;
+  font-family: var(--font-geist);
+  font-size: 1rem;
+  color: #111;
+  border: 1px solid #eaeaea;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .scannerWorkspace {
   width: 100%;
-  max-width: 760px;
-  background-color: #ffffff;
-  padding: 1rem;
-  border-radius: 32px;
+  max-width: 840px;
+  background-color: #f6f6f6;
+  padding: 0.8rem 0 0.2rem 0;
+  border-radius: 20px;
   border: 1px solid #eaeaea;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.02);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
 }
 
 .scannerBox {
-  width: 100%;
-  height: 380px;
-  background-color: #f3f3f4;
-  border-radius: 24px;
+  width: auto;
+  margin: 0 0.8rem 0.6rem 0.8rem;
+  height: 160px;
+  background-color: #efeff0;
+  border: 1px solid #e7e7e7;
+  border-radius: 16px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
 }
 
 .scannerBracket {
   position: absolute;
-  width: 30px;
-  height: 30px;
-  border: 2px solid #333;
+  width: 40px;
+  height: 40px;
+  color: #333333;
+  fill: none;
 }
-.bracketTopLeft { top: 24px; left: 24px; border-right: none; border-bottom: none; border-top-left-radius: 8px; }
-.bracketTopRight { top: 24px; right: 24px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
-.bracketBottomLeft { bottom: 24px; left: 24px; border-right: none; border-top: none; border-bottom-left-radius: 8px; }
-.bracketBottomRight { bottom: 24px; right: 24px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }
+.bracketTopLeft {
+  top: 12px;
+  left: 12px;
+}
+.bracketTopRight {
+  top: 12px;
+  right: 12px;
+  transform: rotate(90deg);
+}
+.bracketBottomLeft {
+  bottom: 12px;
+  left: 12px;
+  transform: rotate(270deg);
+}
+.bracketBottomRight {
+  bottom: 12px;
+  right: 12px;
+  transform: rotate(180deg);
+}
 
 .primaryBtn {
-  background-color: #111;
+  background-color: #000;
   color: white;
   font-family: var(--font-geist);
   font-weight: 500;
-  font-size: 0.875rem;
-  padding: 0.75rem 1.25rem;
-  border-radius: 12px;
+  font-size: 0.9375rem;
+  padding: 0.45rem 1rem;
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   cursor: pointer;
   border: none;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.primaryBtn:hover {
+  background-color: #222;
+}
+
+.primaryBtn:active {
+  transform: scale(0.97);
+}
+
+.uploadWrapper {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 20px;
+  padding: 0.6rem 0.6rem;
+  margin-bottom: 0.5rem;
 }
 
 .uploadBox {
   width: 100%;
-  border: 2px dashed #d4d4d8;
-  border-radius: 16px;
+  min-height: 80px;
+  border: 2.4px dashed #DBDBDB;
+  border-radius: 14px;
   padding: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #ffffff;
-  margin-bottom: 1rem;
 }
 
 .secondaryBtn {
   background-color: white;
-  color: #666;
+  color: #111;
   font-family: var(--font-geist);
   font-weight: 500;
-  font-size: 0.875rem;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  font-size: 0.9375rem;
+  padding: 0.4rem 1rem;
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   cursor: pointer;
   border: 1px solid #eaeaea;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.secondaryBtn:hover {
+  background-color: #f9f9f9;
+  border-color: #dadada;
+}
+
+.secondaryBtn:active {
+  transform: scale(0.97);
 }
 
 .footerNotes {
-  width: 100%;
+  width: auto;
+  margin: 0 0.8rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 1rem;
+  padding: 0 0.15rem;
   padding-bottom: 0.5rem;
   font-family: var(--font-geist);
-  font-size: 0.75rem;
-  color: #999;
+  font-size: 0.85rem;
+  color: #71717a;
 }
 
 .footerNoteItem {
