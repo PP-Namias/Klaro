@@ -380,7 +380,7 @@ function buildSummary(
       Bisaya: `Maayo! Ang tanan mga ${totalTests} resulta ay normal. Magpatuloy sa pag-aaga sa imong kalusugan.`,
       Ilocano: `Nasapa! Ang amin mga ${totalTests} resulta ay normal. Tuloy ang pag-aaga sa iyong kalusugan.`,
     };
-    return summaries[dialect];
+    return summaries[dialect] ?? summaries.Filipino;
   }
 
   const summaries: Record<Dialect, Record<Severity, string>> = {
@@ -401,7 +401,7 @@ function buildSummary(
     },
   };
 
-  return summaries[dialect][severity];
+  return (summaries[dialect] && summaries[dialect][severity]) ?? summaries.Filipino[severity];
 }
 
 /**
@@ -576,21 +576,21 @@ export function registerPromptVersion(
     metrics: { usageCount: 0, avgQualityScore: 0 },
   };
 
-  if (!promptVersions[promptType]) {
-    promptVersions[promptType] = {
+  // Ensure the promptType bucket exists and get a typed reference
+  const bucket: Record<Dialect, PromptVersion[]> =
+    promptVersions[promptType] ||= {
       Filipino: [],
       Bisaya: [],
       Ilocano: [],
     };
-  }
 
   // Deactivate all previous versions
-  promptVersions[promptType][dialect].forEach((v) => {
+  (bucket[dialect] || []).forEach((v) => {
     v.active = false;
   });
 
   // Add new version
-  promptVersions[promptType][dialect].push(newVersion);
+  bucket[dialect].push(newVersion);
 
   return newVersion;
 }
@@ -611,12 +611,12 @@ export function getActivePromptVersion(
  */
 export function getAllPromptVersions(
   promptType?: "explanation" | "tanqmo",
-): Record<string, PromptVersion[]> {
+): Record<string, Record<Dialect, PromptVersion[]>> {
   if (promptType) {
     return {
       [promptType]: Object.entries(promptVersions[promptType] || {}).reduce(
         (acc, [dialect, versions]) => {
-          acc[dialect] = versions;
+          acc[dialect as Dialect] = versions;
           return acc;
         },
         {} as Record<Dialect, PromptVersion[]>,
