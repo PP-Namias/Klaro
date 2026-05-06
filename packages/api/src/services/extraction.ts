@@ -1,10 +1,10 @@
-export type ExtractedTest = {
+export interface ExtractedTest {
   name: string;
   value: string;
   unit?: string;
   referenceRange?: string;
   flagged?: boolean;
-};
+}
 
 /**
  * Comprehensive test name canonicalization database

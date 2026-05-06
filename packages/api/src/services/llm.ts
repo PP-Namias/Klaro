@@ -19,7 +19,8 @@ interface LLMConfig {
 }
 
 const DEFAULT_LLM_CONFIG: LLMConfig = {
-  provider: (process.env.LLM_PROVIDER as "openai" | "claude" | "gemini") || "gemini",
+  provider:
+    (process.env.LLM_PROVIDER as "openai" | "claude" | "gemini") || "gemini",
   apiKey: process.env.LLM_API_KEY,
   model:
     process.env.LLM_MODEL ||
@@ -179,7 +180,9 @@ export async function generatePlainLanguageExplanation(
 ): Promise<LLMResponse> {
   // Separate normal and flagged tests
   const flaggedTests = extractedTests.filter((t) => t.flagged);
-  const severity = computeSeverity(extractedTests.map((t) => t.flagged ?? false));
+  const severity = computeSeverity(
+    extractedTests.map((t) => t.flagged ?? false),
+  );
 
   // Get dialect-specific greeting
   const greetings: Record<Dialect, string> = {
@@ -199,7 +202,8 @@ export async function generatePlainLanguageExplanation(
       test.flagged === true
         ? getAbnormalInterpretation(test, dialect)
         : getNormalInterpretation(test, dialect),
-    recommendation: test.flagged === true ? getRecommendation(test, dialect) : undefined,
+    recommendation:
+      test.flagged === true ? getRecommendation(test, dialect) : undefined,
   }));
 
   // Generate questions for doctor
@@ -210,8 +214,7 @@ export async function generatePlainLanguageExplanation(
     title: getTanongMoTitle(dialect),
     questions: questionsForDoctor.slice(0, 5),
     severity,
-    disclaimer:
-      severity === "HIGH" ? getSafetyDisclaimer(dialect) : undefined,
+    disclaimer: severity === "HIGH" ? getSafetyDisclaimer(dialect) : undefined,
     bookingCta: severity === "HIGH" ? getBookingCTA(dialect) : undefined,
   };
 
@@ -236,7 +239,10 @@ export async function generatePlainLanguageExplanation(
 /**
  * Helper: Interpretation for abnormal values
  */
-function getAbnormalInterpretation(test: ExtractedTest, dialect: Dialect): string {
+function getAbnormalInterpretation(
+  test: ExtractedTest,
+  dialect: Dialect,
+): string {
   const interpretations: Record<Dialect, string> = {
     Filipino: `Ang iyong ${test.name} ay mas mataas/mababa kaysa normal. Ito ay dapat bahagin ng doktor.`,
     Bisaya: `Ang iyong ${test.name} ay mas taas/mubo kaysa sa normal. Kailangan ikonsulta ang doktor.`,
@@ -249,7 +255,10 @@ function getAbnormalInterpretation(test: ExtractedTest, dialect: Dialect): strin
 /**
  * Helper: Interpretation for normal values
  */
-function getNormalInterpretation(test: ExtractedTest, dialect: Dialect): string {
+function getNormalInterpretation(
+  test: ExtractedTest,
+  dialect: Dialect,
+): string {
   const interpretations: Record<Dialect, string> = {
     Filipino: `Ang iyong ${test.name} ay nasa normal na saklaw. Maganda ito.`,
     Bisaya: `Ang iyong ${test.name} ay normal. Maayo niini.`,
@@ -479,7 +488,7 @@ async function callOpenAI(
   }
 
   const data = (await response.json()) as {
-    choices: Array<{ message: { content: string } }>;
+    choices: { message: { content: string } }[];
   };
   return data.choices[0]?.message.content || "";
 }
@@ -512,7 +521,7 @@ async function callClaude(
   }
 
   const data = (await response.json()) as {
-    content: Array<{ type: string; text: string }>;
+    content: { type: string; text: string }[];
   };
   return data.content[0]?.text || "";
 }
@@ -535,10 +544,7 @@ async function callGemini(
       body: JSON.stringify({
         contents: [
           {
-            parts: [
-              { text: systemPrompt },
-              { text: prompt },
-            ],
+            parts: [{ text: systemPrompt }, { text: prompt }],
           },
         ],
         generationConfig: {
@@ -554,7 +560,7 @@ async function callGemini(
   }
 
   const data = (await response.json()) as {
-    candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    candidates: { content: { parts: { text: string }[] } }[];
   };
   return data.candidates[0]?.content.parts[0]?.text || "";
 }
@@ -639,9 +645,12 @@ export function logPromptUsage(
   qualityScore?: number,
 ): void {
   const version = getActivePromptVersion(promptType, dialect);
-  if (version && version.metrics) {
+  if (version?.metrics) {
     version.metrics.usageCount++;
-    if (qualityScore !== undefined && version.metrics.avgQualityScore !== undefined) {
+    if (
+      qualityScore !== undefined &&
+      version.metrics.avgQualityScore !== undefined
+    ) {
       // Calculate running average
       version.metrics.avgQualityScore =
         (version.metrics.avgQualityScore * (version.metrics.usageCount - 1) +

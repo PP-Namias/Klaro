@@ -12,7 +12,8 @@ import {
 
 describe("facility import helpers", () => {
   it("parses doh csv rows into normalized facilities", () => {
-    const facilities = parseDohFacilitiesCsv(`name,facility_type,ownership,address,latitude,longitude,philhealth,specialties,opening_hours
+    const facilities =
+      parseDohFacilitiesCsv(`name,facility_type,ownership,address,latitude,longitude,philhealth,specialties,opening_hours
 "Saint Luke's, QC",Hospital,Private,"279 E Rodriguez Sr. Ave, Quezon City",14.6225,121.0242,yes,"Cardiology; Oncology","weekdays: 08:00-17:00"
 `);
 
@@ -20,7 +21,10 @@ describe("facility import helpers", () => {
     assert.equal(facilities[0]?.name, "Saint Luke's, QC");
     assert.equal(facilities[0]?.facilityType, "hospital");
     assert.equal(facilities[0]?.ownership, "private");
-    assert.deepEqual(facilities[0]?.acceptedSpecialties, ["Cardiology", "Oncology"]);
+    assert.deepEqual(facilities[0]?.acceptedSpecialties, [
+      "Cardiology",
+      "Oncology",
+    ]);
     assert.equal(facilities[0]?.isPhilHealthAccredited, true);
   });
 

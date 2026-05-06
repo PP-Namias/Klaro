@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
-  buildOcrResult,
   buildOcrAudit,
+  buildOcrResult,
   computeConfidence,
   getOcrConfidenceThreshold,
   performOcrWithFallback,
@@ -20,11 +20,15 @@ const createOcrResult = (
     source,
   });
 
-const createLocalOcr = (confidence: number, text = "local") =>
-  async () => createOcrResult("local", confidence, text);
+const createLocalOcr =
+  (confidence: number, text = "local") =>
+  async () =>
+    createOcrResult("local", confidence, text);
 
-const createCloudOcr = (confidence: number, text = "cloud") =>
-  async () => createOcrResult("cloud", confidence, text);
+const createCloudOcr =
+  (confidence: number, text = "cloud") =>
+  async () =>
+    createOcrResult("cloud", confidence, text);
 
 describe("OCR service", () => {
   it("computes confidence from blocks", () => {
@@ -46,11 +50,14 @@ describe("OCR service", () => {
       return createOcrResult("cloud", 0.95, "cloud");
     };
 
-    const { result, audit } = await performOcrWithFallback(Buffer.from("test"), {
-      threshold: 0.7,
-      localOcr,
-      cloudOcr,
-    });
+    const { result, audit } = await performOcrWithFallback(
+      Buffer.from("test"),
+      {
+        threshold: 0.7,
+        localOcr,
+        cloudOcr,
+      },
+    );
 
     assert.equal(result.source, "local");
     assert.equal(audit.usedCloudFallback, false);
@@ -61,11 +68,14 @@ describe("OCR service", () => {
     const localOcr = createLocalOcr(0.2);
     const cloudOcr = createCloudOcr(0.95);
 
-    const { result, audit } = await performOcrWithFallback(Buffer.from("test"), {
-      threshold: 0.7,
-      localOcr,
-      cloudOcr,
-    });
+    const { result, audit } = await performOcrWithFallback(
+      Buffer.from("test"),
+      {
+        threshold: 0.7,
+        localOcr,
+        cloudOcr,
+      },
+    );
 
     assert.equal(result.source, "cloud");
     assert.ok(audit.cloud);
@@ -77,11 +87,14 @@ describe("OCR service", () => {
 
     const cloudOcr = async () => null;
 
-    const { result, audit } = await performOcrWithFallback(Buffer.from("test"), {
-      threshold: 0.7,
-      localOcr,
-      cloudOcr,
-    });
+    const { result, audit } = await performOcrWithFallback(
+      Buffer.from("test"),
+      {
+        threshold: 0.7,
+        localOcr,
+        cloudOcr,
+      },
+    );
 
     assert.equal(result.source, "local");
     assert.equal(audit.usedCloudFallback, false);

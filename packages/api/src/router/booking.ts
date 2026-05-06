@@ -35,7 +35,7 @@ export const bookingRouter = {
         .from(doctor)
         .where(eq(doctor.id, input.doctorId));
 
-      if (!doc || !doc.isActive) {
+      if (!doc?.isActive) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Doctor not available",

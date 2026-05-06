@@ -1,25 +1,22 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod/v4";
 import { eq } from "drizzle-orm";
+import { z } from "zod/v4";
 
-import {
-  chatMessage,
-  analysis,
-} from "@klaro/db/schema";
+import { analysis, chatMessage } from "@klaro/db/schema";
 
-import { protectedProcedure } from "../trpc";
 import { assembleDocumentContext } from "../services/contextAssembler";
 import { callLLMAPI } from "../services/llm";
+import { protectedProcedure } from "../trpc";
 
 type ChatSeverity = "LOW" | "MODERATE" | "HIGH";
 
-type ChatSafety = {
+interface ChatSafety {
   severity: ChatSeverity;
   disclaimer?: string;
   bookingSuggestion?: string;
   suggestedActions: string[];
-};
+}
 
 const getChatSeverity = (docAnalysis: {
   tanqmoCard?: unknown;
@@ -39,7 +36,10 @@ const getChatSeverity = (docAnalysis: {
     }
   }
 
-  if (Array.isArray(docAnalysis.flaggedValues) && docAnalysis.flaggedValues.length > 0) {
+  if (
+    Array.isArray(docAnalysis.flaggedValues) &&
+    docAnalysis.flaggedValues.length > 0
+  ) {
     return docAnalysis.flaggedValues.length >= 2 ? "HIGH" : "MODERATE";
   }
 
@@ -154,11 +154,12 @@ export const chatRouter = {
       );
 
       const systemPrompt = `You are a helpful health assistant. Keep responses brief, supportive, and ask one follow-up question when appropriate. If safety guidance is present, include it before any other advice.`;
-      const safetyPrefix = ctx.chatSafety?.severity === "HIGH" && ctx.chatSafety.bookingSuggestion
-        ? `${ctx.chatSafety.disclaimer}\n${ctx.chatSafety.bookingSuggestion}\n\n`
-        : ctx.chatSafety?.disclaimer
-          ? `${ctx.chatSafety.disclaimer}\n\n`
-          : "";
+      const safetyPrefix =
+        ctx.chatSafety?.severity === "HIGH" && ctx.chatSafety.bookingSuggestion
+          ? `${ctx.chatSafety.disclaimer}\n${ctx.chatSafety.bookingSuggestion}\n\n`
+          : ctx.chatSafety?.disclaimer
+            ? `${ctx.chatSafety.disclaimer}\n\n`
+            : "";
       const prompt = `Context:\n${context}\n\nSafety guidance:\n${ctx.chatSafety?.severity ?? "LOW"}\n\nUser message:\n${input.content}\n\nRespond briefly and include one follow-up question.`;
 
       // Call LLM (falls back to empty string if API key not configured)
@@ -180,13 +181,17 @@ export const chatRouter = {
       };
 
       // Save assistant message
-      await ctx.db.insert(chatMessage).values({
-        analysisId: input.analysisId,
-        userId,
-        role: "assistant",
-        content: assistantMessage.content,
-        dialect: input.dialect,
-      }).returning();
+<<<<<<< HEAD
+      await ctx.db
+        .insert(chatMessage)
+        .values({
+          analysisId: input.analysisId,
+          userId,
+          role: "assistant",
+          content: assistantMessage.content,
+          dialect: input.dialect,
+        })
+        .returning();
 
       return {
         userMessage: {

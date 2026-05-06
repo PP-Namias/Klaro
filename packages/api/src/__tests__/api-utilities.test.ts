@@ -6,11 +6,11 @@ import { appRouter } from "../root";
 
 type TrpcContext = Awaited<ReturnType<typeof createTRPCContext>>;
 
-type DbStubRow = {
+interface DbStubRow {
   id: string;
   userId: string;
   fileName?: string;
-};
+}
 
 const createDbStub = (rows: DbStubRow[]) => {
   const chain = {
@@ -44,9 +44,7 @@ const createCaller = (overrides?: Partial<TrpcContext>) => {
   const context = {
     authApi: createAuthApiStub(),
     session: createSessionStub(),
-    db: createDbStub([
-      { id: "doc-1", userId: "user-1", fileName: "lab.pdf" },
-    ]),
+    db: createDbStub([{ id: "doc-1", userId: "user-1", fileName: "lab.pdf" }]),
     traceId: "test-trace",
     ...overrides,
   } as TrpcContext;

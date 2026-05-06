@@ -1,23 +1,23 @@
-type NominatimSearchResult = {
+interface NominatimSearchResult {
   lat: string;
   lon: string;
   display_name: string;
   importance?: number;
-};
+}
 
-export type FacilityGeocodeResult = {
+export interface FacilityGeocodeResult {
   latitude: number;
   longitude: number;
   displayName: string;
   importance: number;
-};
+}
 
-export type GeocodeFacilityAddressOptions = {
+export interface GeocodeFacilityAddressOptions {
   fetchImpl?: typeof fetch;
   userAgent?: string;
   countryCode?: string;
   limit?: number;
-};
+}
 
 export const buildNominatimSearchUrl = (
   query: string,

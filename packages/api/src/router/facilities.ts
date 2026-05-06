@@ -265,7 +265,9 @@ export const facilitiesRouter = {
             ),
           };
         })
-        .filter((f): f is (typeof facilities[0] & { distance: number }) => f !== null)
+        .filter(
+          (f): f is (typeof facilities)[0] & { distance: number } => f !== null,
+        )
         .sort((a, b) => {
           const typeRankDelta =
             facilityTypeRank(a.facilityType) - facilityTypeRank(b.facilityType);
@@ -316,7 +318,6 @@ export const facilitiesRouter = {
   getTypes: publicProcedure.query(() => {
     return facilityTypeOrder;
   }),
-
 
   /**
    * Get operating hours for a facility

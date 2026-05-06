@@ -4,9 +4,9 @@ import { db } from "./client";
 import {
   analysis,
   booking,
-  document,
   doctor,
   doctorAvailability,
+  document,
   facility,
   payment,
   user,
@@ -51,7 +51,8 @@ async function seed() {
     licenseNumber: "PRC-IM-2024-0917",
     prcStatus: "verified",
     bio: "Focused on preventative care and metabolic health.",
-    profileImageUrl: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2",
+    profileImageUrl:
+      "https://images.unsplash.com/photo-1559839734-2b71ea197ec2",
     pricePerSession: "1500.00",
     availableSessionTypes: ["chat_consult", "video_consult", "async_review"],
     isActive: true,
@@ -120,7 +121,11 @@ async function seed() {
       latitude: "14.5592",
       longitude: "121.0145",
       isPhilHealthAccredited: true,
-      acceptedSpecialties: ["General Medicine", "Neurology", "Gastroenterology"],
+      acceptedSpecialties: [
+        "General Medicine",
+        "Neurology",
+        "Gastroenterology",
+      ],
     },
   ]);
 

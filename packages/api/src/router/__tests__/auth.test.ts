@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { signInInputSchema, sessionSchema, logoutResponseSchema } from "@klaro/validators";
+
+import {
+  logoutResponseSchema,
+  sessionSchema,
+  signInInputSchema,
+} from "@klaro/validators";
 
 describe("auth endpoints", () => {
   describe("session endpoint", () => {

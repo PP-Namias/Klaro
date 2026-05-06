@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+
 import { extractTestsFromText } from "../services/extraction";
 
 describe("Extraction Service - KL-EX-001", () => {
@@ -272,7 +273,10 @@ RBC: 4.5 (4.5-5.5)`;
         if (results.length > 0) {
           const testName = test.split(":")[0] ?? "";
           // check if canonicalized (different from original abbreviation)
-          if (results[0]!.name !== testName && results[0]!.name.length > testName.length) {
+          if (
+            results[0]!.name !== testName &&
+            results[0]!.name.length > testName.length
+          ) {
             canonicalCount++;
           }
         }

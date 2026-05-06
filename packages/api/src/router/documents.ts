@@ -3,13 +3,13 @@ import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
-import { analysis, document } from "@klaro/db/schema";
 import type { ExtractedTest } from "@klaro/validators/extraction";
+import { analysis, document } from "@klaro/db/schema";
 
-import { protectedProcedure } from "../trpc";
-import { buildOcrResult } from "../services/ocr";
 import { extractTestsFromText } from "../services/extraction";
 import { generatePlainLanguageExplanation } from "../services/llm";
+import { buildOcrResult } from "../services/ocr";
+import { protectedProcedure } from "../trpc";
 
 export const documentsRouter = {
   /**
@@ -188,7 +188,9 @@ export const documentsRouter = {
       }
 
       const extractedFields = extractTestsFromText(ocrText);
-      const flaggedValues = extractedFields.filter((item) => item.flagged === true);
+      const flaggedValues = extractedFields.filter(
+        (item) => item.flagged === true,
+      );
 
       const [analysisRow] = await ctx.db
         .select()
@@ -487,10 +489,15 @@ export const documentsRouter = {
       }
 
       // Ensure extraction is complete
-      if (!analysisRecord.extractedFields || (analysisRecord.extractedFields as any[]).length === 0) {
+<<<<<<< HEAD
+      if (
+        !analysisRecord.extractedFields ||
+        (analysisRecord.extractedFields as any[]).length === 0
+      ) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Document must be extracted before analysis can be generated",
+          message:
+            "Document must be extracted before analysis can be generated",
         });
       }
 
@@ -536,7 +543,8 @@ export const documentsRouter = {
           dialect: input.dialect,
         };
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
 
         // Update analysis with error
         await ctx.db

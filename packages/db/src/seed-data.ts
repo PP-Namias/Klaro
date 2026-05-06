@@ -1,13 +1,13 @@
 import { randomUUID } from "node:crypto";
 
-type SeedUser = {
+interface SeedUser {
   id: string;
   name: string;
   email: string;
   emailVerified: boolean;
-};
+}
 
-type SeedDoctor = {
+interface SeedDoctor {
   id: string;
   userId: string;
   name: string;
@@ -17,13 +17,11 @@ type SeedDoctor = {
   bio?: string;
   profileImageUrl?: string;
   pricePerSession: string;
-  availableSessionTypes: Array<
-    "chat_consult" | "video_consult" | "async_review"
-  >;
+  availableSessionTypes: ("chat_consult" | "video_consult" | "async_review")[];
   isActive: boolean;
-};
+}
 
-type SeedFacility = {
+interface SeedFacility {
   id?: string;
   name: string;
   facilityType?: string;
@@ -35,9 +33,9 @@ type SeedFacility = {
   isPhilHealthAccredited?: boolean;
   acceptedSpecialties?: string[];
   openingHours?: Record<string, string>;
-};
+}
 
-type SeedDocument = {
+interface SeedDocument {
   id: string;
   userId: string;
   fileName: string;
@@ -47,45 +45,40 @@ type SeedDocument = {
   status: "uploaded" | "processing" | "analyzed" | "failed";
   ocrText?: string;
   confidence?: string;
-};
+}
 
-type SeedAnalysis = {
+interface SeedAnalysis {
   id: string;
   documentId: string;
   userId: string;
   extractedFields?: Record<string, string>;
-  flaggedValues?: Array<Record<string, string>>;
+  flaggedValues?: Record<string, string>[];
   plainLanguageSummary?: string;
   tanqmoCard?: Record<string, string>;
   status: "pending" | "completed" | "error";
-};
+}
 
-type SeedBooking = {
+interface SeedBooking {
   id: string;
   userId: string;
   doctorId: string;
   documentId?: string;
   sessionType: "chat_consult" | "video_consult" | "async_review";
   scheduledAt: Date;
-  status:
-    | "scheduled"
-    | "confirmed"
-    | "in_progress"
-    | "completed"
-    | "cancelled";
+  status: "scheduled" | "confirmed" | "in_progress" | "completed" | "cancelled";
   notes?: string;
-};
+}
 
-type SeedPayment = {
+interface SeedPayment {
   id: string;
   bookingId: string;
   userId: string;
   amount: string;
   currency: string;
   status: "pending" | "completed" | "failed" | "refunded";
-};
+}
 
-export type SeedData = {
+export interface SeedData {
   users: SeedUser[];
   doctors: SeedDoctor[];
   facilities: SeedFacility[];
@@ -93,7 +86,7 @@ export type SeedData = {
   analyses: SeedAnalysis[];
   bookings: SeedBooking[];
   payments: SeedPayment[];
-};
+}
 
 export const buildSeedData = (): SeedData => {
   const patientId = randomUUID();
@@ -122,11 +115,7 @@ export const buildSeedData = (): SeedData => {
       profileImageUrl:
         "https://images.unsplash.com/photo-1559839734-2b71ea197ec2",
       pricePerSession: "1500.00",
-      availableSessionTypes: [
-        "chat_consult",
-        "video_consult",
-        "async_review",
-      ],
+      availableSessionTypes: ["chat_consult", "video_consult", "async_review"],
       isActive: true,
     },
     {
@@ -152,11 +141,7 @@ export const buildSeedData = (): SeedData => {
       profileImageUrl:
         "https://images.unsplash.com/photo-1559839734-2b71ea197ec2",
       pricePerSession: "1800.00",
-      availableSessionTypes: [
-        "chat_consult",
-        "async_review",
-        "video_consult",
-      ],
+      availableSessionTypes: ["chat_consult", "async_review", "video_consult"],
       isActive: true,
     },
     {
@@ -227,8 +212,7 @@ export const buildSeedData = (): SeedData => {
       fileSize: 118000,
       storageUrl: "https://example.com/documents/lab-results-jan.pdf",
       status: "analyzed",
-      ocrText:
-        "Glucose 118 mg/dL, Hemoglobin 13.2 g/dL, Creatinine 1.1 mg/dL",
+      ocrText: "Glucose 118 mg/dL, Hemoglobin 13.2 g/dL, Creatinine 1.1 mg/dL",
       confidence: "0.92",
     },
     {
@@ -368,7 +352,11 @@ export const buildSeedData = (): SeedData => {
       latitude: "14.5592",
       longitude: "121.0145",
       isPhilHealthAccredited: true,
-      acceptedSpecialties: ["General Medicine", "Neurology", "Gastroenterology"],
+      acceptedSpecialties: [
+        "General Medicine",
+        "Neurology",
+        "Gastroenterology",
+      ],
     },
   ];
 

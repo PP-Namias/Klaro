@@ -7,7 +7,6 @@
  * The pieces you will need to use are documented accordingly near the end
  */
 import { randomUUID } from "node:crypto";
-
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { z, ZodError } from "zod/v4";

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { appRouter } from "../../root";
 import type { createTRPCContext } from "../../trpc";
+import { appRouter } from "../../root";
 
 type TrpcContext = Awaited<ReturnType<typeof createTRPCContext>>;
 
@@ -133,7 +133,10 @@ describe("chat router", () => {
 
     assert.equal(result.safety.severity, "HIGH");
     assert.equal(result.suggestedActions[0], "bookAppointment");
-    assert.match(result.assistantMessage.content, /Mag-book ng appointment sa doktor ngayon/);
+    assert.match(
+      result.assistantMessage.content,
+      /Mag-book ng appointment sa doktor ngayon/,
+    );
   });
 
   it("rejects unauthenticated chat access", async () => {

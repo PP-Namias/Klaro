@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+
 import {
-  uploadDocumentInputSchema,
-  uploadDocumentSchema,
   documentSchema,
-  uploadResponseSchema,
+  uploadDocumentInputSchema,
   uploadDocumentResponseSchema,
+  uploadDocumentSchema,
+  uploadResponseSchema,
 } from "@klaro/validators";
 
 describe("document upload endpoints", () => {
@@ -95,14 +96,18 @@ describe("document upload endpoints", () => {
     });
 
     it("rejects unsupported file type", () => {
-      const file = new File(["sample"], "scan.exe", { type: "application/x-msdownload" });
+      const file = new File(["sample"], "scan.exe", {
+        type: "application/x-msdownload",
+      });
 
       assert.throws(() => uploadDocumentSchema.parse({ file }), Error);
     });
 
     it("rejects file size over 50MB", () => {
       const bigBuffer = new ArrayBuffer(51 * 1024 * 1024);
-      const file = new File([bigBuffer], "big.pdf", { type: "application/pdf" });
+      const file = new File([bigBuffer], "big.pdf", {
+        type: "application/pdf",
+      });
 
       assert.throws(() => uploadDocumentSchema.parse({ file }), Error);
     });
@@ -130,7 +135,12 @@ describe("document upload endpoints", () => {
     });
 
     it("accepts all valid status values", () => {
-      const statuses = ["uploaded", "processing", "analyzed", "failed"] as const;
+      const statuses = [
+        "uploaded",
+        "processing",
+        "analyzed",
+        "failed",
+      ] as const;
 
       for (const status of statuses) {
         const doc = {

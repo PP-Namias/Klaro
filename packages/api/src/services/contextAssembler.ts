@@ -7,11 +7,14 @@ export function assembleDocumentContext(
     extractedFields?: Record<string, unknown> | null;
     plainLanguageSummary?: string | null;
   },
-  recentMessages?: Array<{ role: string; content: string; dialect?: string }>,
+  recentMessages?: { role: string; content: string; dialect?: string }[],
 ): string {
   const parts: string[] = [];
 
-  if (analysis.extractedFields && Object.keys(analysis.extractedFields).length > 0) {
+  if (
+    analysis.extractedFields &&
+    Object.keys(analysis.extractedFields).length > 0
+  ) {
     const fields = Object.entries(analysis.extractedFields)
       .map(([k, v]) => `${k}: ${String(v)}`)
       .join("; ");
