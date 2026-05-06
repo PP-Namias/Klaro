@@ -1,0 +1,427 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #fcfcfc;
+  background-image: url('/scan-bg.svg');
+  background-position: center 690px; /* locked 690px to end my pain in this part  */
+  background-repeat: no-repeat;
+  background-size: 85vw auto;
+}
+
+.mainWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  padding-top: 3rem;
+  z-index: 10;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  width: 260px;
+  background-color: white;
+  border-right: 1px solid #eaeaea;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  font-family: var(--font-geist);
+  z-index: 20;
+  transition: width 0.3s ease, padding 0.3s ease;
+}
+
+.sidebarCollapsed {
+  width: 72px;
+  padding: 1rem 0.5rem;
+}
+
+.sidebarCollapsed .sidebarHeader {
+  justify-content: center;
+}
+
+.sidebarCollapsed .chatClaraContainer {
+  justify-content: center;
+  padding-left: 0;
+}
+
+.sidebarCollapsed .navItem {
+  justify-content: center;
+  padding: 0.75rem 0;
+}
+
+.sidebarCollapsed .bookDoctorBtn {
+  width: 40px;
+  padding: 0.65rem 0;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.sidebarActionBtn {
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: white;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.chatClaraContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  padding-left: 0.25rem;
+}
+
+.chatClaraBtn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #eaeaea;
+  background: white;
+  font-size: 0.875rem;
+  color: #111;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.sidebarDivider {
+  border: none;
+  border-top: 1px solid #eaeaea;
+  margin: 0.5rem 0;
+  width: 100%;
+}
+
+.chatClaraAvatar {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  border: 1px solid #eaeaea;
+}
+
+.chatClaraStatus {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.sidebarNav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  color: #666;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.navItem:hover, .navItemActive {
+  background-color: #f5f5f5;
+  color: #111;
+}
+
+.sidebarFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  margin-top: auto;
+}
+
+.bookDoctorBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.65rem;
+  border-radius: 12px;
+  border: 1px solid #eaeaea;
+  background: white;
+  font-size: 0.875rem;
+  color: #111;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+/* Navbar Styles */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  z-index: 20;
+}
+
+.navLogo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-cormorant);
+  color: #111;
+}
+
+.navLogoImage {
+  filter: brightness(0);
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  font-family: var(--font-geist);
+  font-size: 0.875rem;
+  color: #333;
+}
+
+.navLink {
+  text-decoration: none;
+  color: inherit;
+  font-weight: 500;
+}
+
+.navSignInBtn {
+  background-color: #111;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
+/* Scanner UI Styles */
+.scannerContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  font-family: var(--font-cormorant);
+  font-size: 2.75rem;
+  font-weight: 500;
+  color: #111;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-family: var(--font-geist);
+  font-size: 1.1rem;
+  color: #666;
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.cardGrid {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  width: 100%;
+  max-width: 900px;
+  justify-content: center;
+}
+
+.scanCard {
+  flex: 1;
+  background-color: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  min-height: 240px;
+}
+
+.scanCardTitle {
+  font-family: var(--font-cormorant);
+  font-size: 1.4rem;
+  color: #111;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.scanCardDesc {
+  font-family: var(--font-geist);
+  font-size: 0.875rem;
+  color: #999;
+  line-height: 1.4;
+  margin-bottom: 1.5rem;
+}
+
+.scanCardImageContainer {
+  margin-top: auto;
+  position: relative;
+  width: 100%;
+  height: 90px;
+  display: flex;
+  justify-content: center;
+}
+
+.workspaceWrapper {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.claraChatBubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f4f4f5;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-geist);
+  font-size: 0.875rem;
+  color: #333;
+  border: 1px solid #eaeaea;
+}
+
+.claraBubbleAvatar {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+}
+
+.scannerWorkspace {
+  width: 100%;
+  max-width: 760px;
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 32px;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.02);
+}
+
+.scannerBox {
+  width: 100%;
+  height: 380px;
+  background-color: #f3f3f4;
+  border-radius: 24px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.scannerBracket {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #333;
+}
+.bracketTopLeft { top: 24px; left: 24px; border-right: none; border-bottom: none; border-top-left-radius: 8px; }
+.bracketTopRight { top: 24px; right: 24px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
+.bracketBottomLeft { bottom: 24px; left: 24px; border-right: none; border-top: none; border-bottom-left-radius: 8px; }
+.bracketBottomRight { bottom: 24px; right: 24px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }
+
+.primaryBtn {
+  background-color: #111;
+  color: white;
+  font-family: var(--font-geist);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  border: none;
+}
+
+.uploadBox {
+  width: 100%;
+  border: 2px dashed #d4d4d8;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  margin-bottom: 1rem;
+}
+
+.secondaryBtn {
+  background-color: white;
+  color: #666;
+  font-family: var(--font-geist);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  border: 1px solid #eaeaea;
+}
+
+.footerNotes {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  padding-bottom: 0.5rem;
+  font-family: var(--font-geist);
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.footerNoteItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.backgroundGlow {
+  display: none;
+}
