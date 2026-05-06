@@ -6,8 +6,25 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
+    },
+    "./extraction": {
+      "types": "./src/extraction.ts",
+      "default": "./src/extraction.ts"
+    },
+    "./llm": {
+      "types": "./src/llm.ts",
+      "default": "./src/llm.ts"
+    },
+    "./documents": {
+      "types": "./src/documents.ts",
+      "default": "./src/documents.ts"
+    },
+    "./facilities": {
+      "types": "./src/facilities.ts",
+      "default": "./src/facilities.ts"
     }
   },
+  "imports": {},
   "license": "MIT",
   "scripts": {
     "build": "tsc",

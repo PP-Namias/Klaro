@@ -243,7 +243,7 @@ function getAbnormalInterpretation(test: ExtractedTest, dialect: Dialect): strin
     Ilocano: `Ang iyong ${test.name} ay nagtaas/nagbaba pay sa normal. Dapat kita sa doktor.`,
   };
 
-  return interpretations[dialect] ?? interpretations["Filipino"];
+  return (interpretations[dialect] ?? interpretations["Filipino"]) as string;
 }
 
 /**
@@ -256,7 +256,7 @@ function getNormalInterpretation(test: ExtractedTest, dialect: Dialect): string 
     Ilocano: `Ang iyong ${test.name} ay normal. Nasapa niito.`,
   };
 
-  return interpretations[dialect] ?? interpretations["Filipino"];
+  return (interpretations[dialect] ?? interpretations["Filipino"]) as string;
 }
 
 /**
@@ -269,7 +269,7 @@ function getRecommendation(test: ExtractedTest, dialect: Dialect): string {
     Ilocano: `Kita sa doktor para sa ${test.name}.`,
   };
 
-  return recommendations[dialect] ?? recommendations["Filipino"];
+  return (recommendations[dialect] ?? recommendations["Filipino"]) as string;
 }
 
 /**
@@ -320,7 +320,7 @@ function getFollowUpQuestion(dialect: Dialect): string {
     Ilocano: "Apay ti dapat ko a gawin para manatili a malusog?",
   };
 
-  return questions[dialect] ?? questions["Filipino"];
+  return (questions[dialect] ?? questions["Filipino"]) as string[];
 }
 
 /**
@@ -333,7 +333,7 @@ function getTanongMoTitle(dialect: Dialect): string {
     Ilocano: "Itatanong Mo Sa Doktor",
   };
 
-  return titles[dialect] ?? titles["Filipino"];
+  return (titles[dialect] ?? titles["Filipino"]) as string;
 }
 
 /**
@@ -349,7 +349,7 @@ function getSafetyDisclaimer(dialect: Dialect): string {
       "⚠️ Ang napadaan a resulta ay saan normal. Mahalaga na makita mo ti doktor.",
   };
 
-  return disclaimers[dialect] ?? disclaimers["Filipino"];
+  return (disclaimers[dialect] ?? disclaimers["Filipino"]) as string;
 }
 
 /**
@@ -362,7 +362,7 @@ function getBookingCTA(dialect: Dialect): string {
     Ilocano: "📞 Mag-book ug appointment sa doktor dita",
   };
 
-  return ctas[dialect] ?? ctas["Filipino"];
+  return (ctas[dialect] ?? ctas["Filipino"]) as string;
 }
 
 /**
@@ -380,7 +380,7 @@ function buildSummary(
       Bisaya: `Maayo! Ang tanan mga ${totalTests} resulta ay normal. Magpatuloy sa pag-aaga sa imong kalusugan.`,
       Ilocano: `Nasapa! Ang amin mga ${totalTests} resulta ay normal. Tuloy ang pag-aaga sa iyong kalusugan.`,
     };
-    return summaries[dialect] ?? summaries.Filipino;
+    return (summaries[dialect] ?? summaries.Filipino) as string;
   }
 
   const summaries: Record<Dialect, Record<Severity, string>> = {
@@ -401,7 +401,10 @@ function buildSummary(
     },
   };
 
-  return (summaries[dialect] && summaries[dialect][severity]) ?? summaries.Filipino[severity];
+  return (
+    (summaries[dialect] && summaries[dialect][severity]) ??
+    (summaries.Filipino as Record<Severity, string>)[severity]
+  ) as string;
 }
 
 /**
@@ -578,19 +581,19 @@ export function registerPromptVersion(
 
   // Ensure the promptType bucket exists and get a typed reference
   const bucket: Record<Dialect, PromptVersion[]> =
-    promptVersions[promptType] ||= {
+    (promptVersions[promptType] ||= {
       Filipino: [],
       Bisaya: [],
       Ilocano: [],
-    };
+    });
 
   // Deactivate all previous versions
-  (bucket[dialect] || []).forEach((v) => {
+  (bucket[dialect] ||= []).forEach((v) => {
     v.active = false;
   });
 
   // Add new version
-  bucket[dialect].push(newVersion);
+  (bucket[dialect] ||= []).push(newVersion);
 
   return newVersion;
 }
