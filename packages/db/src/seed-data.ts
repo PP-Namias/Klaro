@@ -98,7 +98,20 @@ export type SeedData = {
 export const buildSeedData = (): SeedData => {
   const patientId = randomUUID();
 
-  const doctorProfiles = [
+  type DoctorProfile = {
+    name: string;
+    email: string;
+    specialization: string;
+    licenseNumber: string;
+    prcStatus: "pending" | "verified";
+    bio: string;
+    profileImageUrl: string;
+    pricePerSession: string;
+    availableSessionTypes: Array<"chat_consult" | "video_consult" | "async_review">;
+    isActive: boolean;
+  };
+
+  const doctorProfiles: DoctorProfile[] = [
     {
       name: "Dr. Luis Navarro",
       email: "luis.navarro@klaro.dev",
