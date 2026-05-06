@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export function CTA() {
@@ -43,9 +44,12 @@ export function CTA() {
           Take control of your medical journey today.
         </p>
         <div className="mb-8 flex flex-row gap-4">
-          <button className="flex cursor-pointer items-center justify-center rounded-lg bg-black px-6 py-2 text-[length:var(--text-button)] font-medium text-white transition-colors hover:bg-zinc-800">
+          <Link
+            href="/login?auto=1"
+            className="flex cursor-pointer items-center justify-center rounded-lg bg-black px-6 py-2 text-[length:var(--text-button)] font-medium text-white transition-colors hover:bg-zinc-800"
+          >
             Open on Web <ArrowRight size={16} className="ml-2" />
-          </button>
+          </Link>
           <button className="flex cursor-pointer items-center justify-center rounded-lg border border-[#e5e5e5] bg-white px-6 py-2 text-[length:var(--text-button)] font-medium text-zinc-900 transition-colors hover:bg-zinc-50">
             Download Mobile
           </button>

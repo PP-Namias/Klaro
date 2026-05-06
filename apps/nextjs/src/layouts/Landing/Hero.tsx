@@ -1,7 +1,8 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import styles from "../../app/sample-landing/page.module.css";
+import styles from "../../app/page.module.css";
 import { HeroBg } from "../../components/HeroBg";
 import { HeroBgTwo } from "../../components/HeroBgTwo";
 
@@ -32,9 +33,9 @@ export function Hero() {
           so you know what to do next
         </p>
         <div className={styles.heroButtons}>
-          <button className={styles.btnBlack}>
+          <Link href="/login?auto=1" className={styles.btnBlack}>
             Get Started <ArrowRight size={16} className="ml-2" />
-          </button>
+          </Link>
           <button className={styles.btnOutline}>Learn More</button>
         </div>
       </div>

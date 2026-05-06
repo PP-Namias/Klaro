@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, ChevronDown } from "lucide-react";
 
-import styles from "../../app/sample-landing/page.module.css";
+import styles from "../../app/page.module.css";
 
 export function Navbar() {
   const [visible, setVisible] = useState(false);
@@ -55,13 +56,13 @@ export function Navbar() {
           <a href="#" className={styles.headerLink}>
             Security
           </a>
-          <button className={styles.headerBtn}>
+          <Link href="/login?auto=1" className={styles.headerBtn}>
             Sign in
             <ArrowRight
               size={14}
               className="ml-1 inline-block align-text-bottom"
             />
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -92,13 +93,13 @@ export function Navbar() {
             <a href="#" className={styles.floatingLink}>
               Security
             </a>
-            <button className={styles.floatingBtnBlack}>
+            <Link href="/login?auto=1" className={styles.floatingBtnBlack}>
               Sign in
               <ArrowRight
                 size={13}
                 className="ml-1 inline-block align-text-bottom"
               />
-            </button>
+            </Link>
           </div>
         </header>
       </div>
