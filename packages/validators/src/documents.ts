@@ -15,6 +15,8 @@ const ALLOWED_MIME_TYPES = [
   "application/pdf",
 ] as const;
 
+// Type guard for File - works in both browser and server environments
+declare const File: any;
 const hasFileConstructor = typeof File !== "undefined";
 
 const fileSchema = (hasFileConstructor

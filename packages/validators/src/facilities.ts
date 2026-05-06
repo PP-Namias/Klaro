@@ -31,7 +31,7 @@ export const facilityResponseSchema = z.object({
   phoneNumber: z.string().optional().nullable(),
   isPhilHealthAccredited: z.boolean(),
   acceptedSpecialties: z.array(z.string()).optional().nullable(),
-  openingHours: z.record(z.any()).optional().nullable(),
+  openingHours: z.record(z.string(), z.any()).optional().nullable(),
 });
 
 export type FacilityType = z.infer<typeof facilityTypeEnum>;
