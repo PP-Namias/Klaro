@@ -8,21 +8,16 @@ import { Input } from "@klaro/ui/input";
 import { toast } from "@klaro/ui/toast";
 
 import { useTRPC } from "~/trpc/react";
-
 import styles from "./page.module.css";
 
-type SelectedFile = {
+interface SelectedFile {
   file: File;
   previewUrl?: string;
   kind: "image" | "pdf";
-};
+}
 
 const maxFileSize = 10 * 1024 * 1024;
-const acceptedTypes = new Set([
-  "image/png",
-  "image/jpeg",
-  "application/pdf",
-]);
+const acceptedTypes = new Set(["image/png", "image/jpeg", "application/pdf"]);
 
 const formatBytes = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`;
@@ -219,7 +214,11 @@ export function UploadForm() {
                   value={pdfPage}
                   onChange={(event) => {
                     const nextValue = Number(event.target.value);
-                    setPdfPage(Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 1);
+                    setPdfPage(
+                      Number.isFinite(nextValue) && nextValue > 0
+                        ? nextValue
+                        : 1,
+                    );
                   }}
                   className={styles.upload__pdfInput}
                 />

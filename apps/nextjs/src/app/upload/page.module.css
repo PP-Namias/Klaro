@@ -1,7 +1,15 @@
 .upload {
   background:
-    radial-gradient(circle at 12% 12%, color-mix(in oklab, var(--primary) 18%, transparent) 0, transparent 38%),
-    radial-gradient(circle at 80% 16%, color-mix(in oklab, var(--accent) 16%, transparent) 0, transparent 34%),
+    radial-gradient(
+      circle at 12% 12%,
+      color-mix(in oklab, var(--primary) 18%, transparent) 0,
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 80% 16%,
+      color-mix(in oklab, var(--accent) 16%, transparent) 0,
+      transparent 34%
+    ),
     linear-gradient(
       180deg,
       color-mix(in oklab, var(--background) 95%, white) 0%,
@@ -15,7 +23,8 @@
 }
 
 .upload::before {
-  background-image: linear-gradient(
+  background-image:
+    linear-gradient(
       color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
       transparent 1px
     ),
@@ -62,7 +71,8 @@
   background: color-mix(in oklab, var(--card) 74%, transparent);
   border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
   border-radius: 0.9rem;
-  box-shadow: 0 24px 60px color-mix(in oklab, var(--foreground) 10%, transparent);
+  box-shadow: 0 24px 60px
+    color-mix(in oklab, var(--foreground) 10%, transparent);
   display: grid;
   font-family: var(--font-geist-mono);
   font-size: 0.9rem;
@@ -134,7 +144,8 @@
   background: color-mix(in oklab, var(--card) 72%, transparent);
   border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
   border-radius: 2rem;
-  box-shadow: 0 40px 100px color-mix(in oklab, var(--foreground) 12%, transparent);
+  box-shadow: 0 40px 100px
+    color-mix(in oklab, var(--foreground) 12%, transparent);
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
@@ -204,7 +215,9 @@
   border-radius: 1.5rem;
   cursor: pointer;
   padding: 1.5rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .upload__dropzoneActive {
@@ -368,7 +381,8 @@
   background: color-mix(in oklab, var(--card) 72%, transparent);
   border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
   border-radius: 2rem;
-  box-shadow: 0 40px 100px color-mix(in oklab, var(--foreground) 12%, transparent);
+  box-shadow: 0 40px 100px
+    color-mix(in oklab, var(--foreground) 12%, transparent);
   display: flex;
   flex-direction: column;
   gap: 1rem;

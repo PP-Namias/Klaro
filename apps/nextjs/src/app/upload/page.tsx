@@ -2,12 +2,10 @@ import Link from "next/link";
 
 import { Button } from "@klaro/ui/button";
 
-import { SignInButton } from "../../components/sign-in-button";
-
 import { getSession } from "~/auth/server";
-
-import { UploadForm } from "./upload-form";
+import { SignInButton } from "../../components/sign-in-button";
 import styles from "./page.module.css";
+import { UploadForm } from "./upload-form";
 
 const uploadSteps = [
   {
@@ -51,7 +49,9 @@ export default async function UploadPage() {
           <div className={styles.upload__actions}>
             {session ? (
               <div className={styles.upload__sessionChip}>
-                <span className={styles.upload__sessionLabel}>Signed in as</span>
+                <span className={styles.upload__sessionLabel}>
+                  Signed in as
+                </span>
                 <span className={styles.upload__sessionName}>
                   {session.user.name ?? session.user.email ?? "Klaro member"}
                 </span>
@@ -113,7 +113,9 @@ export default async function UploadPage() {
 
           <aside className={styles.upload__aside}>
             <div className={styles.upload__asideHeader}>
-              <span className={styles.upload__asideTitle}>Upload checklist</span>
+              <span className={styles.upload__asideTitle}>
+                Upload checklist
+              </span>
               <span className={styles.upload__asidePill}>
                 {session ? "member" : "guest"}
               </span>
@@ -151,7 +153,9 @@ export default async function UploadPage() {
 
         <footer className={styles.upload__footer}>
           <span>Guest uploads generate private share links automatically.</span>
-          <span>Registered users keep a secure history for follow-up care.</span>
+          <span>
+            Registered users keep a secure history for follow-up care.
+          </span>
         </footer>
       </div>
     </main>
