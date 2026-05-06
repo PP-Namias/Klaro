@@ -320,7 +320,7 @@ function getFollowUpQuestion(dialect: Dialect): string {
     Ilocano: "Apay ti dapat ko a gawin para manatili a malusog?",
   };
 
-  return (questions[dialect] ?? questions["Filipino"]) as string[];
+  return (questions[dialect] ?? questions["Filipino"]) as string;
 }
 
 /**

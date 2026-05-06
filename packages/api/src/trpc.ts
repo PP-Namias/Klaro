@@ -44,6 +44,9 @@ export const createTRPCContext = async (opts: {
     traceId,
   };
 };
+
+// Export the inferred context type for use in other modules
+export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>;
 /**
  * 2. INITIALIZATION
  *

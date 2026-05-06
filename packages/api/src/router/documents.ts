@@ -131,7 +131,6 @@ export const documentsRouter = {
       const updatePayload: Partial<typeof document.$inferInsert> = {
         ocrText: result.text,
         status: "processing",
-        ocrSource: result.source,
         ocrAudit: audit,
       };
 
@@ -228,14 +227,14 @@ export const documentsRouter = {
         .set({
           extractedFields,
           flaggedValues,
-          status: "extraction_complete",
+          status: "completed",
           errorMessage: null,
         })
         .where(eq(analysis.id, analysisRow.id));
 
       await ctx.db
         .update(document)
-        .set({ status: "extracted" })
+        .set({ status: "analyzed" })
         .where(eq(document.id, input.documentId));
 
       return {
@@ -503,7 +502,7 @@ export const documentsRouter = {
       }
 
       // Ensure extraction is complete
-      if (!analysisRecord.extractedFields || analysisRecord.extractedFields.length === 0) {
+      if (!analysisRecord.extractedFields || (analysisRecord.extractedFields as any[]).length === 0) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Document must be extracted before analysis can be generated",

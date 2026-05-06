@@ -95,7 +95,8 @@ export const chatRouter = {
         .from(analysis)
         .where(eq(analysis.id, input.analysisId));
 
-      if (!docAnalysis || docAnalysis.userId !== ctx.session.user.id) {
+      const userId = ctx.session?.user?.id;
+      if (!docAnalysis || docAnalysis.userId !== userId) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have access to this analysis",
@@ -117,9 +118,10 @@ export const chatRouter = {
       };
 
       // Save user message
+      const userId = ctx.session!.user.id;
       await ctx.db.insert(chatMessage).values({
         analysisId: input.analysisId,
-        userId: ctx.session.user.id,
+        userId,
         role: "user",
         content: input.content,
         dialect: input.dialect,
@@ -180,7 +182,7 @@ export const chatRouter = {
       // Save assistant message
       await ctx.db.insert(chatMessage).values({
         analysisId: input.analysisId,
-        userId: ctx.session.user.id,
+        userId,
         role: "assistant",
         content: assistantMessage.content,
         dialect: input.dialect,

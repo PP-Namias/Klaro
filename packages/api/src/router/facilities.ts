@@ -59,7 +59,9 @@ const matchesSpecialty = (specialties: unknown, specialty: string) => {
 
 const facilityTypeRank = (type: string | null | undefined) => {
   const normalizedType = type?.toLowerCase() ?? "";
-  const rank = facilityTypeOrder.indexOf(normalizedType);
+  const rank = facilityTypeOrder.indexOf(
+    normalizedType as unknown as typeof facilityTypeOrder[number],
+  );
 
   return rank === -1 ? facilityTypeOrder.length : rank;
 };
