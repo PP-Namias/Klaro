@@ -1,8 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import { ChevronDown, ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { ArrowRight, ChevronDown } from "lucide-react";
+
 import styles from "../../app/sample-landing/page.module.css";
 
 export function Navbar() {
@@ -41,15 +42,25 @@ export function Navbar() {
           Klaro
         </div>
         <div className={styles.headerLinks}>
-          <a href="#" className={styles.headerLink}>Home</a>
+          <a href="#" className={styles.headerLink}>
+            Home
+          </a>
           <a href="#" className={styles.headerLink}>
             Features
-            <ChevronDown size={16} className="inline-block ml-1 align-text-bottom" />
+            <ChevronDown
+              size={16}
+              className="ml-1 inline-block align-text-bottom"
+            />
           </a>
-          <a href="#" className={styles.headerLink}>Security</a>
+          <a href="#" className={styles.headerLink}>
+            Security
+          </a>
           <button className={styles.headerBtn}>
             Sign in
-            <ArrowRight size={14} className="inline-block ml-1 align-text-bottom" />
+            <ArrowRight
+              size={14}
+              className="ml-1 inline-block align-text-bottom"
+            />
           </button>
         </div>
       </header>
@@ -58,19 +69,35 @@ export function Navbar() {
       <div className={styles.floatingNavWrapper} data-visible={visible}>
         <header className={styles.floatingNav}>
           <div className={styles.floatingLogo}>
-            <Image src="/klaro-dark.svg" alt="Klaro Logo" width={30} height={30} className="mr-1" />
+            <Image
+              src="/klaro-dark.svg"
+              alt="Klaro Logo"
+              width={30}
+              height={30}
+              className="mr-1"
+            />
             Klaro
           </div>
           <div className={styles.floatingLinks}>
-            <a href="#" className={styles.floatingLink}>Home</a>
+            <a href="#" className={styles.floatingLink}>
+              Home
+            </a>
             <a href="#" className={styles.floatingLink}>
               Features
-              <ChevronDown size={14} className="inline-block ml-1 align-text-bottom" />
+              <ChevronDown
+                size={14}
+                className="ml-1 inline-block align-text-bottom"
+              />
             </a>
-            <a href="#" className={styles.floatingLink}>Security</a>
+            <a href="#" className={styles.floatingLink}>
+              Security
+            </a>
             <button className={styles.floatingBtnBlack}>
               Sign in
-              <ArrowRight size={13} className="inline-block ml-1 align-text-bottom" />
+              <ArrowRight
+                size={13}
+                className="ml-1 inline-block align-text-bottom"
+              />
             </button>
           </div>
         </header>

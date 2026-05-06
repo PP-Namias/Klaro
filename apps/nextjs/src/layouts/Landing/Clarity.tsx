@@ -28,23 +28,23 @@ export function Clarity() {
 
   return (
     <section className="mt-[100px] flex flex-col gap-[2.5rem]">
-      <h2 className="section-header w-max h-auto m-0 text-black tracking-[0px]">
+      <h2 className="section-header m-0 h-auto w-max tracking-[0px] text-black">
         Clarity From Results to Care
       </h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Left Column - Stacked Cards */}
         <div className="flex flex-col gap-6">
           {/* Card 1: Connect to Real Doctors */}
-          <div className="bg-white rounded-[24px] p-6 shadow-[0_4px_8px_0_rgba(0,0,0,0.03)] border border-[#eeeeee] flex flex-row gap-8 flex-1 group">
-            <div className="flex flex-col flex-1">
-              <h3 className="card-title text-zinc-900 mb-2 whitespace-nowrap">{item1.title}</h3>
-              <p className="card-description text-zinc-500">
-                {item1.body}
-              </p>
+          <div className="group flex flex-1 flex-row gap-8 rounded-[24px] border border-[#eeeeee] bg-white p-6 shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
+            <div className="flex flex-1 flex-col">
+              <h3 className="card-title mb-2 whitespace-nowrap text-zinc-900">
+                {item1.title}
+              </h3>
+              <p className="card-description text-zinc-500">{item1.body}</p>
             </div>
-            <div className="w-48 md:w-64 self-stretch shrink-0 flex items-center justify-center relative -left-10">
-               <Image
+            <div className="relative -left-10 flex w-48 shrink-0 items-center justify-center self-stretch md:w-64">
+              <Image
                 src={item1.image}
                 alt={item1.alt}
                 width={200}
@@ -56,15 +56,15 @@ export function Clarity() {
           </div>
 
           {/* Card 2: Understand Your Results */}
-          <div className="bg-white rounded-[24px] p-6 shadow-[0_4px_8px_0_rgba(0,0,0,0.03)] border border-[#eeeeee] flex flex-row gap-8 flex-1 group">
-            <div className="flex flex-col flex-1">
-              <h3 className="card-title text-zinc-900 mb-2 whitespace-nowrap">{item2.title}</h3>
-              <p className="card-description text-zinc-500">
-                {item2.body}
-              </p>
+          <div className="group flex flex-1 flex-row gap-8 rounded-[24px] border border-[#eeeeee] bg-white p-6 shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
+            <div className="flex flex-1 flex-col">
+              <h3 className="card-title mb-2 whitespace-nowrap text-zinc-900">
+                {item2.title}
+              </h3>
+              <p className="card-description text-zinc-500">{item2.body}</p>
             </div>
-            <div className="w-48 md:w-64 self-stretch shrink-0 flex items-center justify-center relative -left-10">
-               <Image
+            <div className="relative -left-10 flex w-48 shrink-0 items-center justify-center self-stretch md:w-64">
+              <Image
                 src={item2.image}
                 alt={item2.alt}
                 width={200}
@@ -78,14 +78,14 @@ export function Clarity() {
 
         {/* Right Column - Tall Card */}
         {/* Card 3: Find the Right Care Near You */}
-        <div className="bg-white rounded-[24px] p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)] border border-[#eeeeee] flex flex-col justify-between min-h-[650px] group">
+        <div className="group flex min-h-[650px] flex-col justify-between rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
           <div className="flex flex-col">
-            <h3 className="card-title text-zinc-900 mb-2 whitespace-nowrap">{item3.title}</h3>
-            <p className="card-description text-zinc-500 mb-4">
-              {item3.body}
-            </p>
+            <h3 className="card-title mb-2 whitespace-nowrap text-zinc-900">
+              {item3.title}
+            </h3>
+            <p className="card-description mb-4 text-zinc-500">{item3.body}</p>
           </div>
-          <div className="bg-[#F7F7F7] rounded-[16px] flex-1 w-full">
+          <div className="w-full flex-1 rounded-[16px] bg-[#F7F7F7]">
             {/* Placeholder Empty */}
           </div>
         </div>

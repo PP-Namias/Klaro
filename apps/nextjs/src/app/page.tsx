@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Button } from "@klaro/ui/button";
 
 import { SignInButton } from "../components/sign-in-button";
-
 import styles from "./page.module.css";
 
 const features = [
@@ -66,7 +65,9 @@ export default function HomePage() {
         <section className={styles.landing__hero}>
           <div className={styles.landing__copy}>
             <div className="space-y-6">
-              <p className={styles.landing__eyebrow}>Health documents, clarified</p>
+              <p className={styles.landing__eyebrow}>
+                Health documents, clarified
+              </p>
               <h1 className={styles.landing__title}>
                 Understand your results before they overwhelm you.
               </h1>
@@ -147,7 +148,9 @@ export default function HomePage() {
                     <div className={styles.landing__workflowName}>
                       {item.label}
                     </div>
-                    <div className={styles.landing__workflowCopy}>{item.copy}</div>
+                    <div className={styles.landing__workflowCopy}>
+                      {item.copy}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -158,9 +161,7 @@ export default function HomePage() {
         <section className={styles.landing__grid}>
           {features.map((feature, index) => (
             <article key={feature.title} className={styles.landing__feature}>
-              <span className={styles.landing__featureIndex}>
-                0{index + 1}
-              </span>
+              <span className={styles.landing__featureIndex}>0{index + 1}</span>
               <h2 className={styles.landing__featureTitle}>{feature.title}</h2>
               <p className={styles.landing__featureBody}>{feature.body}</p>
             </article>
@@ -168,8 +169,12 @@ export default function HomePage() {
         </section>
 
         <footer className={styles.landing__footer}>
-          <span>Built for guest scans, registered history, and private sharing.</span>
-          <span>Designed for mobile-first reading, then polished for desktop.</span>
+          <span>
+            Built for guest scans, registered history, and private sharing.
+          </span>
+          <span>
+            Designed for mobile-first reading, then polished for desktop.
+          </span>
         </footer>
       </div>
     </main>
