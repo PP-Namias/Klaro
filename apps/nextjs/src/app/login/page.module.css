@@ -3,8 +3,16 @@
   min-height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--primary) 18%, transparent) 0, transparent 32%),
-    radial-gradient(circle at 85% 0%, color-mix(in oklab, var(--accent) 16%, transparent) 0, transparent 24%),
+    radial-gradient(
+      circle at 20% 20%,
+      color-mix(in oklab, var(--primary) 18%, transparent) 0,
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 85% 0%,
+      color-mix(in oklab, var(--accent) 16%, transparent) 0,
+      transparent 24%
+    ),
     linear-gradient(
       180deg,
       color-mix(in oklab, var(--background) 94%, white) 0%,
@@ -18,7 +26,8 @@
   content: "";
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(
+  background-image:
+    linear-gradient(
       color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
       transparent 1px
     ),
@@ -48,7 +57,8 @@
 .login__card {
   border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
   background: color-mix(in oklab, var(--card) 74%, transparent);
-  box-shadow: 0 38px 90px color-mix(in oklab, var(--foreground) 12%, transparent);
+  box-shadow: 0 38px 90px
+    color-mix(in oklab, var(--foreground) 12%, transparent);
   backdrop-filter: blur(22px);
 }
 

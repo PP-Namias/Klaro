@@ -3,8 +3,16 @@
   min-height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at top left, color-mix(in oklab, var(--primary) 20%, transparent) 0, transparent 34%),
-    radial-gradient(circle at 78% 12%, color-mix(in oklab, var(--accent) 16%, transparent) 0, transparent 24%),
+    radial-gradient(
+      circle at top left,
+      color-mix(in oklab, var(--primary) 20%, transparent) 0,
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 78% 12%,
+      color-mix(in oklab, var(--accent) 16%, transparent) 0,
+      transparent 24%
+    ),
     linear-gradient(
       180deg,
       color-mix(in oklab, var(--background) 95%, white) 0%,
@@ -18,7 +26,8 @@
   content: "";
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(
+  background-image:
+    linear-gradient(
       color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
       transparent 1px
     ),
@@ -65,7 +74,8 @@
   border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
   border-radius: 0.9rem;
   background: color-mix(in oklab, var(--card) 74%, transparent);
-  box-shadow: 0 24px 60px color-mix(in oklab, var(--foreground) 10%, transparent);
+  box-shadow: 0 24px 60px
+    color-mix(in oklab, var(--foreground) 10%, transparent);
   font-family: var(--font-geist-mono);
   font-size: 0.9rem;
   letter-spacing: 0.24em;
@@ -138,7 +148,8 @@
   padding: 1.5rem;
   border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
   background: color-mix(in oklab, var(--card) 72%, transparent);
-  box-shadow: 0 40px 100px color-mix(in oklab, var(--foreground) 12%, transparent);
+  box-shadow: 0 40px 100px
+    color-mix(in oklab, var(--foreground) 12%, transparent);
   backdrop-filter: blur(24px);
   border-radius: 2rem;
 }
@@ -272,7 +283,8 @@
   padding: 1.25rem;
   border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
   background: color-mix(in oklab, var(--card) 72%, transparent);
-  box-shadow: 0 40px 100px color-mix(in oklab, var(--foreground) 12%, transparent);
+  box-shadow: 0 40px 100px
+    color-mix(in oklab, var(--foreground) 12%, transparent);
   backdrop-filter: blur(24px);
   border-radius: 2rem;
 }
