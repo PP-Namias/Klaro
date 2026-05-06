@@ -139,9 +139,9 @@ const parseOpeningHours = (value: string) => {
 
     const [dayPart, timePart] = normalizedSegment.split(/[:=]/, 2);
 
-    if (timePart) {
+    if (dayPart && timePart) {
       hours[dayPart.trim()] = timePart.trim();
-    } else {
+    } else if (dayPart) {
       hours.raw = normalizedSegment;
     }
   }

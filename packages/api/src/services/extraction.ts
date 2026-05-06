@@ -224,7 +224,7 @@ export const extractTestsFromText = (text: string): ExtractedTest[] => {
       if (!match) continue;
 
       const name = normalizeName(match[1] ?? "");
-      const value = match[2];
+      const value = match[2] ?? "";
       const unit = match[3] || "";
       const referenceRange = match[4];
 
@@ -238,7 +238,7 @@ export const extractTestsFromText = (text: string): ExtractedTest[] => {
         value,
         unit: unit.trim(),
         referenceRange: referenceRange?.trim(),
-        flagged: computeFlag(value, referenceRange),
+        flagged: computeFlag(value, referenceRange ?? ""),
       });
 
       break; // Move to next line after successful pattern match

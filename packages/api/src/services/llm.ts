@@ -139,7 +139,7 @@ function getDialectInstructions(dialect: Dialect): string {
 - Keep explanations practical and action-oriented`,
   };
 
-  return instructions[dialect];
+  return instructions[dialect] ?? "";
 }
 
 /**
@@ -150,7 +150,7 @@ function getTanongMoPrompt(
   flaggedTests: ExtractedTest[],
 ): string {
   const testList = flaggedTests
-    .map((t) => `- ${t.name} (${t.value}${t.unit ? " " + t.unit : ""})`)
+    .map((t: ExtractedTest) => `- ${t.name} (${t.value}${t.unit ? " " + t.unit : ""})`)
     .join("\n");
 
   return `You are helping a Filipino patient prepare for a doctor visit. 
@@ -243,7 +243,7 @@ function getAbnormalInterpretation(test: ExtractedTest, dialect: Dialect): strin
     Ilocano: `Ang iyong ${test.name} ay nagtaas/nagbaba pay sa normal. Dapat kita sa doktor.`,
   };
 
-  return interpretations[dialect];
+  return interpretations[dialect] ?? interpretations["Filipino"];
 }
 
 /**
@@ -256,7 +256,7 @@ function getNormalInterpretation(test: ExtractedTest, dialect: Dialect): string 
     Ilocano: `Ang iyong ${test.name} ay normal. Nasapa niito.`,
   };
 
-  return interpretations[dialect];
+  return interpretations[dialect] ?? interpretations["Filipino"];
 }
 
 /**
@@ -269,7 +269,7 @@ function getRecommendation(test: ExtractedTest, dialect: Dialect): string {
     Ilocano: `Kita sa doktor para sa ${test.name}.`,
   };
 
-  return recommendations[dialect];
+  return recommendations[dialect] ?? recommendations["Filipino"];
 }
 
 /**
@@ -307,7 +307,7 @@ function generateQuestionsForDoctor(
     ],
   };
 
-  return questions[dialect].slice(0, Math.min(3, flaggedTests.length + 2));
+  return (questions[dialect] ?? []).slice(0, Math.min(3, flaggedTests.length + 2));
 }
 
 /**
@@ -320,7 +320,7 @@ function getFollowUpQuestion(dialect: Dialect): string {
     Ilocano: "Apay ti dapat ko a gawin para manatili a malusog?",
   };
 
-  return questions[dialect];
+  return questions[dialect] ?? questions["Filipino"];
 }
 
 /**
@@ -333,7 +333,7 @@ function getTanongMoTitle(dialect: Dialect): string {
     Ilocano: "Itatanong Mo Sa Doktor",
   };
 
-  return titles[dialect];
+  return titles[dialect] ?? titles["Filipino"];
 }
 
 /**
@@ -349,7 +349,7 @@ function getSafetyDisclaimer(dialect: Dialect): string {
       "⚠️ Ang napadaan a resulta ay saan normal. Mahalaga na makita mo ti doktor.",
   };
 
-  return disclaimers[dialect];
+  return disclaimers[dialect] ?? disclaimers["Filipino"];
 }
 
 /**
@@ -362,7 +362,7 @@ function getBookingCTA(dialect: Dialect): string {
     Ilocano: "📞 Mag-book ug appointment sa doktor dita",
   };
 
-  return ctas[dialect];
+  return ctas[dialect] ?? ctas["Filipino"];
 }
 
 /**

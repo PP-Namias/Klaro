@@ -8,6 +8,10 @@ export const unused = z.string().describe(
 );
 
 export { signInInputSchema, sessionSchema, logoutResponseSchema } from "./auth";
+export * from "./extraction";
+export * from "./llm";
+export * from "./documents";
+export * from "./facilities";
 export type { SignInInput, Session, LogoutResponse } from "./auth";
 
 export {

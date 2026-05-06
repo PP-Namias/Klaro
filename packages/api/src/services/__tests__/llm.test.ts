@@ -172,7 +172,7 @@ describe("LLM Service", () => {
       const result = await generatePlainLanguageExplanation(tests, "Filipino");
 
       expect(result.tests.length).toBeGreaterThan(0);
-      const wbcTest = result.tests.find((t) => t.name === "WBC");
+      const wbcTest = result.tests.find((t: typeof result.tests[0]) => t.name === "WBC");
       expect(wbcTest?.recommendation).toBeTruthy();
     });
 
@@ -236,7 +236,7 @@ describe("LLM Service", () => {
 
       const result = await generatePlainLanguageExplanation(tests, "Filipino");
 
-      result.tests.forEach((test) => {
+      result.tests.forEach((test: typeof result.tests[0]) => {
         const wordCount = test.interpretation.split(/\s+/).length;
         expect(wordCount).toBeLessThanOrEqual(30); // Roughly 150 words max
       });
