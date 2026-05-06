@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Geist } from "next/font/google";
 
-
 import { cn } from "@klaro/ui";
 import { ThemeProvider, ThemeToggle } from "@klaro/ui/theme";
 import { Toaster } from "@klaro/ui/toast";

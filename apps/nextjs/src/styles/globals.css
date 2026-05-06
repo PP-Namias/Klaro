@@ -27,7 +27,10 @@
   body {
     letter-spacing: var(--tracking-normal);
   }
-  button, input, select, textarea {
+  button,
+  input,
+  select,
+  textarea {
     font-family: inherit;
   }
 }
