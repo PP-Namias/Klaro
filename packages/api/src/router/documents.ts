@@ -430,7 +430,6 @@ export const documentsRouter = {
         .set({
           ocrText: ocrResult.text,
           confidence: ocrResult.confidence.toFixed(2),
-          ocrSource: ocrResult.source,
           ocrAudit: audit,
           status: "analyzed",
         })

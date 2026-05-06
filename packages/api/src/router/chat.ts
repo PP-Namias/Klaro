@@ -138,7 +138,7 @@ export const chatRouter = {
       const recentMessages = recent.map((m) => ({
         role: m.role,
         content: m.content,
-        dialect: m.dialect,
+        dialect: m.dialect ?? undefined,
       }));
 
       // Assemble context from analysis + recent messages
@@ -211,7 +211,8 @@ export const chatRouter = {
       }),
     )
     .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
+      const userId = ctx.session?.user?.id;
+      if (!userId) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "User must be authenticated",
@@ -224,7 +225,7 @@ export const chatRouter = {
         .from(analysis)
         .where(eq(analysis.id, input.analysisId));
 
-      if (!doc_analysis || doc_analysis.userId !== ctx.session.user.id) {
+      if (!doc_analysis || doc_analysis.userId !== userId) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have access to this analysis",
@@ -247,7 +248,8 @@ export const chatRouter = {
   clearHistory: protectedProcedure
     .input(z.object({ analysisId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
+      const userId = ctx.session?.user?.id;
+      if (!userId) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "User must be authenticated",
@@ -260,7 +262,7 @@ export const chatRouter = {
         .from(analysis)
         .where(eq(analysis.id, input.analysisId));
 
-      if (!doc_analysis || doc_analysis.userId !== ctx.session.user.id) {
+      if (!doc_analysis || doc_analysis.userId !== userId) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have access to this analysis",
