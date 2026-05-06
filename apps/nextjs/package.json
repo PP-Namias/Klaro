@@ -28,6 +28,7 @@
     "@trpc/tanstack-react-query": "catalog:",
     "better-auth": "catalog:",
     "cloudinary": "catalog:",
+    "drizzle-orm": "^0.44.7",
     "leaflet": "^1.9.4",
     "next": "^16.0.9",
     "react": "catalog:react19",

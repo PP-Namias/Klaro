@@ -1,8 +1,6 @@
 import type { NextRequest } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 import { db } from "@klaro/db";
-import { document as documentTable } from "@klaro/db/schema";
-import { eq } from "drizzle-orm";
 import { assertSession } from "~/lib/session-validation";
 
 cloudinary.config({
@@ -34,7 +32,7 @@ export const GET = async (
     const session = await assertSession();
 
     const doc = await db.query.document.findFirst({
-      where: eq(documentTable.id, id),
+      where: (document, { eq }) => eq(document.id, id),
     });
 
     if (!doc) {

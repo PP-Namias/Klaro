@@ -1,11 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@klaro/ui/button";
 import styles from "./page.module.css";
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const errorCode = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
@@ -124,5 +125,13 @@ export default function AuthErrorPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={<main className={styles.authErrorBlock} />}>
+      <AuthErrorContent />
+    </Suspense>
   );
 }
