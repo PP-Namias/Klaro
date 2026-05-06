@@ -1,5 +1,7 @@
 import Link from "next/link";
+
 import { Button } from "@klaro/ui/button";
+
 import styles from "../../app/scan/page.module.css";
 
 interface ScanHeaderProps {
@@ -29,7 +31,12 @@ export function ScanHeader({ session }: ScanHeaderProps) {
           </div>
         ) : null}
 
-        <Button asChild size="lg" variant="outline" className={styles.scan__ghostAction}>
+        <Button
+          asChild
+          size="lg"
+          variant="outline"
+          className={styles.scan__ghostAction}
+        >
           <Link href="/dashboard">Back to dashboard</Link>
         </Button>
       </div>

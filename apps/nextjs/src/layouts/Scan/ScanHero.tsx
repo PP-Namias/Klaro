@@ -1,8 +1,10 @@
 import Link from "next/link";
+
 import { Button } from "@klaro/ui/button";
-import { SignInButton } from "../../components/sign-in-button";
-import { DocumentsPanel } from "../../components/documents-panel";
+
 import styles from "../../app/scan/page.module.css";
+import { DocumentsPanel } from "../../components/documents-panel";
+import { SignInButton } from "../../components/sign-in-button";
 
 interface ScanHeroProps {
   session: any;
@@ -29,18 +31,30 @@ export function ScanHero({ session }: ScanHeroProps) {
           </SignInButton>
         )}
 
-        <Button asChild size="lg" variant="outline" className={styles.scan__secondaryAction}>
+        <Button
+          asChild
+          size="lg"
+          variant="outline"
+          className={styles.scan__secondaryAction}
+        >
           <Link href="/login">Use the login page</Link>
         </Button>
 
-        <Button asChild size="lg" variant="outline" className={styles.scan__secondaryAction}>
+        <Button
+          asChild
+          size="lg"
+          variant="outline"
+          className={styles.scan__secondaryAction}
+        >
           <Link href="/">Return home</Link>
         </Button>
       </div>
 
       <div className={styles.scan__dropzone}>
         <span className={styles.scan__dropzoneLabel}>Drop target</span>
-        <h2 className={styles.scan__dropzoneTitle}>Drop a PDF or image here.</h2>
+        <h2 className={styles.scan__dropzoneTitle}>
+          Drop a PDF or image here.
+        </h2>
         <p className={styles.scan__dropzoneCopy}>
           The real upload action can sit here later. For now, this page shows
           the calm intake and preview structure Klaro will use.

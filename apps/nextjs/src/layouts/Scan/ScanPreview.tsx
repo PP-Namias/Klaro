@@ -18,7 +18,12 @@ const previewRows = [
   },
 ] as const;
 
-const analysisTags = ["Plain language", "Tagalog ready", "Guest safe", "Private link"] as const;
+const analysisTags = [
+  "Plain language",
+  "Tagalog ready",
+  "Guest safe",
+  "Private link",
+] as const;
 
 interface ScanPreviewProps {
   session: any;
@@ -29,7 +34,9 @@ export function ScanPreview({ session }: ScanPreviewProps) {
     <aside className={styles.scan__preview}>
       <div className={styles.scan__previewHeader}>
         <span className={styles.scan__previewTitle}>Analysis preview</span>
-        <span className={styles.scan__previewPill}>{session ? "active" : "guest"}</span>
+        <span className={styles.scan__previewPill}>
+          {session ? "active" : "guest"}
+        </span>
       </div>
 
       <article className={styles.scan__summaryCard}>
