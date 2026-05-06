@@ -996,9 +996,107 @@
   z-index: 50;
 }
 
+/* --- Floating pill navbar (scroll-up) --- */
+
+.floatingNavWrapper {
+  position: fixed;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(-120%);
+  z-index: 100;
+  width: 100%;
+  max-width: 1400px;
+  padding: 0 4rem;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.35s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.floatingNavWrapper[data-visible="true"] {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.floatingNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+.floatingLogo {
+  font-family: var(--font-cormorant);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #000;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.floatingLinks {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.floatingLink {
+  color: #1a1a1a;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 450;
+  transition: color 0.2s ease;
+}
+
+.floatingBtnBlack {
+  font-size: var(--text-button);
+  background-color: #000000;
+  color: #ffffff;
+  padding: 0.4rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.floatingBtnBlack:hover {
+  background-color: #1a1a1a;
+  transform: translateY(-1px);
+}
+
+.floatingBtn {
+  font-size: 0.85rem;
+  background-color: #000;
+  color: #fff;
+  padding: 0.35rem 1rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: background-color 0.2s ease;
+}
+
+.floatingBtn:hover {
+  background-color: #222;
+}
+
 .headerLogo {
   font-family: var(--font-cormorant);
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 600;
   display: flex;
   align-items: center;
