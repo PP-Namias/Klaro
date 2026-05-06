@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ArrowRight, ChevronDown } from "lucide-react";
 
-import styles from "../../app/sample-scanner/page.module.css";
+import styles from "../../app/scan/page.module.css";
 
 export function ScannerNavbar() {
   return (
@@ -31,13 +31,6 @@ export function ScannerNavbar() {
         <a href="#" className={styles.navLink}>
           Security
         </a>
-        <button className={styles.navSignInBtn}>
-          Sign in
-          <ArrowRight
-            size={14}
-            className="ml-1 inline-block align-text-bottom"
-          />
-        </button>
       </div>
     </header>
   );

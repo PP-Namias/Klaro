@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import styles from "../../app/sample-scanner/page.module.css";
+import styles from "../../app/scan/page.module.css";
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
