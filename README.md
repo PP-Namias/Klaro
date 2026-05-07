@@ -1,119 +1,188 @@
 # Klaro
 
-Klaro is an AI-assisted Filipino health companion that helps users understand medical documents, ask follow-up questions in local dialects, find nearby care, and book consultations.
+Klaro is an AI-assisted Filipino health companion application that helps users understand medical documents, ask follow-up questions in local dialects, find nearby care facilities, and book free consultations with licensed healthcare providers.
 
-## Locked Core Features
+## Overview
 
-### 1. Document Scan and Analysis
+Klaro addresses healthcare accessibility challenges by providing:
+- Intelligent document analysis for medical records
+- Multilingual conversational support in Filipino dialects
+- Proximity-based care facility discovery
+- Integrated provider network with free consultation booking
+- Direct connection with healthcare professionals at no cost
 
-- Upload via photo, scan, or PDF
-- Supports lab results (demo), prescriptions and discharge summaries (full scale)
-- Plain language explanation of results
-- Severity indicator per flagged value
-- "Tanong Mo Sa Doktor" card generated from actual result
+## Core Features
 
-### 2. AI Chatbot
+### Document Scan and Analysis
 
-- Talks about the scanned document in context
-- Asks follow-up questions to extend the conversation naturally
-- Can answer general health questions beyond the document
-- Supports Filipino dialects: Filipino, Bisaya, Ilocano (minimum)
-- User can ask it to simplify the explanation at any point
-- Responds in whichever dialect the user writes in
+- Multiple upload methods: photo, document scanner, or PDF
+- Comprehensive analysis of lab results, prescriptions, and discharge summaries
+- Simplified patient-friendly explanations of medical data
+- Automatic severity assessment for flagged laboratory values
+- Generated talking points for doctor consultations
 
-### 3. Nearest Clinics and Hospitals Map
+### AI Health Chatbot
 
-- Shows nearby clinics and hospitals relevant to the result
-- Filters: PhilHealth-accredited, open now, specialty type
-- Data sources: DOH public facility database plus Google Maps API
+- Context-aware conversations about scanned medical documents
+- Extended dialogue with natural follow-up questions
+- General health information beyond document scope
+- Support for Filipino dialects: Filipino (Tagalog), Bisaya, Ilocano
+- On-demand complexity adjustment for explanations
+- Responsive language matching to user input
 
-### 4. Doctor Appointment and Consultation
+### Healthcare Facility Discovery
 
-- Browse and book licensed Filipino doctors inside the app
-- Doctor-set pricing per session
-- Session types: chat consult, video consult, async record review
-- Doctor receives scanned document automatically before session
-- Doctor can issue digital prescription or referral post-consult
-- PRC license verification on doctor onboarding
+- Geolocation-based clinic and hospital search
+- Multi-criteria filtering: PhilHealth accreditation status, operating hours, specialty type
+- Integrated data from DOH public facility database and Google Maps API
+- Real-time availability information
 
-### 5. In-App Payment
+### Doctor Consultation Platform
 
-- GCash, Maya, card
-- Payment required to confirm consultation booking
-- Platform takes a percentage cut per completed session
+- Directory of licensed Filipino medical professionals
+- Free consultation booking with healthcare providers
+- Multiple session formats: chat consultations, video consultations, asynchronous document reviews
+- Automatic document sharing with assigned healthcare provider
+- Post-consultation services: digital prescriptions and referrals
+- PRC license verification during provider onboarding
 
-### 6. User Accounts
+### User Accounts
 
-| Mode | What You Get |
-| --- | --- |
-| Guest | Scan and analyze, shareable private link (30-day expiry), no history |
-| Registered | Everything in guest plus document history, saved analyses, personalized AI context |
+| Account Type | Features |
+|---|---|
+| Guest | Document analysis and scanning, shareable private link (30-day expiry), no persistent history |
+| Registered | Full guest features plus document history, saved analyses, personalized AI context, free consultation booking |
 
-## Under Consideration
+## Planned Enhancements
 
-- Trend tracking across multiple results
-- Family or caregiver mode with sub-profiles
-- Lolo and Lola simplified output mode
-- Technical versus plain output mode toggle
-- Medication tracker and reminders
-- PhilHealth coverage checker
-- Notification system
-- Second opinion mode
-- Doctor ratings and reviews
+Future considerations include:
+- Health trend tracking across multiple analyses
+- Family and caregiver management with sub-profiles
+- Simplified output modes for elderly users
+- Technical versus simplified information toggle
+- Medication tracking and reminder system
+- PhilHealth coverage verification
+- Push notification system
+- Second opinion consultation mode
+- Provider ratings and review system
 
-## Product Scope
+## Architecture
 
-This is a buildable, demonstrable 5-day product scope. Every feature above has a clear demo moment and avoids speculative work.
+Klaro is built as a full-stack monorepo using pnpm and Turborepo:
 
-## Monorepo Structure
+```
+apps/
+  expo/              Mobile application for iOS and Android
+  nextjs/            Web application and API gateway
+  tanstack-start/    Alternative web application framework
 
-Klaro is implemented as a pnpm and Turborepo monorepo:
-
-- apps/expo: mobile app
-- apps/nextjs: web app and API surface
-- apps/tanstack-start: alternative web app surface
-- packages/api: tRPC routers
-- packages/auth: Better Auth configuration
-- packages/db: Drizzle ORM schema and client
-- packages/ui: shared UI primitives
-- packages/validators: shared validation schemas
-
-## Local Setup
-
-1. Install dependencies:
-
-```bash
-pnpm -w install
+packages/
+  api/               tRPC router definitions
+  auth/              Authentication system (Better Auth)
+  db/                Database schema and ORM (Drizzle)
+  ui/                Shared component library
+  validators/        Shared validation schemas
 ```
 
-2. Configure environment variables:
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18.0 or later
+- pnpm package manager
+- Database instance (configured via environment variables)
+
+### Installation
+
+Install all dependencies:
+
+```bash
+pnpm install
+```
+
+Configure environment variables:
 
 ```bash
 cp .env.example .env
 ```
 
-3. Generate auth schema:
+Edit `.env` with your configuration values for database, authentication, and third-party services.
+
+### Database Setup
+
+Generate authentication schema:
 
 ```bash
 pnpm auth:generate
 ```
 
-4. Push database schema:
+Push database schema to your database instance:
 
 ```bash
 pnpm db:push
 ```
 
-5. Run apps:
+### Development
+
+Start all development servers:
 
 ```bash
 pnpm dev
 ```
 
-## What Next
+This will start:
+- Web application at http://localhost:3000
+- Mobile app development server
+- API server with live reloading
+- Additional services as configured
 
-Choose one:
+### Build for Production
 
-1. Pitch structure
-2. 5-day sprint execution plan
-3. Apply the same product-definition pass to Checkmate and Lokal
+Build all applications and packages:
+
+```bash
+pnpm build
+```
+
+## Project Scope
+
+Klaro is designed as a comprehensive 5-day development sprint. Each feature includes clear demonstration moments and avoids speculative implementation.
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+- `API_REFERENCE.md` - API endpoint documentation
+- `BACKEND_DEV_GUIDE.md` - Backend development guidelines
+- `MOBILE_DEV_GUIDE.md` - Mobile application development
+- `WEB_DEV_GUIDE.md` - Web application development
+- `DATABASE_GUIDE.md` - Database schema and ORM usage
+- `SECURITY_GUIDE.md` - Security best practices
+- `DEPLOYMENT_GUIDE.md` - Production deployment steps
+
+## Contributing
+
+Development workflow:
+1. Create a feature branch from main
+2. Make changes following the project conventions
+3. Ensure all tests pass: `pnpm test`
+4. Submit pull request with clear description
+
+## Technology Stack
+
+- Frontend: Next.js, React, Expo, TailwindCSS, NativeWind
+- Backend: Node.js, tRPC, Better Auth
+- Database: PostgreSQL with Drizzle ORM
+- Mobile: Expo and React Native
+- Validation: Zod schemas
+- Build Tools: Turborepo, Vite
+
+## Support and Resources
+
+For questions or issues:
+- Review the documentation in the `docs/` directory
+- Check existing issues on GitHub
+- Consult the `TROUBLESHOOTING.md` guide
+
+## License
+
+This project is licensed under the terms specified in the LICENSE file.
