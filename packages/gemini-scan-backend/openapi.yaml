@@ -1,0 +1,76 @@
+openapi: 3.0.1
+info:
+  title: Gemini Scan Backend
+  version: '0.1'
+paths:
+  /api/scan:
+    post:
+      summary: Upload and scan one or more images
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                metadata:
+                  type: string
+      responses:
+        '200':
+          description: Scan processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanResult'
+  /api/scan/{scanId}:
+    get:
+      parameters:
+        - name: scanId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Scan result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanResult'
+components:
+  schemas:
+    ScanResult:
+      type: object
+      properties:
+        requestId:
+          type: string
+        status:
+          type: string
+        documentType:
+          type: string
+        extractionScore:
+          type: number
+        fields:
+          type: object
+        tables:
+          type: array
+          items:
+            type: object
+        pages:
+          type: array
+          items:
+            type: object
+        images:
+          type: array
+          items:
+            type: object
+        warnings:
+          type: array
+          items:
+            type: string
+        error:
+          type: object
+        processingMs:
+          type: integer
