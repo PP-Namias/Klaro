@@ -173,6 +173,8 @@ const styles = {
 
 export function UploadForm() {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const router = useRouter();
   const [isDragging, setIsDragging] = useState(false);
   const [selected, setSelected] = useState<SelectedFile | null>(null);
@@ -214,6 +216,35 @@ export function UploadForm() {
       }
     };
   }, [selected]);
+
+  // Request camera on mount (camera-first UX)
+  useEffect(() => {
+    let mounted = true;
+    async function startCamera() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        if (!mounted) return;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
+        }
+      } catch (err) {
+        // user denied or not available - keep file input fallback
+        console.warn("Camera not available or permission denied", err);
+      }
+    }
+
+    void startCamera();
+    return () => {
+      mounted = false;
+      // stop any active tracks
+      if (videoRef.current && videoRef.current.srcObject instanceof MediaStream) {
+        const st = videoRef.current.srcObject as MediaStream;
+        st.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, []);
 
   const clearSelection = () => {
     if (selected?.previewUrl) {
@@ -295,43 +326,25 @@ export function UploadForm() {
 
   return (
     <div style={styles.upload__form as any}>
-      <div
-        style={isDragging ? (styles.upload__dropzoneActive as any) : (styles.upload__dropzone as any)}
-        onDragOver={(event) => {
-          event.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            handleUploadClick();
-          }
-        }}
-      >
-        <div style={styles.upload__dropzoneInner as any}>
-          <span style={styles.upload__dropzoneLabel as any}>Drop target</span>
-          <h2 style={styles.upload__dropzoneTitle as any}>
-            Drop your medical files here.
-          </h2>
-          <p style={styles.upload__dropzoneCopy as any}>
-            Support images, PDFs, and more. We will show a preview before you submit for scanning with AI.
-          </p>
-          <div style={styles.upload__dropzoneTags as any}>
-            <span style={styles.upload__dropzoneTag as any}>PNG</span>
-            <span style={styles.upload__dropzoneTag as any}>JPG</span>
-            <span style={styles.upload__dropzoneTag as any}>PDF</span>
-            <span style={styles.upload__dropzoneTag as any}>WEBP</span>
-            <span style={styles.upload__dropzoneTag as any}>Max 50 MB</span>
+      <div style={isDragging ? (styles.upload__dropzoneActive as any) : (styles.upload__dropzone as any)}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div style={{ position: "relative", width: "100%", height: "420px", backgroundColor: "#000", borderRadius: 8, overflow: "hidden" }}>
+            <video
+              ref={videoRef}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              playsInline
+              muted
+            />
+            <canvas ref={canvasRef} style={{ display: "none" }} />
           </div>
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
             <Button
               type="button"
               variant="outline"
-              onClick={handleUploadClick}
+              onClick={() => {
+                // Trigger file input fallback
+                inputRef.current?.click();
+              }}
               disabled={isProcessing}
             >
               Select file
@@ -339,16 +352,38 @@ export function UploadForm() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                const input = inputRef.current;
-                if (input) {
-                  input.capture = "environment";
-                  input.click();
+              onClick={async () => {
+                // Capture photo from video
+                if (!videoRef.current) return;
+                const v = videoRef.current;
+                const w = v.videoWidth || 640;
+                const h = v.videoHeight || 480;
+                if (!canvasRef.current) return;
+                const c = canvasRef.current;
+                c.width = w;
+                c.height = h;
+                const ctx = c.getContext("2d");
+                if (!ctx) return;
+                ctx.drawImage(v, 0, 0, w, h);
+                const data = c.toDataURL("image/png");
+                const base64 = data.split(",")[1] || data;
+                // create a fake File object
+                const blob = await (await fetch(data)).blob();
+                const file = new File([blob], `camera-${Date.now()}.png`, { type: "image/png" });
+                selectFile(file);
+                // auto-submit after capture
+                setIsProcessing(true);
+                setUploadStatus("Processing captured image...");
+                try {
+                  const b64 = base64;
+                  scanGuestImage.mutate({ base64Image: b64, fileName: file.name, language: "English" });
+                } catch (err) {
+                  setIsProcessing(false);
                 }
               }}
               disabled={isProcessing}
             >
-              📷 Open Camera
+              📸 Capture
             </Button>
           </div>
         </div>
