@@ -19,7 +19,11 @@ interface ScanResult {
   error?: string;
 }
 
-export function ScanResults() {
+interface ScanResultsProps {
+  onScanAgain?: () => void;
+}
+
+export function ScanResults({ onScanAgain }: ScanResultsProps) {
   const searchParams = useSearchParams();
   const scanId = searchParams.get("id");
   const [result, setResult] = useState<ScanResult | null>(null);
@@ -51,13 +55,7 @@ export function ScanResults() {
     return (
       <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
         <h1>No Scan Results</h1>
-        <p>
-          No scan results found. Please upload a medical document from the{" "}
-          <Link href="/upload">upload page</Link>.
-        </p>
-        <Button asChild style={{ marginTop: "1rem" }}>
-          <Link href="/upload">Upload Document</Link>
-        </Button>
+        <p>No scan results found. Please upload a medical document to get started.</p>
       </div>
     );
   }
@@ -67,8 +65,11 @@ export function ScanResults() {
       <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
         <h1 style={{ color: "#d32f2f" }}>Scan Failed</h1>
         <p>{result.error || "An error occurred while scanning the document."}</p>
-        <Button asChild style={{ marginTop: "1rem" }}>
-          <Link href="/upload">Try Again</Link>
+        <Button
+          onClick={onScanAgain}
+          style={{ marginTop: "1rem" }}
+        >
+          Try Again
         </Button>
       </div>
     );
@@ -227,8 +228,8 @@ export function ScanResults() {
 
       {/* Actions */}
       <div style={{ marginTop: "2rem", display: "flex", gap: "1rem" }}>
-        <Button asChild>
-          <Link href="/upload">Scan Another Document</Link>
+        <Button onClick={onScanAgain}>
+          Scan Another Document
         </Button>
         <Button asChild variant="outline">
           <Link href="/dashboard">Go to Dashboard</Link>
