@@ -5,7 +5,6 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@klaro/ui/button";
-import { Input } from "@klaro/ui/input";
 import { toast } from "@klaro/ui/toast";
 
 import { useTRPC } from "~/trpc/react";
@@ -14,11 +13,11 @@ import styles from "./page.module.css";
 interface SelectedFile {
   file: File;
   previewUrl?: string;
-  kind: "image" | "pdf";
+  kind: "image";
 }
 
 const maxFileSize = 10 * 1024 * 1024;
-const acceptedTypes = new Set(["image/png", "image/jpeg", "application/pdf"]);
+const acceptedTypes = new Set(["image/png", "image/jpeg"]);
 
 const formatBytes = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`;
@@ -100,7 +99,7 @@ export function UploadForm() {
 
   const selectFile = (file: File) => {
     if (!acceptedTypes.has(file.type)) {
-      setError("Only PDF, PNG, or JPG files are allowed.");
+      setError("Only PNG or JPG files are allowed.");
       setSelected(null);
       return;
     }
@@ -111,11 +110,10 @@ export function UploadForm() {
       return;
     }
 
-    const kind = file.type === "application/pdf" ? "pdf" : "image";
     const previewUrl = URL.createObjectURL(file);
 
     setError(null);
-    setSelected({ file, previewUrl, kind });
+    setSelected({ file, previewUrl, kind: "image" });
     setUploadStatus(null);
   };
 
@@ -157,28 +155,6 @@ export function UploadForm() {
       setError(msg);
       setUploadStatus(msg);
     }
-  };
-    const file = files[0];
-    if (file) selectFile(file);
-  };
-
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setIsDragging(false);
-    handleFiles(event.dataTransfer.files);
-  };
-
-  const handleUploadClick = () => {
-    inputRef.current?.click();
-  };
-
-  const handleSubmit = () => {
-    if (!selected) return;
-    uploadDocument.mutate({
-      fileName: selected.file.name,
-      fileSize: selected.file.size,
-      mimeType: selected.file.type,
-    });
   };
 
   return (
