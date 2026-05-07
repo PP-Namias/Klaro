@@ -17,7 +17,7 @@ const features = [
   },
   {
     title: "Move straight to care",
-    body: "Clinic discovery, doctor booking, and payments live in one guided flow.",
+    body: "Clinic discovery and free doctor booking live in one guided flow.",
   },
 ] as const;
 
@@ -74,7 +74,7 @@ export default function HomePage() {
                 Klaro turns lab results, prescriptions, and discharge summaries
                 into clear next steps. Keep the conversation in Filipino,
                 Bisaya, or Ilocano, then move into clinic search, doctor
-                booking, and payment without losing context.
+                booking without losing context.
               </p>
             </div>
 

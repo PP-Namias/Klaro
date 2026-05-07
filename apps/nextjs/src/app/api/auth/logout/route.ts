@@ -1,13 +1,12 @@
-import { assertSession } from "~/lib/session-validation";
 import { auth } from "~/auth/server";
+import { headers } from "next/headers";
+import { assertSession } from "~/lib/session-validation";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    // Ensure user is authenticated
-    const session = await assertSession();
+    await assertSession();
 
-    // Invalidate session using better-auth
-    await auth.api.signOut({ asJSON: true });
+    await auth.api.signOut({ headers: await headers() });
 
     return Response.json(
       {

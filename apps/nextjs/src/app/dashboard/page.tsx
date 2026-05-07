@@ -19,7 +19,7 @@ const intakeCards = [
   },
   {
     title: "Find a care path",
-    body: "Jump from interpretation to nearby clinics, booking, and payment without losing state.",
+    body: "Jump from interpretation to nearby clinics and free booking without losing state.",
   },
 ] as const;
 
@@ -34,7 +34,7 @@ const steps = [
   },
   {
     label: "3. Act",
-    copy: "Book, pay, or share privately.",
+    copy: "Book freely or share privately.",
   },
 ] as const;
 
@@ -60,7 +60,7 @@ export default async function DashboardPage() {
               <div className={styles.dashboard__sessionChip}>
                 <span className={styles.dashboard__sessionLabel}>Signed in as</span>
                 <span className={styles.dashboard__sessionName}>
-                  {session.user.name ?? session.user.email ?? "Klaro member"}
+                  {session.user.name || session.user.email || "Klaro member"}
                 </span>
               </div>
             ) : null}
@@ -92,7 +92,12 @@ export default async function DashboardPage() {
                 </SignInButton>
               )}
 
-              <Button asChild size="lg" variant="outline" className={styles.dashboard__secondaryAction}>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className={styles.dashboard__secondaryAction}
+              >
                 <Link href="/login">Use the login page</Link>
               </Button>
             </div>

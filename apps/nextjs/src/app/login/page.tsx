@@ -25,7 +25,7 @@ const benefits = [
   },
   {
     title: "Move from answer to action",
-    body: "Clinic discovery, doctor booking, and payments stay connected to the same record.",
+    body: "Clinic discovery and doctor booking stay connected to the same record.",
   },
 ] as const;
 

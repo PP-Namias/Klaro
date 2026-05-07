@@ -14,7 +14,7 @@ export async function GET() {
       {
         id: session.user.id,
         email: session.user.email,
-        name: session.user.name ?? "",
+        name: session.user.name,
         emailVerified: Boolean(session.user.emailVerified),
       },
       { status: 200 },

@@ -2,7 +2,6 @@ import crypto from "crypto";
 import type { NextRequest } from "next/server";
 import { db } from "@klaro/db";
 import { booking as bookingTable } from "@klaro/db/schema";
-import { eq } from "drizzle-orm";
 
 import { env } from "~/env";
 
