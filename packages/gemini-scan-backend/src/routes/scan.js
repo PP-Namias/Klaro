@@ -12,15 +12,46 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 router.post('/scan', upload.array('file'), async (req, res) => {
   try {
-    if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'missing_file' });
-    const metadata = req.body.metadata ? JSON.parse(req.body.metadata) : {};
+    let metadata = {};
+    if (req.body && req.body.metadata) {
+      metadata = typeof req.body.metadata === 'string' ? JSON.parse(req.body.metadata) : req.body.metadata;
+    }
     const scanId = metadata.requestId || uuidv4();
 
-    // save files to storage
+    // Support JSON body with images (base64) as well as multipart files
     const saved = [];
-    for (const f of req.files) {
-      const out = await storage.saveFile(scanId, f.originalname, f.buffer);
-      saved.push(out);
+    if (req.is('application/json') && req.body && req.body.images) {
+      for (const im of req.body.images) {
+        const buf = Buffer.from(im.bytesBase64 || '', 'base64');
+        // save locally
+        const out = await storage.saveFile(scanId, im.filename || `image-${Date.now()}.jpg`, buf);
+        // optionally upload to presigned url
+        if (metadata.storage_presign_url) {
+          try {
+            const uploaded = await storage.uploadToPresignedUrl(scanId, im.filename || 'image.jpg', buf, metadata.storage_presign_url);
+            out.url = uploaded.url;
+          } catch (e) {
+            console.warn('presign upload failed', e.message);
+          }
+        }
+        saved.push(out);
+      }
+    } else {
+      if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'missing_file' });
+      for (const f of req.files) {
+        // save local copy
+        const out = await storage.saveFile(scanId, f.originalname, f.buffer);
+        // optionally upload to presigned url (template may contain {filename})
+        if (metadata.storage_presign_url) {
+          try {
+            const uploaded = await storage.uploadToPresignedUrl(scanId, f.originalname, f.buffer, metadata.storage_presign_url);
+            out.url = uploaded.url;
+          } catch (e) {
+            console.warn('presign upload failed', e.message);
+          }
+        }
+        saved.push(out);
+      }
     }
 
     // call Gemini (stubbed if not configured)
