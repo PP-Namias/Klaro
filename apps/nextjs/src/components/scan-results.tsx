@@ -232,7 +232,7 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
           Scan Another Document
         </Button>
         <Button asChild variant="outline">
-          <Link href="/dashboard">Go to Dashboard</Link>
+          <Link href="/">Go to Home</Link>
         </Button>
       </div>
     </div>
