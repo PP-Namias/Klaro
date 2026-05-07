@@ -9,9 +9,9 @@ import { assembleDocumentContext } from "../services/contextAssembler";
 import { callLLMAPI } from "../services/llm";
 import { protectedProcedure } from "../trpc";
 
-type ChatSeverity = "LOW" | "MODERATE" | "HIGH";
+export type ChatSeverity = "LOW" | "MODERATE" | "HIGH";
 
-interface ChatSafety {
+export interface ChatSafety {
   severity: ChatSeverity;
   disclaimer?: string;
   bookingSuggestion?: string;
