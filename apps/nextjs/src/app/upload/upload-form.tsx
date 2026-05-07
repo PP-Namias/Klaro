@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@klaro/ui/button";
 import { Input } from "@klaro/ui/input";
@@ -27,29 +28,53 @@ const formatBytes = (bytes: number) => {
   return `${mb.toFixed(2)} MB`;
 };
 
+/**
+ * Convert file to base64 string
+ */
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Extract base64 part after the comma
+      const base64 = result.split(",")[1] || result;
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export function UploadForm() {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const router = useRouter();
   const [isDragging, setIsDragging] = useState(false);
   const [selected, setSelected] = useState<SelectedFile | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pdfPage, setPdfPage] = useState(1);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const trpc = useTRPC();
-  const uploadDocument = useMutation(
-    trpc.documents.upload.mutationOptions({
+
+  // Use the public guest scan endpoint
+  const scanGuestImage = useMutation(
+    trpc.documents.scanGuestImage.mutationOptions({
       onSuccess: (result) => {
-        setUploadStatus("Document queued for analysis.");
-        toast.success("Document queued for analysis.");
-        if (result?.analysisId) {
-          toast.message(`Analysis created: ${result.analysisId}`);
+        setIsProcessing(false);
+        if (result.status === "error") {
+          setUploadStatus(result.error || "Scan failed");
+          toast.error(result.error || "Scan failed");
+        } else {
+          // Save result to sessionStorage for results page
+          sessionStorage.setItem("scanResult", JSON.stringify(result));
+          toast.success("Document scanned successfully!");
+          // Navigate to results page
+          router.push(`/scan?id=${result.requestId}`);
         }
       },
       onError: (err) => {
-        const message =
-          err.data?.code === "UNAUTHORIZED"
-            ? "Sign in to upload documents."
-            : "Could not upload the document.";
+        setIsProcessing(false);
+        const message = "Could not scan the document. Please try again.";
         setUploadStatus(message);
         toast.error(message);
       },
@@ -70,7 +95,6 @@ export function UploadForm() {
     }
     setSelected(null);
     setError(null);
-    setPdfPage(1);
     setUploadStatus(null);
   };
 
@@ -92,12 +116,48 @@ export function UploadForm() {
 
     setError(null);
     setSelected({ file, previewUrl, kind });
-    setPdfPage(1);
     setUploadStatus(null);
   };
 
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    const file = files[0];
+    if (file) selectFile(file);
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    handleFiles(event.dataTransfer.files);
+  };
+
+  const handleUploadClick = () => {
+    inputRef.current?.click();
+  };
+
+  const handleSubmit = async () => {
+    if (!selected || selected.kind !== "image") {
+      setError("Please select an image file to scan.");
+      return;
+    }
+
+    setIsProcessing(true);
+    setUploadStatus("Processing image...");
+
+    try {
+      const base64 = await fileToBase64(selected.file);
+      scanGuestImage.mutate({
+        base64Image: base64,
+        fileName: selected.file.name,
+        language: "English",
+      });
+    } catch (err) {
+      setIsProcessing(false);
+      const msg = err instanceof Error ? err.message : "Failed to read file";
+      setError(msg);
+      setUploadStatus(msg);
+    }
+  };
     const file = files[0];
     if (file) selectFile(file);
   };
@@ -145,15 +205,14 @@ export function UploadForm() {
         <div className={styles.upload__dropzoneInner}>
           <span className={styles.upload__dropzoneLabel}>Drop target</span>
           <h2 className={styles.upload__dropzoneTitle}>
-            Drop a PDF or image here.
+            Drop a PNG or JPG image here.
           </h2>
           <p className={styles.upload__dropzoneCopy}>
-            We will show a preview before you submit the file for analysis.
+            We will show a preview before you submit the file for scanning with AI.
           </p>
           <div className={styles.upload__dropzoneTags}>
             <span className={styles.upload__dropzoneTag}>PNG</span>
             <span className={styles.upload__dropzoneTag}>JPG</span>
-            <span className={styles.upload__dropzoneTag}>PDF</span>
             <span className={styles.upload__dropzoneTag}>Max 10 MB</span>
           </div>
           <Button
@@ -161,6 +220,7 @@ export function UploadForm() {
             variant="outline"
             className={styles.upload__dropzoneButton}
             onClick={handleUploadClick}
+            disabled={isProcessing}
           >
             Select file
           </Button>
@@ -168,9 +228,10 @@ export function UploadForm() {
         <input
           ref={inputRef}
           type="file"
-          accept="image/png,image/jpeg,application/pdf"
+          accept="image/png,image/jpeg"
           className={styles.upload__fileInput}
           onChange={(event) => handleFiles(event.target.files)}
+          disabled={isProcessing}
         />
       </div>
 
@@ -179,7 +240,7 @@ export function UploadForm() {
         <p className={styles.upload__status}>{uploadStatus}</p>
       ) : null}
 
-      {selected ? (
+      {selected && selected.kind === "image" ? (
         <div className={styles.upload__preview}>
           <div className={styles.upload__previewMeta}>
             <div>
@@ -192,61 +253,35 @@ export function UploadForm() {
               {selected.kind.toUpperCase()}
             </span>
           </div>
-          {selected.kind === "image" && selected.previewUrl ? (
+          {selected.previewUrl ? (
             <img
               src={selected.previewUrl}
-              alt="Selected document preview"
+              alt="Selected medical document"
               className={styles.upload__previewImage}
             />
-          ) : selected.previewUrl ? (
-            <div className={styles.upload__pdfPanel}>
-              <div className={styles.upload__pdfControls}>
-                <label
-                  className={styles.upload__pdfLabel}
-                  htmlFor="upload-pdf-page"
-                >
-                  Page to analyze
-                </label>
-                <Input
-                  id="upload-pdf-page"
-                  type="number"
-                  min={1}
-                  value={pdfPage}
-                  onChange={(event) => {
-                    const nextValue = Number(event.target.value);
-                    setPdfPage(
-                      Number.isFinite(nextValue) && nextValue > 0
-                        ? nextValue
-                        : 1,
-                    );
-                  }}
-                  className={styles.upload__pdfInput}
-                />
-              </div>
-              <embed
-                src={`${selected.previewUrl}#page=${pdfPage}`}
-                type="application/pdf"
-                className={styles.upload__pdfPreview}
-              />
-            </div>
           ) : null}
           <div className={styles.upload__previewActions}>
-            <Button type="button" variant="outline" onClick={clearSelection}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={clearSelection}
+              disabled={isProcessing}
+            >
               Remove file
             </Button>
             <Button
               type="button"
               className={styles.upload__submit}
-              disabled={!selected || uploadDocument.isPending}
+              disabled={!selected || isProcessing}
               onClick={handleSubmit}
             >
-              {uploadDocument.isPending ? "Queueing..." : "Upload and analyze"}
+              {isProcessing ? "Scanning..." : "Scan with AI"}
             </Button>
           </div>
         </div>
       ) : (
         <p className={styles.upload__hint}>
-          Add a file to see the preview and validation summary.
+          Add an image file to see the preview and submit for analysis.
         </p>
       )}
     </div>

@@ -9,7 +9,7 @@ import { analysis, document } from "@klaro/db/schema";
 import { extractTestsFromText } from "../services/extraction";
 import { generatePlainLanguageExplanation } from "../services/llm";
 import { buildOcrResult } from "../services/ocr";
-import { protectedProcedure } from "../trpc";
+import { protectedProcedure, publicProcedure } from "../trpc";
 
 export const documentsRouter = {
   /**
@@ -558,6 +558,78 @@ export const documentsRouter = {
           code: "INTERNAL_SERVER_ERROR",
           message: `Failed to generate analysis: ${errorMessage}`,
         });
+      }
+    }),
+
+  /**
+   * Public guest endpoint: scan medical image with Gemini AI
+   * No authentication required - guest uploads get temporary session
+   */
+  scanGuestImage: publicProcedure
+    .input(
+      z.object({
+        base64Image: z.string().min(100),
+        fileName: z.string().optional(),
+        language: z.enum(["Filipino", "English"]).default("English"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Call Gemini scan API (backend service on port 3001)
+        const geminiApiUrl =
+          process.env.GEMINI_SCAN_API_URL || "http://localhost:3001";
+        const response = await fetch(`${geminiApiUrl}/api/scan`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            images: [
+              {
+                bytesBase64: input.base64Image,
+              },
+            ],
+            metadata: {
+              language: input.language,
+              fileName: input.fileName,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          throw new Error(`Gemini scan failed: ${error}`);
+        }
+
+        const result = await response.json();
+
+        // Extract useful information from Gemini response
+        const scanResult = {
+          requestId: result.requestId || "temp-scan-" + Date.now(),
+          status: "completed",
+          language: input.language,
+          analysis: result.analysis || null,
+          extractedData: result.extractedData || null,
+          confidence: result.confidence || 0.85,
+          plainLanguageSummary:
+            result.plainLanguageSummary ||
+            "Medical document scanned and analyzed",
+          recommendations: result.recommendations || [],
+          warnings: result.warnings || [],
+          timestamp: new Date().toISOString(),
+        };
+
+        return scanResult;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error during scan";
+
+        // Still return a valid response so frontend can handle gracefully
+        return {
+          requestId: "error-" + Date.now(),
+          status: "error",
+          error: errorMessage,
+          language: input.language,
+          timestamp: new Date().toISOString(),
+        };
       }
     }),
 } satisfies TRPCRouterRecord;

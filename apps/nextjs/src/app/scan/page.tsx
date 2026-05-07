@@ -3,7 +3,8 @@ import Image from "next/image";
 import { ScannerNavbar } from "~/layouts/SampleScanner/ScannerNavbar";
 import { ScannerUI } from "~/layouts/SampleScanner/ScannerUI";
 import { Sidebar } from "~/layouts/SampleScanner/Sidebar";
-import styles from "./page.module.css";
+import { ScanResults } from "~/components/scan-results";
+import styles from "./page.tsx.module.css";
 
 export default function ScanPage() {
 	return (
@@ -12,7 +13,7 @@ export default function ScanPage() {
 			<div className={styles.mainWrapper}>
 				<ScannerNavbar />
 				<main className={styles.mainContent}>
-					<ScannerUI />
+					<ScanResults />
 				</main>
 			</div>
 			<div className={styles.backgroundGlow}>
@@ -27,3 +28,4 @@ export default function ScanPage() {
 		</div>
 	);
 }
+
