@@ -181,7 +181,6 @@ export const chatRouter = {
       };
 
       // Save assistant message
-<<<<<<< HEAD
       await ctx.db
         .insert(chatMessage)
         .values({

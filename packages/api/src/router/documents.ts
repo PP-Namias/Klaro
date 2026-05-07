@@ -489,7 +489,6 @@ export const documentsRouter = {
       }
 
       // Ensure extraction is complete
-<<<<<<< HEAD
       if (
         !analysisRecord.extractedFields ||
         (analysisRecord.extractedFields as any[]).length === 0
