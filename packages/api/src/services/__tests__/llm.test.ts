@@ -1,13 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { ExtractedTest } from "@klaro/validators/extraction";
+
 import {
-  generatePlainLanguageExplanation,
   computeSeverityForTests,
-  registerPromptVersion,
+  generatePlainLanguageExplanation,
   getActivePromptVersion,
   getAllPromptVersions,
   logPromptUsage,
   PROMPT_TEMPLATES,
+  registerPromptVersion,
 } from "../llm";
 
 describe("LLM Service", () => {
@@ -114,7 +116,8 @@ describe("LLM Service", () => {
       expect(result.severity).toBeTruthy();
       expect(result.questionsForDoctor).toBeInstanceOf(Array);
       // Summary should be in Filipino
-      expect(result.summary).toContain("Maganda") || expect(result.summary).toContain("iyong");
+      expect(result.summary).toContain("Maganda") ||
+        expect(result.summary).toContain("iyong");
     });
 
     it("should generate explanation in Bisaya dialect", async () => {
@@ -134,7 +137,8 @@ describe("LLM Service", () => {
       expect(result).toBeDefined();
       expect(result.summary).toBeTruthy();
       // Summary should be in Bisaya
-      expect(result.summary).toContain("Maayo") || expect(result.summary).toContain("imong");
+      expect(result.summary).toContain("Maayo") ||
+        expect(result.summary).toContain("imong");
     });
 
     it("should generate explanation in Ilocano dialect", async () => {
@@ -154,7 +158,8 @@ describe("LLM Service", () => {
       expect(result).toBeDefined();
       expect(result.summary).toBeTruthy();
       // Summary should be in Ilocano
-      expect(result.summary).toContain("Nasapa") || expect(result.summary).toContain("resulta");
+      expect(result.summary).toContain("Nasapa") ||
+        expect(result.summary).toContain("resulta");
     });
 
     it("should include recommendations for flagged tests", async () => {
@@ -309,7 +314,7 @@ describe("LLM Service", () => {
       const allVersions = getAllPromptVersions("explanation");
 
       expect(allVersions).toBeDefined();
-      expect(allVersions["explanation"]).toBeDefined();
+      expect(allVersions.explanation).toBeDefined();
     });
   });
 

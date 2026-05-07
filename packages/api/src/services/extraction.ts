@@ -1,10 +1,10 @@
-export type ExtractedTest = {
+export interface ExtractedTest {
   name: string;
   value: string;
   unit?: string;
   referenceRange?: string;
   flagged?: boolean;
-};
+}
 
 /**
  * Comprehensive test name canonicalization database
@@ -225,7 +225,7 @@ export const extractTestsFromText = (text: string): ExtractedTest[] => {
 
       const name = normalizeName(match[1] ?? "");
       const value = match[2] ?? "";
-      const unit = match[3] || "";
+      const unit = match[3] ?? "";
       const referenceRange = match[4];
 
       // Skip duplicate names

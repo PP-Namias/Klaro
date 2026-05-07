@@ -1,6 +1,11 @@
-import { describe, it, assert } from "node:test";
+import { assert, describe, it } from "node:test";
+
 import type { ExtractedTest } from "@klaro/validators/extraction";
-import { computeSeverityForTests, generatePlainLanguageExplanation } from "../services/llm";
+
+import {
+  computeSeverityForTests,
+  generatePlainLanguageExplanation,
+} from "../services/llm";
 
 describe("LLM Service - Plain-language Explanation Generation", () => {
   describe("Severity Scoring", () => {
@@ -52,7 +57,11 @@ describe("LLM Service - Plain-language Explanation Generation", () => {
       assert.strictEqual(result.severity, "LOW");
       assert(result.summary.length > 0, "Summary should not be empty");
       assert(result.summary.includes("normal"), "Should mention normal");
-      assert.strictEqual(result.tests.length, 2, "Should have 2 test explanations");
+      assert.strictEqual(
+        result.tests.length,
+        2,
+        "Should have 2 test explanations",
+      );
       assert(!result.disclaimer, "Should not have disclaimer for LOW severity");
     });
 
@@ -67,7 +76,10 @@ describe("LLM Service - Plain-language Explanation Generation", () => {
       assert.strictEqual(result.severity, "HIGH");
       assert(result.disclaimer, "Should have disclaimer for HIGH severity");
       assert(result.bookingPrompt, "Should have booking CTA for HIGH severity");
-      assert(result.disclaimer.includes("⚠️"), "Disclaimer should include warning icon");
+      assert(
+        result.disclaimer.includes("⚠️"),
+        "Disclaimer should include warning icon",
+      );
     });
 
     it("should generate tanqmo card with questions", async () => {
@@ -78,7 +90,10 @@ describe("LLM Service - Plain-language Explanation Generation", () => {
       const result = await generatePlainLanguageExplanation(tests, "Filipino");
 
       assert(result.questionsForDoctor.length > 0, "Should have questions");
-      assert(result.questionsForDoctor.length <= 5, "Should have max 5 questions");
+      assert(
+        result.questionsForDoctor.length <= 5,
+        "Should have max 5 questions",
+      );
       const allQuestionsInFilipino = result.questionsForDoctor.every((q) =>
         /[A-Za-z0-9\s\?\-\/\(\)]/i.test(q),
       );
@@ -96,8 +111,14 @@ describe("LLM Service - Plain-language Explanation Generation", () => {
       assert.strictEqual(result.tests[0].name, "Hemoglobin");
       assert.strictEqual(result.tests[0].value, "14");
       assert(result.tests[0].interpretation.length > 0);
-      assert(!result.tests[0].recommendation, "Normal test should not have recommendation");
-      assert(result.tests[1].recommendation, "Flagged test should have recommendation");
+      assert(
+        !result.tests[0].recommendation,
+        "Normal test should not have recommendation",
+      );
+      assert(
+        result.tests[1].recommendation,
+        "Flagged test should have recommendation",
+      );
     });
   });
 
@@ -265,10 +286,7 @@ describe("LLM Service - Plain-language Explanation Generation", () => {
       ];
       const result = await generatePlainLanguageExplanation(tests, "Filipino");
 
-      assert(
-        result.summary.length <= 1000,
-        "Summary should be <=1000 chars",
-      );
+      assert(result.summary.length <= 1000, "Summary should be <=1000 chars");
       result.tests.forEach((test) => {
         assert(
           test.interpretation.length <= 200,

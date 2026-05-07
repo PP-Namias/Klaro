@@ -22,9 +22,9 @@ paths:
               - google
           description: OAuth provider to use
       responses:
-        '302':
+        "302":
           description: Redirect to OAuth provider
-        '400':
+        "400":
           description: Invalid provider parameter
   /api/auth/logout:
     post:
@@ -35,7 +35,7 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: Session cleared successfully
           content:
             application/json:
@@ -46,7 +46,7 @@ paths:
                     type: boolean
                   message:
                     type: string
-        '401':
+        "401":
           description: Not authenticated
           content:
             application/json:
@@ -65,7 +65,7 @@ paths:
       tags:
         - auth
       responses:
-        '200':
+        "200":
           description: Current user session
           content:
             application/json:
@@ -86,7 +86,7 @@ paths:
                   emailVerified:
                     type: boolean
                     example: true
-        '401':
+        "401":
           description: Not authenticated
           content:
             application/json:
@@ -127,7 +127,7 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: Signed params
           content:
             application/json:
@@ -150,7 +150,7 @@ paths:
                     type: string
                     nullable: true
                     example: "preset"
-        '401':
+        "401":
           description: Not authenticated
           content:
             application/json:
@@ -180,7 +180,7 @@ paths:
               required:
                 - file
       responses:
-        '201':
+        "201":
           description: Upload successful
           content:
             application/json:
@@ -202,9 +202,9 @@ paths:
                   createdAt:
                     type: string
                     format: date-time
-        '400':
+        "400":
           description: Invalid request (missing file)
-        '401':
+        "401":
           description: Not authenticated
           content:
             application/json:
@@ -214,9 +214,9 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
-        '413':
+        "413":
           description: File too large (max 50MB)
-        '415':
+        "415":
           description: Invalid file type
   /api/uploads/{id}:
     get:
@@ -232,7 +232,7 @@ paths:
             type: string
           description: Document ID
       responses:
-        '200':
+        "200":
           description: Upload metadata
           content:
             application/json:
@@ -254,7 +254,7 @@ paths:
                   createdAt:
                     type: string
                     format: date-time
-        '401':
+        "401":
           description: Not authenticated
           content:
             application/json:
@@ -264,7 +264,7 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
-        '403':
+        "403":
           description: Forbidden - document owned by another user
           content:
             application/json:
@@ -274,14 +274,14 @@ paths:
                   error:
                     type: string
                     example: Forbidden
-        '404':
+        "404":
           description: Document not found
   /api/documents/scan:
     get:
       summary: Get document scan endpoint metadata
       description: Returns information about the /api/documents/scan endpoint
       responses:
-        '200':
+        "200":
           description: Endpoint metadata
           content:
             application/json:
@@ -318,7 +318,7 @@ paths:
               required:
                 - file
       responses:
-        '201':
+        "201":
           description: Document created successfully
           content:
             application/json:
@@ -349,7 +349,7 @@ paths:
                         type: integer
                       type:
                         type: string
-        '400':
+        "400":
           description: Bad request (missing file, unsupported type)
           content:
             application/json:
@@ -359,7 +359,7 @@ paths:
                   error:
                     type: string
                     example: "File type not supported. Allowed: JPEG, PNG, WebP, PDF"
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -369,7 +369,7 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
-        '413':
+        "413":
           description: Payload too large (file exceeds 50MB)
           content:
             application/json:
@@ -379,7 +379,7 @@ paths:
                   error:
                     type: string
                     example: File size exceeds 50MB limit
-        '500':
+        "500":
           description: Internal server error
   /api/scheduling/create:
     post:
@@ -396,7 +396,7 @@ paths:
                 duration:
                   type: integer
       responses:
-        '200':
+        "200":
           description: Scheduling link
           content:
             application/json:
@@ -415,14 +415,14 @@ paths:
             schema:
               type: object
       responses:
-        '200':
+        "200":
           description: OK
   /api/trpc/health:
     post:
       summary: Health check
       description: Returns API health and version metadata
       responses:
-        '200':
+        "200":
           description: Health status
           content:
             application/json:
@@ -443,7 +443,7 @@ paths:
       summary: API version
       description: Returns API version metadata
       responses:
-        '200':
+        "200":
           description: Version metadata
           content:
             application/json:
@@ -463,7 +463,7 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: Current user
           content:
             application/json:
@@ -476,7 +476,7 @@ paths:
                     type: string
                   name:
                     type: string
-        '401':
+        "401":
           description: Not authenticated
           content:
             application/json:
@@ -506,7 +506,7 @@ paths:
                   type: integer
                   example: 0
       responses:
-        '200':
+        "200":
           description: User documents
           content:
             application/json:
@@ -530,7 +530,7 @@ paths:
                     createdAt:
                       type: string
                       format: date-time
-        '401':
+        "401":
           description: Not authenticated
           content:
             application/json:
@@ -580,7 +580,7 @@ paths:
                 - documentId
                 - ocrText
       responses:
-        '200':
+        "200":
           description: OCR result stored
           content:
             application/json:
@@ -591,9 +591,9 @@ paths:
                     type: string
                   status:
                     type: string
-        '401':
+        "401":
           description: Not authenticated
-        '403':
+        "403":
           description: Forbidden
   /api/trpc/documents.processServerOcr:
     post:
@@ -618,7 +618,7 @@ paths:
                 - documentId
                 - base64Image
       responses:
-        '200':
+        "200":
           description: OCR processed and extraction results returned
           content:
             application/json:
@@ -639,9 +639,9 @@ paths:
                     type: array
                     items:
                       type: object
-        '401':
+        "401":
           description: Not authenticated
-        '403':
+        "403":
           description: Forbidden
   /api/trpc/documents.runExtraction:
     post:
@@ -666,7 +666,7 @@ paths:
               required:
                 - documentId
       responses:
-        '200':
+        "200":
           description: Extraction completed successfully
           content:
             application/json:
@@ -695,7 +695,7 @@ paths:
                     enum: [regex, llm, hybrid]
                     description: Extraction method used
                     example: regex
-        '400':
+        "400":
           description: Bad request (OCR text missing)
           content:
             application/json:
@@ -705,7 +705,7 @@ paths:
                   error:
                     type: string
                     example: "OCR text is required before extraction"
-        '401':
+        "401":
           description: Not authenticated
           content:
             application/json:
@@ -715,9 +715,9 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
-        '403':
+        "403":
           description: Forbidden (no access to document)
-        '404':
+        "404":
           description: Not found (document or analysis record not found)
           content:
             application/json:
@@ -752,7 +752,7 @@ paths:
               required:
                 - documentId
       responses:
-        '200':
+        "200":
           description: Analysis generated successfully
           content:
             application/json:
@@ -797,7 +797,11 @@ paths:
                           maxLength: 100
                         minItems: 1
                         maxItems: 5
-                        example: ["Bakit mataas ang aking leukocytes?", "Kailangan ko ba ng gamot?"]
+                        example:
+                          [
+                            "Bakit mataas ang aking leukocytes?",
+                            "Kailangan ko ba ng gamot?",
+                          ]
                       severity:
                         type: string
                         enum: [LOW, MODERATE, HIGH]
@@ -819,7 +823,7 @@ paths:
                     type: string
                     enum: [Filipino, Bisaya, Ilocano]
                     example: "Filipino"
-        '400':
+        "400":
           description: Bad request (extraction not complete)
           content:
             application/json:
@@ -829,7 +833,7 @@ paths:
                   error:
                     type: string
                     example: "Document must be extracted before analysis can be generated"
-        '401':
+        "401":
           description: Not authenticated
           content:
             application/json:
@@ -839,11 +843,11 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
-        '403':
+        "403":
           description: Forbidden (no access to document)
-        '404':
+        "404":
           description: Not found (document or analysis record not found)
-        '500':
+        "500":
           description: Internal server error (LLM API call failed)
           content:
             application/json:
@@ -884,7 +888,7 @@ paths:
                 - analysisId
                 - content
       responses:
-        '200':
+        "200":
           description: Assistant response generated
           content:
             application/json:
@@ -944,7 +948,7 @@ paths:
                       - continueChat
                     safety:
                       severity: LOW
-        '400':
+        "400":
           description: Validation error
           content:
             application/json:
@@ -954,7 +958,7 @@ paths:
                   error:
                     type: string
                     example: "content must be at least 1 character"
-        '401':
+        "401":
           description: Not authenticated
           content:
             application/json:
@@ -964,7 +968,7 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
-        '403':
+        "403":
           description: Forbidden - analysis owned by another user
           content:
             application/json:
@@ -998,7 +1002,7 @@ paths:
               required:
                 - analysisId
       responses:
-        '200':
+        "200":
           description: Chat messages
           content:
             application/json:
@@ -1018,9 +1022,9 @@ paths:
                     createdAt:
                       type: string
                       format: date-time
-        '401':
+        "401":
           description: Not authenticated
-        '403':
+        "403":
           description: Forbidden - analysis owned by another user
   /api/trpc/chat.clearHistory:
     post:
@@ -1041,7 +1045,7 @@ paths:
               required:
                 - analysisId
       responses:
-        '200':
+        "200":
           description: Chat history cleared
           content:
             application/json:
@@ -1051,35 +1055,37 @@ paths:
                   success:
                     type: boolean
                     example: true
-        '401':
+        "401":
           description: Not authenticated
-        '403':
+        "403":
           description: Forbidden - analysis owned by another user
   /api/trpc/doctor.listDoctors:
     post:
       summary: List doctors
       description: Returns active doctors with specialization filtering and pagination inputs.
       responses:
-        '200':
+        "200":
           description: Doctor list
-        '401':
+        "401":
           description: Not authenticated
   /api/trpc/doctor.getDoctorById:
     post:
       summary: Get doctor profile by id
       description: Returns a single doctor profile including PRC status, pricing, and specialties.
       responses:
-        '200':
+        "200":
           description: Doctor profile
-        '404':
+        "404":
           description: Doctor not found
   /api/trpc/doctor.createDoctor:
     post:
       summary: Create doctor profile
       description: Registers a new doctor profile and marks it pending verification.
       responses:
-        '201':
+        "201":
           description: Doctor created
+        "400":
+          description: Invalid input
   /api/maps/nearby:
     get:
       summary: Search nearby facilities (REST alias)
@@ -1120,120 +1126,118 @@ paths:
                   type: object
         '400':
           description: Invalid input
-        '400':
-          description: Invalid input
   /api/trpc/doctor.updateDoctor:
     post:
       summary: Update doctor profile
       description: Updates the signed-in doctor's profile fields and available session types.
       responses:
-        '200':
+        "200":
           description: Doctor updated
-        '401':
+        "401":
           description: Not authenticated
   /api/trpc/doctor.createAvailability:
     post:
       summary: Create doctor availability
       description: Creates an availability timeslot for the signed-in doctor's profile. Protected endpoint.
       responses:
-        '201':
+        "201":
           description: Availability created
-        '401':
+        "401":
           description: Not authenticated
   /api/trpc/doctor.listAvailability:
     post:
       summary: List doctor availability
       description: Lists availability timeslots for a given doctor id.
       responses:
-        '200':
+        "200":
           description: Availability list
   /api/trpc/doctor.updateAvailability:
     post:
       summary: Update doctor availability
       description: Updates an existing availability timeslot. Protected - owner only.
       responses:
-        '200':
+        "200":
           description: Availability updated
-        '401':
+        "401":
           description: Not authenticated
-        '403':
+        "403":
           description: Forbidden
   /api/trpc/doctor.deleteAvailability:
     post:
       summary: Delete doctor availability
       description: Deletes an availability timeslot. Protected - owner only.
       responses:
-        '200':
+        "200":
           description: Availability deleted
-        '401':
+        "401":
           description: Not authenticated
-        '403':
+        "403":
           description: Forbidden
   /api/trpc/admin.togglePrcVerification:
     post:
       summary: Toggle PRC verification
       description: Admin-only endpoint for approving or rejecting a doctor's PRC verification.
       responses:
-        '200':
+        "200":
           description: Verification toggled
-        '401':
+        "401":
           description: Not authenticated
-        '403':
+        "403":
           description: Forbidden
   /api/trpc/facilities.list:
     post:
       summary: List medical facilities
       description: Returns clinics, hospitals, and health units with ownership and PhilHealth filters.
       responses:
-        '200':
+        "200":
           description: Facilities list
   /api/trpc/facilities.byId:
     post:
       summary: Get facility details by id
       description: Returns one facility record with location, specialties, and operating hours.
       responses:
-        '200':
+        "200":
           description: Facility details
-        '404':
+        "404":
           description: Facility not found
   /api/trpc/facilities.searchNearby:
     post:
       summary: Search facilities near a coordinate
       description: Returns distance-sorted nearby clinics and hospitals using latitude and longitude.
       responses:
-        '200':
+        "200":
           description: Nearby facilities
-        '400':
+        "400":
           description: Invalid coordinates
   /api/trpc/facilities.bestSuggested:
     post:
       summary: Suggest the best nearby facility
       description: Returns a ranked facility summary optimized for type, PhilHealth, and distance.
       responses:
-        '200':
+        "200":
           description: Best suggested facility
   /api/trpc/facilities.searchBySpecialty:
     post:
       summary: Search facilities by specialty
       description: Returns facilities matching a specialty such as Cardiology or Internal Medicine.
       responses:
-        '200':
+        "200":
           description: Specialty matches
   /api/trpc/facilities.getTypes:
     post:
       summary: List supported facility types
       description: Returns the map filter values used by the facilities UI.
       responses:
-        '200':
+        "200":
           description: Facility types
   /api/trpc/facilities.getOperatingHours:
     post:
       summary: Get facility operating hours
       description: Returns the opening-hours metadata for a facility id.
       responses:
-        '200':
+        "200":
           description: Opening hours
-        '404':
+        "404":
           description: Facility not found
 components:
   securitySchemes:

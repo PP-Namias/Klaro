@@ -14,7 +14,7 @@ import type { AppRouter } from "@klaro/api";
 import { ThemeProvider, ThemeToggle } from "@klaro/ui/theme";
 import { Toaster } from "@klaro/ui/toast";
 
-import appCss from "~/styles.css?url";
+import appCss from "~/styles/globals.css?url";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;

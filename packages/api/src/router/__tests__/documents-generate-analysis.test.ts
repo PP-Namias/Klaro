@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { ExtractedTest } from "@klaro/validators/extraction";
 
 // Mock tests for the generateAnalysis endpoint

@@ -78,28 +78,20 @@ export const GenerateExplanationInputSchema = z.object({
     .default(true)
     .describe("Whether to include safety disclaimers"),
 });
-export type GenerateExplanationInput = z.infer<typeof GenerateExplanationInputSchema>;
+export type GenerateExplanationInput = z.infer<
+  typeof GenerateExplanationInputSchema
+>;
 
 /**
  * Structured LLM response before DB persistence
  */
 export const LLMResponseSchema = z.object({
   summary: z.string().describe("Plain-language summary"),
-  tests: z
-    .array(TestExplanationSchema)
-    .describe("Per-test explanations"),
-  questionsForDoctor: z
-    .array(z.string())
-    .describe("Questions to ask doctor"),
+  tests: z.array(TestExplanationSchema).describe("Per-test explanations"),
+  questionsForDoctor: z.array(z.string()).describe("Questions to ask doctor"),
   severity: SeverityEnum.describe("Severity: LOW, MODERATE, HIGH"),
-  disclaimer: z
-    .string()
-    .optional()
-    .describe("Disclaimer for HIGH severity"),
-  bookingPrompt: z
-    .string()
-    .optional()
-    .describe("Booking suggestion text"),
+  disclaimer: z.string().optional().describe("Disclaimer for HIGH severity"),
+  bookingPrompt: z.string().optional().describe("Booking suggestion text"),
 });
 export type LLMResponse = z.infer<typeof LLMResponseSchema>;
 

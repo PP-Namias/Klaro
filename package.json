@@ -15,6 +15,7 @@
     "db:studio": "turbo -F @klaro/db studio",
     "dev": "turbo watch dev --continue",
     "dev:next": "turbo watch dev -F @klaro/nextjs...",
+    "dev:next:no-env": "cross-env SKIP_ENV_VALIDATION=true turbo watch dev -F @klaro/nextjs...",
     "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",
     "format:fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
     "lint": "turbo run lint --continue -- --cache --cache-location .cache/.eslintcache",
@@ -28,15 +29,15 @@
   },
   "devDependencies": {
     "@klaro/prettier-config": "workspace:*",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.105.1",
     "@turbo/gen": "^2.5.8",
+    "cross-env": "^10.1.0",
     "dotenv-cli": "^10.0.0",
+    "jiti": "^2.6.1",
     "prettier": "catalog:",
     "turbo": "^2.5.8",
     "typescript": "catalog:"
   },
-  "prettier": "@klaro/prettier-config",
-  "dependencies": {
-    "@supabase/ssr": "^0.10.2",
-    "@supabase/supabase-js": "^2.105.1"
-  }
+  "prettier": "@klaro/prettier-config"
 }

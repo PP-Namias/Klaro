@@ -38,7 +38,7 @@ const delay = async (milliseconds: number) =>
 export const ingestDohFacilities = async (source: string) => {
   const csvText = await loadCsvSource(source);
   const parsedFacilities = parseDohFacilitiesCsv(csvText);
-  const rowsToInsert: Array<{
+  const rowsToInsert: {
     name: string;
     facilityType: string;
     ownership: "public" | "private";
@@ -49,7 +49,7 @@ export const ingestDohFacilities = async (source: string) => {
     isPhilHealthAccredited: boolean;
     acceptedSpecialties?: string[];
     openingHours?: Record<string, string>;
-  }> = [];
+  }[] = [];
 
   for (const [index, facilityRow] of parsedFacilities.entries()) {
     const enrichedFacility = await enrichFacilityWithGeocode(facilityRow, {

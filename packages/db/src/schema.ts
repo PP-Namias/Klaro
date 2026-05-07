@@ -1,18 +1,19 @@
 import { relations } from "drizzle-orm";
 import {
-  pgTable,
-  text,
-  varchar,
-  uuid,
-  timestamp,
-  integer,
   boolean,
   decimal,
-  jsonb,
   index,
+  integer,
+  jsonb,
   pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
 } from "drizzle-orm/pg-core";
 import { z } from "zod/v4";
+
 import { user } from "./auth-schema";
 
 // Enums
@@ -51,7 +52,6 @@ export const sessionTypeEnum = pgEnum("session_type", [
 ]);
 
 export const ownershipEnum = pgEnum("ownership", ["public", "private"]);
-
 
 // Core domain tables
 export const document = pgTable(
@@ -138,11 +138,16 @@ export const doctor = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 255 }).notNull(),
     specialization: varchar("specialization", { length: 255 }).notNull(),
-    licenseNumber: varchar("license_number", { length: 100 }).notNull().unique(),
+    licenseNumber: varchar("license_number", { length: 100 })
+      .notNull()
+      .unique(),
     prcStatus: varchar("prc_status", { length: 50 }).default("pending"), // pending, verified, expired
     bio: text("bio"),
     profileImageUrl: text("profile_image_url"),
-    pricePerSession: decimal("price_per_session", { precision: 8, scale: 2 }).notNull(),
+    pricePerSession: decimal("price_per_session", {
+      precision: 8,
+      scale: 2,
+    }).notNull(),
     availableSessionTypes: jsonb("available_session_types"), // ['chat_consult', 'video_consult', 'async_review']
     isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -183,7 +188,6 @@ export const facility = pgTable(
     index("facility_ownership_idx").on(t.ownership),
   ],
 );
-
 
 export const booking = pgTable(
   "booking",
@@ -304,8 +308,7 @@ export const doctorRelations = relations(doctor, ({ one, many }) => ({
   bookings: many(booking),
 }));
 
-export const facilityRelations = relations(facility, ({ many }) => ({
-}));
+export const facilityRelations = relations(facility, ({ many }) => ({}));
 
 export const bookingRelations = relations(booking, ({ one, many }) => ({
   user: one(user, {

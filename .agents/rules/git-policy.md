@@ -14,7 +14,6 @@ Maintain a clean, technical, and descriptive commit/PR history following a stric
 ## Rules
 
 - MUST ONLY commit when explicitly instructed by the USER.
-- MUST NOT stage or commit the `.agent` directory.
 - MUST use a single-line commit message format (enforced by Commitlint).
 - MUST NOT include "Summary:" or any multi-line descriptions in commits.
 - MUST use `+` to connect distinct features/changes.
@@ -46,7 +45,6 @@ Maintain a clean, technical, and descriptive commit/PR history following a stric
 ## Autocommit (opt-in)
 
 - Autocommit is allowed only when explicitly enabled by the repository owner.
-  - By default autocommit is disabled. To enable, set `.agents/autocommit.json` `enabled` to `true` and set `allow_agents` to `true` if you permit commits touching `.agents/` files.
   - Non-interactive / CI commits require environment variable `AUTOCOMMIT_ALLOW=true` to avoid accidental runs.
   - Autocommit scripts or GitHub Actions must present the proposed `git commit` command in the run logs before committing.
 

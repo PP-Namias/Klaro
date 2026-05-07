@@ -1,7 +1,7 @@
 /**
  * Simple in-memory rate limiting middleware
  * Tracks requests per user/IP and enforces limits
- * 
+ *
  * Note: For production with multiple instances, use Redis or similar
  */
 
@@ -30,7 +30,7 @@ function getRateLimitKey(req: Request, userId?: string): string {
 export function checkRateLimit(
   key: string,
   maxRequests: number,
-  windowMs: number
+  windowMs: number,
 ): { allowed: boolean; remaining: number; resetAt: number } {
   const now = Date.now();
   const entry = store[key];
@@ -38,7 +38,11 @@ export function checkRateLimit(
   // Create or reset entry if window expired
   if (!entry || entry.resetAt < now) {
     store[key] = { count: 1, resetAt: now + windowMs };
-    return { allowed: true, remaining: maxRequests - 1, resetAt: store[key].resetAt };
+    return {
+      allowed: true,
+      remaining: maxRequests - 1,
+      resetAt: store[key].resetAt,
+    };
   }
 
   // Check if limit exceeded
@@ -48,7 +52,11 @@ export function checkRateLimit(
 
   // Increment counter
   entry.count++;
-  return { allowed: true, remaining: maxRequests - entry.count, resetAt: entry.resetAt };
+  return {
+    allowed: true,
+    remaining: maxRequests - entry.count,
+    resetAt: entry.resetAt,
+  };
 }
 
 /**
@@ -56,7 +64,7 @@ export function checkRateLimit(
  */
 export function rateLimitResponse(
   remaining: number,
-  resetAt: number
+  resetAt: number,
 ): Response {
   const retryAfter = Math.ceil((resetAt - Date.now()) / 1000);
 
@@ -74,7 +82,7 @@ export function rateLimitResponse(
         "X-RateLimit-Reset": resetAt.toString(),
         "Retry-After": retryAfter.toString(),
       },
-    }
+    },
   );
 }
 
@@ -112,9 +120,14 @@ export function cleanupRateLimitStore() {
 }
 
 // Cleanup every 10 minutes
-setInterval(() => {
-  const cleaned = cleanupRateLimitStore();
-  if (cleaned > 0) {
-    console.log(`Rate limit store cleanup: removed ${cleaned} expired entries`);
-  }
-}, 10 * 60 * 1000);
+setInterval(
+  () => {
+    const cleaned = cleanupRateLimitStore();
+    if (cleaned > 0) {
+      console.log(
+        `Rate limit store cleanup: removed ${cleaned} expired entries`,
+      );
+    }
+  },
+  10 * 60 * 1000,
+);

@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { appRouter } from "../../root";
 import type { createTRPCContext } from "../../trpc";
+import { appRouter } from "../../root";
 
 type TrpcContext = Awaited<ReturnType<typeof createTRPCContext>>;
 
-type DoctorRow = {
+interface DoctorRow {
   id: string;
   userId: string;
   name: string;
@@ -20,19 +20,22 @@ type DoctorRow = {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 const createDbStub = (options: {
-  selectPlans: Array<{
+  selectPlans: {
     rows: DoctorRow[];
     final: "where" | "offset";
-  }>;
+  }[];
   insertRow?: DoctorRow;
   updateRow?: DoctorRow;
 }) => {
   let selectIndex = 0;
 
-  const makeSelectChain = (plan: { rows: DoctorRow[]; final: "where" | "offset" }) => ({
+  const makeSelectChain = (plan: {
+    rows: DoctorRow[];
+    final: "where" | "offset";
+  }) => ({
     from: () => makeSelectChain(plan),
     where: () => (plan.final === "where" ? plan.rows : makeSelectChain(plan)),
     limit: () => makeSelectChain(plan),
@@ -55,8 +58,8 @@ const createDbStub = (options: {
 
   return {
     select: () => {
-      const plan =
-        options.selectPlans[selectIndex] ?? options.selectPlans.at(-1) ?? {
+      const plan = options.selectPlans[selectIndex] ??
+        options.selectPlans.at(-1) ?? {
           rows: [],
           final: "where" as const,
         };

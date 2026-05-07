@@ -1,5 +1,9 @@
 import { auth } from "~/auth/server";
-import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "~/lib/rate-limit";
+import {
+  checkRateLimit,
+  RATE_LIMITS,
+  rateLimitResponse,
+} from "~/lib/rate-limit";
 
 export async function GET(req: Request) {
   // Rate limit: 10 signin attempts per 15 minutes
@@ -7,7 +11,7 @@ export async function GET(req: Request) {
   const { allowed, remaining, resetAt } = checkRateLimit(
     `signin:${key}`,
     RATE_LIMITS.auth.signin.maxRequests,
-    RATE_LIMITS.auth.signin.windowMs
+    RATE_LIMITS.auth.signin.windowMs,
   );
 
   if (!allowed) {
@@ -20,7 +24,7 @@ export async function GET(req: Request) {
   if (!provider || !["discord", "google"].includes(provider)) {
     return Response.json(
       { error: "Invalid provider parameter. Use 'discord' or 'google'." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -46,7 +50,7 @@ export async function GET(req: Request) {
     console.error(`OAuth signin error for ${provider}:`, error);
     return Response.json(
       { error: "Failed to initiate OAuth flow" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

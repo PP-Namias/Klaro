@@ -1,5 +1,6 @@
-import type { NextRequest } from "next/server";
 import crypto from "crypto";
+import type { NextRequest } from "next/server";
+
 import { validateSession } from "~/lib/session-validation";
 
 function setCorsHeaders(res: Response) {
@@ -27,7 +28,7 @@ export const GET = async (req: NextRequest) => {
         {
           status: 401,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       setCorsHeaders(res);
       return res;
@@ -74,7 +75,7 @@ export const GET = async (req: NextRequest) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
     setCorsHeaders(res);
     return res;

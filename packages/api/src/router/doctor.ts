@@ -71,8 +71,14 @@ const availabilityUpdateSchema = z.object({
       "Sunday",
     ])
     .optional(),
-  startTime: z.string().regex(/^\d{2}:\d{2}:\d{2}$/).optional(),
-  endTime: z.string().regex(/^\d{2}:\d{2}:\d{2}$/).optional(),
+  startTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}:\d{2}$/)
+    .optional(),
+  endTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}:\d{2}$/)
+    .optional(),
 });
 
 const availabilityListSchema = z.object({
@@ -88,56 +94,95 @@ const createAvailability = protectedProcedure
     }
 
     // Find the doctor's record owned by this user
-    const [doc] = await ctx.db.select().from(doctor).where(eq(doctor.userId, ctx.session.user.id));
+    const [doc] = await ctx.db
+      .select()
+      .from(doctor)
+      .where(eq(doctor.userId, ctx.session.user.id));
     if (!doc) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Doctor profile not found for user" });
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Doctor profile not found for user",
+      });
     }
 
-    const [row] = await ctx.db.insert(doctorAvailability).values({
-      doctorId: doc.id,
-      dayOfWeek: input.dayOfWeek,
-      startTime: input.startTime,
-      endTime: input.endTime,
-    }).returning();
+    const [row] = await ctx.db
+      .insert(doctorAvailability)
+      .values({
+        doctorId: doc.id,
+        dayOfWeek: input.dayOfWeek,
+        startTime: input.startTime,
+        endTime: input.endTime,
+      })
+      .returning();
 
     return { success: true, availability: row };
   });
 
-const listAvailability = publicProcedure.input(availabilityListSchema).query(async ({ ctx, input }) => {
-  const rows = await ctx.db.select().from(doctorAvailability).where(eq(doctorAvailability.doctorId, input.doctorId));
-  return rows;
-});
+const listAvailability = publicProcedure
+  .input(availabilityListSchema)
+  .query(async ({ ctx, input }) => {
+    const rows = await ctx.db
+      .select()
+      .from(doctorAvailability)
+      .where(eq(doctorAvailability.doctorId, input.doctorId));
+    return rows;
+  });
 
-const updateAvailability = protectedProcedure.input(availabilityUpdateSchema).mutation(async ({ ctx, input }) => {
-  if (!ctx.session?.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+const updateAvailability = protectedProcedure
+  .input(availabilityUpdateSchema)
+  .mutation(async ({ ctx, input }) => {
+    if (!ctx.session?.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const [existing] = await ctx.db.select().from(doctorAvailability).where(eq(doctorAvailability.id, input.id));
-  if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+    const [existing] = await ctx.db
+      .select()
+      .from(doctorAvailability)
+      .where(eq(doctorAvailability.id, input.id));
+    if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
 
-  const [doc] = await ctx.db.select().from(doctor).where(eq(doctor.id, existing.doctorId));
-  if (!doc || doc.userId !== ctx.session.user.id) throw new TRPCError({ code: "FORBIDDEN" });
+    const [doc] = await ctx.db
+      .select()
+      .from(doctor)
+      .where(eq(doctor.id, existing.doctorId));
+    if (!doc || doc.userId !== ctx.session.user.id)
+      throw new TRPCError({ code: "FORBIDDEN" });
 
-  const updateData: Partial<typeof doctorAvailability.$inferInsert> = {};
-  if (input.dayOfWeek !== undefined) updateData.dayOfWeek = input.dayOfWeek;
-  if (input.startTime !== undefined) updateData.startTime = input.startTime;
-  if (input.endTime !== undefined) updateData.endTime = input.endTime;
+    const updateData: Partial<typeof doctorAvailability.$inferInsert> = {};
+    if (input.dayOfWeek !== undefined) updateData.dayOfWeek = input.dayOfWeek;
+    if (input.startTime !== undefined) updateData.startTime = input.startTime;
+    if (input.endTime !== undefined) updateData.endTime = input.endTime;
 
-  const [updated] = await ctx.db.update(doctorAvailability).set(updateData).where(eq(doctorAvailability.id, input.id)).returning();
-  return { success: true, availability: updated ?? existing };
-});
+    const [updated] = await ctx.db
+      .update(doctorAvailability)
+      .set(updateData)
+      .where(eq(doctorAvailability.id, input.id))
+      .returning();
+    return { success: true, availability: updated ?? existing };
+  });
 
-const deleteAvailability = protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
-  if (!ctx.session?.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
-  const [existing] = await ctx.db.select().from(doctorAvailability).where(eq(doctorAvailability.id, input.id));
-  if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
-  const [doc] = await ctx.db.select().from(doctor).where(eq(doctor.id, existing.doctorId));
-  if (!doc || doc.userId !== ctx.session.user.id) throw new TRPCError({ code: "FORBIDDEN" });
-  await ctx.db.delete(doctorAvailability).where(eq(doctorAvailability.id, input.id));
-  return { success: true };
-});
+const deleteAvailability = protectedProcedure
+  .input(z.object({ id: z.string().uuid() }))
+  .mutation(async ({ ctx, input }) => {
+    if (!ctx.session?.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+    const [existing] = await ctx.db
+      .select()
+      .from(doctorAvailability)
+      .where(eq(doctorAvailability.id, input.id));
+    if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+    const [doc] = await ctx.db
+      .select()
+      .from(doctor)
+      .where(eq(doctor.id, existing.doctorId));
+    if (!doc || doc.userId !== ctx.session.user.id)
+      throw new TRPCError({ code: "FORBIDDEN" });
+    await ctx.db
+      .delete(doctorAvailability)
+      .where(eq(doctorAvailability.id, input.id));
+    return { success: true };
+  });
 
-const listDoctors = publicProcedure.input(doctorFiltersSchema).query(
-  async ({ ctx, input }) => {
+const listDoctors = publicProcedure
+  .input(doctorFiltersSchema)
+  .query(async ({ ctx, input }) => {
     const conditions = [eq(doctor.isActive, true)];
 
     if (input.specialization) {
@@ -155,11 +200,11 @@ const listDoctors = publicProcedure.input(doctorFiltersSchema).query(
       .offset(input.offset);
 
     return doctors;
-  },
-);
+  });
 
-const getDoctorById = publicProcedure.input(doctorByIdSchema).query(
-  async ({ ctx, input }) => {
+const getDoctorById = publicProcedure
+  .input(doctorByIdSchema)
+  .query(async ({ ctx, input }) => {
     const [doc] = await ctx.db
       .select()
       .from(doctor)
@@ -173,11 +218,11 @@ const getDoctorById = publicProcedure.input(doctorByIdSchema).query(
     }
 
     return doc;
-  },
-);
+  });
 
-const createDoctor = protectedProcedure.input(doctorCreateSchema).mutation(
-  async ({ ctx, input }) => {
+const createDoctor = protectedProcedure
+  .input(doctorCreateSchema)
+  .mutation(async ({ ctx, input }) => {
     if (!ctx.session?.user?.id) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -216,11 +261,11 @@ const createDoctor = protectedProcedure.input(doctorCreateSchema).mutation(
       status: "pending_verification",
       message: "Doctor registration submitted for verification",
     };
-  },
-);
+  });
 
-const updateDoctor = protectedProcedure.input(doctorUpdateSchema).mutation(
-  async ({ ctx, input }) => {
+const updateDoctor = protectedProcedure
+  .input(doctorUpdateSchema)
+  .mutation(async ({ ctx, input }) => {
     if (!ctx.session?.user?.id) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -269,8 +314,7 @@ const updateDoctor = protectedProcedure.input(doctorUpdateSchema).mutation(
       .returning();
 
     return { success: true, doctor: updatedDoctor ?? doc };
-  },
-);
+  });
 
 const togglePrcVerification = protectedProcedure
   .input(doctorVerificationSchema)

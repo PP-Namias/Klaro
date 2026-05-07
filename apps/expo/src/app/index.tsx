@@ -1,7 +1,7 @@
-import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as ImagePicker from "expo-image-picker";
 import { Link, Stack } from "expo-router";
 import { LegendList } from "@legendapp/list";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,10 +14,12 @@ function ItemSeparator() {
   return <View className="h-2" />;
 }
 
-function DocumentCard(props: Readonly<{
-  document: RouterOutputs["documents"]["list"][number];
-  onDelete: () => void;
-}>) {
+function DocumentCard(
+  props: Readonly<{
+    document: RouterOutputs["documents"]["list"][number];
+    onDelete: () => void;
+  }>,
+) {
   const createdAt = new Date(props.document.createdAt).toLocaleString();
   return (
     <View className="bg-muted flex flex-row rounded-lg p-4">
@@ -64,7 +66,8 @@ function UploadDocument() {
 
   const processAsset = (asset: ImagePicker.ImagePickerAsset) => {
     const uriParts = asset.uri.split("/");
-    const fallbackName = uriParts[uriParts.length - 1] ?? `upload-${Date.now()}.jpg`;
+    const fallbackName =
+      uriParts[uriParts.length - 1] ?? `upload-${Date.now()}.jpg`;
     const fileName = asset.fileName ?? fallbackName;
     const mimeType = asset.mimeType ?? "image/jpeg";
     const fileSize = asset.fileSize;
@@ -92,7 +95,10 @@ function UploadDocument() {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert("Permission Required", "Camera permission is required to take photos.");
+      Alert.alert(
+        "Permission Required",
+        "Camera permission is required to take photos.",
+      );
       return;
     }
 
@@ -113,7 +119,7 @@ function UploadDocument() {
         onPress={handlePickImage}
         disabled={isPending}
       >
-        <Text className="text-primary-foreground font-semibold text-lg">
+        <Text className="text-primary-foreground text-lg font-semibold">
           {isPending ? "Uploading..." : "Upload from Library"}
         </Text>
       </Pressable>
@@ -122,7 +128,7 @@ function UploadDocument() {
         onPress={handleTakePhoto}
         disabled={isPending}
       >
-        <Text className="text-secondary-foreground font-semibold text-lg">
+        <Text className="text-secondary-foreground text-lg font-semibold">
           {isPending ? "Uploading..." : "Take a Photo"}
         </Text>
       </Pressable>

@@ -1,0 +1,34 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Geist:wght@100..900&display=swap");
+@import "tailwindcss";
+@import "@klaro/tailwind-config/theme";
+@import "./_typography.css";
+
+@source "../../../../packages/ui/src/*.{ts,tsx}";
+
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
+@custom-variant auto (&:where(.auto, .auto *));
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  @media (width >= --theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+  @media (width >= 1400px) {
+    max-width: 1400px;
+  }
+}
+
+@layer base {
+  :root {
+    --font-geist-sans: "Geist Variable";
+    --font-geist-mono: "Geist Mono Variable";
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    letter-spacing: var(--tracking-normal);
+  }
+}

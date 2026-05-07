@@ -1,18 +1,18 @@
 export type OcrSource = "local" | "cloud";
 
-export type OcrBlock = {
+export interface OcrBlock {
   text: string;
   confidence?: number;
-};
+}
 
-export type OcrResult = {
+export interface OcrResult {
   text: string;
   confidence: number;
   blocks: OcrBlock[];
   source: OcrSource;
-};
+}
 
-export type OcrAudit = {
+export interface OcrAudit {
   threshold: number;
   usedCloudFallback: boolean;
   local?: OcrResult;
@@ -20,19 +20,18 @@ export type OcrAudit = {
   selected: OcrResult;
   source: OcrSource;
   confidenceDelta: number;
-};
+}
 
-export type OcrFallbackOptions = {
+export interface OcrFallbackOptions {
   threshold?: number;
   localOcr?: (input: string | Buffer) => Promise<OcrResult | null>;
   cloudOcr?: (input: string | Buffer) => Promise<OcrResult | null>;
-};
+}
 
 const defaultBlockConfidence = 0.7;
 const defaultOcrConfidenceThreshold = 0.7;
 
-const clampConfidence = (value: number) =>
-  Math.min(1, Math.max(0, value));
+const clampConfidence = (value: number) => Math.min(1, Math.max(0, value));
 
 export const computeConfidence = (blocks: OcrBlock[]) => {
   if (blocks.length === 0) {
@@ -108,7 +107,9 @@ export const buildOcrAudit = (input: {
       : 0,
 });
 
-export const performOcr = async (imageUrlOrBuffer: string | Buffer): Promise<OcrResult> => {
+export const performOcr = async (
+  imageUrlOrBuffer: string | Buffer,
+): Promise<OcrResult> => {
   const { createWorker } = await import("tesseract.js");
   const worker = await createWorker("eng");
 
@@ -116,10 +117,10 @@ export const performOcr = async (imageUrlOrBuffer: string | Buffer): Promise<Ocr
     const { data } = (await worker.recognize(imageUrlOrBuffer)) as {
       data: {
         text: string;
-        lines?: Array<{
+        lines?: {
           text?: string;
           confidence?: number;
-        }>;
+        }[];
       };
     };
 

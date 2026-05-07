@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+
 import { extractTestsFromText } from "../services/extraction";
 
 describe("Extraction Service - KL-EX-001", () => {
@@ -9,11 +10,11 @@ describe("Extraction Service - KL-EX-001", () => {
       const results = extractTestsFromText(text);
 
       assert.strictEqual(results.length, 1);
-      assert.strictEqual(results[0].name, "Hemoglobin");
-      assert.strictEqual(results[0].value, "13.5");
-      assert.strictEqual(results[0].unit, "g/dL");
-      assert.strictEqual(results[0].referenceRange, "12.0-17.0");
-      assert.strictEqual(results[0].flagged, false); // Within range
+      assert.strictEqual(results[0]!.name, "Hemoglobin");
+      assert.strictEqual(results[0]!.value, "13.5");
+      assert.strictEqual(results[0]!.unit, "g/dL");
+      assert.strictEqual(results[0]!.referenceRange, "12.0-17.0");
+      assert.strictEqual(results[0]!.flagged, false); // within range
     });
 
     it("should extract no-colon format: TestName value unit (range)", () => {
@@ -21,8 +22,8 @@ describe("Extraction Service - KL-EX-001", () => {
       const results = extractTestsFromText(text);
 
       assert.strictEqual(results.length, 1);
-      assert.strictEqual(results[0].name, "Hemoglobin");
-      assert.strictEqual(results[0].value, "13.5");
+      assert.strictEqual(results[0]!.name, "Hemoglobin");
+      assert.strictEqual(results[0]!.value, "13.5");
     });
 
     it("should extract abbreviated format: TEST: value", () => {
@@ -30,22 +31,22 @@ describe("Extraction Service - KL-EX-001", () => {
       const results = extractTestsFromText(text);
 
       assert.strictEqual(results.length, 1);
-      assert.strictEqual(results[0].name, "Hemoglobin"); // Canonicalized
-      assert.strictEqual(results[0].value, "13.5");
+      assert.strictEqual(results[0]!.name, "Hemoglobin"); // canonicalized
+      assert.strictEqual(results[0]!.value, "13.5");
     });
 
     it("should flag abnormal values outside reference range (low)", () => {
       const text = "Hemoglobin: 10.5 g/dL (12.0-17.0)";
       const results = extractTestsFromText(text);
 
-      assert.strictEqual(results[0].flagged, true);
+      assert.strictEqual(results[0]!.flagged, true);
     });
 
     it("should flag abnormal values outside reference range (high)", () => {
       const text = "Glucose: 250 mg/dL (70-100)";
       const results = extractTestsFromText(text);
 
-      assert.strictEqual(results[0].flagged, true);
+      assert.strictEqual(results[0]!.flagged, true);
     });
   });
 
@@ -61,11 +62,11 @@ HCT: 40
 
       const results = extractTestsFromText(text);
 
-      assert.strictEqual(results[0].name, "Hemoglobin");
-      assert.strictEqual(results[1].name, "Red Blood Cell Count");
-      assert.strictEqual(results[2].name, "White Blood Cell Count");
-      assert.strictEqual(results[3].name, "Platelet Count");
-      assert.strictEqual(results[4].name, "Hematocrit");
+      assert.strictEqual(results[0]!.name, "Hemoglobin");
+      assert.strictEqual(results[1]!.name, "Red Blood Cell Count");
+      assert.strictEqual(results[2]!.name, "White Blood Cell Count");
+      assert.strictEqual(results[3]!.name, "Platelet Count");
+      assert.strictEqual(results[4]!.name, "Hematocrit");
     });
 
     it("should canonicalize common variants", () => {
@@ -77,7 +78,7 @@ Fasting Blood Glucose: 92
 
       const results = extractTestsFromText(text);
 
-      // All should map to "Fasting Blood Glucose"
+      // all should map to "Fasting Blood Glucose"
       results.forEach((r) => {
         assert.strictEqual(r.name, "Fasting Blood Glucose");
       });
@@ -92,9 +93,9 @@ HDL: 45
 
       const results = extractTestsFromText(text);
 
-      assert.strictEqual(results[0].name, "Total Cholesterol");
-      assert.strictEqual(results[1].name, "LDL Cholesterol");
-      assert.strictEqual(results[2].name, "HDL Cholesterol");
+      assert.strictEqual(results[0]!.name, "Total Cholesterol");
+      assert.strictEqual(results[1]!.name, "LDL Cholesterol");
+      assert.strictEqual(results[2]!.name, "HDL Cholesterol");
     });
 
     it("should preserve unknown test names", () => {
@@ -102,8 +103,8 @@ HDL: 45
       const results = extractTestsFromText(text);
 
       assert.strictEqual(results.length, 1);
-      assert.strictEqual(results[0].name, "Custom Test XYZ");
-      assert.strictEqual(results[0].value, "123.45");
+      assert.strictEqual(results[0]!.name, "Custom Test XYZ");
+      assert.strictEqual(results[0]!.value, "123.45");
     });
   });
 
@@ -143,7 +144,7 @@ Potassium: 5.5 mEq/L (3.5-5.0)
 
       assert.strictEqual(results.length, 5);
       const flaggedCount = results.filter((r) => r.flagged).length;
-      assert.strictEqual(flaggedCount, 4); // All except sodium
+      assert.strictEqual(flaggedCount, 4); // all except sodium
     });
   });
 
@@ -171,7 +172,7 @@ RBC: 4.5 million/uL (4.5-5.5)
       const text = "Glucose: 95.5 mg/dL (70-100)";
       const results = extractTestsFromText(text);
 
-      assert.strictEqual(results[0].value, "95.5");
+      assert.strictEqual(results[0]!.value, "95.5");
     });
 
     it("should skip invalid lines", () => {
@@ -194,7 +195,7 @@ HGB: 13.5 g/dL
 
       const results = extractTestsFromText(text);
 
-      // Should only extract first occurrence
+      // should only extract first occurrence
       assert.strictEqual(results.length, 1);
     });
 
@@ -202,16 +203,16 @@ HGB: 13.5 g/dL
       const text = "Hemoglobin: 13.5 g/dL";
       const results = extractTestsFromText(text);
 
-      assert.strictEqual(results[0].referenceRange, undefined);
-      assert.strictEqual(results[0].flagged, false); // No range = not flagged
+      assert.strictEqual(results[0]!.referenceRange, undefined);
+      assert.strictEqual(results[0]!.flagged, false); // no range = not flagged
     });
 
     it("should handle missing units", () => {
       const text = "Hemoglobin: 13.5";
       const results = extractTestsFromText(text);
 
-      assert.strictEqual(results[0].unit, "");
-      assert.strictEqual(results[0].value, "13.5");
+      assert.strictEqual(results[0]!.unit, "");
+      assert.strictEqual(results[0]!.value, "13.5");
     });
   });
 
@@ -223,8 +224,8 @@ RBC: 4.5 (4.5-5.5)`;
       const results = extractTestsFromText(text);
 
       assert.strictEqual(results.length, 2);
-      assert.strictEqual(results[0].name, "Hemoglobin");
-      assert.strictEqual(results[1].name, "Red Blood Cell Count");
+      assert.strictEqual(results[0]!.name, "Hemoglobin");
+      assert.strictEqual(results[1]!.name, "Red Blood Cell Count");
     });
   });
 
@@ -246,7 +247,7 @@ RBC: 4.5 (4.5-5.5)`;
       let successCount = 0;
       for (const test of testCases) {
         const results = extractTestsFromText(test);
-        if (results.length > 0 && results[0].value) {
+        if (results.length > 0 && results[0]!.value) {
           successCount++;
         }
       }
@@ -270,9 +271,12 @@ RBC: 4.5 (4.5-5.5)`;
       for (const test of knownVariants) {
         const results = extractTestsFromText(test);
         if (results.length > 0) {
-          const testName = test.split(":")[0];
-          // Check if it was canonicalized (different from original abbreviation)
-          if (results[0].name !== testName && results[0].name.length > testName.length) {
+          const testName = test.split(":")[0] ?? "";
+          // check if canonicalized (different from original abbreviation)
+          if (
+            results[0]!.name !== testName &&
+            results[0]!.name.length > testName.length
+          ) {
             canonicalCount++;
           }
         }

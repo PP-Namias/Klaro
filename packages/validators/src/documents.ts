@@ -4,7 +4,11 @@ import { z } from "zod/v4";
 export const uploadDocumentInputSchema = z.object({
   fileName: z.string().min(1).max(255),
   mimeType: z.string().regex(/^[a-z]+\/[a-z0-9\-+.]+$/), // e.g., application/pdf, image/png
-  fileSize: z.number().int().positive().max(50 * 1024 * 1024), // max 50MB
+  fileSize: z
+    .number()
+    .int()
+    .positive()
+    .max(50 * 1024 * 1024), // max 50MB
 });
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
@@ -19,17 +23,26 @@ const ALLOWED_MIME_TYPES = [
 declare const File: any;
 const hasFileConstructor = typeof File !== "undefined";
 
-const fileSchema = (hasFileConstructor
-  ? z.instanceof(File)
-  : z.custom<File>((value) => {
-      if (value === null || value === undefined || typeof value !== "object") {
-        return false;
-      }
-      return "size" in value && "type" in value;
-    }))
+const fileSchema = (
+  hasFileConstructor
+    ? z.instanceof(File)
+    : z.custom<File>((value) => {
+        if (
+          value === null ||
+          value === undefined ||
+          typeof value !== "object"
+        ) {
+          return false;
+        }
+        return "size" in value && "type" in value;
+      })
+)
   .refine((file) => file.size <= MAX_FILE_SIZE, "File must be under 50MB")
   .refine(
-    (file) => ALLOWED_MIME_TYPES.includes(file.type as (typeof ALLOWED_MIME_TYPES)[number]),
+    (file) =>
+      ALLOWED_MIME_TYPES.includes(
+        file.type as (typeof ALLOWED_MIME_TYPES)[number],
+      ),
     "File must be JPEG, PNG, WebP, or PDF",
   );
 
@@ -83,4 +96,6 @@ export const uploadDocumentResponseSchema = z.object({
 
 export type UploadResponse = z.infer<typeof uploadResponseSchema>;
 export type UploadDocumentRequest = z.infer<typeof uploadDocumentSchema>;
-export type UploadDocumentResponse = z.infer<typeof uploadDocumentResponseSchema>;
+export type UploadDocumentResponse = z.infer<
+  typeof uploadDocumentResponseSchema
+>;

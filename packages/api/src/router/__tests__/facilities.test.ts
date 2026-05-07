@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { appRouter } from "../../root";
 import type { createTRPCContext } from "../../trpc";
+import { appRouter } from "../../root";
 
 type TrpcContext = Awaited<ReturnType<typeof createTRPCContext>>;
 
-type FacilityRow = {
+interface FacilityRow {
   id: string;
   name: string;
   facilityType: string;
@@ -20,7 +20,7 @@ type FacilityRow = {
   openingHours?: Record<string, string> | null;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 const createDbStub = (rows: FacilityRow[]) => {
   const chain = {

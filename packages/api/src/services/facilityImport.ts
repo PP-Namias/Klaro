@@ -2,7 +2,7 @@ import { geocodeFacilityAddress } from "./facilityGeocoding";
 
 type FacilityCsvRecord = Record<string, string>;
 
-export type FacilityImportRow = {
+export interface FacilityImportRow {
   name: string;
   facilityType: string;
   ownership: "public" | "private";
@@ -13,7 +13,7 @@ export type FacilityImportRow = {
   isPhilHealthAccredited: boolean;
   acceptedSpecialties: string[];
   openingHours?: Record<string, string>;
-};
+}
 
 const headerAliases: Record<string, string> = {
   address: "address",
@@ -38,7 +38,10 @@ const headerAliases: Record<string, string> = {
 };
 
 const normalizeKey = (value: string) =>
-  value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_");
 
 const parseCsvLine = (line: string) => {
   const values: string[] = [];
@@ -173,7 +176,9 @@ const normalizeRow = (row: FacilityCsvRecord): FacilityImportRow | null => {
       row.isPhilHealthAccredited ?? row.philhealth ?? row.accredited ?? "",
     ),
     acceptedSpecialties: specialties,
-    openingHours: row.openingHours ? parseOpeningHours(row.openingHours) : undefined,
+    openingHours: row.openingHours
+      ? parseOpeningHours(row.openingHours)
+      : undefined,
   };
 };
 

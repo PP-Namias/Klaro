@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * Integration tests for OAuth flow and file upload with authentication
- * 
+ *
  * Prerequisites:
  * - better-auth configured with Discord & Google OAuth
  * - Session validation helpers in place
@@ -28,7 +28,7 @@ describe("OAuth & Upload Integration", () => {
     it("should redirect to Discord OAuth URL when provider=discord", async () => {
       const response = await fetch(
         `${BASE_URL}/api/auth/signin?provider=discord`,
-        { redirect: "manual" }
+        { redirect: "manual" },
       );
 
       expect(response.status).toBe(302);
@@ -39,7 +39,7 @@ describe("OAuth & Upload Integration", () => {
     it("should redirect to Google OAuth URL when provider=google", async () => {
       const response = await fetch(
         `${BASE_URL}/api/auth/signin?provider=google`,
-        { redirect: "manual" }
+        { redirect: "manual" },
       );
 
       expect(response.status).toBe(302);
@@ -50,7 +50,7 @@ describe("OAuth & Upload Integration", () => {
     it("should return 400 for invalid provider", async () => {
       const response = await fetch(
         `${BASE_URL}/api/auth/signin?provider=invalid`,
-        { method: "GET" }
+        { method: "GET" },
       );
 
       expect(response.status).toBe(400);
@@ -73,7 +73,7 @@ describe("OAuth & Upload Integration", () => {
       formData.append(
         "file",
         new Blob(["test content"], { type: "image/png" }),
-        "test.png"
+        "test.png",
       );
 
       const response = await fetch(`${BASE_URL}/api/uploads/server`, {
@@ -92,7 +92,7 @@ describe("OAuth & Upload Integration", () => {
       formData.append(
         "file",
         new Blob(["test content"], { type: "image/png" }),
-        "test.png"
+        "test.png",
       );
 
       // Mock authenticated request with session cookie
@@ -102,7 +102,7 @@ describe("OAuth & Upload Integration", () => {
         credentials: "include", // Include cookies
         headers: {
           // better-auth uses httpOnly cookie, but we simulate Authorization header
-          "Authorization": `Bearer ${TEST_USER_ID}`,
+          Authorization: `Bearer ${TEST_USER_ID}`,
         },
       });
 
@@ -117,7 +117,7 @@ describe("OAuth & Upload Integration", () => {
     it("should return 413 for file too large (>50MB)", async () => {
       const largeBlob = new Blob(
         [new ArrayBuffer(51 * 1024 * 1024)], // 51 MB
-        { type: "image/png" }
+        { type: "image/png" },
       );
       const formData = new FormData();
       formData.append("file", largeBlob, "large.png");
@@ -136,7 +136,7 @@ describe("OAuth & Upload Integration", () => {
       formData.append(
         "file",
         new Blob(["fake executable"], { type: "application/x-msdownload" }),
-        "malware.exe"
+        "malware.exe",
       );
 
       const response = await fetch(`${BASE_URL}/api/uploads/server`, {
@@ -166,16 +166,13 @@ describe("OAuth & Upload Integration", () => {
     it("should allow authenticated user to retrieve their own document", async () => {
       const docId = "doc-owned-by-user";
 
-      const response = await fetch(
-        `${BASE_URL}/api/uploads/${docId}`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Authorization": `Bearer ${TEST_USER_ID}`,
-          },
-        }
-      );
+      const response = await fetch(`${BASE_URL}/api/uploads/${docId}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${TEST_USER_ID}`,
+        },
+      });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -186,16 +183,13 @@ describe("OAuth & Upload Integration", () => {
       const docId = "doc-owned-by-someone-else";
       const otherUserId = "other-user-456";
 
-      const response = await fetch(
-        `${BASE_URL}/api/uploads/${docId}`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Authorization": `Bearer ${otherUserId}`,
-          },
-        }
-      );
+      const response = await fetch(`${BASE_URL}/api/uploads/${docId}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${otherUserId}`,
+        },
+      });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -205,13 +199,10 @@ describe("OAuth & Upload Integration", () => {
     it("should return 401 when accessing document without authentication", async () => {
       const docId = "doc-123";
 
-      const response = await fetch(
-        `${BASE_URL}/api/uploads/${docId}`,
-        {
-          method: "GET",
-          // No credentials or Authorization header
-        }
-      );
+      const response = await fetch(`${BASE_URL}/api/uploads/${docId}`, {
+        method: "GET",
+        // No credentials or Authorization header
+      });
 
       expect(response.status).toBe(401);
     });
@@ -219,16 +210,13 @@ describe("OAuth & Upload Integration", () => {
     it("should return 404 for non-existent document", async () => {
       const nonExistentId = "does-not-exist";
 
-      const response = await fetch(
-        `${BASE_URL}/api/uploads/${nonExistentId}`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Authorization": `Bearer ${TEST_USER_ID}`,
-          },
-        }
-      );
+      const response = await fetch(`${BASE_URL}/api/uploads/${nonExistentId}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${TEST_USER_ID}`,
+        },
+      });
 
       expect(response.status).toBe(404);
     });
@@ -240,7 +228,7 @@ describe("OAuth & Upload Integration", () => {
         method: "POST",
         credentials: "include",
         headers: {
-          "Authorization": `Bearer ${TEST_USER_ID}`,
+          Authorization: `Bearer ${TEST_USER_ID}`,
         },
       });
 
@@ -265,7 +253,7 @@ describe("OAuth & Upload Integration", () => {
         method: "GET",
         credentials: "include",
         headers: {
-          "Authorization": `Bearer ${TEST_USER_ID}`,
+          Authorization: `Bearer ${TEST_USER_ID}`,
         },
       });
 

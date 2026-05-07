@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { appRouter } from "../../root";
 import type { createTRPCContext } from "../../trpc";
+import { appRouter } from "../../root";
 
 type TrpcContext = Awaited<ReturnType<typeof createTRPCContext>>;
 
-type AvailabilityRow = {
+interface AvailabilityRow {
   id: string;
   doctorId: string;
   dayOfWeek: string;
@@ -14,7 +14,7 @@ type AvailabilityRow = {
   endTime: string;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 const makeDbStub = (opts: {
   findDoctorByUser?: AvailabilityRow[] | null; // reuse shape but for doctor row tests we just return existence
@@ -60,12 +60,21 @@ const makeDbStub = (opts: {
   } as unknown as TrpcContext["db"];
 };
 
-const createAuthApiStub = () => ({ getSession: async () => null }) as unknown as TrpcContext["authApi"];
+const createAuthApiStub = () =>
+  ({ getSession: async () => null }) as unknown as TrpcContext["authApi"];
 
-const createSessionStub = (userId = "user-1") => ({ user: { id: userId, email: "doc@k.local", name: "Doctor" } }) as unknown as TrpcContext["session"];
+const createSessionStub = (userId = "user-1") =>
+  ({
+    user: { id: userId, email: "doc@k.local", name: "Doctor" },
+  }) as unknown as TrpcContext["session"];
 
 const createCaller = (db: TrpcContext["db"], session = createSessionStub()) => {
-  const ctx = { authApi: createAuthApiStub(), session, db, traceId: "t" } as TrpcContext;
+  const ctx = {
+    authApi: createAuthApiStub(),
+    session,
+    db,
+    traceId: "t",
+  } as TrpcContext;
   return appRouter.createCaller(ctx);
 };
 
@@ -81,10 +90,17 @@ describe("doctor availability", () => {
       updatedAt: new Date(),
     };
 
-    const db = makeDbStub({ insertRow: availability, availabilityRows: [availability] });
+    const db = makeDbStub({
+      insertRow: availability,
+      availabilityRows: [availability],
+    });
     const caller = createCaller(db);
 
-    const res = await caller.doctor.createAvailability({ dayOfWeek: availability.dayOfWeek, startTime: availability.startTime, endTime: availability.endTime });
+    const res = await caller.doctor.createAvailability({
+      dayOfWeek: availability.dayOfWeek,
+      startTime: availability.startTime,
+      endTime: availability.endTime,
+    });
     assert.equal(res.success, true);
     assert.equal(res.availability.id, availability.id);
   });
@@ -103,7 +119,9 @@ describe("doctor availability", () => {
     const db = makeDbStub({ availabilityRows: [availability] });
     const caller = createCaller(db, null as any);
 
-    const rows = await caller.doctor.listAvailability({ doctorId: availability.doctorId });
+    const rows = await caller.doctor.listAvailability({
+      doctorId: availability.doctorId,
+    });
     assert.equal(rows.length, 1);
     assert.equal(rows[0].dayOfWeek, "Wednesday");
   });

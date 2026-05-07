@@ -12,7 +12,11 @@ describe("Context assembler", () => {
 
     const recent = [
       { role: "user", content: "I feel tired", dialect: "Filipino" },
-      { role: "assistant", content: "Do you have any other symptoms?", dialect: "Filipino" },
+      {
+        role: "assistant",
+        content: "Do you have any other symptoms?",
+        dialect: "Filipino",
+      },
     ];
 
     const ctx = assembleDocumentContext(analysis, recent);
