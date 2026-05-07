@@ -232,14 +232,34 @@ export function UploadForm() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "2rem", padding: "2rem" }}>
+    <div 
+      ref={dropZoneRef}
+      style={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        gap: "2rem", 
+        padding: "2rem",
+        minHeight: "100%",
+        border: isDragging ? "2px dashed #1976d2" : "2px solid transparent",
+        backgroundColor: isDragging ? "rgba(227, 242, 253, 0.5)" : "transparent",
+        transition: "all 0.3s ease",
+        borderRadius: "12px",
+      }}
+      onDragOver={(event) => {
+        event.preventDefault();
+        setIsDragging(true);
+      }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={handleDrop}
+    >
       {/* Large Camera Preview Section - Matches Image Layout */}
       <div
         style={{
           position: "relative",
           width: "100%",
-          maxWidth: "100%",
+          height: "60vh",
           aspectRatio: "16 / 9",
+          margin: "0 auto",
           backgroundColor: "#1a1a1a",
           borderRadius: "12px",
           overflow: "hidden",
@@ -305,9 +325,8 @@ export function UploadForm() {
 
       {/* Drag and Drop Upload Zone Below Camera - Matches Image Layout */}
       <div
-        ref={dropZoneRef}
         style={{
-          padding: "2rem",
+          padding: "1rem",
           border: isDragging ? "2px dashed #1976d2" : "2px dashed #ccc",
           borderRadius: "8px",
           textAlign: "center",
@@ -315,12 +334,7 @@ export function UploadForm() {
           transition: "all 0.3s ease",
           backgroundColor: isDragging ? "#e3f2fd" : "#fafafa",
         }}
-        onDragOver={(event) => {
-          event.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
+        onClick={() => inputRef.current?.click()}
         role="button"
         tabIndex={0}
         onKeyDown={(event) => {
@@ -330,17 +344,22 @@ export function UploadForm() {
           }
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
-          <p style={{ margin: 0, fontSize: "1rem", color: "#666" }}>
-            📎 Drag or Upload a document
-          </p>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
           <Button
             type="button"
             variant="outline"
-            onClick={() => inputRef.current?.click()}
+            style={{ 
+              width: "100%", 
+              padding: "1.5rem", 
+              color: "#666", 
+              fontSize: "1rem",
+              backgroundColor: "transparent",
+              border: "none",
+              pointerEvents: "none"
+            }}
             disabled={isProcessing}
           >
-            Click to select file
+            📎 Drag or Upload a document
           </Button>
         </div>
         <input
