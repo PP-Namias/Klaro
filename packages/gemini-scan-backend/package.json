@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "NODE_ENV=development node src/index.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "postman:generate": "node scripts/generate-postman.js",
+    "postman:test": "node scripts/run-postman.js"
   },
   "dependencies": {
     "dotenv": "^16.0.0",

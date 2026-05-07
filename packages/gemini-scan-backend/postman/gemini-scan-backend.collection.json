@@ -1,0 +1,64 @@
+{
+  "info": {
+    "name": "Gemini Scan Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Generated from openapi.yaml v0.1"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3001"
+    },
+    {
+      "key": "scanId",
+      "value": "sample-scan"
+    },
+    {
+      "key": "sampleFilePath",
+      "value": "C:\\Users\\ADMIN\\Desktop\\PP Namias\\Klaro\\packages\\gemini-scan-backend\\tests\\fixtures\\sample.jpg"
+    }
+  ],
+  "item": [
+    {
+      "name": "Scan image",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/scan",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "{{sampleFilePath}}"
+            },
+            {
+              "key": "metadata",
+              "type": "text",
+              "value": "{\"requestId\":\"sample-scan\",\"task\":\"extract_invoice_fields\",\"language\":\"en\"}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get scan result",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/scan/{{scanId}}"
+      }
+    }
+  ]
+}
