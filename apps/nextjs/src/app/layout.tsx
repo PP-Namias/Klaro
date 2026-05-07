@@ -32,6 +32,9 @@ export const metadata: Metadata = {
     site: "@klarohealth",
     creator: "@klarohealth",
   },
+  icons: {
+    icon: "/klaro.ico",
+  },
 };
 
 const cormorant = Cormorant_Garamond({
