@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
@@ -16,15 +16,16 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-interface Facility {
+export interface Facility {
   id?: string;
   name?: string;
   facilityType?: string | null;
-  ownership?: "public" | "private" | any;
+  ownership?: "public" | "private" | null;
   address?: string;
-  latitude?: string | null;
-  longitude?: string | null;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
   distance?: number;
+  isPhilHealthAccredited?: boolean;
 }
 
 interface FacilityMapProps {
@@ -54,14 +55,9 @@ export default function FacilityMap({
   zoom = 13,
   onMarkerClick,
 }: FacilityMapProps) {
-  const [isMounted, setIsMounted] = useState(false);
+  const isBrowser = typeof window !== "undefined";
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted)
-    return <div className="h-full w-full animate-pulse bg-slate-100" />;
+  if (!isBrowser) return <div className="h-full w-full animate-pulse bg-slate-100" />;
 
   return (
     <MapContainer
@@ -78,8 +74,8 @@ export default function FacilityMap({
       {facilities.map((fac, index) => {
         if (!fac.latitude || !fac.longitude) return null;
         const position: [number, number] = [
-          parseFloat(fac.latitude),
-          parseFloat(fac.longitude),
+          Number(fac.latitude),
+          Number(fac.longitude),
         ];
 
         return (

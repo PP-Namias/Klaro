@@ -1,5 +1,3 @@
-import type { NextRequest } from "next/server";
-
 import { getSession } from "~/auth/server";
 
 export interface ValidSession {

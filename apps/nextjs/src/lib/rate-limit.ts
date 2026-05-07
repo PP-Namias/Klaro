@@ -17,8 +17,8 @@ function getRateLimitKey(req: Request, userId?: string): string {
   if (userId) return `user:${userId}`;
 
   const ip =
-    req.headers.get("x-forwarded-for") ||
-    req.headers.get("x-real-ip") ||
+    req.headers.get("x-forwarded-for") ??
+    req.headers.get("x-real-ip") ??
     "unknown";
   return `ip:${ip}`;
 }
@@ -109,7 +109,8 @@ export function cleanupRateLimitStore() {
   let cleaned = 0;
 
   for (const key in store) {
-    if (store[key].resetAt < now) {
+    const entry = store[key];
+    if (entry && entry.resetAt < now) {
       delete store[key];
       cleaned++;
     }

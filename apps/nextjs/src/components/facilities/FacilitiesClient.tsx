@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@klaro/ui/button";
+import type { Facility } from "./FacilityMap";
 
 import { useTRPC } from "~/trpc/react";
 import styles from "../../app/facilities/page.module.css";
@@ -39,7 +40,7 @@ export default function FacilitiesClient() {
     }),
   );
 
-  const facilities = facilitiesQuery.data ?? [];
+  const facilities = (facilitiesQuery.data ?? []) as Facility[];
   const isFacilitiesLoading = facilitiesQuery.isLoading;
 
   // Fetch best suggested
@@ -51,20 +52,13 @@ export default function FacilitiesClient() {
   );
 
   const bestSuggested = bestSuggestedQuery.data;
-  const isBestLoading = bestSuggestedQuery.isLoading;
+  const filteredFacilities = facilities;
 
-  const filteredFacilities = useMemo(() => {
-    return facilities;
-  }, [facilities]);
-
-  const handleFacilityClick = (facility: any) => {
-    setSelectedFacilityId(facility.id);
-    if (facility.latitude && facility.longitude) {
+  const handleFacilityClick = (facility: Facility) => {
+    setSelectedFacilityId(facility.id ?? null);
+    if (facility.latitude != null && facility.longitude != null) {
       // Small offset to keep the popup visible
-      setCoords([
-        parseFloat(facility.latitude),
-        parseFloat(facility.longitude),
-      ]);
+      setCoords([Number(facility.latitude), Number(facility.longitude)]);
     }
   };
 
@@ -142,8 +136,9 @@ export default function FacilitiesClient() {
                 ))}
               </div>
             ) : (
-              filteredFacilities.map((fac: any) => (
-                <article
+              filteredFacilities.map((fac) => (
+                <button
+                  type="button"
                   key={fac.id}
                   className={`${styles.facilities__card} ${selectedFacilityId === fac.id ? styles["facilities__card--active"] : ""}`}
                   onClick={() => handleFacilityClick(fac)}
@@ -181,7 +176,7 @@ export default function FacilitiesClient() {
                   <p className={styles.facilities__cardAddress}>
                     {fac.address}
                   </p>
-                </article>
+                </button>
               ))
             )}
           </div>
@@ -189,7 +184,7 @@ export default function FacilitiesClient() {
 
         <main className={styles.facilities__content}>
           <FacilityMap
-            facilities={facilities}
+            facilities={facilities as Facility[]}
             center={coords}
             zoom={selectedFacilityId ? 15 : 13}
             onMarkerClick={handleFacilityClick}

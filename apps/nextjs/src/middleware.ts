@@ -1,41 +1,11 @@
-import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
 
-export async function updateSession(request: NextRequest) {
-  const response = NextResponse.next({ request });
+import type { NextRequest } from "next/server";
 
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-  ) {
-    return response;
-  }
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
-        },
-      },
-    },
-  );
-
-  await supabase.auth.getUser();
-
-  return response;
-}
-
-export async function middleware(request: NextRequest) {
-  return updateSession(request);
+export function middleware(_request: NextRequest) {
+  // Klaro uses Better Auth route handlers for session management.
+  // Keep middleware intentionally lightweight to avoid edge-runtime failures.
+  return NextResponse.next();
 }
 
 export const config = {

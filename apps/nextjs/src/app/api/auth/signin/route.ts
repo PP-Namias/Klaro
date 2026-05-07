@@ -7,7 +7,7 @@ import {
 
 export async function GET(req: Request) {
   // Rate limit: 10 signin attempts per 15 minutes
-  const key = req.headers.get("x-forwarded-for") || "unknown";
+  const key = req.headers.get("x-forwarded-for") ?? "unknown";
   const { allowed, remaining, resetAt } = checkRateLimit(
     `signin:${key}`,
     RATE_LIMITS.auth.signin.maxRequests,
@@ -29,14 +29,23 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Get OAuth authorization URL from better-auth
-    const signInUrl = await auth.api.signInSocial({
-      provider,
-      redirectURL: new URL(req.url).origin,
+    const signInResult = await auth.api.signInSocial({
+      body: {
+        provider,
+        callbackURL: "/",
+      },
     });
 
-    // Redirect to OAuth provider
-    return Response.redirect(signInUrl, 302);
+    const redirectUrl = signInResult.url;
+
+    if (!redirectUrl) {
+      return Response.json(
+        { error: "Failed to initiate OAuth flow" },
+        { status: 500 }
+      );
+    }
+
+    return Response.redirect(redirectUrl, 302);
   } catch (error) {
     console.error(`OAuth signin error for ${provider}:`, error);
     return Response.json(
