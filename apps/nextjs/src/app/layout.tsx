@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Geist } from "next/font/google";
 
 import { cn } from "@klaro/ui";
@@ -33,9 +33,13 @@ export const metadata: Metadata = {
     site: "@klarohealth",
     creator: "@klarohealth",
   },
-  icons: {
-    icon: "/klaro.ico",
-  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
 };
 
 const cormorant = Cormorant_Garamond({

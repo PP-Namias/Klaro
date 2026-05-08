@@ -31,7 +31,7 @@ export function Navbar() {
     <>
       {/* default transparent header */}
       <header className={styles.headerNav}>
-        <div className={styles.headerLogo}>
+        <Link href="/" className={styles.headerLogo}>
           <Image
             src="/klaro.svg"
             alt="Klaro Logo"
@@ -41,7 +41,7 @@ export function Navbar() {
             priority
           />
           Klaro
-        </div>
+        </Link>
         <div className={styles.headerLinks}>
           <a href="#" className={styles.headerLink}>
             Home
@@ -69,7 +69,7 @@ export function Navbar() {
       {/* scroll-up floating pill header */}
       <div className={styles.floatingNavWrapper} data-visible={visible}>
         <header className={styles.floatingNav}>
-          <div className={styles.floatingLogo}>
+          <Link href="/" className={styles.floatingLogo}>
             <Image
               src="/klaro-dark.svg"
               alt="Klaro Logo"
@@ -78,7 +78,7 @@ export function Navbar() {
               className="mr-1"
             />
             Klaro
-          </div>
+          </Link>
           <div className={styles.floatingLinks}>
             <a href="#" className={styles.floatingLink}>
               Home

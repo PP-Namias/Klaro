@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
 export function Testimonials() {
@@ -12,15 +13,13 @@ export function Testimonials() {
         <div className="group flex min-h-[400px] flex-col overflow-hidden rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)] md:flex-row md:gap-[2.2rem]">
           <div className="flex flex-1 flex-col py-[0.5rem]">
             <div className="mb-6">
-              <h3 className="testimonial-name mb-1 text-black">Maria Santos</h3>
+              <h3 className="testimonial-name mb-1 text-black">Bea Nessa P. Naldoza</h3>
               <p className="testimonial-role text-[#8C8C8C]">
-                Mother of two, Patient
+                Student Nurse - BSN
               </p>
             </div>
             <p className="testimonial-quote mb-6 max-w-[90%] text-black">
-              “I used to spend hours Googling my lab results and just getting
-              more worried. With Klaro, I got a clear explanation in Tagalog in
-              seconds. It’s like having a doctor in my pocket..”
+              “Klaro simplifies complex lab results and medical jargon, preventing confusion. It’s medically accurate and responsibly designed, focusing on professional guidance rather than self-medication.”
             </p>
             <a
               href="#"
@@ -30,8 +29,13 @@ export function Testimonials() {
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </a>
           </div>
-          <div className="aspect-square w-full shrink-0 rounded-[16px] bg-[#F7F7F7] md:w-[320px]">
-            {/* Placeholder Empty */}
+          <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-[16px] md:w-[480px]">
+            <Image
+              src="/sections/testimonial/1.png"
+              alt="Maria Santos"
+              fill
+              className="object-contain p-6 transition-transform duration-500 group-hover:scale-105"
+            />
           </div>
         </div>
 
@@ -41,17 +45,22 @@ export function Testimonials() {
           <div className="flex h-full flex-col gap-[1rem] rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
             <div>
               <h3 className="testimonial-name-small mb-1 text-black">
-                Juan Dela Cruz
+                Catherine Lozano
               </h3>
               <p className="testimonial-role-small text-[#8C8C8C]">
-                Family Caregiver
+                Science Teacher - SEAIT
               </p>
             </div>
             <p className="testimonial-quote-small text-black">
-              Now everything is in one secure place and actually makes sense.
+              Overall, the process is solid and they’ve got backup plans and guardrails for errors, which is great.
             </p>
-            <div className="mt-auto h-48 w-full rounded-[16px] bg-[#F7F7F7]">
-              {/* Placeholder Empty */}
+            <div className="relative mt-auto h-64 w-full overflow-hidden rounded-[16px]">
+              <Image
+                src="/sections/testimonial/2.png"
+                alt="Juan Dela Cruz"
+                fill
+                className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+              />
             </div>
           </div>
 
@@ -59,18 +68,22 @@ export function Testimonials() {
           <div className="flex h-full flex-col gap-[1rem] rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
             <div>
               <h3 className="testimonial-name-small mb-1 text-black">
-                Dr. Elena Reyes, MD
+                Christel Señadan
               </h3>
               <p className="testimonial-role-small text-[#8C8C8C]">
-                General Physician
+                Student Nurse - BSN
               </p>
             </div>
             <p className="testimonial-quote-small text-black">
-              We spend less time explaining jargon and more time on the
-              treatment plan.
+              The system is well-planned and carefully developed. The developers ensured ethical boundaries were respected while prioritizing the confidentiality and privacy of patients’ data.
             </p>
-            <div className="mt-auto h-48 w-full rounded-[16px] bg-[#F7F7F7]">
-              {/* Placeholder Empty */}
+            <div className="relative mt-auto h-64 w-full overflow-hidden rounded-[16px]">
+              <Image
+                src="/sections/testimonial/3.png"
+                alt="Dr. Elena Reyes"
+                fill
+                className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+              />
             </div>
           </div>
 
@@ -78,18 +91,22 @@ export function Testimonials() {
           <div className="flex h-full flex-col gap-[1rem] rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
             <div>
               <h3 className="testimonial-name-small mb-1 text-black">
-                Paolo Gomez
+                Trisha Mae Belista
               </h3>
               <p className="testimonial-role-small text-[#8C8C8C]">
-                WFH Professional
+                Student Nurse - BSN
               </p>
             </div>
             <p className="testimonial-quote-small text-black">
-              I scan my results as soon as I get them. No waiting for the next
-              day to know if I'm okay. Instant peace of mind.
+              As a nursing student, malaking help siya sa efficiency instead of manually decoding medical jargon or lab results, mas napapadali yung understanding and workflow.
             </p>
-            <div className="mt-auto h-48 w-full rounded-[16px] bg-[#F7F7F7]">
-              {/* Placeholder Empty */}
+            <div className="relative mt-auto h-64 w-full overflow-hidden rounded-[16px]">
+              <Image
+                src="/sections/testimonial/4.png"
+                alt="Paolo Gomez"
+                fill
+                className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+              />
             </div>
           </div>
         </div>

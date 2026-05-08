@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, ChevronDown } from "lucide-react";
 
 import styles from "../../app/scan/page.module.css";
@@ -6,7 +7,7 @@ import styles from "../../app/scan/page.module.css";
 export function ScannerNavbar() {
   return (
     <header className={styles.navbar}>
-      <div className={styles.navLogo}>
+      <Link href="/" className={styles.navLogo}>
         <Image
           src="/klaro-dark.svg"
           alt="Klaro Logo"
@@ -16,7 +17,7 @@ export function ScannerNavbar() {
           priority
         />
         Klaro
-      </div>
+      </Link>
       <div className={styles.navLinks}>
         <a href="#" className={styles.navLink}>
           Home
