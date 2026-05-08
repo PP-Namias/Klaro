@@ -44,3 +44,9 @@ export type {
   RecommendByTestResultsInput,
   FacilityResponse,
 } from "./facilities";
+
+export {
+  aiScanAnalysisSchema,
+  analyzeScanInputSchema,
+} from "./scan-analysis";
+export type { AIScanAnalysis, AnalyzeScanInput } from "./scan-analysis";

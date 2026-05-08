@@ -8,6 +8,7 @@ import { Button } from "@klaro/ui/button";
 import type { Facility } from "./FacilityMap";
 import FacilityCard from "./FacilityCard";
 import FacilitySearchBar, { type FacilityFilters } from "./FacilitySearchBar";
+import { ScanAgentSidebar } from "./ScanAgentSidebar";
 
 import { useTRPC } from "~/trpc/react";
 import styles from "../../app/facilities/page.module.css";
@@ -304,6 +305,10 @@ export default function FacilitiesClient() {
             onBookFacility={handleBookFacility}
           />
         </main>
+
+        <aside className="w-80 overflow-y-auto bg-white">
+          <ScanAgentSidebar />
+        </aside>
       </div>
     </div>
   );
