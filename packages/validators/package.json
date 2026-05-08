@@ -22,6 +22,10 @@
     "./facilities": {
       "types": "./src/facilities.ts",
       "default": "./src/facilities.ts"
+    },
+    "./scan-analysis": {
+      "types": "./src/scan-analysis.ts",
+      "default": "./src/scan-analysis.ts"
     }
   },
   "imports": {},

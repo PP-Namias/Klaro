@@ -70,6 +70,29 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
     );
   }
 
+  if (result.status === "pending") {
+    return (
+      <div style={{ padding: "2rem", maxWidth: "700px", margin: "0 auto" }}>
+        <h1>Scan In Progress</h1>
+        <p style={{ color: "#334155" }}>
+          {result.plainLanguageSummary ||
+            "Your document is currently being processed by Gemini."}
+        </p>
+        <div
+          style={{
+            marginTop: "1rem",
+            padding: "1rem",
+            borderRadius: "8px",
+            backgroundColor: "#fef9c3",
+            color: "#0f172a",
+          }}
+        >
+          The scheduler is still loading and may continue in the background. You can open booking in a new tab, or continue waiting here.
+        </div>
+      </div>
+    );
+  }
+
   if (result.status === "error") {
     return (
       <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>

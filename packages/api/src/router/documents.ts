@@ -4,12 +4,161 @@ import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import type { ExtractedTest } from "@klaro/validators/extraction";
+import type { ScanGuestResponse } from "@klaro/validators/scan-analysis";
+import {
+  scanGuestInputSchema,
+  scanGuestResponseSchema,
+} from "@klaro/validators/scan-analysis";
 import { analysis, document } from "@klaro/db/schema";
 
 import { extractTestsFromText } from "../services/extraction";
 import { generatePlainLanguageExplanation } from "../services/llm";
 import { buildOcrResult } from "../services/ocr";
 import { protectedProcedure, publicProcedure } from "../trpc";
+
+const scanUrgencyValues = ["LOW", "MODERATE", "HIGH"] as const;
+type ScanUrgency = (typeof scanUrgencyValues)[number];
+
+function getSafeUrgency(input: unknown): ScanUrgency {
+  if (typeof input === "string" && scanUrgencyValues.includes(input as ScanUrgency)) {
+    return input as ScanUrgency;
+  }
+  return "MODERATE";
+}
+
+function getSafeRecommendations(input: unknown, urgency: ScanUrgency): string[] {
+  const recommendations = Array.isArray(input)
+    ? input
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0)
+        .slice(0, 3)
+    : [];
+
+  if (recommendations.length > 0) {
+    return recommendations;
+  }
+
+  if (urgency === "HIGH") {
+    return [
+      "Seek urgent medical evaluation today if symptoms are worsening",
+      "Bring this scan report and your medications to your consultation",
+    ];
+  }
+
+  if (urgency === "LOW") {
+    return ["Review this result at your next routine check-up"]; 
+  }
+
+  return [
+    "Schedule follow-up with your healthcare provider soon",
+    "Monitor symptoms and seek urgent care for severe changes",
+  ];
+}
+
+function toRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  return value as Record<string, unknown>;
+}
+
+function buildFallbackGuestScanResult(params: {
+  language: "Filipino" | "English";
+  reason: string;
+  requestId?: string;
+}): ScanGuestResponse {
+  const urgency: ScanUrgency = "MODERATE";
+  const recommendations = getSafeRecommendations(undefined, urgency);
+  const summary =
+    "We analyzed your document, but AI processing was limited. Please review these findings with a healthcare provider.";
+
+  return {
+    requestId: params.requestId || `scan-${Date.now()}`,
+    status: "completed",
+    source: "fallback",
+    language: params.language,
+    analysis: {
+      summary,
+      urgency,
+      recommendations,
+    },
+    plainLanguageSummary: summary,
+    urgency,
+    recommendations,
+    confidence: 0.6,
+    extractedData: {},
+    warnings: [params.reason],
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function normalizeGuestScanResponse(
+  raw: unknown,
+  input: {
+    language: "Filipino" | "English";
+  },
+): ScanGuestResponse {
+  const data = toRecord(raw);
+  const rawAnalysis = toRecord(data.analysis);
+
+  const urgency = getSafeUrgency(data.urgency ?? rawAnalysis.urgency);
+  const recommendations = getSafeRecommendations(
+    data.recommendations ?? rawAnalysis.recommendations,
+    urgency,
+  );
+  const summarySource = data.plainLanguageSummary ?? rawAnalysis.summary;
+  const summary =
+    typeof summarySource === "string" && summarySource.trim().length > 0
+      ? summarySource.trim().slice(0, 500)
+      : "Medical document scanned and analyzed";
+
+  const confidenceRaw = data.confidence;
+  const confidence =
+    typeof confidenceRaw === "number" && confidenceRaw >= 0 && confidenceRaw <= 1
+      ? confidenceRaw
+      : 0.85;
+
+  const normalized: ScanGuestResponse = {
+    requestId:
+      typeof data.requestId === "string" && data.requestId.trim().length > 0
+        ? data.requestId
+        : `scan-${Date.now()}`,
+    status: "completed",
+    source:
+      typeof data.source === "string"
+        ? (["gemini", "fallback", "llm", "mock", "raw"] as const).includes(
+            data.source as "gemini" | "fallback" | "llm" | "mock" | "raw",
+          )
+          ? (data.source as "gemini" | "fallback" | "llm" | "mock" | "raw")
+          : "gemini"
+        : "gemini",
+    language: input.language,
+    analysis: {
+      summary,
+      urgency,
+      recommendations,
+    },
+    plainLanguageSummary: summary,
+    urgency,
+    recommendations,
+    confidence,
+    extractedData: toRecord(data.extractedData ?? data.fields),
+    warnings: Array.isArray(data.warnings)
+      ? data.warnings.filter((item): item is string => typeof item === "string")
+      : [],
+    timestamp: new Date().toISOString(),
+  };
+
+  const validated = scanGuestResponseSchema.safeParse(normalized);
+  return validated.success
+    ? validated.data
+    : buildFallbackGuestScanResult({
+        language: input.language,
+        reason: "scan_response_validation_failed",
+        requestId: normalized.requestId,
+      });
+}
 
 export const documentsRouter = {
   /**
@@ -566,70 +715,55 @@ export const documentsRouter = {
    * No authentication required - guest uploads get temporary session
    */
   scanGuestImage: publicProcedure
-    .input(
-      z.object({
-        base64Image: z.string().min(100),
-        fileName: z.string().optional(),
-        language: z.enum(["Filipino", "English"]).default("English"),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
+    .input(scanGuestInputSchema)
+    .mutation(async ({ input }) => {
+      const geminiApiUrl = process.env.GEMINI_SCAN_API_URL || "http://localhost:3001";
+
       try {
-        // Call Gemini scan API (backend service on port 3001)
-        const geminiApiUrl =
-          process.env.GEMINI_SCAN_API_URL || "http://localhost:3001";
         const response = await fetch(`${geminiApiUrl}/api/scan`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(30_000),
           body: JSON.stringify({
             images: [
               {
                 bytesBase64: input.base64Image,
+                filename: input.fileName,
               },
             ],
             metadata: {
+              task: "medical_scan",
               language: input.language,
               fileName: input.fileName,
+              patientAge: input.patientAge,
+              patientSex: input.patientSex,
+              facilityName: input.facilityName,
             },
           }),
         });
 
         if (!response.ok) {
-          const error = await response.text();
-          throw new Error(`Gemini scan failed: ${error}`);
+          const errorText = await response.text();
+          return buildFallbackGuestScanResult({
+            language: input.language,
+            reason: `gemini_http_${response.status}:${errorText.slice(0, 120)}`,
+          });
         }
 
-        const result = await response.json();
-
-        // Extract useful information from Gemini response
-        const scanResult = {
-          requestId: result.requestId || "temp-scan-" + Date.now(),
-          status: "completed",
+        const rawResult = (await response.json()) as unknown;
+        return normalizeGuestScanResponse(rawResult, {
           language: input.language,
-          analysis: result.analysis || null,
-          extractedData: result.extractedData || null,
-          confidence: result.confidence || 0.85,
-          plainLanguageSummary:
-            result.plainLanguageSummary ||
-            "Medical document scanned and analyzed",
-          recommendations: result.recommendations || [],
-          warnings: result.warnings || [],
-          timestamp: new Date().toISOString(),
-        };
-
-        return scanResult;
+        });
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error during scan";
+        const reason =
+          error instanceof Error
+            ? `gemini_request_failed:${error.message}`
+            : "gemini_request_failed";
 
-        // Still return a valid response so frontend can handle gracefully
-        return {
-          requestId: "error-" + Date.now(),
-          status: "error",
-          error: errorMessage,
+        return buildFallbackGuestScanResult({
           language: input.language,
-          timestamp: new Date().toISOString(),
-        };
+          reason,
+        });
       }
     }),
 

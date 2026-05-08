@@ -48,5 +48,16 @@ export type {
 export {
   aiScanAnalysisSchema,
   analyzeScanInputSchema,
+  scanUrgencySchema,
+  scanLanguageSchema,
+  scanStatusSchema,
+  scanGuestInputSchema,
+  scanGuestAnalysisSchema,
+  scanGuestResponseSchema,
 } from "./scan-analysis";
-export type { AIScanAnalysis, AnalyzeScanInput } from "./scan-analysis";
+export type {
+  AIScanAnalysis,
+  AnalyzeScanInput,
+  ScanGuestInput,
+  ScanGuestResponse,
+} from "./scan-analysis";

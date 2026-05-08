@@ -1,5 +1,4 @@
 import type { AIScanAnalysis } from "@klaro/validators/scan-analysis";
-import type { ExtractedTest } from "@klaro/validators/extraction";
 import { callLLMAPI } from "./llm";
 
 /**
@@ -13,8 +12,15 @@ import { callLLMAPI } from "./llm";
  * 5. Provides fallback behavior when LLM unavailable
  */
 
+export interface ScanAnalysisTest {
+  name: string;
+  value?: string;
+  unit?: string;
+  flagged?: boolean;
+}
+
 export interface ScanAnalysisInput {
-  extractedTests: ExtractedTest[];
+  extractedTests: ScanAnalysisTest[];
   patientAge?: number;
   patientSex?: "male" | "female" | "other";
   facilityName?: string;
@@ -96,7 +102,7 @@ function buildPatientContext(input: ScanAnalysisInput): string {
 /**
  * Format test results for LLM consumption
  */
-function formatTestResults(tests: ExtractedTest[]): string {
+function formatTestResults(tests: ScanAnalysisTest[]): string {
   return tests
     .map((test) => {
       const flagStatus = test.flagged ? " [FLAGGED]" : "";

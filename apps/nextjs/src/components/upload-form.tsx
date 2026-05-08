@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -15,6 +16,8 @@ interface SelectedFile {
   previewUrl?: string;
   kind: "image" | "pdf";
 }
+
+type ScanUIState = "idle" | "uploading" | "processing" | "completed" | "error";
 
 const maxFileSize = 50 * 1024 * 1024; // 50MB for PDFs
 const acceptedTypes = new Set([
@@ -63,41 +66,80 @@ export function UploadForm() {
   const [selected, setSelected] = useState<SelectedFile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [scanState, setScanState] = useState<ScanUIState>("idle");
   const [cameraActive, setCameraActive] = useState(false);
+
+  const isProcessing =
+    scanState === "uploading" || scanState === "processing";
 
   const trpc = useTRPC();
 
   const scanGuestImage = useMutation(
     trpc.documents.scanGuestImage.mutationOptions({
       onSuccess: (result) => {
-        setIsProcessing(false);
         if (result.status === "error") {
+          setScanState("error");
           const message = "error" in result ? (result.error ?? "Scan failed") : "Scan failed";
           setUploadStatus(message);
-          toast.error(message);
-        } else {
           saveScanAnalysisSession({
             requestId: result.requestId,
-            status: result.status,
-            source: result.source,
+            status: "error",
             language: result.language,
-            confidence: result.confidence,
-            extractedData: result.extractedData,
-            plainLanguageSummary: result.plainLanguageSummary,
-            urgency: result.urgency,
-            recommendations: result.recommendations,
-            warnings: result.warnings,
+            error: message,
+            warnings: ["scan_failed"],
             timestamp: result.timestamp,
-            error: result.error,
-            analysis: result.analysis,
           });
-          toast.success("Document scanned successfully!");
-          router.push(`/scan?id=${result.requestId}`);
+          toast.error(message);
+          return;
         }
+
+        setScanState("completed");
+        setUploadStatus("Scan complete.");
+        saveScanAnalysisSession({
+          requestId: result.requestId,
+          status: "completed",
+          source: "source" in result ? result.source : undefined,
+          language: result.language,
+          confidence:
+            "confidence" in result && typeof result.confidence === "number"
+              ? result.confidence
+              : undefined,
+          extractedData:
+            "extractedData" in result && result.extractedData
+              ? result.extractedData
+              : undefined,
+          plainLanguageSummary:
+            "plainLanguageSummary" in result && typeof result.plainLanguageSummary === "string"
+              ? result.plainLanguageSummary
+              : undefined,
+          urgency:
+            "urgency" in result &&
+            (result.urgency === "LOW" || result.urgency === "MODERATE" || result.urgency === "HIGH")
+              ? result.urgency
+              : undefined,
+          recommendations:
+            "recommendations" in result && Array.isArray(result.recommendations)
+              ? result.recommendations
+              : undefined,
+          warnings:
+            "warnings" in result && Array.isArray(result.warnings)
+              ? result.warnings
+              : undefined,
+          timestamp: result.timestamp,
+          error:
+            "error" in result && typeof result.error === "string"
+              ? result.error
+              : undefined,
+          analysis:
+            "analysis" in result && result.analysis
+              ? result.analysis
+              : undefined,
+        });
+        toast.success("Document scanned successfully!");
+        router.push(`/scan?id=${result.requestId}`);
       },
-      onError: (err) => {
-        setIsProcessing(false);
+      onError: () => {
+        setScanState("error");
         const message = "Could not scan the document. Please try again.";
         setUploadStatus(message);
         toast.error(message);
@@ -151,18 +193,21 @@ export function UploadForm() {
     setSelected(null);
     setError(null);
     setUploadStatus(null);
+    setScanState("idle");
   };
 
   const selectFile = (file: File) => {
     if (!acceptedTypes.has(file.type)) {
       setError("File type not supported. Please use PNG, JPG, PDF, WebP, TIFF, BMP, or GIF.");
       setSelected(null);
+      setScanState("error");
       return;
     }
 
     if (file.size > maxFileSize) {
       setError("File size must be under 50 MB.");
       setSelected(null);
+      setScanState("error");
       return;
     }
 
@@ -179,6 +224,7 @@ export function UploadForm() {
     setError(null);
     setSelected({ file, previewUrl, kind });
     setUploadStatus(null);
+    setScanState("idle");
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -196,21 +242,33 @@ export function UploadForm() {
   const handleSubmit = async () => {
     if (!selected) {
       setError("Please select a file to scan.");
+      setScanState("error");
       return;
     }
 
-    setIsProcessing(true);
-    setUploadStatus("Processing file...");
+    const pendingRequestId = `scan-pending-${Date.now()}`;
+    setScanState("uploading");
+    setUploadStatus("Uploading document...");
+    saveScanAnalysisSession({
+      requestId: pendingRequestId,
+      status: "pending",
+      language: "English",
+      plainLanguageSummary: "Your scan is uploading and will be processed shortly.",
+      warnings: ["processing_in_progress"],
+      timestamp: new Date().toISOString(),
+    });
 
     try {
       const base64 = await fileToBase64(selected.file);
+      setScanState("processing");
+      setUploadStatus("Processing with Gemini...");
       scanGuestImage.mutate({
         base64Image: base64,
         fileName: selected.file.name,
         language: "English",
       });
     } catch (err) {
-      setIsProcessing(false);
+      setScanState("error");
       const msg = err instanceof Error ? err.message : "Failed to read file";
       setError(msg);
       setUploadStatus(msg);
@@ -233,17 +291,32 @@ export function UploadForm() {
     const base64 = data.split(",")[1] || data;
     const blob = await (await fetch(data)).blob();
     const file = new File([blob], `camera-${Date.now()}.png`, { type: "image/png" });
-    
-    setIsProcessing(true);
-    setUploadStatus("Processing captured image...");
+
+    const pendingRequestId = `scan-pending-${Date.now()}`;
+    setScanState("uploading");
+    setUploadStatus("Uploading captured image...");
+    saveScanAnalysisSession({
+      requestId: pendingRequestId,
+      status: "pending",
+      language: "English",
+      plainLanguageSummary: "Your captured image is uploading and being processed.",
+      warnings: ["processing_in_progress"],
+      timestamp: new Date().toISOString(),
+    });
+
     try {
+      setScanState("processing");
+      setUploadStatus("Processing captured image with Gemini...");
       scanGuestImage.mutate({
         base64Image: base64,
         fileName: file.name,
         language: "English",
       });
     } catch (err) {
-      setIsProcessing(false);
+      setScanState("error");
+      const message = err instanceof Error ? err.message : "Failed to process captured image";
+      setUploadStatus(message);
+      toast.error(message);
     }
   };
 
@@ -397,6 +470,34 @@ export function UploadForm() {
       {uploadStatus && (
         <p style={{ color: "#1976d2", padding: "1rem", backgroundColor: "#e3f2fd", borderRadius: "4px" }}>
           {uploadStatus}
+        </p>
+      )}
+
+      <p
+        style={{
+          margin: 0,
+          fontSize: "0.9rem",
+          color: "#475569",
+          backgroundColor: "#f8fafc",
+          padding: "0.75rem 1rem",
+          borderRadius: "6px",
+        }}
+      >
+        State: <strong>{scanState}</strong>
+      </p>
+
+      {scanState === "processing" && (
+        <p
+          style={{
+            margin: 0,
+            fontSize: "0.9rem",
+            color: "#0f172a",
+            backgroundColor: "#fef9c3",
+            padding: "0.75rem 1rem",
+            borderRadius: "6px",
+          }}
+        >
+          The scheduler is still loading and may continue in the background. You can keep waiting here or open booking in a new tab.
         </p>
       )}
 
