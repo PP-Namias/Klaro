@@ -39,6 +39,34 @@ describe("scan session normalization", () => {
     expect(normalized.recommendations).toEqual(["first step", "second", "third"]);
   });
 
+  it("keeps the normalized output envelope stable for scan results", () => {
+    const normalized = normalizeScanAnalysisSession({
+      requestId: "scan-output",
+      status: "completed",
+      language: "English",
+      extractedData: {
+        patientAge: 45,
+        facilityName: "Klaro Clinic",
+        flaggedTests: [{ name: "Glucose", value: "210", flagged: true }],
+      },
+      plainLanguageSummary: "Your scan shows elevated values that need review.",
+      urgency: "HIGH",
+      recommendations: ["Seek urgent review", "Bring the scan report"],
+      confidence: 0.91,
+      warnings: ["fallback_used"],
+    });
+
+    expect(normalized.status).toBe("completed");
+    expect(normalized.language).toBe("English");
+    expect(normalized.analysis).toEqual({
+      summary: "Your scan shows elevated values that need review.",
+      urgency: "HIGH",
+      recommendations: ["Seek urgent review", "Bring the scan report"],
+    });
+    expect(normalized.confidence).toBe(0.91);
+    expect(normalized.warnings).toEqual(["fallback_used"]);
+  });
+
   it("persists and restores session payload", () => {
     saveScanAnalysisSession({
       requestId: "scan-persist",
