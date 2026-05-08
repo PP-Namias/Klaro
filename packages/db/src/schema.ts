@@ -15,6 +15,7 @@ import {
 import { z } from "zod/v4";
 
 import { user } from "./auth-schema";
+
 export { account, session, user, verification } from "./auth-schema";
 
 // Enums
@@ -309,7 +310,7 @@ export const doctorRelations = relations(doctor, ({ one, many }) => ({
   bookings: many(booking),
 }));
 
-export const facilityRelations = relations(facility, ({ many }) => ({}));
+export const facilityRelations = relations(facility, () => ({}));
 
 export const bookingRelations = relations(booking, ({ one, many }) => ({
   user: one(user, {

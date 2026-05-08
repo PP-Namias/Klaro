@@ -1,7 +1,14 @@
 // @vitest-environment jsdom
 import React, { useState } from "react";
-import { cleanup, render, screen, fireEvent, act } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import CalModal from "../../../components/CalModal";
 
 function ModalHarness({ onBooked }: { onBooked?: () => void }) {
@@ -12,7 +19,11 @@ function ModalHarness({ onBooked }: { onBooked?: () => void }) {
       <button type="button" onClick={() => setOpen(true)}>
         Book a Doctor
       </button>
-      <CalModal open={open} onClose={() => setOpen(false)} onBooked={onBooked} />
+      <CalModal
+        open={open}
+        onClose={() => setOpen(false)}
+        onBooked={onBooked}
+      />
     </>
   );
 }
@@ -41,7 +52,9 @@ describe("CalModal integration", () => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByRole("link", { name: /open in new tab/i })).not.toBeNull();
+    expect(
+      screen.getByRole("link", { name: /open in new tab/i }),
+    ).not.toBeNull();
   });
 
   it("closes from the close button and restores the modal state", () => {
@@ -63,7 +76,7 @@ describe("CalModal integration", () => {
       new MessageEvent("message", {
         data: { type: "booking.created" },
         origin: "https://cal.com",
-      })
+      }),
     );
 
     await act(async () => {

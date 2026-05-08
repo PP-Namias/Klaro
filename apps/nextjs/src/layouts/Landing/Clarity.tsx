@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+
 import { MapPreview } from "~/components/facilities/MapPreview";
 
 export function Clarity() {
@@ -88,7 +89,7 @@ export function Clarity() {
             </h3>
             <p className="card-description mb-6 text-zinc-500">{item3.body}</p>
           </div>
-          
+
           <div className="flex flex-1 flex-col gap-4">
             <div className="relative w-full flex-1 overflow-hidden rounded-[20px] bg-zinc-50/50">
               <MapPreview />

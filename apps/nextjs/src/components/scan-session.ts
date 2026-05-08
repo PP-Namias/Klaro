@@ -51,7 +51,9 @@ function normalizeLanguage(value: unknown): "Filipino" | "English" | undefined {
   return undefined;
 }
 
-export function normalizeScanAnalysisSession(payload: RawScanPayload): ScanAnalysisSession {
+export function normalizeScanAnalysisSession(
+  payload: RawScanPayload,
+): ScanAnalysisSession {
   const extractedData = payload.extractedData || payload.fields || {};
   const analysis = payload.analysis;
   const plainLanguageSummary =
@@ -71,7 +73,9 @@ export function normalizeScanAnalysisSession(payload: RawScanPayload): ScanAnaly
     plainLanguageSummary.trim().length > 0 || recommendations.length > 0;
 
   const normalizedStatus: ScanAnalysisSession["status"] =
-    payload.status === "completed" || payload.status === "error" || payload.status === "pending"
+    payload.status === "completed" ||
+    payload.status === "error" ||
+    payload.status === "pending"
       ? payload.status
       : payload.error
         ? "error"
@@ -85,7 +89,9 @@ export function normalizeScanAnalysisSession(payload: RawScanPayload): ScanAnaly
     source: payload.source || "raw",
     language: normalizeLanguage(payload.language),
     confidence:
-      typeof payload.confidence === "number" && payload.confidence >= 0 && payload.confidence <= 1
+      typeof payload.confidence === "number" &&
+      payload.confidence >= 0 &&
+      payload.confidence <= 1
         ? payload.confidence
         : undefined,
     extractedData,
@@ -93,7 +99,9 @@ export function normalizeScanAnalysisSession(payload: RawScanPayload): ScanAnaly
     urgency,
     recommendations,
     warnings: Array.isArray(payload.warnings)
-      ? payload.warnings.filter((item): item is string => typeof item === "string")
+      ? payload.warnings.filter(
+          (item): item is string => typeof item === "string",
+        )
       : [],
     timestamp: payload.timestamp || new Date().toISOString(),
     error: payload.error,

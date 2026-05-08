@@ -1,11 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
+
 import type { Facility } from "./FacilityMap";
 
 const FacilityMap = dynamic(() => import("./FacilityMap"), {
   ssr: false,
-  loading: () => <div className="h-full w-full animate-pulse rounded-[20px] bg-zinc-50 border border-zinc-100" />,
+  loading: () => (
+    <div className="h-full w-full animate-pulse rounded-[20px] border border-zinc-100 bg-zinc-50" />
+  ),
 });
 
 const MOCK_FACILITIES: Facility[] = [
@@ -32,7 +35,7 @@ const MOCK_FACILITIES: Facility[] = [
     latitude: 14.6438,
     longitude: 121.0478,
     facilityType: "hospital",
-  }
+  },
 ];
 
 export function MapPreview() {
@@ -40,7 +43,7 @@ export function MapPreview() {
     <div className="h-full w-full overflow-hidden rounded-[20px] border border-zinc-100 shadow-sm">
       <FacilityMap
         facilities={MOCK_FACILITIES}
-        center={[14.6350, 121.0350]}
+        center={[14.635, 121.035]}
         zoom={13}
         interactive={true}
         dragging={true}

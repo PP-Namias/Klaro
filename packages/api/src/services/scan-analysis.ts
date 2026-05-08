@@ -1,4 +1,5 @@
 import type { AIScanAnalysis } from "@klaro/validators/scan-analysis";
+
 import { callLLMAPI } from "./llm";
 
 /**
@@ -136,9 +137,7 @@ function validateAnalysis(data: unknown): data is AIScanAnalysis {
     return false;
   }
   if (
-    !obj.recommendations.every(
-      (r) => typeof r === "string" && r.length <= 500,
-    )
+    !obj.recommendations.every((r) => typeof r === "string" && r.length <= 500)
   ) {
     return false;
   }

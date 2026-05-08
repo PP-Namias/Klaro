@@ -5,11 +5,11 @@ import { z } from "zod/v4";
 
 import type { ExtractedTest } from "@klaro/validators/extraction";
 import type { ScanGuestResponse } from "@klaro/validators/scan-analysis";
+import { analysis, document } from "@klaro/db/schema";
 import {
   scanGuestInputSchema,
   scanGuestResponseSchema,
 } from "@klaro/validators/scan-analysis";
-import { analysis, document } from "@klaro/db/schema";
 
 import { extractTestsFromText } from "../services/extraction";
 import { generatePlainLanguageExplanation } from "../services/llm";
@@ -20,13 +20,19 @@ const scanUrgencyValues = ["LOW", "MODERATE", "HIGH"] as const;
 type ScanUrgency = (typeof scanUrgencyValues)[number];
 
 function getSafeUrgency(input: unknown): ScanUrgency {
-  if (typeof input === "string" && scanUrgencyValues.includes(input as ScanUrgency)) {
+  if (
+    typeof input === "string" &&
+    scanUrgencyValues.includes(input as ScanUrgency)
+  ) {
     return input as ScanUrgency;
   }
   return "MODERATE";
 }
 
-function getSafeRecommendations(input: unknown, urgency: ScanUrgency): string[] {
+function getSafeRecommendations(
+  input: unknown,
+  urgency: ScanUrgency,
+): string[] {
   const recommendations = Array.isArray(input)
     ? input
         .filter((item): item is string => typeof item === "string")
@@ -47,7 +53,7 @@ function getSafeRecommendations(input: unknown, urgency: ScanUrgency): string[] 
   }
 
   if (urgency === "LOW") {
-    return ["Review this result at your next routine check-up"]; 
+    return ["Review this result at your next routine check-up"];
   }
 
   return [
@@ -115,7 +121,9 @@ function normalizeGuestScanResponse(
 
   const confidenceRaw = data.confidence;
   const confidence =
-    typeof confidenceRaw === "number" && confidenceRaw >= 0 && confidenceRaw <= 1
+    typeof confidenceRaw === "number" &&
+    confidenceRaw >= 0 &&
+    confidenceRaw <= 1
       ? confidenceRaw
       : 0.85;
 
@@ -717,7 +725,8 @@ export const documentsRouter = {
   scanGuestImage: publicProcedure
     .input(scanGuestInputSchema)
     .mutation(async ({ input }) => {
-      const geminiApiUrl = process.env.GEMINI_SCAN_API_URL || "http://localhost:3001";
+      const geminiApiUrl =
+        process.env.GEMINI_SCAN_API_URL || "http://localhost:3001";
 
       try {
         const response = await fetch(`${geminiApiUrl}/api/scan`, {

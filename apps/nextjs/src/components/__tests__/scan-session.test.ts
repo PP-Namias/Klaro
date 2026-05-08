@@ -36,7 +36,11 @@ describe("scan session normalization", () => {
 
     expect(normalized.language).toBeUndefined();
     expect(normalized.urgency).toBe("MODERATE");
-    expect(normalized.recommendations).toEqual(["first step", "second", "third"]);
+    expect(normalized.recommendations).toEqual([
+      "first step",
+      "second",
+      "third",
+    ]);
   });
 
   it("keeps the normalized output envelope stable for scan results", () => {

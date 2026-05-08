@@ -6,8 +6,8 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@klaro/ui/button";
 import { toast } from "@klaro/ui/toast";
 
-import { useTRPC } from "~/trpc/react";
 import { readScanAnalysisSession } from "~/components/scan-session";
+import { useTRPC } from "~/trpc/react";
 
 interface ScanAnalysis {
   summary: string;
@@ -17,7 +17,12 @@ interface ScanAnalysis {
 
 interface ScanResult {
   extractedData?: Record<string, unknown>;
-  flaggedTests?: Array<{ name: string; value?: string; unit?: string; flagged?: boolean }>;
+  flaggedTests?: Array<{
+    name: string;
+    value?: string;
+    unit?: string;
+    flagged?: boolean;
+  }>;
   analysis?: ScanAnalysis;
   plainLanguageSummary?: string;
   urgency?: "LOW" | "MODERATE" | "HIGH";
@@ -78,11 +83,22 @@ export function ScanAgentSidebar() {
         : Array.isArray(scanResult.flaggedTests)
           ? scanResult.flaggedTests
           : []
-    ) as Array<{ name: string; value?: string; unit?: string; flagged?: boolean }>;
+    ) as Array<{
+      name: string;
+      value?: string;
+      unit?: string;
+      flagged?: boolean;
+    }>;
 
     analyzeMutation.mutate({
-      extractedTests: flaggedTests.length > 0 ? flaggedTests : [{ name: "No specific tests" }],
-      patientAge: typeof extractedData.patientAge === "number" ? extractedData.patientAge : undefined,
+      extractedTests:
+        flaggedTests.length > 0
+          ? flaggedTests
+          : [{ name: "No specific tests" }],
+      patientAge:
+        typeof extractedData.patientAge === "number"
+          ? extractedData.patientAge
+          : undefined,
       patientSex:
         extractedData.patientSex === "male" ||
         extractedData.patientSex === "female" ||
@@ -96,12 +112,20 @@ export function ScanAgentSidebar() {
     analysis ||
     (scanResult?.analysis
       ? {
-          summary: scanResult.analysis.summary || scanResult.plainLanguageSummary || "",
-          urgency: scanResult.analysis.urgency || scanResult.urgency || "MODERATE",
+          summary:
+            scanResult.analysis.summary ||
+            scanResult.plainLanguageSummary ||
+            "",
+          urgency:
+            scanResult.analysis.urgency || scanResult.urgency || "MODERATE",
           recommendations:
-            scanResult.analysis.recommendations || scanResult.recommendations || [],
+            scanResult.analysis.recommendations ||
+            scanResult.recommendations ||
+            [],
         }
-      : scanResult?.plainLanguageSummary || scanResult?.urgency || scanResult?.recommendations
+      : scanResult?.plainLanguageSummary ||
+          scanResult?.urgency ||
+          scanResult?.recommendations
         ? {
             summary: scanResult.plainLanguageSummary || "",
             urgency: scanResult.urgency || "MODERATE",
@@ -126,13 +150,15 @@ export function ScanAgentSidebar() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-6 border-l border-zinc-200 bg-zinc-50/30 p-8 overflow-y-auto">
+    <div className="flex h-full flex-col gap-6 overflow-y-auto border-l border-zinc-200 bg-zinc-50/30 p-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-[17px] font-semibold text-zinc-900 tracking-tight">📋 Scan Analysis</h2>
+        <h2 className="text-[17px] font-semibold tracking-tight text-zinc-900">
+          📋 Scan Analysis
+        </h2>
         {!analysis && (
           <Button
             size="sm"
-            className="rounded-full bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-[12px]"
+            className="rounded-full bg-zinc-900 text-[12px] font-semibold text-white hover:bg-zinc-800"
             onClick={handleAnalyze}
             disabled={analyzeMutation.isPending}
           >
@@ -146,25 +172,25 @@ export function ScanAgentSidebar() {
           className={`rounded-[20px] border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 ${urgencyBgColors[normalizedAnalysis.urgency]}`}
         >
           <div
-            className={`mb-4 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest border ${urgencyColors[normalizedAnalysis.urgency]}`}
+            className={`mb-4 inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-bold tracking-widest uppercase ${urgencyColors[normalizedAnalysis.urgency]}`}
           >
             Urgency: {normalizedAnalysis.urgency}
           </div>
 
-          <p className="mb-6 text-[14px] leading-relaxed text-zinc-700 font-medium">
+          <p className="mb-6 text-[14px] leading-relaxed font-medium text-zinc-700">
             {normalizedAnalysis.summary}
           </p>
 
           {normalizedAnalysis.recommendations.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-[11px] font-bold uppercase text-zinc-400 tracking-widest ml-1">
+              <h3 className="ml-1 text-[11px] font-bold tracking-widest text-zinc-400 uppercase">
                 Next Steps
               </h3>
               <ul className="space-y-3">
                 {normalizedAnalysis.recommendations.map((rec, i) => (
                   <li
                     key={i}
-                    className="flex gap-3 text-[13.5px] text-zinc-600 leading-relaxed font-medium"
+                    className="flex gap-3 text-[13.5px] leading-relaxed font-medium text-zinc-600"
                   >
                     <span className="shrink-0 text-zinc-900">•</span>
                     <span>{rec}</span>
@@ -177,7 +203,7 @@ export function ScanAgentSidebar() {
           <Button
             size="sm"
             variant="outline"
-            className="mt-8 w-full rounded-full border-zinc-300 text-zinc-600 font-semibold text-[12px] hover:bg-zinc-50"
+            className="mt-8 w-full rounded-full border-zinc-300 text-[12px] font-semibold text-zinc-600 hover:bg-zinc-50"
             onClick={() => {
               setAnalysis(null);
               analyzeMutation.reset();
@@ -190,7 +216,7 @@ export function ScanAgentSidebar() {
 
       {!normalizedAnalysis && (
         <div className="rounded-[20px] border border-dashed border-zinc-300 bg-white p-8 text-center shadow-sm">
-          <p className="text-[14px] font-medium text-zinc-500 leading-relaxed">
+          <p className="text-[14px] leading-relaxed font-medium text-zinc-500">
             {analyzeMutation.isPending ? (
               <span>Analyzing your scan with AI...</span>
             ) : (
@@ -202,7 +228,7 @@ export function ScanAgentSidebar() {
 
       {analyzeMutation.isError && (
         <div className="rounded-[20px] border border-red-200 bg-red-50 p-4">
-          <p className="text-[13px] font-medium text-red-600 leading-relaxed">
+          <p className="text-[13px] leading-relaxed font-medium text-red-600">
             {analyzeMutation.error instanceof Error
               ? analyzeMutation.error.message
               : "Analysis failed"}

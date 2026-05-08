@@ -85,7 +85,8 @@ export default function FacilityMap({
     if (type === "hospital") return hospitalMarker;
     if (type === "clinic") return clinicMarker;
     if (type === "diagnostic_center") return diagnosticMarker;
-    if (type === "health_unit" || type === "rural_health_unit") return healthUnitMarker;
+    if (type === "health_unit" || type === "rural_health_unit")
+      return healthUnitMarker;
     return defaultMarker;
   };
 
@@ -100,7 +101,9 @@ export default function FacilityMap({
   );
 
   if (!isBrowser) {
-    return <div className="h-full w-full animate-pulse rounded-[24px] bg-zinc-50 border border-zinc-100" />;
+    return (
+      <div className="h-full w-full animate-pulse rounded-[24px] border border-zinc-100 bg-zinc-50" />
+    );
   }
 
   return (
@@ -138,28 +141,31 @@ export default function FacilityMap({
             <Popup className="premium-popup">
               <div className="space-y-3 p-1 font-sans">
                 <div>
-                  <h3 className="text-[14px] font-bold text-zinc-900 leading-tight">
+                  <h3 className="text-[14px] leading-tight font-bold text-zinc-900">
                     {facility.name ?? "Unknown Facility"}
                   </h3>
-                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-                    {facility.facilityType ?? "Medical facility"} • {facility.ownership ?? "private"}
+                  <p className="mt-1 text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">
+                    {facility.facilityType ?? "Medical facility"} •{" "}
+                    {facility.ownership ?? "private"}
                   </p>
                 </div>
-                <p className="text-[12px] leading-relaxed text-zinc-500 font-medium">{facility.address ?? "No address provided"}</p>
+                <p className="text-[12px] leading-relaxed font-medium text-zinc-500">
+                  {facility.address ?? "No address provided"}
+                </p>
                 {facility.distance !== undefined && (
                   <p className="text-[12px] font-bold text-zinc-900">
                     {facility.distance.toFixed(1)} km away
                   </p>
                 )}
                 {facility.summary && (
-                  <div className="rounded-[12px] bg-zinc-50 border border-zinc-100 p-3 text-[12px] leading-relaxed text-zinc-700 font-medium">
+                  <div className="rounded-[12px] border border-zinc-100 bg-zinc-50 p-3 text-[12px] leading-relaxed font-medium text-zinc-700">
                     {facility.summary}
                   </div>
                 )}
                 <div className="flex gap-2 pt-1">
                   <button
                     type="button"
-                    className="w-full rounded-full bg-zinc-900 px-4 py-2 text-[12px] font-bold text-white hover:bg-zinc-800 transition-colors"
+                    className="w-full rounded-full bg-zinc-900 px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-zinc-800"
                     onClick={() => onBookFacility?.(facility)}
                   >
                     Book Appointment

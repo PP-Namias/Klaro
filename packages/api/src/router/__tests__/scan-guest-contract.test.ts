@@ -9,7 +9,9 @@ import {
 describe("scan guest contract", () => {
   it("accepts valid guest scan input", () => {
     const input = scanGuestInputSchema.parse({
-      base64Image: Buffer.from("valid image bytes for test").toString("base64").repeat(8),
+      base64Image: Buffer.from("valid image bytes for test")
+        .toString("base64")
+        .repeat(8),
       fileName: "scan.png",
       language: "English",
       patientAge: 42,

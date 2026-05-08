@@ -31,10 +31,7 @@ const base64ImageSchema = z
   .string()
   .trim()
   .min(100)
-  .regex(
-    /^[A-Za-z0-9+/=\r\n]+$/,
-    "base64Image must be a valid base64 string",
-  )
+  .regex(/^[A-Za-z0-9+/=\r\n]+$/, "base64Image must be a valid base64 string")
   .refine(
     (value) => value.replace(/[\r\n]/g, "").length % 4 === 0,
     "base64Image appears to be malformed",

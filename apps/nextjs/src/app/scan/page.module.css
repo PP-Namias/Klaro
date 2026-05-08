@@ -549,8 +549,16 @@
 }
 
 @keyframes typing-dot {
-  0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
-  40% { transform: scale(1); opacity: 1; }
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .mediumText {
@@ -691,7 +699,7 @@
 .uploadBox {
   width: 100%;
   min-height: 80px;
-  border: 2.4px dashed #DBDBDB;
+  border: 2.4px dashed #dbdbdb;
   border-radius: 14px;
   padding: 1.5rem;
   display: flex;

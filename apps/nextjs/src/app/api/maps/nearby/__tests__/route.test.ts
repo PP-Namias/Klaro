@@ -1,5 +1,6 @@
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
 import { GET, POST } from "../route";
 
 describe("/api/maps/nearby", () => {
@@ -26,7 +27,11 @@ describe("/api/maps/nearby", () => {
     const req = new Request("http://localhost/api/maps/nearby", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ latitude: 14.5995, longitude: 120.9842, radiusKm: 5 }),
+      body: JSON.stringify({
+        latitude: 14.5995,
+        longitude: 120.9842,
+        radiusKm: 5,
+      }),
     });
     const res = await POST(req as any);
     assert.strictEqual(res.status, 200);

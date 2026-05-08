@@ -1,5 +1,6 @@
-import { auth } from "~/auth/server";
 import { headers } from "next/headers";
+
+import { auth } from "~/auth/server";
 import { assertSession } from "~/lib/session-validation";
 
 export async function POST() {

@@ -5,17 +5,20 @@ import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@klaro/ui/button";
-import type { Facility } from "./FacilityMap";
-import FacilityCard from "./FacilityCard";
-import FacilitySearchBar, { type FacilityFilters } from "./FacilitySearchBar";
-import { ScanAgentSidebar } from "./ScanAgentSidebar";
 
+import type { Facility } from "./FacilityMap";
+import type { FacilityFilters } from "./FacilitySearchBar";
 import { useTRPC } from "~/trpc/react";
 import styles from "../../app/facilities/page.module.css";
+import FacilityCard from "./FacilityCard";
+import FacilitySearchBar from "./FacilitySearchBar";
+import { ScanAgentSidebar } from "./ScanAgentSidebar";
 
 const FacilityMap = dynamic(() => import("./FacilityMap"), {
   ssr: false,
-  loading: () => <div className="h-full w-full animate-pulse rounded-2xl bg-zinc-100" />,
+  loading: () => (
+    <div className="h-full w-full animate-pulse rounded-2xl bg-zinc-100" />
+  ),
 });
 
 const DEFAULT_COORDS: [number, number] = [14.6225, 121.0242];
@@ -46,35 +49,37 @@ const extractMedicalContext = (payload: unknown): MedicalContext | null => {
   if (!payload || typeof payload !== "object") return null;
   const data = payload as Record<string, unknown>;
   const analysis = data.analysis as Record<string, unknown> | undefined;
-  const extractedData = data.extractedData as Record<string, unknown> | undefined;
+  const extractedData = data.extractedData as
+    | Record<string, unknown>
+    | undefined;
 
-  const severity = normalizeSeverity(
-    data.severity ?? analysis?.severity,
-  );
+  const severity = normalizeSeverity(data.severity ?? analysis?.severity);
 
-  const flaggedTestsSource: unknown[] =
-    Array.isArray(data.flaggedTests)
-      ? data.flaggedTests
-      : Array.isArray(extractedData?.flaggedTests)
-        ? extractedData.flaggedTests
-        : Array.isArray(analysis?.flaggedValues)
-          ? analysis.flaggedValues
-          : [];
+  const flaggedTestsSource: unknown[] = Array.isArray(data.flaggedTests)
+    ? data.flaggedTests
+    : Array.isArray(extractedData?.flaggedTests)
+      ? extractedData.flaggedTests
+      : Array.isArray(analysis?.flaggedValues)
+        ? analysis.flaggedValues
+        : [];
 
   const flaggedTests: MedicalContext["flaggedTests"] = [];
   for (const item of flaggedTestsSource) {
     if (!item || typeof item !== "object") continue;
     const entry = item as Record<string, unknown>;
     flaggedTests.push({
-      name: String(entry.name ?? entry.testName ?? entry.label ?? "Unknown test"),
+      name: String(
+        entry.name ?? entry.testName ?? entry.label ?? "Unknown test",
+      ),
       value: entry.value == null ? undefined : String(entry.value),
       unit: entry.unit == null ? undefined : String(entry.unit),
     });
   }
 
   const testSummary =
-    String(data.plainLanguageSummary ?? data.summary ?? analysis?.summary ?? "").trim() ||
-    `${flaggedTests.length} flagged test(s) may need follow-up.`;
+    String(
+      data.plainLanguageSummary ?? data.summary ?? analysis?.summary ?? "",
+    ).trim() || `${flaggedTests.length} flagged test(s) may need follow-up.`;
 
   return {
     severity,
@@ -86,16 +91,22 @@ const extractMedicalContext = (payload: unknown): MedicalContext | null => {
 export default function FacilitiesClient() {
   const trpc = useTRPC();
   const [coords, setCoords] = useState<[number, number]>(DEFAULT_COORDS);
-  const [selectedFacilityId, setSelectedFacilityId] = useState<string | null>(null);
+  const [selectedFacilityId, setSelectedFacilityId] = useState<string | null>(
+    null,
+  );
   const [filters, setFilters] = useState<FacilityFilters>(defaultFilters);
-  const [medicalContext, setMedicalContext] = useState<MedicalContext | null>(null);
+  const [medicalContext, setMedicalContext] = useState<MedicalContext | null>(
+    null,
+  );
   const [locationStatus, setLocationStatus] = useState<string>(
     "Allow location access to see nearby clinics and hospitals.",
   );
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      setLocationStatus("Geolocation is not available in this browser. Showing the default area instead.");
+      setLocationStatus(
+        "Geolocation is not available in this browser. Showing the default area instead.",
+      );
       return;
     }
 
@@ -105,7 +116,9 @@ export default function FacilitiesClient() {
         setLocationStatus("Using your current location.");
       },
       () => {
-        setLocationStatus("Location permission was denied. Showing the default area instead.");
+        setLocationStatus(
+          "Location permission was denied. Showing the default area instead.",
+        );
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 1000 * 60 * 5 },
     );
@@ -152,12 +165,13 @@ export default function FacilitiesClient() {
 
   const recommendationsQuery = useQuery({
     ...trpc.facilities.recommendByTestResults.queryOptions({
-      extractedTests: medicalContext?.flaggedTests.map((test) => ({
-        name: test.name,
-        value: test.value ?? "",
-        unit: test.unit,
-        flagged: true,
-      })) ?? [],
+      extractedTests:
+        medicalContext?.flaggedTests.map((test) => ({
+          name: test.name,
+          value: test.value ?? "",
+          unit: test.unit,
+          flagged: true,
+        })) ?? [],
       latitude: coords[0],
       longitude: coords[1],
       radiusKm: 15,
@@ -217,18 +231,18 @@ export default function FacilitiesClient() {
             />
           </div>
 
-          <div className="border-b border-zinc-200 px-8 py-5 text-sm text-zinc-500 bg-zinc-50/50">
+          <div className="border-b border-zinc-200 bg-zinc-50/50 px-8 py-5 text-sm text-zinc-500">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold text-zinc-900">{locationStatus}</p>
-                <p className="mt-0.5 text-[11px] font-medium text-zinc-400 uppercase tracking-tight">
+                <p className="mt-0.5 text-[11px] font-medium tracking-tight text-zinc-400 uppercase">
                   {coords[0].toFixed(4)}, {coords[1].toFixed(4)}
                 </p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 rounded-full text-[11px] font-bold text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-all"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 rounded-full text-[11px] font-bold text-zinc-400 transition-all hover:bg-zinc-100 hover:text-zinc-900"
                 onClick={resetLocation}
               >
                 Reset
@@ -242,7 +256,9 @@ export default function FacilitiesClient() {
                 <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
                 Scan context available
               </div>
-              <p className={styles.facilities__suggestionText}>{medicalContext.testSummary}</p>
+              <p className={styles.facilities__suggestionText}>
+                {medicalContext.testSummary}
+              </p>
             </div>
           )}
 
@@ -252,7 +268,9 @@ export default function FacilitiesClient() {
                 <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
                 Best fit for you
               </div>
-              <p className={styles.facilities__suggestionText}>{activeBestSuggestion.summary}</p>
+              <p className={styles.facilities__suggestionText}>
+                {activeBestSuggestion.summary}
+              </p>
             </div>
           )}
 
@@ -260,18 +278,25 @@ export default function FacilitiesClient() {
             {isFacilitiesLoading ? (
               <div className="space-y-4 p-6">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-32 animate-pulse rounded-[20px] bg-zinc-50 border border-zinc-100" />
+                  <div
+                    key={i}
+                    className="h-32 animate-pulse rounded-[20px] border border-zinc-100 bg-zinc-50"
+                  />
                 ))}
               </div>
             ) : facilities.length === 0 ? (
               <div className="p-8 text-center">
-                <p className="text-[14px] font-medium text-zinc-400 leading-relaxed">
-                  No facilities matched your filters.<br/>Try removing one filter or reset the location.
+                <p className="text-[14px] leading-relaxed font-medium text-zinc-400">
+                  No facilities matched your filters.
+                  <br />
+                  Try removing one filter or reset the location.
                 </p>
               </div>
             ) : (
               facilities.map((facility) => {
-                const recommendation = recommendedById.get(String(facility.id ?? ""));
+                const recommendation = recommendedById.get(
+                  String(facility.id ?? ""),
+                );
 
                 return (
                   <FacilityCard
@@ -281,9 +306,15 @@ export default function FacilitiesClient() {
                     isBestFit={activeBestSuggestion?.id === facility.id}
                     recommendedSummary={
                       recommendation?.summary ??
-                      (activeBestSuggestion?.id === facility.id ? activeBestSuggestion?.summary : undefined)
+                      (activeBestSuggestion?.id === facility.id
+                        ? activeBestSuggestion?.summary
+                        : undefined)
                     }
-                    urgency={recommendation?.urgency ?? medicalContext?.severity ?? undefined}
+                    urgency={
+                      recommendation?.urgency ??
+                      medicalContext?.severity ??
+                      undefined
+                    }
                     onSelect={handleFacilityClick}
                     onBook={handleBookFacility}
                   />
@@ -304,7 +335,10 @@ export default function FacilitiesClient() {
         </main>
 
         {medicalContext && (
-          <aside className="w-80 overflow-y-auto bg-white border-l border-zinc-100 hidden xl:block" data-lenis-prevent>
+          <aside
+            className="hidden w-80 overflow-y-auto border-l border-zinc-100 bg-white xl:block"
+            data-lenis-prevent
+          >
             <ScanAgentSidebar />
           </aside>
         )}

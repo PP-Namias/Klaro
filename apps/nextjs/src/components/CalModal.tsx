@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+
 import useFocusTrap from "./useFocusTrap";
 
 export type CalModalProps = {
@@ -13,14 +14,22 @@ export type CalModalProps = {
   onBooked?: () => void;
 };
 
-const DEFAULT_URL = "https://cal.com/pp-namias/1-hour-session-with-clara?embed=1&theme=light";
+const DEFAULT_URL =
+  "https://cal.com/pp-namias/1-hour-session-with-clara?embed=1&theme=light";
 const SESSION_KEY = "SCAN_CAL_BOOKING";
 
 function buildUrl(base: string, prefill?: Record<string, string>) {
   if (!prefill || Object.keys(prefill).length === 0) return base;
   try {
-    const url = new URL(base, typeof window !== "undefined" ? window.location.origin : undefined as any);
-    Object.entries(prefill).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+    const url = new URL(
+      base,
+      typeof window !== "undefined"
+        ? window.location.origin
+        : (undefined as any),
+    );
+    Object.entries(prefill).forEach(([k, v]) =>
+      url.searchParams.set(k, String(v)),
+    );
     return url.toString();
   } catch {
     return base;
@@ -69,7 +78,8 @@ export default function CalModal({
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
       try {
-        const originOk = typeof e.origin === "string" && e.origin.includes("cal.com");
+        const originOk =
+          typeof e.origin === "string" && e.origin.includes("cal.com");
         if (!originOk) return;
         const d = e.data || {};
         const isBooking =
@@ -85,11 +95,19 @@ export default function CalModal({
 
   function handleBooked() {
     try {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ when: new Date().toISOString(), url: computedUrl }));
+      sessionStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({ when: new Date().toISOString(), url: computedUrl }),
+      );
     } catch {}
-    if ((window as any).analytics && typeof (window as any).analytics.track === "function") {
+    if (
+      (window as any).analytics &&
+      typeof (window as any).analytics.track === "function"
+    ) {
       try {
-        (window as any).analytics.track("booking_completed", { source: "cal_modal" });
+        (window as any).analytics.track("booking_completed", {
+          source: "cal_modal",
+        });
       } catch {}
     }
     onBooked?.();
@@ -102,7 +120,10 @@ export default function CalModal({
 
   const onOverlayClick = (e: React.MouseEvent) => {
     // Close modal when clicking directly on overlay (black background)
-    if (e.target === e.currentTarget || (e.target as HTMLElement).className?.includes?.('bg-black')) {
+    if (
+      e.target === e.currentTarget ||
+      (e.target as HTMLElement).className?.includes?.("bg-black")
+    ) {
       onClose();
     }
   };
@@ -121,10 +142,10 @@ export default function CalModal({
       aria-labelledby="cal-modal-title"
       aria-describedby="cal-modal-desc"
       onClick={onOverlayClick}
-      className="fixed inset-0 z-1200 flex items-end md:items-center justify-center"
+      className="fixed inset-0 z-1200 flex items-end justify-center md:items-center"
     >
-      <div 
-        className="absolute inset-0 bg-black/50" 
+      <div
+        className="absolute inset-0 bg-black/50"
         onClick={onClose}
         role="presentation"
         aria-hidden="true"
@@ -137,12 +158,15 @@ export default function CalModal({
           focusTrapRef.current = node;
         }}
         onClick={onModalContentClick}
-        className="relative z-1201 w-full md:w-[min(900px,95%)] max-h-[85vh] bg-white rounded-t-lg md:rounded-lg shadow-xl overflow-hidden"
+        className="relative z-1201 max-h-[85vh] w-full overflow-hidden rounded-t-lg bg-white shadow-xl md:w-[min(900px,95%)] md:rounded-lg"
         style={{ height: "85vh" }}
       >
-        <div className="flex items-start justify-between p-4 border-b bg-white">
+        <div className="flex items-start justify-between border-b bg-white p-4">
           <div>
-            <h2 id="cal-modal-title" className="text-lg font-semibold text-black">
+            <h2
+              id="cal-modal-title"
+              className="text-lg font-semibold text-black"
+            >
               {title}
             </h2>
             <p id="cal-modal-desc" className="text-sm text-black">
@@ -150,19 +174,31 @@ export default function CalModal({
             </p>
           </div>
           <div className="ml-4 flex items-center gap-2">
-            <a href={computedUrl} target="_blank" rel="noreferrer" className="text-sm text-black hover:underline">
+            <a
+              href={computedUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm text-black hover:underline"
+            >
               Open in new tab
             </a>
-            <button aria-label="Close booking modal" onClick={onClose} className="ml-2 rounded p-1 hover:bg-gray-100 focus:outline-none focus:ring">
+            <button
+              aria-label="Close booking modal"
+              onClick={onClose}
+              className="ml-2 rounded p-1 hover:bg-gray-100 focus:ring focus:outline-none"
+            >
               ✕
             </button>
           </div>
         </div>
 
-        <div className="p-0 relative h-full">
+        <div className="relative h-full p-0">
           {!loadIframe && (
-            <div className="flex items-center justify-center h-full p-6">
-              <button onClick={() => setLoadIframe(true)} className="rounded bg-blue-600 text-white px-4 py-2">
+            <div className="flex h-full items-center justify-center p-6">
+              <button
+                onClick={() => setLoadIframe(true)}
+                className="rounded bg-blue-600 px-4 py-2 text-white"
+              >
                 Open booking
               </button>
             </div>
@@ -171,19 +207,37 @@ export default function CalModal({
           {loadIframe && (
             <div className="h-full">
               {!iframeLoaded && (
-                <div className="p-6 flex flex-col items-center justify-center gap-3">
-                  <div className="w-20 h-3 bg-gray-200 rounded animate-pulse" />
-                  <div className="w-48 h-4 bg-gray-200 rounded animate-pulse" />
-                  <p className="text-sm text-black">Loading scheduling tool — this may take a moment.</p>
+                <div className="flex flex-col items-center justify-center gap-3 p-6">
+                  <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
+                  <div className="h-4 w-48 animate-pulse rounded bg-gray-200" />
+                  <p className="text-sm text-black">
+                    Loading scheduling tool — this may take a moment.
+                  </p>
                 </div>
               )}
 
-              <div className={`w-full h-[calc(85vh-96px)] ${iframeLoaded ? "" : "hidden"}`}>
-                <iframe title={iframeTitle} src={computedUrl} onLoad={onIframeLoad} className="w-full h-full border-0" sandbox="allow-scripts allow-forms allow-same-origin" referrerPolicy="no-referrer-when-downgrade" />
+              <div
+                className={`h-[calc(85vh-96px)] w-full ${iframeLoaded ? "" : "hidden"}`}
+              >
+                <iframe
+                  title={iframeTitle}
+                  src={computedUrl}
+                  onLoad={onIframeLoad}
+                  className="h-full w-full border-0"
+                  sandbox="allow-scripts allow-forms allow-same-origin"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
               </div>
 
               {!iframeLoaded && (
-                <iframe title={`${iframeTitle}-preload`} src={computedUrl} onLoad={onIframeLoad} className="hidden" sandbox="allow-scripts allow-forms allow-same-origin" referrerPolicy="no-referrer-when-downgrade" />
+                <iframe
+                  title={`${iframeTitle}-preload`}
+                  src={computedUrl}
+                  onLoad={onIframeLoad}
+                  className="hidden"
+                  sandbox="allow-scripts allow-forms allow-same-origin"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
               )}
             </div>
           )}

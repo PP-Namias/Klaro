@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { UploadForm } from "~/components/upload-form";
+
+import type { ScanAnalysisSession } from "~/components/scan-session";
 import { ScanResults } from "~/components/scan-results";
 import {
   clearScanAnalysisSession,
   readScanAnalysisSession,
-  type ScanAnalysisSession,
 } from "~/components/scan-session";
+import { UploadForm } from "~/components/upload-form";
 
 export function ScanContainer() {
   const searchParams = useSearchParams();
@@ -34,10 +35,14 @@ export function ScanContainer() {
 
   // Show results if they exist
   if (result) {
-    return <ScanResults onScanAgain={() => {
-      clearScanAnalysisSession();
-      setResult(null);
-    }} />;
+    return (
+      <ScanResults
+        onScanAgain={() => {
+          clearScanAnalysisSession();
+          setResult(null);
+        }}
+      />
+    );
   }
 
   // Show upload form if no results

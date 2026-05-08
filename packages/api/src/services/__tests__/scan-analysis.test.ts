@@ -1,16 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  analyzeScan,
-  analyzeScanBatch,
-  type ScanAnalysisInput,
-} from "../scan-analysis";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { ScanAnalysisInput } from "../scan-analysis";
+import { callLLMAPI } from "../llm";
+import { analyzeScan, analyzeScanBatch } from "../scan-analysis";
 
 // Mock the LLM service
 vi.mock("../llm", () => ({
   callLLMAPI: vi.fn(),
 }));
-
-import { callLLMAPI } from "../llm";
 
 const mockCallLLMAPI = callLLMAPI as ReturnType<typeof vi.fn>;
 

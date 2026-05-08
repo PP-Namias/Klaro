@@ -57,7 +57,9 @@ const geist = Geist({
   variable: "--font-geist",
 });
 
-export default function RootLayout(props: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout(
+  props: Readonly<{ children: React.ReactNode }>,
+) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body

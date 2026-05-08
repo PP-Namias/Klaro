@@ -1,10 +1,14 @@
-import { useEffect, useRef, type RefObject } from "react";
+import type { RefObject } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Simple focus-trap hook.
  * Provide a ref to the modal root; it will keep tab focus inside while `active` is true.
  */
-export default function useFocusTrap(rootRef: RefObject<HTMLElement | null>, active = true) {
+export default function useFocusTrap(
+  rootRef: RefObject<HTMLElement | null>,
+  active = true,
+) {
   const root = rootRef;
   const currentRef = useRef<HTMLElement | null>(null);
   currentRef.current = root?.current ?? null;
@@ -17,18 +21,18 @@ export default function useFocusTrap(rootRef: RefObject<HTMLElement | null>, act
 
     const focusableSelector =
       'a[href], area[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])';
-    const focusable = Array.from(node.querySelectorAll<HTMLElement>(focusableSelector)).filter(
-      (el) => el.offsetParent !== null
-    );
+    const focusable = Array.from(
+      node.querySelectorAll<HTMLElement>(focusableSelector),
+    ).filter((el) => el.offsetParent !== null);
 
     if (focusable.length) focusable[0].focus();
-    else node.setAttribute("tabindex", "-1"), node.focus();
+    else (node.setAttribute("tabindex", "-1"), node.focus());
 
     function handleKey(e: KeyboardEvent) {
       if (e.key !== "Tab") return;
-      const focusables = Array.from(node.querySelectorAll<HTMLElement>(focusableSelector)).filter(
-        (el) => el.offsetParent !== null
-      );
+      const focusables = Array.from(
+        node.querySelectorAll<HTMLElement>(focusableSelector),
+      ).filter((el) => el.offsetParent !== null);
       if (!focusables.length) {
         e.preventDefault();
         return;

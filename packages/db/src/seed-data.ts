@@ -91,7 +91,7 @@ export interface SeedData {
 export const buildSeedData = (): SeedData => {
   const patientId = randomUUID();
 
-  type DoctorProfile = {
+  interface DoctorProfile {
     name: string;
     email: string;
     specialization: string;
@@ -100,9 +100,9 @@ export const buildSeedData = (): SeedData => {
     bio: string;
     profileImageUrl: string;
     pricePerSession: string;
-    availableSessionTypes: Array<"chat_consult" | "video_consult" | "async_review">;
+    availableSessionTypes: ("chat_consult" | "video_consult" | "async_review")[];
     isActive: boolean;
-  };
+  }
 
   const doctorProfiles: DoctorProfile[] = [
     {

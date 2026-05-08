@@ -41,13 +41,13 @@ export function Features() {
                   AI explains what "High Creatinine" actually means for you.
                 </p>
               </div>
-                <Link
-                  href="/login?auto=1"
-                  className="feature-card-description mt-8 inline-flex items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1"
-                >
-                  Try it out{" "}
-                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </Link>
+              <Link
+                href="/login?auto=1"
+                className="feature-card-description mt-8 inline-flex items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1"
+              >
+                Try it out{" "}
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Link>
             </div>
 
             <div className="relative min-h-[300px] flex-1 md:min-h-full">

@@ -21,7 +21,7 @@ jobs:
         uses: ./tooling/github/setup
 
       - name: Deploy apps/nextjs to Vercel
-        uses: vercel/action@v3
+        uses: amondnet/vercel-action@v42
         with:
           working-directory: apps/nextjs
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
