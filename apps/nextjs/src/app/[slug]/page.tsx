@@ -5,13 +5,14 @@ import { getMarketingPageContent } from "~/content/marketing-pages";
 import { MarketingPage } from "~/layouts/Landing/MarketingPage";
 
 interface PageProps {
-  params: {
+  readonly params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export function generateMetadata({ params }: PageProps): Metadata {
-  const content = getMarketingPageContent(params.slug);
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const content = getMarketingPageContent(slug);
 
   if (!content) {
     return {
@@ -26,8 +27,9 @@ export function generateMetadata({ params }: PageProps): Metadata {
   };
 }
 
-export default function MarketingRoutePage({ params }: PageProps) {
-  const content = getMarketingPageContent(params.slug);
+export default async function MarketingRoutePage({ params }: PageProps) {
+  const { slug } = await params;
+  const content = getMarketingPageContent(slug);
 
   if (!content) {
     notFound();
