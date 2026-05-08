@@ -16,6 +16,10 @@ router.post('/scan', upload.array('file'), async (req, res) => {
     if (req.body && req.body.metadata) {
       metadata = typeof req.body.metadata === 'string' ? JSON.parse(req.body.metadata) : req.body.metadata;
     }
+    metadata = {
+      ...metadata,
+      task: metadata.task || 'medical_scan'
+    };
     const scanId = metadata.requestId || uuidv4();
 
     // Support JSON body with images (base64) as well as multipart files

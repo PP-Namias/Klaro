@@ -1,7 +1,18 @@
-require('dotenv').config();
 const express = require('express');
-const morgan = require('morgan');
 const scanRoute = require('./routes/scan');
+
+try {
+  require('dotenv').config();
+} catch (err) {
+  console.warn('dotenv not available; continuing without environment file loading');
+}
+
+let morgan;
+try {
+  morgan = require('morgan');
+} catch (err) {
+  morgan = () => (_req, _res, next) => next();
+}
 
 const app = express();
 app.use(morgan('dev'));
