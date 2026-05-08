@@ -12,13 +12,12 @@ export function CalModal({
   open,
   onClose,
   url = "https://cal.com/pp-namias/1-hour-session-with-clara?embed=1",
-}: CalModalProps) {
+}: Readonly<CalModalProps>) {
   if (!open) return null;
 
   return (
-    <div
-      aria-modal
-      role="dialog"
+    <dialog
+      open={open}
       className="cal-modal-overlay"
       style={{
         position: "fixed",
@@ -64,7 +63,7 @@ export function CalModal({
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
         />
       </div>
-    </div>
+    </dialog>
   );
 }
 

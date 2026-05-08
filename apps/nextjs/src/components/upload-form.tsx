@@ -72,8 +72,9 @@ export function UploadForm() {
       onSuccess: (result) => {
         setIsProcessing(false);
         if (result.status === "error") {
-          setUploadStatus(result.error || "Scan failed");
-          toast.error(result.error || "Scan failed");
+          const message = "error" in result ? (result.error ?? "Scan failed") : "Scan failed";
+          setUploadStatus(message);
+          toast.error(message);
         } else {
           sessionStorage.setItem("scanResult", JSON.stringify(result));
           toast.success("Document scanned successfully!");

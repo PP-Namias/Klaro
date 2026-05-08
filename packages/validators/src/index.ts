@@ -33,10 +33,14 @@ export type {
 export {
   facilityTypeEnum,
   searchNearbySchema,
+  medicalContextSchema,
+  recommendByTestResultsSchema,
   facilityResponseSchema,
 } from "./facilities";
 export type {
   FacilityType,
   SearchNearbyInput,
+  MedicalContextInput,
+  RecommendByTestResultsInput,
   FacilityResponse,
 } from "./facilities";

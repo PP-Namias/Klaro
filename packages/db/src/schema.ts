@@ -15,6 +15,7 @@ import {
 import { z } from "zod/v4";
 
 import { user } from "./auth-schema";
+export { account, session, user, verification } from "./auth-schema";
 
 // Enums
 export const documentStatusEnum = pgEnum("document_status", [

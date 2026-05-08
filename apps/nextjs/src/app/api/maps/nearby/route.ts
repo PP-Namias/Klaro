@@ -17,6 +17,29 @@ export const OPTIONS = () => {
   return response;
 };
 
+const parseBoolean = (value: unknown) =>
+  value === true || value === "true" || value === 1 || value === "1";
+
+export const parseNearbyInput = (
+  fromQuery: Record<string, unknown>,
+  body: Record<string, unknown>,
+) =>
+  searchNearbySchema.parse({
+    latitude: Number(fromQuery.latitude ?? body.latitude),
+    longitude: Number(fromQuery.longitude ?? body.longitude),
+    radiusKm: Number(fromQuery.radiusKm ?? body.radiusKm ?? 10),
+    limit: Number(fromQuery.limit ?? body.limit ?? 20),
+    facilityType: (fromQuery.facilityType ?? body.facilityType) as string | undefined,
+    ownership: (fromQuery.ownership ?? body.ownership) as
+      | "public"
+      | "private"
+      | undefined,
+    philHealthOnly: parseBoolean(fromQuery.philHealthOnly ?? body.philHealthOnly),
+    textSearch: (fromQuery.textSearch ?? body.textSearch) as string | undefined,
+    specialty: (fromQuery.specialty ?? body.specialty) as string | undefined,
+    emergencyOnly: parseBoolean(fromQuery.emergencyOnly ?? body.emergencyOnly),
+  });
+
 const handle = async (req: NextRequest) => {
   try {
     const url = new URL(req.url);
@@ -33,26 +56,7 @@ const handle = async (req: NextRequest) => {
       }
     }
 
-    const rawInput = {
-      latitude: fromQuery.latitude ?? body.latitude,
-      longitude: fromQuery.longitude ?? body.longitude,
-      radiusKm: fromQuery.radiusKm ?? body.radiusKm ?? 10,
-      limit: fromQuery.limit ?? body.limit ?? 20,
-      facilityType: fromQuery.facilityType ?? body.facilityType,
-      ownership: fromQuery.ownership ?? body.ownership,
-      philHealthOnly:
-        fromQuery.philHealthOnly ?? body.philHealthOnly ?? false,
-    } as Record<string, unknown>;
-
-    const input = searchNearbySchema.parse({
-      latitude: Number(rawInput.latitude),
-      longitude: Number(rawInput.longitude),
-      radiusKm: Number(rawInput.radiusKm),
-      limit: Number(rawInput.limit),
-      facilityType: rawInput.facilityType as string | undefined,
-      ownership: rawInput.ownership as "public" | "private" | undefined,
-      philHealthOnly: rawInput.philHealthOnly === true || rawInput.philHealthOnly === "true",
-    });
+    const input = parseNearbyInput(fromQuery, body);
 
     const ctx = await createTRPCContext({ auth, headers: req.headers });
 
