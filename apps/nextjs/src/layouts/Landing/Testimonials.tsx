@@ -12,7 +12,7 @@ export function Testimonials() {
         {/* Top Wide Card */}
         <div className="group flex min-h-[400px] flex-col overflow-hidden rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)] md:flex-row md:gap-[2.2rem]">
           <div className="flex flex-1 flex-col py-[0.5rem]">
-            <div className="mb-6">
+            <div className="mb-2">
               <h3 className="testimonial-name mb-1 text-black">Bea Nessa P. Naldoza</h3>
               <p className="testimonial-role text-[#8C8C8C]">
                 Student Nurse - BSN

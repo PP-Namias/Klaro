@@ -126,12 +126,13 @@ export function ScanAgentSidebar() {
   };
 
   return (
-    <div className="flex flex-col gap-4 border-l border-slate-200 bg-slate-50 p-6">
+    <div className="flex h-full flex-col gap-6 border-l border-zinc-200 bg-zinc-50/30 p-8 overflow-y-auto">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-900">📋 Scan Analysis</h2>
+        <h2 className="text-[17px] font-semibold text-zinc-900 tracking-tight">📋 Scan Analysis</h2>
         {!analysis && (
           <Button
             size="sm"
+            className="rounded-full bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-[12px]"
             onClick={handleAnalyze}
             disabled={analyzeMutation.isPending}
           >
@@ -141,22 +142,31 @@ export function ScanAgentSidebar() {
       </div>
 
       {normalizedAnalysis && (
-        <div className={`rounded-lg border-l-4 p-4 ${urgencyBgColors[normalizedAnalysis.urgency]}`}>
+        <div
+          className={`rounded-[20px] border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 ${urgencyBgColors[normalizedAnalysis.urgency]}`}
+        >
           <div
-            className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${urgencyColors[normalizedAnalysis.urgency]}`}
+            className={`mb-4 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest border ${urgencyColors[normalizedAnalysis.urgency]}`}
           >
             Urgency: {normalizedAnalysis.urgency}
           </div>
 
-          <p className="mb-4 text-sm leading-relaxed text-slate-800">{normalizedAnalysis.summary}</p>
+          <p className="mb-6 text-[14px] leading-relaxed text-zinc-700 font-medium">
+            {normalizedAnalysis.summary}
+          </p>
 
           {normalizedAnalysis.recommendations.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-xs font-semibold uppercase text-slate-700">Next Steps</h3>
-              <ul className="space-y-1">
+            <div className="space-y-4">
+              <h3 className="text-[11px] font-bold uppercase text-zinc-400 tracking-widest ml-1">
+                Next Steps
+              </h3>
+              <ul className="space-y-3">
                 {normalizedAnalysis.recommendations.map((rec, i) => (
-                  <li key={i} className="flex gap-2 text-sm text-slate-700">
-                    <span className="shrink-0">•</span>
+                  <li
+                    key={i}
+                    className="flex gap-3 text-[13.5px] text-zinc-600 leading-relaxed font-medium"
+                  >
+                    <span className="shrink-0 text-zinc-900">•</span>
                     <span>{rec}</span>
                   </li>
                 ))}
@@ -167,7 +177,7 @@ export function ScanAgentSidebar() {
           <Button
             size="sm"
             variant="outline"
-            className="mt-4 w-full"
+            className="mt-8 w-full rounded-full border-zinc-300 text-zinc-600 font-semibold text-[12px] hover:bg-zinc-50"
             onClick={() => {
               setAnalysis(null);
               analyzeMutation.reset();
@@ -179,8 +189,8 @@ export function ScanAgentSidebar() {
       )}
 
       {!normalizedAnalysis && (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-center">
-          <p className="text-sm text-slate-600">
+        <div className="rounded-[20px] border border-dashed border-zinc-300 bg-white p-8 text-center shadow-sm">
+          <p className="text-[14px] font-medium text-zinc-500 leading-relaxed">
             {analyzeMutation.isPending ? (
               <span>Analyzing your scan with AI...</span>
             ) : (
@@ -191,8 +201,8 @@ export function ScanAgentSidebar() {
       )}
 
       {analyzeMutation.isError && (
-        <div className="rounded-lg border border-red-300 bg-red-50 p-3">
-          <p className="text-sm text-red-700">
+        <div className="rounded-[20px] border border-red-200 bg-red-50 p-4">
+          <p className="text-[13px] font-medium text-red-600 leading-relaxed">
             {analyzeMutation.error instanceof Error
               ? analyzeMutation.error.message
               : "Analysis failed"}

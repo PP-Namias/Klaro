@@ -15,12 +15,6 @@ const iconFactory = (emoji: string, background: string) =>
     popupAnchor: [0, -30],
   });
 
-const defaultMarker = iconFactory("📍", "#2563eb");
-const hospitalMarker = iconFactory("🏥", "#dc2626");
-const clinicMarker = iconFactory("🩺", "#16a34a");
-const diagnosticMarker = iconFactory("🔬", "#7c3aed");
-const healthUnitMarker = iconFactory("💊", "#ea580c");
-
 export interface Facility {
   id?: string;
   name?: string;
@@ -44,6 +38,10 @@ interface FacilityMapProps {
   zoom?: number;
   onMarkerClick?: (facility: Facility) => void;
   onBookFacility?: (facility: Facility) => void;
+  interactive?: boolean;
+  dragging?: boolean;
+  scrollWheelZoom?: boolean;
+  zoomControl?: boolean;
 }
 
 function ChangeView({
@@ -56,18 +54,14 @@ function ChangeView({
   const map = useMap();
   useEffect(() => {
     map.setView(center, zoom);
+    // Force leaflet to recalculate size after a short delay to fix container width issues
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+    return () => clearTimeout(timer);
   }, [center, zoom, map]);
   return null;
 }
-
-const getMarkerIcon = (facilityType?: string | null) => {
-  const type = facilityType?.toLowerCase() ?? "";
-  if (type === "hospital") return hospitalMarker;
-  if (type === "clinic") return clinicMarker;
-  if (type === "diagnostic_center") return diagnosticMarker;
-  if (type === "health_unit" || type === "rural_health_unit") return healthUnitMarker;
-  return defaultMarker;
-};
 
 export default function FacilityMap({
   facilities,
@@ -75,7 +69,26 @@ export default function FacilityMap({
   zoom = 13,
   onMarkerClick,
   onBookFacility,
+  interactive = true,
+  dragging = true,
+  scrollWheelZoom = true,
+  zoomControl = true,
 }: FacilityMapProps) {
+  const defaultMarker = iconFactory("📍", "#18181b"); // zinc-900
+  const hospitalMarker = iconFactory("🏥", "#ef4444"); // red-500
+  const clinicMarker = iconFactory("🩺", "#10b981"); // emerald-500
+  const diagnosticMarker = iconFactory("🔬", "#8b5cf6"); // violet-500
+  const healthUnitMarker = iconFactory("💊", "#f97316"); // orange-500
+
+  const getMarkerIcon = (facilityType?: string | null) => {
+    const type = facilityType?.toLowerCase() ?? "";
+    if (type === "hospital") return hospitalMarker;
+    if (type === "clinic") return clinicMarker;
+    if (type === "diagnostic_center") return diagnosticMarker;
+    if (type === "health_unit" || type === "rural_health_unit") return healthUnitMarker;
+    return defaultMarker;
+  };
+
   const isBrowser = typeof window !== "undefined";
 
   const validFacilities = useMemo(
@@ -87,15 +100,20 @@ export default function FacilityMap({
   );
 
   if (!isBrowser) {
-    return <div className="h-full w-full animate-pulse rounded-2xl bg-slate-100" />;
+    return <div className="h-full w-full animate-pulse rounded-[24px] bg-zinc-50 border border-zinc-100" />;
   }
 
   return (
     <MapContainer
       center={center}
       zoom={zoom}
-      scrollWheelZoom
-      style={{ height: "100%", width: "100%", borderRadius: "18px" }}
+      scrollWheelZoom={interactive && scrollWheelZoom}
+      dragging={interactive && dragging}
+      zoomControl={interactive && zoomControl}
+      doubleClickZoom={interactive}
+      touchZoom={interactive}
+      style={{ height: "100%", width: "100%" }}
+      className={`z-10 h-full w-full ${!interactive ? "grayscale-[0.2]" : ""}`}
     >
       <ChangeView center={center} zoom={zoom} />
       <TileLayer
@@ -117,34 +135,34 @@ export default function FacilityMap({
               click: () => onMarkerClick?.(facility),
             }}
           >
-            <Popup>
-              <div className="space-y-2 p-1">
+            <Popup className="premium-popup">
+              <div className="space-y-3 p-1 font-sans">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-[14px] font-bold text-zinc-900 leading-tight">
                     {facility.name ?? "Unknown Facility"}
                   </h3>
-                  <p className="text-xs capitalize text-slate-500">
+                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                     {facility.facilityType ?? "Medical facility"} • {facility.ownership ?? "private"}
                   </p>
                 </div>
-                <p className="text-xs text-slate-700">{facility.address ?? "No address provided"}</p>
+                <p className="text-[12px] leading-relaxed text-zinc-500 font-medium">{facility.address ?? "No address provided"}</p>
                 {facility.distance !== undefined && (
-                  <p className="text-xs font-semibold text-blue-600">
+                  <p className="text-[12px] font-bold text-zinc-900">
                     {facility.distance.toFixed(1)} km away
                   </p>
                 )}
                 {facility.summary && (
-                  <p className="rounded-lg bg-slate-50 p-2 text-xs leading-5 text-slate-700">
+                  <div className="rounded-[12px] bg-zinc-50 border border-zinc-100 p-3 text-[12px] leading-relaxed text-zinc-700 font-medium">
                     {facility.summary}
-                  </p>
+                  </div>
                 )}
                 <div className="flex gap-2 pt-1">
                   <button
                     type="button"
-                    className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white"
+                    className="w-full rounded-full bg-zinc-900 px-4 py-2 text-[12px] font-bold text-white hover:bg-zinc-800 transition-colors"
                     onClick={() => onBookFacility?.(facility)}
                   >
-                    Book Now
+                    Book Appointment
                   </button>
                 </div>
               </div>

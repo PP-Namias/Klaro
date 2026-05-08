@@ -34,17 +34,18 @@ export function MoreThanScanning() {
           {/* Left Card */}
           <div className="flex min-h-[650px] flex-col rounded-[24px] border border-[#eeeeee] bg-white px-[1.5rem] pt-[1rem] pb-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
             <h3 className="feature-card-title mb-2 text-zinc-900">
-              PhilHealth Integration
+              Intelligent Care Map
             </h3>
             <p className="feature-card-description mb-8 max-w-[90%] text-zinc-500">
-              Easily filter for PhilHealth-accredited clinics and hospitals. Get
-              benefits and save on medical costs.
+              Locate high-quality clinics, labs, and specialized medical centers
+              near you. Seamlessly integrated mapping for effortless health
+              navigation.
             </p>
             <div className="relative flex w-full flex-1 items-center justify-center overflow-hidden rounded-[16px] pb-12">
               <div className="relative h-[80%] w-[80%]">
                 <Image
                   src="/sections/scanning/1.png"
-                  alt="PhilHealth Integration"
+                  alt="Intelligent Care Map"
                   fill
                   className="object-contain"
                   quality={100}

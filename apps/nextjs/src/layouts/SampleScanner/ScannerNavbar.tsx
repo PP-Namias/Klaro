@@ -32,6 +32,13 @@ export function ScannerNavbar() {
         <a href="#" className={styles.navLink}>
           Security
         </a>
+        <Link href="/login?auto=1" className={styles.navSignInBtn}>
+          Sign in
+          <ArrowRight
+            size={14}
+            className="ml-1 inline-block align-text-bottom"
+          />
+        </Link>
       </div>
     </header>
   );

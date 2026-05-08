@@ -1,4 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { MapPreview } from "~/components/facilities/MapPreview";
 
 export function Clarity() {
   const clarityItems = [
@@ -78,20 +81,25 @@ export function Clarity() {
 
         {/* Right Column - Tall Card */}
         {/* Card 3: Find the Right Care Near You */}
-        <div className="group flex min-h-[650px] flex-col justify-between rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
+        <div className="group flex min-h-[650px] flex-col rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
           <div className="flex flex-col">
             <h3 className="card-title mb-2 whitespace-nowrap text-zinc-900">
               {item3.title}
             </h3>
-            <p className="card-description mb-4 text-zinc-500">{item3.body}</p>
+            <p className="card-description mb-6 text-zinc-500">{item3.body}</p>
           </div>
-          <div className="relative w-full flex-1 overflow-hidden rounded-[16px]">
-            <Image
-              src={item3.image}
-              alt={item3.alt}
-              fill
-              className="object-contain p-8 transition-transform duration-500 group-hover:scale-110"
-            />
+          
+          <div className="flex flex-1 flex-col gap-4">
+            <div className="relative w-full flex-1 overflow-hidden rounded-[20px] bg-zinc-50/50">
+              <MapPreview />
+            </div>
+            <Link
+              href="/maps"
+              className="feature-card-description inline-flex items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1"
+            >
+              Try it out{" "}
+              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </Link>
           </div>
         </div>
       </div>

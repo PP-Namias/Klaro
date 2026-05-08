@@ -33,6 +33,9 @@ export const metadata: Metadata = {
     site: "@klarohealth",
     creator: "@klarohealth",
   },
+  icons: {
+    icon: "/klaro.ico",
+  },
 };
 
 export const viewport: Viewport = {

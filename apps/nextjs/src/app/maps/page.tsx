@@ -1,6 +1,8 @@
 import { Suspense } from "react";
-
+import { ScannerNavbar } from "~/layouts/SampleScanner/ScannerNavbar";
+import { Footer } from "~/layouts/Landing/Footer";
 import FacilitiesClient from "../../components/facilities/FacilitiesClient";
+import styles from "./page.module.css";
 
 export const metadata = {
   title: "Medical Locations Map | Klaro",
@@ -10,14 +12,21 @@ export const metadata = {
 
 export default function MapsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex h-screen w-full items-center justify-center bg-slate-50">
-          Loading map...
-        </div>
-      }
-    >
-      <FacilitiesClient />
-    </Suspense>
+    <div className={styles.pageContainer}>
+      <ScannerNavbar />
+      <main className={styles.mainContent}>
+        <Suspense
+          fallback={
+            <div className="flex h-[60vh] w-full items-center justify-center bg-zinc-50">
+              Loading map...
+            </div>
+          }
+        >
+          <FacilitiesClient />
+        </Suspense>
+      </main>
+      <Footer />
+    </div>
   );
 }
+
