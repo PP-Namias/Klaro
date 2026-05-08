@@ -85,8 +85,13 @@ export function Clarity() {
             </h3>
             <p className="card-description mb-4 text-zinc-500">{item3.body}</p>
           </div>
-          <div className="w-full flex-1 rounded-[16px] bg-[#F7F7F7]">
-            {/* Placeholder Empty */}
+          <div className="relative w-full flex-1 overflow-hidden rounded-[16px]">
+            <Image
+              src={item3.image}
+              alt={item3.alt}
+              fill
+              className="object-contain p-8 transition-transform duration-500 group-hover:scale-110"
+            />
           </div>
         </div>
       </div>
