@@ -33,7 +33,7 @@ export function Hero() {
           so you know what to do next
         </p>
         <div className={styles.heroButtons}>
-          <Link href="/login?auto=1" className={styles.btnBlack}>
+          <Link href="/scan" className={styles.btnBlack}>
             Get Started <ArrowRight size={16} className="ml-2" />
           </Link>
           <button className={styles.btnOutline}>Learn More</button>

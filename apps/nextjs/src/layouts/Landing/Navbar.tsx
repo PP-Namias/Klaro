@@ -52,7 +52,7 @@ export function Navbar() {
           <Link href="/maps" className={styles.headerLink}>
             Maps
           </Link>
-          <Link href="/login?auto=1" className={styles.headerBtn}>
+          <Link href="/scan" className={styles.headerBtn}>
             Sign in
             <ArrowRight
               size={14}
@@ -85,7 +85,7 @@ export function Navbar() {
             <Link href="/maps" className={styles.floatingLink}>
               Maps
             </Link>
-            <Link href="/login?auto=1" className={styles.floatingBtnBlack}>
+            <Link href="/scan" className={styles.floatingBtnBlack}>
               Sign in
               <ArrowRight
                 size={13}

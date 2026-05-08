@@ -72,7 +72,7 @@ export function MoreThanScanning() {
                   src="/sections/scanning/2.png"
                   alt="Doctor Booking"
                   fill
-                  className="object-contain object-center"
+                  className="object-contain object-center p-4"
                   quality={100}
                 />
               </div>

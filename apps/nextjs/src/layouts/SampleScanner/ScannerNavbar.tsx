@@ -28,7 +28,7 @@ export function ScannerNavbar() {
         <Link href="/maps" className={styles.navLink}>
           Maps
         </Link>
-        <Link href="/login?auto=1" className={styles.navSignInBtn}>
+        <Link href="/scan" className={styles.navSignInBtn}>
           Sign in
           <ArrowRight
             size={14}

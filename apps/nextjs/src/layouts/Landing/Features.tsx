@@ -42,7 +42,7 @@ export function Features() {
                 </p>
               </div>
                 <Link
-                  href="/login?auto=1"
+                  href="/scan"
                   className="feature-card-description mt-8 inline-flex items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1"
                 >
                   Try it out{" "}
