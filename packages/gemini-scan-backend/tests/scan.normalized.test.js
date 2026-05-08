@@ -15,7 +15,7 @@ describe('POST /api/scan normalized medical response', () => {
     const res = await request(app)
       .post('/api/scan')
       .send({
-        images: [{ filename: 'sample.jpg', bytesBase64: Buffer.from('sample').toString('base64') }],
+        images: [{ filename: 'sample.jpg', bytesBase64: Buffer.from('sample').toString('base64').repeat(30) }],
         metadata: { requestId: 'normalized-1', task: 'medical_scan', language: 'English' },
       })
       .set('Content-Type', 'application/json');
@@ -34,7 +34,7 @@ describe('POST /api/scan normalized medical response', () => {
     const res = await request(app)
       .post('/api/scan')
       .send({
-        images: [{ filename: 'sample.jpg', bytesBase64: Buffer.from('sample').toString('base64') }],
+        images: [{ filename: 'sample.jpg', bytesBase64: Buffer.from('sample').toString('base64').repeat(30) }],
         metadata: { requestId: 'normalized-2', task: 'medical_scan' },
       })
       .set('Content-Type', 'application/json');
