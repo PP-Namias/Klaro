@@ -8,6 +8,7 @@ import { Button } from "@klaro/ui/button";
 import { toast } from "@klaro/ui/toast";
 
 import { useTRPC } from "~/trpc/react";
+import { saveScanAnalysisSession } from "~/components/scan-session";
 
 interface SelectedFile {
   file: File;
@@ -76,7 +77,21 @@ export function UploadForm() {
           setUploadStatus(message);
           toast.error(message);
         } else {
-          sessionStorage.setItem("scanResult", JSON.stringify(result));
+          saveScanAnalysisSession({
+            requestId: result.requestId,
+            status: result.status,
+            source: result.source,
+            language: result.language,
+            confidence: result.confidence,
+            extractedData: result.extractedData,
+            plainLanguageSummary: result.plainLanguageSummary,
+            urgency: result.urgency,
+            recommendations: result.recommendations,
+            warnings: result.warnings,
+            timestamp: result.timestamp,
+            error: result.error,
+            analysis: result.analysis,
+          });
           toast.success("Document scanned successfully!");
           router.push(`/scan?id=${result.requestId}`);
         }

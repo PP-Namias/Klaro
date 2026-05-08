@@ -7,6 +7,7 @@ import { Button } from "@klaro/ui/button";
 import { toast } from "@klaro/ui/toast";
 
 import { useTRPC } from "~/trpc/react";
+import { readScanAnalysisSession } from "~/components/scan-session";
 
 interface ScanAnalysis {
   summary: string;
@@ -30,10 +31,18 @@ export function ScanAgentSidebar() {
 
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem("scanResult");
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as ScanResult;
-      setScanResult(parsed);
+      const parsed = readScanAnalysisSession();
+      if (!parsed) return;
+      setScanResult({
+        extractedData: parsed.extractedData,
+        analysis: parsed.analysis,
+        plainLanguageSummary: parsed.plainLanguageSummary,
+        urgency: parsed.urgency,
+        recommendations: parsed.recommendations,
+      });
+      if (parsed.analysis) {
+        setAnalysis(parsed.analysis);
+      }
     } catch (err) {
       // ignore malformed scan state
     }

@@ -4,25 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@klaro/ui/button";
-
-interface ScanResult {
-  requestId: string;
-  status: "completed" | "error" | "pending";
-  language?: string;
-  analysis?: {
-    summary?: string;
-    urgency?: "LOW" | "MODERATE" | "HIGH";
-    recommendations?: string[];
-  };
-  extractedData?: Record<string, unknown>;
-  confidence?: number;
-  plainLanguageSummary?: string;
-  urgency?: "LOW" | "MODERATE" | "HIGH";
-  recommendations?: string[];
-  warnings?: string[];
-  timestamp?: string;
-  error?: string;
-}
+import { readScanAnalysisSession, type ScanAnalysisSession } from "~/components/scan-session";
 
 interface ScanResultsProps {
   onScanAgain?: () => void;
@@ -31,19 +13,13 @@ interface ScanResultsProps {
 export function ScanResults({ onScanAgain }: ScanResultsProps) {
   const searchParams = useSearchParams();
   const scanId = searchParams.get("id");
-  const [result, setResult] = useState<ScanResult | null>(null);
+  const [result, setResult] = useState<ScanAnalysisSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Try to get result from sessionStorage
-    const stored = sessionStorage.getItem("scanResult");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setResult(parsed);
-      } catch (err) {
-        console.error("Failed to parse stored scan result", err);
-      }
+    const stored = readScanAnalysisSession();
+    if (stored && (!scanId || stored.requestId === scanId)) {
+      setResult(stored);
     }
     setIsLoading(false);
   }, [scanId]);

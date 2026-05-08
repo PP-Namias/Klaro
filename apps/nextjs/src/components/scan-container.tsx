@@ -4,37 +4,22 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { UploadForm } from "~/components/upload-form";
 import { ScanResults } from "~/components/scan-results";
-
-interface ScanResult {
-  requestId: string;
-  status: "completed" | "error" | "pending";
-  language?: string;
-  analysis?: Record<string, unknown>;
-  extractedData?: Record<string, unknown>;
-  confidence?: number;
-  plainLanguageSummary?: string;
-  recommendations?: string[];
-  warnings?: string[];
-  timestamp?: string;
-  error?: string;
-}
+import {
+  clearScanAnalysisSession,
+  readScanAnalysisSession,
+  type ScanAnalysisSession,
+} from "~/components/scan-session";
 
 export function ScanContainer() {
   const searchParams = useSearchParams();
   const scanId = searchParams.get("id");
-  const [result, setResult] = useState<ScanResult | null>(null);
+  const [result, setResult] = useState<ScanAnalysisSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Try to get result from sessionStorage
-    const stored = sessionStorage.getItem("scanResult");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setResult(parsed);
-      } catch (err) {
-        console.error("Failed to parse stored scan result", err);
-      }
+    const stored = readScanAnalysisSession();
+    if (stored && (!scanId || stored.requestId === scanId)) {
+      setResult(stored);
     }
     setIsLoading(false);
   }, [scanId]);
@@ -50,7 +35,7 @@ export function ScanContainer() {
   // Show results if they exist
   if (result) {
     return <ScanResults onScanAgain={() => {
-      sessionStorage.removeItem("scanResult");
+      clearScanAnalysisSession();
       setResult(null);
     }} />;
   }
