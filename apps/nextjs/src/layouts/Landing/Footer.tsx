@@ -1,163 +1,122 @@
 import Image from "next/image";
+import Link from "next/link";
+
+import { MARKETING_FOOTER_GROUPS } from "~/content/marketing-pages";
 
 export function Footer() {
   return (
-    <footer className="w-full border-t border-zinc-200 bg-[#f3f4f6] px-6 py-20">
-      <div className="mx-auto max-w-[1200px]">
-        <div className="mb-24 flex flex-col justify-between gap-12 lg:flex-row">
-          {/* Logo Section */}
-          <div className="flex-shrink-0">
-            <div className="footer-logo flex items-center gap-2 text-black">
-              <Image
-                src="/klaro-dark.svg"
-                alt="Klaro"
-                width={28}
-                height={28}
-                className="opacity-90"
-              />
-              Klaro
+    <footer className="relative w-full overflow-hidden border-t border-zinc-200 bg-white px-6 py-16 text-zinc-900 sm:px-8 lg:px-10">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.08),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.08),transparent_32%)]" />
+
+      <div className="relative mx-auto flex max-w-[1280px] flex-col gap-12">
+        <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+          <div className="space-y-6 rounded-[32px] border border-zinc-200 bg-zinc-50/80 p-8 shadow-[0_12px_40px_rgba(0,0,0,0.04)] backdrop-blur-sm">
+            <Link href="/" className="inline-flex items-center gap-3 text-zinc-950">
+              <Image src="/klaro.svg" alt="Klaro" width={36} height={36} priority />
+              <span className="feature-small-title text-zinc-950">Klaro</span>
+            </Link>
+
+            <div className="max-w-xl space-y-4">
+              <p className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-1 text-[0.7rem] uppercase tracking-[0.26em] text-zinc-500">
+                Built for the Philippines
+              </p>
+              <h2 className="section-header text-balance text-zinc-950">
+                Clear health guidance from scan to next step.
+              </h2>
+              <p className="feature-card-description max-w-lg text-zinc-600">
+                Klaro keeps the experience calm with scan explanations, care
+                discovery, and booking flows that stay easy to follow.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/scan"
+                className="inline-flex items-center justify-center rounded-full bg-black px-5 py-3 text-sm font-medium text-white transition-transform hover:-translate-y-0.5"
+              >
+                Start a scan
+              </Link>
+              <Link
+                href="/contact-support"
+                className="inline-flex items-center justify-center rounded-full border border-zinc-300 bg-white px-5 py-3 text-sm font-medium text-zinc-900 transition-colors hover:border-zinc-400 hover:bg-zinc-50"
+              >
+                Talk to support
+              </Link>
+            </div>
+
+            <div className="flex flex-wrap gap-2 text-xs text-zinc-500">
+              <span className="rounded-full border border-zinc-200 bg-white px-3 py-1">
+                Private documents
+              </span>
+              <span className="rounded-full border border-zinc-200 bg-white px-3 py-1">
+                Philippines-first care
+              </span>
+              <span className="rounded-full border border-zinc-200 bg-white px-3 py-1">
+                Scan, chat, book
+              </span>
+            </div>
+
+            <div className="space-y-2 border-t border-zinc-200 pt-5 text-sm text-zinc-600">
+              <span className="block font-medium text-zinc-900">Website</span>
+              <Link
+                href="https://www.klaro-scans.tech/"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex max-w-full items-center gap-2 truncate text-zinc-600 transition-colors hover:text-zinc-950"
+              >
+                <span className="truncate">https://www.klaro-scans.tech/</span>
+              </Link>
             </div>
           </div>
 
-          {/* Links Section */}
-          <div className="grid grid-cols-1 gap-16 sm:grid-cols-3 lg:gap-32">
-            <div className="flex flex-col gap-4">
-              <h4 className="feature-small-title text-zinc-600">Features</h4>
-              <nav className="flex flex-col gap-2">
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  Scan & Analyze
-                </a>
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  AI Medical Chat
-                </a>
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  Clinic Finder
-                </a>
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  Doctor Booking
-                </a>
-              </nav>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <h4 className="feature-small-title text-zinc-600">Resources</h4>
-              <nav className="flex flex-col gap-2">
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  How it Works
-                </a>
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  Patient Stories
-                </a>
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  Security & Privacy
-                </a>
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  Contact Support
-                </a>
-              </nav>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <h4 className="feature-small-title text-zinc-600">Legal</h4>
-              <nav className="flex flex-col gap-2">
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  Privacy Policy
-                </a>
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  Terms of Service
-                </a>
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  DPA Compliance
-                </a>
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
-                >
-                  Cookie Settings
-                </a>
-              </nav>
-            </div>
+          <div className="grid gap-6 rounded-[32px] border border-zinc-200 bg-white p-6 shadow-[0_12px_40px_rgba(0,0,0,0.04)] sm:grid-cols-2 lg:grid-cols-3">
+            {MARKETING_FOOTER_GROUPS.map((group) => (
+              <div key={group.title} className="flex flex-col gap-4">
+                <h3 className="feature-small-title text-zinc-950">{group.title}</h3>
+                <nav className="flex flex-col gap-3">
+                  {group.links.map((link) => (
+                    <Link
+                      key={link.label}
+                      href={link.href}
+                      className="feature-small-desc text-zinc-600 transition-colors hover:text-zinc-950"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="flex flex-col items-center justify-between border-t border-zinc-200/50 pt-10 sm:flex-row">
-          <p className="footer-copyright mb-6 text-zinc-500 sm:mb-0">
-            © 2026 Klaro. Built for the Philippines.
-          </p>
-          <div className="flex items-center gap-5">
-            <a
-              href="#"
-              className="text-zinc-700 transition-colors hover:text-black"
+        <div className="flex flex-col gap-4 border-t border-zinc-200 pt-6 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 Klaro. Built for the Philippines.</p>
+
+          <div className="flex flex-wrap items-center gap-4">
+            <Link
+              href="https://github.com/PP-Namias/Klaro"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 transition-colors hover:text-zinc-950"
+              aria-label="Klaro on GitHub"
             >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2a10 10 0 00-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.12-1.46-1.12-1.46-.91-.62.07-.61.07-.61 1.01.07 1.55 1.04 1.55 1.04.9 1.54 2.37 1.1 2.95.84.09-.65.35-1.1.64-1.35-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.26-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0112 6.82c.85 0 1.7.11 2.5.33 1.9-1.3 2.74-1.02 2.74-1.02.55 1.38.2 2.39.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.86v2.75c0 .26.18.57.69.47A10 10 0 0012 2z" />
+              </svg>
+              GitHub
+            </Link>
+            <Link
+              href="https://www.facebook.com/profile.php?id=61589428109759"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 transition-colors hover:text-zinc-950"
+              aria-label="Klaro on Facebook"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
               </svg>
-            </a>
-            <a
-              href="#"
-              className="text-zinc-700 transition-colors hover:text-black"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.05.05 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
-              </svg>
-            </a>
-            <a
-              href="#"
-              className="text-zinc-700 transition-colors hover:text-black"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.022A9.606 9.606 0 0112 6.82c.85.004 1.705.114 2.504.336 1.909-1.29 2.747-1.022 2.747-1.022.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z" />
-              </svg>
-            </a>
+              Facebook
+            </Link>
           </div>
         </div>
       </div>

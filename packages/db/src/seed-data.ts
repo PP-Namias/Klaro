@@ -100,7 +100,11 @@ export const buildSeedData = (): SeedData => {
     bio: string;
     profileImageUrl: string;
     pricePerSession: string;
-    availableSessionTypes: ("chat_consult" | "video_consult" | "async_review")[];
+    availableSessionTypes: (
+      | "chat_consult"
+      | "video_consult"
+      | "async_review"
+    )[];
     isActive: boolean;
   }
 

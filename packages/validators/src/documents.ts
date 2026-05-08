@@ -19,7 +19,6 @@ const ALLOWED_MIME_TYPES = [
   "application/pdf",
 ] as const;
 
-declare const File: any;
 // Type guard for File - works in both browser and server environments
 interface FileLike {
   size: number;
@@ -31,7 +30,7 @@ const hasFileConstructor = typeof globalThis.File !== "undefined";
 const fileSchema = (
   hasFileConstructor
     ? z.instanceof(globalThis.File)
-    : z.custom<FileLike>((value): value is FileLike => {
+    : z.custom<FileLike>((value: unknown): value is FileLike => {
         if (
           value === null ||
           value === undefined ||
@@ -39,7 +38,10 @@ const fileSchema = (
         ) {
           return false;
         }
-        return "size" in value && "type" in value;
+        return (
+          "size" in (value as Record<string, unknown>) &&
+          "type" in (value as Record<string, unknown>)
+        );
       })
 )
   .refine((file) => file.size <= MAX_FILE_SIZE, "File must be under 50MB")
