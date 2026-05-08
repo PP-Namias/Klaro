@@ -43,19 +43,15 @@ export function Navbar() {
           Klaro
         </Link>
         <div className={styles.headerLinks}>
-          <a href="#" className={styles.headerLink}>
+          <Link href="/" className={styles.headerLink}>
             Home
-          </a>
-          <a href="#" className={styles.headerLink}>
-            Features
-            <ChevronDown
-              size={16}
-              className="ml-1 inline-block align-text-bottom"
-            />
-          </a>
-          <a href="#" className={styles.headerLink}>
-            Security
-          </a>
+          </Link>
+          <Link href="/scan" className={styles.headerLink}>
+            Scan
+          </Link>
+          <Link href="/maps" className={styles.headerLink}>
+            Maps
+          </Link>
           <Link href="/login?auto=1" className={styles.headerBtn}>
             Sign in
             <ArrowRight
@@ -80,19 +76,15 @@ export function Navbar() {
             Klaro
           </Link>
           <div className={styles.floatingLinks}>
-            <a href="#" className={styles.floatingLink}>
+            <Link href="/" className={styles.floatingLink}>
               Home
-            </a>
-            <a href="#" className={styles.floatingLink}>
-              Features
-              <ChevronDown
-                size={14}
-                className="ml-1 inline-block align-text-bottom"
-              />
-            </a>
-            <a href="#" className={styles.floatingLink}>
-              Security
-            </a>
+            </Link>
+            <Link href="/scan" className={styles.floatingLink}>
+              Scan
+            </Link>
+            <Link href="/maps" className={styles.floatingLink}>
+              Maps
+            </Link>
             <Link href="/login?auto=1" className={styles.floatingBtnBlack}>
               Sign in
               <ArrowRight

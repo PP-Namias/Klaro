@@ -45,7 +45,7 @@ export function MapPreview() {
         interactive={true}
         dragging={true}
         scrollWheelZoom={false}
-        zoomControl={false}
+        zoomControl={true}
       />
     </div>
   );

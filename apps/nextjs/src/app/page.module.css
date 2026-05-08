@@ -825,21 +825,17 @@
   position: fixed;
   top: 1.25rem;
   left: 50%;
-  transform: translateX(-50%) translateY(-120%);
+  transform: translateX(-50%) translateY(-200%);
   z-index: 100;
   width: 100%;
   max-width: 1400px;
   padding: 0 4rem;
-  transition:
-    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.35s ease;
-  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
 
 .floatingNavWrapper[data-visible="true"] {
   transform: translateX(-50%) translateY(0);
-  opacity: 1;
   pointer-events: auto;
 }
 
@@ -847,11 +843,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.6rem 1rem;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(24px);
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .floatingLogo {
