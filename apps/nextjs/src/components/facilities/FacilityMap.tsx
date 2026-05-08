@@ -38,6 +38,10 @@ interface FacilityMapProps {
   zoom?: number;
   onMarkerClick?: (facility: Facility) => void;
   onBookFacility?: (facility: Facility) => void;
+  interactive?: boolean;
+  dragging?: boolean;
+  scrollWheelZoom?: boolean;
+  zoomControl?: boolean;
 }
 
 function ChangeView({
@@ -65,6 +69,10 @@ export default function FacilityMap({
   zoom = 13,
   onMarkerClick,
   onBookFacility,
+  interactive = true,
+  dragging = true,
+  scrollWheelZoom = true,
+  zoomControl = true,
 }: FacilityMapProps) {
   const defaultMarker = iconFactory("📍", "#18181b"); // zinc-900
   const hospitalMarker = iconFactory("🏥", "#ef4444"); // red-500
@@ -99,9 +107,13 @@ export default function FacilityMap({
     <MapContainer
       center={center}
       zoom={zoom}
-      scrollWheelZoom
+      scrollWheelZoom={interactive && scrollWheelZoom}
+      dragging={interactive && dragging}
+      zoomControl={interactive && zoomControl}
+      doubleClickZoom={interactive}
+      touchZoom={interactive}
       style={{ height: "100%", width: "100%" }}
-      className="z-10 h-full w-full"
+      className={`z-10 h-full w-full ${!interactive ? "grayscale-[0.2]" : ""}`}
     >
       <ChangeView center={center} zoom={zoom} />
       <TileLayer
