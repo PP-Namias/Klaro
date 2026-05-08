@@ -59,16 +59,17 @@ export function MoreThanScanning() {
             <div className="flex flex-1 flex-row gap-6 rounded-[24px] border border-[#eeeeee] bg-white px-[1.5rem] pt-[1rem] pb-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
               <div className="flex flex-1 flex-col py-2">
                 <h3 className="feature-card-title mb-2 text-zinc-900">
-                  Local Payments
+                  Doctor Booking
                 </h3>
                 <p className="feature-card-description max-w-[280px] text-zinc-500">
-                  Pay for consultations and tests directly using GCash or Maya.
+                  Book virtual or in-person consultations with trusted
+                  specialists directly within the app.
                 </p>
               </div>
               <div className="relative min-h-[180px] w-48 shrink-0 self-stretch overflow-hidden rounded-[16px] md:w-64">
                 <Image
                   src="/sections/scanning/2.png"
-                  alt="Local Payments"
+                  alt="Doctor Booking"
                   fill
                   className="object-contain object-center"
                   quality={100}

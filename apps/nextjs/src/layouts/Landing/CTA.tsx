@@ -50,13 +50,7 @@ export function CTA() {
           >
             Open on Web <ArrowRight size={16} className="ml-2" />
           </Link>
-          <button className="flex cursor-pointer items-center justify-center rounded-lg border border-[#e5e5e5] bg-white px-6 py-2 text-[length:var(--text-button)] font-medium text-zinc-900 transition-colors hover:bg-zinc-50">
-            Download Mobile
-          </button>
         </div>
-        <p className="cta-note mb-0 text-zinc-900">
-          Also available on App Store & Google Play. 100% Private
-        </p>
       </div>
     </section>
   );
