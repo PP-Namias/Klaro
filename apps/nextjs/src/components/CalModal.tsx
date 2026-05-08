@@ -1,70 +1,181 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import useFocusTrap from "./useFocusTrap";
 
-type CalModalProps = {
+export type CalModalProps = {
   open: boolean;
   onClose: () => void;
   url?: string;
+  title?: string;
+  iframeTitle?: string;
+  prefill?: Record<string, string>;
+  onBooked?: () => void;
 };
 
-export function CalModal({
+const DEFAULT_URL = "https://cal.com/pp-namias/1-hour-session-with-clara?embed=1&theme=light";
+const SESSION_KEY = "SCAN_CAL_BOOKING";
+
+function buildUrl(base: string, prefill?: Record<string, string>) {
+  if (!prefill || Object.keys(prefill).length === 0) return base;
+  try {
+    const url = new URL(base, typeof window !== "undefined" ? window.location.origin : undefined as any);
+    Object.entries(prefill).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+    return url.toString();
+  } catch {
+    return base;
+  }
+}
+
+export default function CalModal({
   open,
   onClose,
-  url = "https://cal.com/pp-namias/1-hour-session-with-clara?embed=1",
-}: Readonly<CalModalProps>) {
+  url = DEFAULT_URL,
+  title = "Book a Doctor",
+  iframeTitle = "Cal.com scheduling",
+  prefill,
+  onBooked,
+}: CalModalProps) {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<Element | null>(null);
+  const [loadIframe, setLoadIframe] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const focusTrapRef = useFocusTrap(dialogRef, open);
+  const computedUrl = buildUrl(url, prefill);
+
+  useEffect(() => {
+    if (open) {
+      triggerRef.current = document.activeElement;
+      setLoadIframe(true);
+      setIframeLoaded(false);
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    } else {
+      setLoadIframe(false);
+      setIframeLoaded(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && open) onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  useEffect(() => {
+    function handleMessage(e: MessageEvent) {
+      try {
+        const originOk = typeof e.origin === "string" && e.origin.includes("cal.com");
+        if (!originOk) return;
+        const d = e.data || {};
+        const isBooking =
+          (d.type && /booking|event|created/i.test(String(d.type))) ||
+          (d.event && /booking|created/i.test(String(d.event))) ||
+          (d.data && d.data.object && /booking/i.test(String(d.data.object)));
+        if (isBooking) handleBooked();
+      } catch {}
+    }
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  function handleBooked() {
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ when: new Date().toISOString(), url: computedUrl }));
+    } catch {}
+    if ((window as any).analytics && typeof (window as any).analytics.track === "function") {
+      try {
+        (window as any).analytics.track("booking_completed", { source: "cal_modal" });
+      } catch {}
+    }
+    onBooked?.();
+    onClose();
+  }
+
+  const onIframeLoad = () => {
+    setIframeLoaded(true);
+    setShowFallback(false);
+  };
+
+  const onOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
   if (!open) return null;
 
   return (
-    <dialog
-      open={open}
-      className="cal-modal-overlay"
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 9999,
-      }}
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cal-modal-title"
+      aria-describedby="cal-modal-desc"
+      onClick={onOverlayClick}
+      className="fixed inset-0 z-1200 flex items-end md:items-center justify-center"
     >
+      <div className="absolute inset-0 bg-black/50" />
+
       <div
-        className="cal-modal"
-        style={{
-          width: "min(960px, 95%)",
-          height: "80%",
-          background: "#fff",
-          borderRadius: 8,
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
+        ref={(node) => {
+          dialogRef.current = node;
+          // @ts-ignore - ergonomic assignment
+          focusTrapRef.current = node;
         }}
+        className="relative z-1201 w-full md:w-[min(900px,95%)] max-h-[85vh] bg-white rounded-t-lg md:rounded-lg shadow-xl overflow-hidden"
+        style={{ height: "85vh" }}
       >
-        <div
-          style={{
-            padding: "0.5rem 1rem",
-            borderBottom: "1px solid #eee",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <strong>Book a session with Clara</strong>
-          <button aria-label="close-cal-modal" onClick={onClose}>
-            Close
-          </button>
+        <div className="flex items-start justify-between p-4 border-b bg-white">
+          <div>
+            <h2 id="cal-modal-title" className="text-lg font-semibold text-black">
+              {title}
+            </h2>
+            <p id="cal-modal-desc" className="text-sm text-black">
+              Schedule a secure session. Select a time that works for you.
+            </p>
+          </div>
+          <div className="ml-4 flex items-center gap-2">
+            <a href={computedUrl} target="_blank" rel="noreferrer" className="text-sm text-black hover:underline">
+              Open in new tab
+            </a>
+            <button aria-label="Close booking modal" onClick={onClose} className="ml-2 rounded p-1 hover:bg-gray-100 focus:outline-none focus:ring">
+              ✕
+            </button>
+          </div>
         </div>
 
-        <iframe
-          title="Cal.com scheduling"
-          src={url}
-          style={{ flex: 1, border: 0 }}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-        />
+        <div className="p-0 relative h-full">
+          {!loadIframe && (
+            <div className="flex items-center justify-center h-full p-6">
+              <button onClick={() => setLoadIframe(true)} className="rounded bg-blue-600 text-white px-4 py-2">
+                Open booking
+              </button>
+            </div>
+          )}
+
+          {loadIframe && (
+            <div className="h-full">
+              {!iframeLoaded && (
+                <div className="p-6 flex flex-col items-center justify-center gap-3">
+                  <div className="w-20 h-3 bg-gray-200 rounded animate-pulse" />
+                  <div className="w-48 h-4 bg-gray-200 rounded animate-pulse" />
+                  <p className="text-sm text-black">Loading scheduling tool — this may take a moment.</p>
+                </div>
+              )}
+
+              <div className={`w-full h-[calc(85vh-96px)] ${iframeLoaded ? "" : "hidden"}`}>
+                <iframe title={iframeTitle} src={computedUrl} onLoad={onIframeLoad} className="w-full h-full border-0" sandbox="allow-scripts allow-forms allow-same-origin" referrerPolicy="no-referrer-when-downgrade" />
+              </div>
+
+              {!iframeLoaded && (
+                <iframe title={`${iframeTitle}-preload`} src={computedUrl} onLoad={onIframeLoad} className="hidden" sandbox="allow-scripts allow-forms allow-same-origin" referrerPolicy="no-referrer-when-downgrade" />
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </dialog>
+    </div>
   );
 }
-
-export default CalModal;
