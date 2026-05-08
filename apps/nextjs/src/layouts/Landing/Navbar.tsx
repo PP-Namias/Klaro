@@ -3,13 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import dynamic from "next/dynamic";
 
 import styles from "../../app/page.module.css";
 
 export function Navbar() {
   const [visible, setVisible] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
   const lastY = useRef(0);
 
   useEffect(() => {
@@ -18,7 +19,7 @@ export function Navbar() {
       const goingUp = y < lastY.current;
       const pastThreshold = y > 80;
 
-      setScrolled(pastThreshold && goingUp);
+      // only control floating visibility
       setVisible(goingUp && pastThreshold);
       lastY.current = y;
     };
@@ -43,21 +44,22 @@ export function Navbar() {
           Klaro
         </Link>
         <div className={styles.headerLinks}>
-          <Link href="/" className={styles.headerLink}>
-            Home
-          </Link>
           <Link href="/scan" className={styles.headerLink}>
-            Scan
+            Scan & Analyze
           </Link>
           <Link href="/maps" className={styles.headerLink}>
-            Maps
+            Find a clinic
           </Link>
+            {/* Open booking modal instead of navigating to /booking */}
+            <button
+              onClick={() => setIsBookingOpen(true)}
+              className={styles.headerLink}
+            >
+              Book a doctor
+            </button>
           <Link href="/scan" className={styles.headerBtn}>
-            Sign in
-            <ArrowRight
-              size={14}
-              className="ml-1 inline-block align-text-bottom"
-            />
+            Start a scan
+            <ArrowRight size={14} className="ml-1 inline-block align-text-bottom" />
           </Link>
         </div>
       </header>
@@ -76,25 +78,39 @@ export function Navbar() {
             Klaro
           </Link>
           <div className={styles.floatingLinks}>
-            <Link href="/" className={styles.floatingLink}>
-              Home
-            </Link>
             <Link href="/scan" className={styles.floatingLink}>
-              Scan
+              Scan & Analyze
             </Link>
             <Link href="/maps" className={styles.floatingLink}>
-              Maps
+              Find a clinic
             </Link>
+            <button
+              onClick={() => setIsBookingOpen(true)}
+              className={styles.floatingLink}
+            >
+              Book a doctor
+            </button>
             <Link href="/scan" className={styles.floatingBtnBlack}>
-              Sign in
-              <ArrowRight
-                size={13}
-                className="ml-1 inline-block align-text-bottom"
-              />
+              Start a scan
+              <ArrowRight size={13} className="ml-1 inline-block align-text-bottom" />
             </Link>
           </div>
         </header>
       </div>
+      {/* Booking modal (dynamically loaded) */}
+      {isBookingOpen && (
+        // dynamic import to avoid SSR for the modal
+        <CalModalWrapper onClose={() => setIsBookingOpen(false)} open={isBookingOpen} />
+      )}
     </>
   );
+}
+
+// Load CalModal client-side only
+const CalModal = dynamic(() => import("../../components/CalModal"), {
+  ssr: false,
+});
+
+function CalModalWrapper({ open, onClose }: Readonly<{ open: boolean; onClose: () => void }>) {
+  return <CalModal open={open} onClose={onClose} />;
 }

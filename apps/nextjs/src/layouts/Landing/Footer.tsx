@@ -1,9 +1,16 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 
 import { MARKETING_FOOTER_GROUPS } from "~/content/marketing-pages";
 
+const CalModal = dynamic(() => import("~/components/CalModal"), { ssr: false });
+
 export function Footer() {
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
   return (
     <footer className="relative w-full overflow-hidden border-t border-zinc-200 bg-white px-6 py-10 text-zinc-900 sm:px-8 lg:px-10">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.08),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.08),transparent_32%)]" />
@@ -55,15 +62,29 @@ export function Footer() {
                     {group.title}
                   </h3>
                   <nav className="flex flex-col gap-2.5">
-                    {group.links.map((link) => (
-                      <Link
-                        key={link.label}
-                        href={link.href}
-                        className="feature-small-desc text-zinc-600 transition-colors hover:text-zinc-950"
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
+                    {group.links.map((link) => {
+                      if (link.href === "/booking") {
+                        return (
+                          <button
+                            key={link.label}
+                            onClick={() => setIsBookingOpen(true)}
+                            className="feature-small-desc text-zinc-600 transition-colors hover:text-zinc-950 text-left"
+                          >
+                            {link.label}
+                          </button>
+                        );
+                      }
+
+                      return (
+                        <Link
+                          key={link.label}
+                          href={link.href}
+                          className="feature-small-desc text-zinc-600 transition-colors hover:text-zinc-950"
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
                   </nav>
                 </div>
               ))}
@@ -102,6 +123,7 @@ export function Footer() {
           </div>
         </div>
       </div>
+      {isBookingOpen && <CalModal open={isBookingOpen} onClose={() => setIsBookingOpen(false)} />}
     </footer>
   );
 }
