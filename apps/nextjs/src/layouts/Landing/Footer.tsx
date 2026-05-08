@@ -9,10 +9,10 @@ export function Footer() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.08),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.08),transparent_32%)]" />
 
       <div className="relative mx-auto flex max-w-[1280px] flex-col gap-12">
-        <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-          <div className="space-y-6 rounded-[32px] border border-zinc-200 bg-zinc-50/80 p-8 shadow-[0_12px_40px_rgba(0,0,0,0.04)] backdrop-blur-sm">
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.08fr] lg:items-stretch">
+          <div className="flex h-full flex-col justify-between gap-8 rounded-[32px] border border-zinc-200 bg-zinc-50/80 p-8 shadow-[0_12px_40px_rgba(0,0,0,0.04)] backdrop-blur-sm">
             <Link href="/" className="inline-flex items-center gap-3 text-zinc-950">
-              <Image src="/klaro.svg" alt="Klaro" width={36} height={36} priority />
+              <Image src="/klaro-dark.svg" alt="Klaro" width={36} height={36} priority />
               <span className="feature-small-title text-zinc-950">Klaro</span>
             </Link>
 
@@ -69,23 +69,27 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="grid gap-6 rounded-[32px] border border-zinc-200 bg-white p-6 shadow-[0_12px_40px_rgba(0,0,0,0.04)] sm:grid-cols-2 lg:grid-cols-3">
-            {MARKETING_FOOTER_GROUPS.map((group) => (
-              <div key={group.title} className="flex flex-col gap-4">
-                <h3 className="feature-small-title text-zinc-950">{group.title}</h3>
-                <nav className="flex flex-col gap-3">
-                  {group.links.map((link) => (
-                    <Link
-                      key={link.label}
-                      href={link.href}
-                      className="feature-small-desc text-zinc-600 transition-colors hover:text-zinc-950"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-            ))}
+          <div className="flex h-full flex-col justify-between rounded-[32px] border border-zinc-200 bg-white p-6 shadow-[0_12px_40px_rgba(0,0,0,0.04)]">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {MARKETING_FOOTER_GROUPS.map((group) => (
+                <div key={group.title} className="flex flex-col gap-4">
+                  <h3 className="feature-small-title text-zinc-950">
+                    {group.title}
+                  </h3>
+                  <nav className="flex flex-col gap-3">
+                    {group.links.map((link) => (
+                      <Link
+                        key={link.label}
+                        href={link.href}
+                        className="feature-small-desc text-zinc-600 transition-colors hover:text-zinc-950"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
