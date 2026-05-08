@@ -15,7 +15,7 @@ import styles from "../../app/facilities/page.module.css";
 
 const FacilityMap = dynamic(() => import("./FacilityMap"), {
   ssr: false,
-  loading: () => <div className="h-full w-full animate-pulse rounded-2xl bg-slate-100" />,
+  loading: () => <div className="h-full w-full animate-pulse rounded-2xl bg-zinc-100" />,
 });
 
 const DEFAULT_COORDS: [number, number] = [14.6225, 121.0242];
@@ -207,25 +207,8 @@ export default function FacilitiesClient() {
 
   return (
     <div className={styles.facilities}>
-      <header className={styles.facilities__header}>
-        <div className={styles.facilities__brand}>
-          <div className={styles.facilities__logo}>K</div>
-          <div className={styles.facilities__title}>
-            <span className={styles.facilities__name}>Medical Locations Map</span>
-            <span className={styles.facilities__tagline}>
-              Find nearby clinics and hospitals that can help you
-            </span>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="outline" size="sm" onClick={resetLocation}>
-            Reset location
-          </Button>
-        </div>
-      </header>
-
       <div className={styles.facilities__shell}>
-        <aside className={styles.facilities__sidebar}>
+        <aside className={styles.facilities__sidebar} data-lenis-prevent>
           <div className={styles.facilities__searchBox}>
             <FacilitySearchBar
               specialties={facilitySpecialties}
@@ -234,11 +217,23 @@ export default function FacilitiesClient() {
             />
           </div>
 
-          <div className="border-b border-slate-100 px-6 py-4 text-sm text-slate-600">
-            <p className="font-medium text-slate-800">{locationStatus}</p>
-            <p className="mt-1 text-xs text-slate-500">
-              Showing facilities around {coords[0].toFixed(4)}, {coords[1].toFixed(4)}
-            </p>
+          <div className="border-b border-zinc-200 px-8 py-5 text-sm text-zinc-500 bg-zinc-50/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-zinc-900">{locationStatus}</p>
+                <p className="mt-0.5 text-[11px] font-medium text-zinc-400 uppercase tracking-tight">
+                  {coords[0].toFixed(4)}, {coords[1].toFixed(4)}
+                </p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 rounded-full text-[11px] font-bold text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-all"
+                onClick={resetLocation}
+              >
+                Reset
+              </Button>
+            </div>
           </div>
 
           {medicalContext && (
@@ -265,12 +260,14 @@ export default function FacilitiesClient() {
             {isFacilitiesLoading ? (
               <div className="space-y-4 p-6">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-50" />
+                  <div key={i} className="h-32 animate-pulse rounded-[20px] bg-zinc-50 border border-zinc-100" />
                 ))}
               </div>
             ) : facilities.length === 0 ? (
-              <div className="p-6 text-sm text-slate-500">
-                No facilities matched your filters. Try removing one filter or reset the location.
+              <div className="p-8 text-center">
+                <p className="text-[14px] font-medium text-zinc-400 leading-relaxed">
+                  No facilities matched your filters.<br/>Try removing one filter or reset the location.
+                </p>
               </div>
             ) : (
               facilities.map((facility) => {
@@ -306,9 +303,11 @@ export default function FacilitiesClient() {
           />
         </main>
 
-        <aside className="w-80 overflow-y-auto bg-white">
-          <ScanAgentSidebar />
-        </aside>
+        {medicalContext && (
+          <aside className="w-80 overflow-y-auto bg-white border-l border-zinc-100 hidden xl:block" data-lenis-prevent>
+            <ScanAgentSidebar />
+          </aside>
+        )}
       </div>
     </div>
   );
