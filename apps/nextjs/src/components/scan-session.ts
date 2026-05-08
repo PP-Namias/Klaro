@@ -20,7 +20,7 @@ export interface ScanAnalysisSession {
   };
 }
 
-type RawScanPayload = {
+export type RawScanPayload = {
   requestId?: string;
   status?: "completed" | "error" | "pending" | string;
   source?: ScanAnalysisSession["source"];
@@ -29,7 +29,7 @@ type RawScanPayload = {
   extractedData?: Record<string, unknown>;
   fields?: Record<string, unknown>;
   plainLanguageSummary?: string;
-  urgency?: "LOW" | "MODERATE" | "HIGH";
+  urgency?: "LOW" | "MODERATE" | "HIGH" | string;
   recommendations?: string[];
   warnings?: string[];
   timestamp?: string;
@@ -37,37 +37,74 @@ type RawScanPayload = {
   analysis?: ScanAnalysisSession["analysis"];
 };
 
+function normalizeUrgency(value: unknown): "LOW" | "MODERATE" | "HIGH" {
+  if (value === "LOW" || value === "MODERATE" || value === "HIGH") {
+    return value;
+  }
+  return "MODERATE";
+}
+
+function normalizeLanguage(value: unknown): "Filipino" | "English" | undefined {
+  if (value === "Filipino" || value === "English") {
+    return value;
+  }
+  return undefined;
+}
+
 export function normalizeScanAnalysisSession(payload: RawScanPayload): ScanAnalysisSession {
   const extractedData = payload.extractedData || payload.fields || {};
   const analysis = payload.analysis;
   const plainLanguageSummary =
     payload.plainLanguageSummary || analysis?.summary || "";
-  const urgency = payload.urgency || analysis?.urgency || "MODERATE";
-  const recommendations = payload.recommendations || analysis?.recommendations || [];
+  const urgency = normalizeUrgency(payload.urgency || analysis?.urgency);
+  const recommendations = Array.isArray(payload.recommendations)
+    ? payload.recommendations
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0)
+        .slice(0, 3)
+    : Array.isArray(analysis?.recommendations)
+      ? analysis.recommendations
+      : [];
+
+  const hasResultContent =
+    plainLanguageSummary.trim().length > 0 || recommendations.length > 0;
+
+  const normalizedStatus: ScanAnalysisSession["status"] =
+    payload.status === "completed" || payload.status === "error" || payload.status === "pending"
+      ? payload.status
+      : payload.error
+        ? "error"
+        : hasResultContent
+          ? "completed"
+          : "pending";
 
   return {
     requestId: payload.requestId || `scan-${Date.now()}`,
-    status:
-      payload.status === "completed" || payload.status === "error" || payload.status === "pending"
-        ? payload.status
-        : "completed",
+    status: normalizedStatus,
     source: payload.source || "raw",
-    language: payload.language,
-    confidence: payload.confidence,
+    language: normalizeLanguage(payload.language),
+    confidence:
+      typeof payload.confidence === "number" && payload.confidence >= 0 && payload.confidence <= 1
+        ? payload.confidence
+        : undefined,
     extractedData,
     plainLanguageSummary,
     urgency,
     recommendations,
-    warnings: payload.warnings || [],
+    warnings: Array.isArray(payload.warnings)
+      ? payload.warnings.filter((item): item is string => typeof item === "string")
+      : [],
     timestamp: payload.timestamp || new Date().toISOString(),
     error: payload.error,
-    analysis: analysis || (plainLanguageSummary || recommendations.length || urgency
-      ? {
-          summary: plainLanguageSummary,
-          urgency,
-          recommendations,
-        }
-      : undefined),
+    analysis:
+      analysis || hasResultContent
+        ? {
+            summary: plainLanguageSummary || "Scan is processing",
+            urgency,
+            recommendations,
+          }
+        : undefined,
   };
 }
 
