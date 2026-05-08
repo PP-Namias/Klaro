@@ -1,29 +1,30 @@
-import Image from "next/image";
-
-import { ScannerNavbar } from "~/layouts/SampleScanner/ScannerNavbar";
-import { ScannerUI } from "~/layouts/SampleScanner/ScannerUI";
-import { Sidebar } from "~/layouts/SampleScanner/Sidebar";
+import { getSession } from "~/auth/server";
+import { ScanHeader } from "~/layouts/Scan/ScanHeader";
+import { ScanHero } from "~/layouts/Scan/ScanHero";
+import { ScanPreview } from "~/layouts/Scan/ScanPreview";
+import { ScanGrid } from "~/layouts/Scan/ScanGrid";
 import styles from "./page.module.css";
 
-export default function ScanPage() {
-	return (
-		<div className={styles.layout}>
-			<Sidebar />
-			<div className={styles.mainWrapper}>
-				<ScannerNavbar />
-				<main className={styles.mainContent}>
-					<ScannerUI />
-				</main>
-			</div>
-			<div className={styles.backgroundGlow}>
-				<Image
-					src="/scan-bg.svg"
-					alt="Glow Background"
-					fill
-					style={{ objectFit: "cover", objectPosition: "bottom" }}
-					priority
-				/>
-			</div>
-		</div>
-	);
-}
+export default async function ScanPage() {
+  const session = await getSession();
+
+  return (
+    <main className={styles.scan}>
+      <div className={styles.scan__shell}>
+        <ScanHeader session={session} />
+
+        <section className={styles.scan__hero}>
+          <ScanHero session={session} />
+          <ScanPreview session={session} />
+        </section>
+
+        <ScanGrid />
+
+        <footer className={styles.scan__footer}>
+          <span>Guest mode remains visible for quick scans and private sharing.</span>
+          <span>Registered mode keeps saved analyses and follow-up context.</span>
+        </footer>
+      </div>
+    </main>
+  );
+}

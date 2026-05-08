@@ -2,8 +2,10 @@ import Link from "next/link";
 
 import { Button } from "@klaro/ui/button";
 
-import { getSession } from "~/auth/server";
 import { SignInButton } from "../../components/sign-in-button";
+
+import { getSession } from "~/auth/server";
+
 import styles from "./page.module.css";
 
 const intakeCards = [
@@ -17,7 +19,7 @@ const intakeCards = [
   },
   {
     title: "Find a care path",
-    body: "Jump from interpretation to nearby clinics and free booking without losing state.",
+    body: "Jump from interpretation to nearby clinics, booking, and payment without losing state.",
   },
 ] as const;
 
@@ -32,7 +34,7 @@ const steps = [
   },
   {
     label: "3. Act",
-    copy: "Book freely or share privately.",
+    copy: "Book, pay, or share privately.",
   },
 ] as const;
 
@@ -46,9 +48,7 @@ export default async function DashboardPage() {
           <div className={styles.dashboard__brand}>
             <span className={styles.dashboard__brandMark}>K</span>
             <div className={styles.dashboard__brandText}>
-              <span className={styles.dashboard__brandName}>
-                Klaro workspace
-              </span>
+              <span className={styles.dashboard__brandName}>Klaro workspace</span>
               <span className={styles.dashboard__brandTag}>
                 Intake, review, and care actions in one place
               </span>
@@ -58,21 +58,14 @@ export default async function DashboardPage() {
           <div className={styles.dashboard__actions}>
             {session ? (
               <div className={styles.dashboard__sessionChip}>
-                <span className={styles.dashboard__sessionLabel}>
-                  Signed in as
-                </span>
+                <span className={styles.dashboard__sessionLabel}>Signed in as</span>
                 <span className={styles.dashboard__sessionName}>
-                  {session.user.name || session.user.email || "Klaro member"}
+                  {session.user.name ?? session.user.email ?? "Klaro member"}
                 </span>
               </div>
             ) : null}
 
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className={styles.dashboard__ghostAction}
-            >
+            <Button asChild size="lg" variant="outline" className={styles.dashboard__ghostAction}>
               <Link href="/">Back to landing</Link>
             </Button>
           </div>
@@ -86,9 +79,9 @@ export default async function DashboardPage() {
                 Start a new scan or continue a private case.
               </h1>
               <p className={styles.dashboard__lede}>
-                Klaro keeps the medical document, explanation, and next step
-                together. Guests can still scan with a private link. Registered
-                users keep history, saved analyses, and a cleaner return path.
+                Klaro keeps the medical document, explanation, and next step together.
+                Guests can still scan with a private link. Registered users keep
+                history, saved analyses, and a cleaner return path.
               </p>
             </div>
 
@@ -99,12 +92,7 @@ export default async function DashboardPage() {
                 </SignInButton>
               )}
 
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className={styles.dashboard__secondaryAction}
-              >
+              <Button asChild size="lg" variant="outline" className={styles.dashboard__secondaryAction}>
                 <Link href="/login">Use the login page</Link>
               </Button>
             </div>
@@ -134,9 +122,7 @@ export default async function DashboardPage() {
           <aside className={styles.dashboard__panel}>
             <div className={styles.dashboard__panelHeader}>
               <span className={styles.dashboard__panelTitle}>Quick intake</span>
-              <span className={styles.dashboard__panelPill}>
-                {session ? "active" : "guest"}
-              </span>
+              <span className={styles.dashboard__panelPill}>{session ? "active" : "guest"}</span>
             </div>
 
             <article className={styles.dashboard__fileCard}>
@@ -145,8 +131,8 @@ export default async function DashboardPage() {
                 Upload a document to start the analysis flow.
               </h2>
               <p className={styles.dashboard__fileCopy}>
-                The same intake path supports a first-time scan, a follow-up
-                review, or a guest-only private link.
+                The same intake path supports a first-time scan, a follow-up review,
+                or a guest-only private link.
               </p>
               <div className={styles.dashboard__fileMeta}>
                 <span className={styles.dashboard__fileTag}>Private</span>
@@ -158,9 +144,7 @@ export default async function DashboardPage() {
             <div className={styles.dashboard__steps}>
               {steps.map((step) => (
                 <div key={step.label} className={styles.dashboard__step}>
-                  <div className={styles.dashboard__stepLabel}>
-                    {step.label}
-                  </div>
+                  <div className={styles.dashboard__stepLabel}>{step.label}</div>
                   <div className={styles.dashboard__stepCopy}>{step.copy}</div>
                 </div>
               ))}
