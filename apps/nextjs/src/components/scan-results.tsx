@@ -9,10 +9,15 @@ interface ScanResult {
   requestId: string;
   status: "completed" | "error" | "pending";
   language?: string;
-  analysis?: Record<string, unknown>;
+  analysis?: {
+    summary?: string;
+    urgency?: "LOW" | "MODERATE" | "HIGH";
+    recommendations?: string[];
+  };
   extractedData?: Record<string, unknown>;
   confidence?: number;
   plainLanguageSummary?: string;
+  urgency?: "LOW" | "MODERATE" | "HIGH";
   recommendations?: string[];
   warnings?: string[];
   timestamp?: string;
@@ -42,6 +47,35 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
     }
     setIsLoading(false);
   }, [scanId]);
+
+  const analysis = result?.analysis;
+  const summary = result?.plainLanguageSummary || analysis?.summary;
+  const urgency = result?.urgency || analysis?.urgency;
+  const recommendations = result?.recommendations || analysis?.recommendations || [];
+
+  const urgencyStyles: Record<"LOW" | "MODERATE" | "HIGH", { badge: string; panel: string; label: string }> = {
+    LOW: {
+      badge: "border-emerald-200 bg-emerald-100 text-emerald-800",
+      panel: "border-emerald-200 bg-emerald-50",
+      label: "Low urgency",
+    },
+    MODERATE: {
+      badge: "border-amber-200 bg-amber-100 text-amber-800",
+      panel: "border-amber-200 bg-amber-50",
+      label: "Moderate urgency",
+    },
+    HIGH: {
+      badge: "border-rose-200 bg-rose-100 text-rose-800",
+      panel: "border-rose-200 bg-rose-50",
+      label: "High urgency",
+    },
+  };
+
+  const urgencyPanelColors: Record<"LOW" | "MODERATE" | "HIGH", { border: string; background: string }> = {
+    LOW: { border: "#a7f3d0", background: "#ecfdf5" },
+    MODERATE: { border: "#fde68a", background: "#fffbeb" },
+    HIGH: { border: "#fecdd3", background: "#fff1f2" },
+  };
 
   if (isLoading) {
     return (
@@ -88,6 +122,54 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
         </p>
       </div>
 
+      {urgency && urgencyStyles[urgency] && (
+        <div
+          style={{
+            padding: "1rem 1.25rem",
+            marginBottom: "1.5rem",
+            borderRadius: "12px",
+            border: `1px solid ${urgencyPanelColors[urgency].border}`,
+            backgroundColor: urgencyPanelColors[urgency].background,
+          }}
+        >
+          <div
+            style={{
+              display: "inline-block",
+              marginBottom: "0.75rem",
+              padding: "0.35rem 0.75rem",
+              borderRadius: "999px",
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.04em",
+              border: "1px solid",
+              color:
+                urgency === "HIGH"
+                  ? "#9f1239"
+                  : urgency === "MODERATE"
+                    ? "#92400e"
+                    : "#065f46",
+              backgroundColor:
+                urgency === "HIGH"
+                  ? "#ffe4e6"
+                  : urgency === "MODERATE"
+                    ? "#fef3c7"
+                    : "#d1fae5",
+            }}
+          >
+            {urgencyStyles[urgency].label}
+          </div>
+          <h2 style={{ margin: 0, marginBottom: "0.5rem" }}>Urgency: {urgency}</h2>
+          <p style={{ margin: 0, color: "#334155" }}>
+            {urgency === "HIGH"
+              ? "This result needs prompt review. Seek care urgently if symptoms are worsening."
+              : urgency === "MODERATE"
+                ? "This result should be reviewed soon with a healthcare provider."
+                : "No immediate red flags were identified in this analysis."}
+          </p>
+        </div>
+      )}
+
       {/* Confidence Score */}
       {result.confidence !== undefined && (
         <div
@@ -125,7 +207,7 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
       )}
 
       {/* Plain Language Summary */}
-      {result.plainLanguageSummary && (
+      {summary && (
         <div
           style={{
             padding: "1.5rem",
@@ -136,7 +218,7 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
           }}
         >
           <h2 style={{ marginTop: 0 }}>📋 Summary</h2>
-          <p>{result.plainLanguageSummary}</p>
+          <p>{summary}</p>
         </div>
       )}
 
@@ -163,7 +245,7 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
       )}
 
       {/* Recommendations */}
-      {result.recommendations && result.recommendations.length > 0 && (
+      {recommendations.length > 0 && (
         <div
           style={{
             padding: "1.5rem",
@@ -175,7 +257,7 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
         >
           <h2 style={{ marginTop: 0 }}>💡 Recommendations</h2>
           <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
-            {result.recommendations.map((rec, idx) => (
+            {recommendations.map((rec, idx) => (
               <li key={idx} style={{ marginBottom: "0.5rem" }}>
                 {rec}
               </li>

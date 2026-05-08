@@ -17,7 +17,10 @@ interface ScanAnalysis {
 interface ScanResult {
   extractedData?: Record<string, unknown>;
   flaggedTests?: Array<{ name: string; value?: string; unit?: string; flagged?: boolean }>;
-  analysis?: Record<string, unknown>;
+  analysis?: ScanAnalysis;
+  plainLanguageSummary?: string;
+  urgency?: "LOW" | "MODERATE" | "HIGH";
+  recommendations?: string[];
 }
 
 export function ScanAgentSidebar() {
@@ -80,6 +83,23 @@ export function ScanAgentSidebar() {
     });
   };
 
+  const normalizedAnalysis: ScanAnalysis | null =
+    analysis ||
+    (scanResult?.analysis
+      ? {
+          summary: scanResult.analysis.summary || scanResult.plainLanguageSummary || "",
+          urgency: scanResult.analysis.urgency || scanResult.urgency || "MODERATE",
+          recommendations:
+            scanResult.analysis.recommendations || scanResult.recommendations || [],
+        }
+      : scanResult?.plainLanguageSummary || scanResult?.urgency || scanResult?.recommendations
+        ? {
+            summary: scanResult.plainLanguageSummary || "",
+            urgency: scanResult.urgency || "MODERATE",
+            recommendations: scanResult.recommendations || [],
+          }
+        : null);
+
   if (!scanResult) {
     return null;
   }
@@ -111,21 +131,21 @@ export function ScanAgentSidebar() {
         )}
       </div>
 
-      {analysis && (
-        <div className={`rounded-lg border-l-4 p-4 ${urgencyBgColors[analysis.urgency]}`}>
+      {normalizedAnalysis && (
+        <div className={`rounded-lg border-l-4 p-4 ${urgencyBgColors[normalizedAnalysis.urgency]}`}>
           <div
-            className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${urgencyColors[analysis.urgency]}`}
+            className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${urgencyColors[normalizedAnalysis.urgency]}`}
           >
-            Urgency: {analysis.urgency}
+            Urgency: {normalizedAnalysis.urgency}
           </div>
 
-          <p className="mb-4 text-sm leading-relaxed text-slate-800">{analysis.summary}</p>
+          <p className="mb-4 text-sm leading-relaxed text-slate-800">{normalizedAnalysis.summary}</p>
 
-          {analysis.recommendations.length > 0 && (
+          {normalizedAnalysis.recommendations.length > 0 && (
             <div className="space-y-2">
               <h3 className="text-xs font-semibold uppercase text-slate-700">Next Steps</h3>
               <ul className="space-y-1">
-                {analysis.recommendations.map((rec, i) => (
+                {normalizedAnalysis.recommendations.map((rec, i) => (
                   <li key={i} className="flex gap-2 text-sm text-slate-700">
                     <span className="shrink-0">•</span>
                     <span>{rec}</span>
@@ -149,7 +169,7 @@ export function ScanAgentSidebar() {
         </div>
       )}
 
-      {!analysis && (
+      {!normalizedAnalysis && (
         <div className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-center">
           <p className="text-sm text-slate-600">
             {analyzeMutation.isPending ? (
