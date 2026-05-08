@@ -42,7 +42,7 @@ export function FacilitySearchBar({ specialties, filters, onChange }: FacilitySe
       <div className="relative">
         <input
           aria-label="Search facility name"
-          className="w-full rounded-[14px] border border-zinc-200 bg-white px-4 py-2.5 text-[14px] font-medium outline-none transition focus:border-zinc-900"
+          className="w-full rounded-[14px] border border-zinc-200 bg-white px-4 py-2.5 text-[14px] font-medium text-zinc-900 placeholder:text-zinc-400 outline-none transition focus:border-zinc-900"
           placeholder="Search by facility name or address"
           value={draft.textSearch}
           onChange={(event) => setDraft((current) => ({ ...current, textSearch: event.target.value }))}
@@ -54,7 +54,7 @@ export function FacilitySearchBar({ specialties, filters, onChange }: FacilitySe
           <span className="font-semibold text-zinc-700 ml-1">Specialty</span>
           <select
             aria-label="Specialty filter"
-            className="w-full rounded-[14px] border border-zinc-200 bg-white px-3 py-2.5 text-[13px] font-medium outline-none focus:border-zinc-900 transition"
+            className="w-full rounded-[14px] border border-zinc-200 bg-white px-3 py-2.5 text-[13px] font-medium text-zinc-900 outline-none focus:border-zinc-900 transition"
             value={draft.specialty}
             onChange={(event) => setDraft((current) => ({ ...current, specialty: event.target.value }))}
           >
@@ -71,7 +71,7 @@ export function FacilitySearchBar({ specialties, filters, onChange }: FacilitySe
           <span className="font-semibold text-zinc-700 ml-1">Ownership</span>
           <select
             aria-label="Ownership filter"
-            className="w-full rounded-[14px] border border-zinc-200 bg-white px-3 py-2.5 text-[13px] font-medium outline-none focus:border-zinc-900 transition"
+            className="w-full rounded-[14px] border border-zinc-200 bg-white px-3 py-2.5 text-[13px] font-medium text-zinc-900 outline-none focus:border-zinc-900 transition"
             value={draft.ownership}
             onChange={(event) => setDraft((current) => ({ ...current, ownership: event.target.value as FacilityFilters["ownership"] }))}
           >
