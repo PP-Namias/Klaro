@@ -18,6 +18,38 @@ export const searchNearbySchema = z.object({
   facilityType: facilityTypeEnum.optional(),
   ownership: z.enum(["public", "private"]).optional(),
   philHealthOnly: z.boolean().default(false),
+  textSearch: z.string().trim().min(1).max(120).optional(),
+  specialty: z.string().trim().min(1).max(120).optional(),
+  emergencyOnly: z.boolean().default(false),
+});
+
+export const medicalContextSchema = z.object({
+  severity: z.enum(["LOW", "MODERATE", "HIGH"]),
+  testSummary: z.string().trim().min(1).max(500).optional(),
+  flaggedTests: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1),
+        value: z.string().trim().optional(),
+        unit: z.string().trim().optional(),
+      }),
+    )
+    .default([]),
+});
+
+export const recommendByTestResultsSchema = z.object({
+  extractedTests: z.array(
+    z.object({
+      name: z.string().trim().min(1),
+      value: z.string().trim().optional(),
+      unit: z.string().trim().optional(),
+      flagged: z.boolean().default(false),
+    }),
+  ),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  radiusKm: z.number().min(0.1).max(50).default(15),
+  limit: z.number().min(1).max(10).default(5),
 });
 
 export const facilityResponseSchema = z.object({
@@ -36,4 +68,8 @@ export const facilityResponseSchema = z.object({
 
 export type FacilityType = z.infer<typeof facilityTypeEnum>;
 export type SearchNearbyInput = z.infer<typeof searchNearbySchema>;
+export type MedicalContextInput = z.infer<typeof medicalContextSchema>;
+export type RecommendByTestResultsInput = z.infer<
+  typeof recommendByTestResultsSchema
+>;
 export type FacilityResponse = z.infer<typeof facilityResponseSchema>;

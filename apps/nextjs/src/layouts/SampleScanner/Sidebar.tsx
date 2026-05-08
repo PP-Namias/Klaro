@@ -13,9 +13,11 @@ import {
 } from "lucide-react";
 
 import styles from "../../app/scan/page.module.css";
+import CalModal from "../../components/CalModal";
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCalOpen, setIsCalOpen] = useState(false);
 
   return (
     <aside
@@ -75,7 +77,10 @@ export function Sidebar() {
       </nav>
 
       <div className={styles.sidebarFooter}>
-        <button className={styles.bookDoctorBtn}>
+        <button
+          className={styles.bookDoctorBtn}
+          onClick={() => setIsCalOpen(true)}
+        >
           <Calendar size={20} color="#999" />{" "}
           {!isCollapsed && <span>Book a Doctor</span>}
         </button>
@@ -83,6 +88,7 @@ export function Sidebar() {
           <CircleUser size={20} color="#555" />{" "}
           {!isCollapsed && <span>Profile</span>}
         </a>
+        <CalModal open={isCalOpen} onClose={() => setIsCalOpen(false)} />
       </div>
     </aside>
   );

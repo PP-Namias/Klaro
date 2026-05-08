@@ -1,158 +1,83 @@
-# Environment Configuration Template
+# Environment Configuration
 
-## Required Environment Variables
+This repo uses a root `.env` file for local development and Vercel environment
+variables for production. The current codebase reads a smaller set of variables
+than the older template suggested, so this document reflects the actual setup.
 
-### Backend (packages/api/)
+## Core variables
+
+These are the important ones for the main web app:
+
 ```env
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/klaro_dev
+POSTGRES_URL=...
+AUTH_SECRET=...
+AUTH_DISCORD_ID=...
+AUTH_DISCORD_SECRET=...
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+CLOUDINARY_UPLOAD_PRESET=klaro_uploads
+CAL_COM_API_KEY=...
+CAL_COM_BASE_URL=https://api.cal.com
+LLM_PROVIDER=gemini
+LLM_API_KEY=...
+LLM_MODEL=
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-# LLM Provider
-OPENAI_API_KEY=sk-...
-LLM_MODEL=gpt-4-turbo
+## Optional variables
 
-# OCR & Vision
+```env
+AUTH_GOOGLE_ID=...
+AUTH_GOOGLE_SECRET=...
+SUPABASE_SERVICE_ROLE_KEY=...
+CAL_COM_WEBHOOK_SECRET=...
 GOOGLE_VISION_API_KEY=...
-TESSERACT_LANGUAGE_PATH=./tessdata
-
-# Maps
-GOOGLE_MAPS_API_KEY=...
-
-# Payments - Stripe
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-# Authentication
-NEXTAUTH_SECRET=...
-NEXTAUTH_URL=http://localhost:3000
-
-# Session/JWT
-JWT_SECRET=...
-JWT_EXPIRY=7d
-
-# File Storage
-S3_BUCKET_NAME=klaro-dev-documents
-S3_REGION=us-east-1
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
-
-# Security
-AES_256_KEY=... (base64 encoded 32 bytes)
-ENCRYPTION_IV_SIZE=16
-
-# Analytics & Telemetry
-ANALYTICS_PROVIDER=posthog
-POSTHOG_API_KEY=...
-
-# Feature Flags
-FEATURE_SHARE_LINKS=true
-FEATURE_DOCTOR_BOOKING=true
-FEATURE_PAYMENTS=true
+OCR_CONFIDENCE_THRESHOLD=0.7
 ```
 
-### Frontend - Web (apps/nextjs/)
-```env
-# API
-NEXT_PUBLIC_API_URL=http://localhost:3001
-NEXT_PUBLIC_API_ENDPOINT=/trpc
+## What each variable is for
 
-# Maps
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=...
+### Database
 
-# Payments
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+- `POSTGRES_URL` is required by Drizzle and Next.js server routes.
 
-# Auth
-NEXT_PUBLIC_NEXTAUTH_URL=http://localhost:3000
-NEXT_PUBLIC_NEXTAUTH_SECRET=... (optional, usually in backend)
-```
+### Authentication
 
-### Mobile (apps/expo/)
-```env
-# API
-EXPO_PUBLIC_API_URL=http://10.0.2.2:3001
-EXPO_PUBLIC_API_ENDPOINT=/trpc
+- `AUTH_SECRET` is required for production deploys.
+- `AUTH_DISCORD_ID` and `AUTH_DISCORD_SECRET` are required for Discord sign-in.
+- `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are optional.
 
-# Maps
-EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=...
-EXPO_PUBLIC_GOOGLE_MAPS_PLACES_API_KEY=...
+### Supabase
 
-# Payments
-EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` power the client-side Supabase integration.
+- `SUPABASE_SERVICE_ROLE_KEY` is optional and only needed for privileged server actions.
 
-# Feature Flags
-EXPO_PUBLIC_FEATURE_CAMERA_CAPTURE=true
-EXPO_PUBLIC_FEATURE_CHAT=true
-```
+### Cloudinary
 
-## Local Development Setup
+- Used by upload and scan routes.
 
-### 1. Database
-```bash
-# Copy .env.local template
-cp .env.example .env.local
+### Cal.com
 
-# Update DATABASE_URL in .env.local
-DATABASE_URL=postgresql://postgres:password@localhost:5432/klaro_dev
+- `CAL_COM_API_KEY` is required for scheduling link generation.
+- `CAL_COM_WEBHOOK_SECRET` is optional but recommended if you validate incoming webhooks.
 
-# Run migrations
-npx prisma migrate dev --name init
-```
+### AI / OCR
 
-### 2. Backend Services
-```bash
-# Start backend in development
-cd packages/api
-npm run dev  # runs on :3001
-```
+- `LLM_PROVIDER` and `LLM_API_KEY` are used by the medical explanation service.
+- `LLM_MODEL` is optional.
+- `GOOGLE_VISION_API_KEY` and `OCR_CONFIDENCE_THRESHOLD` are optional OCR helpers.
 
-### 3. Frontend (Web)
-```bash
-# Start Next.js dev server
-cd apps/nextjs
-npm run dev  # runs on :3000
-```
+## Local vs production
 
-### 4. Mobile (Expo)
-```bash
-# Start Expo dev server
-cd apps/expo
-npm run start  # runs on :19000
-```
+- For local dev, the app can boot with `.env` and the defaults in the code.
+- For Vercel, make sure the same variables are added in the project settings.
+- Do not rely on `SKIP_ENV_VALIDATION` for production.
 
-## Demo & Testing Credentials
+## Current status
 
-### Demo Doctor Account
-```
-Email: doctor@demo.klaro.local
-PRC License: 123456-TEST
-Specialty: General Medicine
-Hourly Rate: ₱500
-```
-
-### Demo User Accounts
-```
-Guest: No credentials needed (automatic session)
-Registered: Use email + password via NextAuth
-Test Email: test@klaro.local
-Test Password: klaro-demo-2026
-```
-
-### Stripe Test Cards
-```
-Success: 4242 4242 4242 4242
-Decline: 4000 0000 0000 0002
-3D Secure: 4000 0025 0000 3155
-```
-
-## Security Checklist
-
-- [ ] No API keys committed to repo
-- [ ] .env.local in .gitignore
-- [ ] Database backups automated
-- [ ] HTTPS enforced in production
-- [ ] CORS configured per environment
-- [ ] Rate limiting on public endpoints
-- [ ] PII encrypted at rest
-- [ ] Share link tokens rotated regularly
+The repo previously had an outdated environment guide that referenced variables
+like Prisma, Stripe, and `NEXTAUTH_*`. Those are not the current focus of the
+Next.js app in this workspace, so the guide has been aligned to the current code.

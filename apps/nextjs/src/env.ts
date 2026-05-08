@@ -30,6 +30,7 @@ export const env = createEnv({
       .url()
       .default("http://localhost:54321"),
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().default("dummy-key"),
+    NEXT_PUBLIC_NEON_AUTH_URL: z.url().optional(),
   },
   /**
    * Destructure all variables from `process.env` to make sure they aren't tree-shaken away.
@@ -39,6 +40,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_NEON_AUTH_URL: process.env.NEXT_PUBLIC_NEON_AUTH_URL,
   },
   skipValidation:
     !!process.env.CI ||

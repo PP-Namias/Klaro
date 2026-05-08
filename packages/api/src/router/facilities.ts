@@ -1,12 +1,51 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, type SQL } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import { facility } from "@klaro/db/schema";
-import { searchNearbySchema } from "@klaro/validators";
+import {
+  searchNearbySchema,
+} from "@klaro/validators";
+
+const medicalContextSchema = z.object({
+  severity: z.enum(["LOW", "MODERATE", "HIGH"]),
+  testSummary: z.string().trim().min(1).max(500).optional(),
+  flaggedTests: z.array(
+    z.object({
+      name: z.string().trim().min(1),
+      value: z.string().trim().optional(),
+      unit: z.string().trim().optional(),
+    }),
+  ).default([]),
+});
+
+const recommendByTestResultsSchema = z.object({
+  extractedTests: z.array(
+    z.object({
+      name: z.string().trim().min(1),
+      value: z.string().trim().optional(),
+      unit: z.string().trim().optional(),
+      flagged: z.boolean().default(false),
+    }),
+  ),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  radiusKm: z.number().min(0.1).max(50).default(15),
+  limit: z.number().min(1).max(10).default(5),
+});
 
 import { publicProcedure } from "../trpc";
+import {
+  buildMedicalContext,
+  buildRecommendationSummary,
+  calculateDistanceKm,
+  matchesSpecialty,
+  matchesTextSearch,
+  rankFacilitiesForContext,
+  recommendFacilitiesByTests,
+  summarizeMedicalContext,
+} from "../services/facilities";
 
 const facilityTypeOrder = [
   "hospital",
@@ -18,58 +57,141 @@ const facilityTypeOrder = [
   "birthing_home",
 ] as const;
 
-const calculateDistanceKm = (
-  latitude1: number,
-  longitude1: number,
-  latitude2: number,
-  longitude2: number,
-) => {
-  const earthRadiusKm = 6371;
-  const latitudeDelta = ((latitude2 - latitude1) * Math.PI) / 180;
-  const longitudeDelta = ((longitude2 - longitude1) * Math.PI) / 180;
-  const latitude1Radians = (latitude1 * Math.PI) / 180;
-  const latitude2Radians = (latitude2 * Math.PI) / 180;
-
-  const a =
-    Math.sin(latitudeDelta / 2) ** 2 +
-    Math.cos(latitude1Radians) *
-      Math.cos(latitude2Radians) *
-      Math.sin(longitudeDelta / 2) ** 2;
-
-  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
-
-const parseSpecialties = (specialties: unknown) => {
-  if (!Array.isArray(specialties)) {
-    return [];
-  }
-
-  return specialties
-    .map((specialty) => (typeof specialty === "string" ? specialty.trim() : ""))
-    .filter((specialty) => specialty.length > 0);
-};
-
-const matchesSpecialty = (specialties: unknown, specialty: string) => {
-  const normalizedSpecialty = specialty.trim().toLowerCase();
-
-  return parseSpecialties(specialties).some(
-    (value) => value.toLowerCase() === normalizedSpecialty,
-  );
-};
-
 const facilityTypeRank = (type: string | null | undefined) => {
   const normalizedType = type?.toLowerCase() ?? "";
   const rank = facilityTypeOrder.indexOf(
-    normalizedType as unknown as typeof facilityTypeOrder[number],
+    normalizedType as (typeof facilityTypeOrder)[number],
   );
 
   return rank === -1 ? facilityTypeOrder.length : rank;
 };
 
+const toNumber = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const isEmergencyCapable = (facilityRow: {
+  facilityType?: string | null;
+  name?: string | null;
+  openingHours?: unknown;
+}) => {
+  const type = facilityRow.facilityType?.toLowerCase() ?? "";
+  if (type === "hospital" || type === "medical_center") {
+    return true;
+  }
+
+  const name = facilityRow.name?.toLowerCase() ?? "";
+  if (name.includes("emergency") || name.includes("urgent")) {
+    return true;
+  }
+
+  if (facilityRow.openingHours && typeof facilityRow.openingHours === "object") {
+    const values = Object.values(facilityRow.openingHours as Record<string, unknown>)
+      .map((value) => String(value).toLowerCase())
+      .join(" ");
+
+    return values.includes("24") || values.includes("24/7") || values.includes("24 hours");
+  }
+
+  return false;
+};
+
+const summarizeLoad = async (
+  rows: Array<Record<string, unknown>>,
+  latitude: number,
+  longitude: number,
+  input: {
+    facilityType?: string;
+    ownership?: "public" | "private";
+    philHealthOnly?: boolean;
+    textSearch?: string;
+    specialty?: string;
+    emergencyOnly?: boolean;
+  },
+) => {
+  return rows
+    .map((row) => {
+      const rowLatitude = toNumber(row.latitude);
+      const rowLongitude = toNumber(row.longitude);
+
+      if (rowLatitude === null || rowLongitude === null) {
+        return null;
+      }
+
+      if (input.facilityType && row.facilityType !== input.facilityType) {
+        return null;
+      }
+
+      if (input.ownership && row.ownership !== input.ownership) {
+        return null;
+      }
+
+      if (input.philHealthOnly && !row.isPhilHealthAccredited) {
+        return null;
+      }
+
+      if (input.textSearch && !matchesTextSearch(row, input.textSearch)) {
+        return null;
+      }
+
+      if (input.specialty && !matchesSpecialty(row.acceptedSpecialties, input.specialty)) {
+        return null;
+      }
+
+      if (input.emergencyOnly && !isEmergencyCapable(row)) {
+        return null;
+      }
+
+      const distance = calculateDistanceKm(latitude, longitude, rowLatitude, rowLongitude);
+
+      return {
+        ...row,
+        latitude: rowLatitude,
+        longitude: rowLongitude,
+        distance,
+      };
+    })
+    .filter((row): row is Record<string, unknown> & { distance: number; latitude: number; longitude: number } =>
+      row !== null,
+    );
+};
+
+const selectFacilities = async (ctx: { db: { select: () => { from: (table: typeof facility) => { where: (clause: SQL<unknown>) => { limit: (value: number) => Promise<unknown[]> }; limit: (value: number) => Promise<unknown[]> } } } }, input: {
+  facilityType?: string;
+  ownership?: "public" | "private";
+  philHealthOnly?: boolean;
+  limit: number;
+}) => {
+  const conditions: SQL<unknown>[] = [];
+
+  if (input.facilityType) {
+    conditions.push(eq(facility.facilityType, input.facilityType));
+  }
+
+  if (input.ownership) {
+    conditions.push(eq(facility.ownership, input.ownership));
+  }
+
+  if (input.philHealthOnly) {
+    conditions.push(eq(facility.isPhilHealthAccredited, true));
+  }
+
+  const safeLimit = Math.max(input.limit, 1);
+  const baseQuery = ctx.db.select().from(facility);
+
+  if (conditions.length === 0) {
+    return baseQuery.limit(safeLimit);
+  }
+
+  if (conditions.length === 1) {
+    return baseQuery.where(conditions[0]!).limit(safeLimit);
+  }
+
+  return baseQuery.where(and(...conditions)!).limit(safeLimit);
+};
+
 export const facilitiesRouter = {
-  /**
-   * List all facilities (with optional filtering)
-   */
   list: publicProcedure
     .input(
       z.object({
@@ -81,7 +203,7 @@ export const facilitiesRouter = {
       }),
     )
     .query(async ({ ctx, input }) => {
-      const conditions = [];
+      const conditions: SQL<unknown>[] = [];
 
       if (input.facilityType) {
         conditions.push(eq(facility.facilityType, input.facilityType));
@@ -97,26 +219,19 @@ export const facilitiesRouter = {
         );
       }
 
-      let whereClause = undefined;
-      if (conditions.length === 1) {
-        whereClause = conditions[0];
-      } else if (conditions.length > 1) {
-        whereClause = and(...conditions);
+      const baseQuery = ctx.db.select().from(facility);
+
+      if (conditions.length === 0) {
+        return baseQuery.limit(input.limit).offset(input.offset);
       }
 
-      const facilities = await ctx.db
-        .select()
-        .from(facility)
-        .where(whereClause)
-        .limit(input.limit)
-        .offset(input.offset);
+      if (conditions.length === 1) {
+        return baseQuery.where(conditions[0]!).limit(input.limit).offset(input.offset);
+      }
 
-      return facilities;
+      return baseQuery.where(and(...conditions)!).limit(input.limit).offset(input.offset);
     }),
 
-  /**
-   * Get facility by ID
-   */
   byId: publicProcedure
     .input(z.object({ id: z.uuid() }))
     .query(async ({ ctx, input }) => {
@@ -135,165 +250,107 @@ export const facilitiesRouter = {
       return fac;
     }),
 
-  /**
-   * Search facilities near a location (geolocation-based)
-   * Returns facilities within a radius (in km)
-   */
   searchNearby: publicProcedure
     .input(searchNearbySchema)
     .query(async ({ ctx, input }) => {
-      const conditions = [];
+      const rows = await selectFacilities(ctx, input);
+      const mapped = await summarizeLoad(
+        rows as Array<Record<string, unknown>>,
+        input.latitude,
+        input.longitude,
+        input,
+      );
 
-      if (input.facilityType) {
-        conditions.push(eq(facility.facilityType, input.facilityType));
-      }
+      return mapped
+        .sort((a, b) => {
+          const distanceDelta = a.distance - b.distance;
+          if (distanceDelta !== 0) return distanceDelta;
 
-      if (input.ownership) {
-        conditions.push(eq(facility.ownership, input.ownership));
-      }
+          const typeDelta = facilityTypeRank(
+            String(a.facilityType ?? ""),
+          ) - facilityTypeRank(String(b.facilityType ?? ""));
+          if (typeDelta !== 0) return typeDelta;
 
-      if (input.philHealthOnly) {
-        conditions.push(eq(facility.isPhilHealthAccredited, true));
-      }
-
-      let whereClause = undefined;
-      if (conditions.length === 1) {
-        whereClause = conditions[0];
-      } else if (conditions.length > 1) {
-        whereClause = and(...conditions);
-      }
-
-      const facilities = await ctx.db
-        .select()
-        .from(facility)
-        .where(whereClause)
-        .limit(input.limit);
-
-      const filteredFacilities = facilities
-        .filter((fac) => {
-          if (input.facilityType && fac.facilityType !== input.facilityType) {
-            return false;
-          }
-
-          if (input.ownership && fac.ownership !== input.ownership) {
-            return false;
-          }
-
-          if (input.philHealthOnly && !fac.isPhilHealthAccredited) {
-            return false;
-          }
-
-          return true;
+          return String(a.name ?? "").localeCompare(String(b.name ?? ""));
         })
-        .map((fac) => {
-          if (fac.latitude === null || fac.longitude === null) {
-            return null;
-          }
-
-          const latitude = Number(fac.latitude);
-          const longitude = Number(fac.longitude);
-
-          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-            return null;
-          }
-
-          const distanceKm = calculateDistanceKm(
-            input.latitude,
-            input.longitude,
-            latitude,
-            longitude,
-          );
-
-          return {
-            facility: fac,
-            distance: distanceKm,
-            latitude,
-            longitude,
-          };
-        })
-        .filter((item) => item && item.distance <= input.radiusKm)
-        .sort((a, b) => (a?.distance ?? 0) - (b?.distance ?? 0))
-        .slice(0, input.limit);
-
-      return filteredFacilities.map((item) => ({
-        ...item?.facility,
-        latitude: item?.latitude,
-        longitude: item?.longitude,
-        distance: item?.distance,
-      }));
+        .slice(0, input.limit)
+        .map((item) => ({
+          ...item,
+          latitude: item.latitude,
+          longitude: item.longitude,
+          distance: item.distance,
+        }));
     }),
 
-  /**
-   * Get the best suggested facility based on location and optional type
-   * Includes an AI-ready summary field
-   */
   bestSuggested: publicProcedure
     .input(
       z.object({
         latitude: z.number().min(-90).max(90),
         longitude: z.number().min(-180).max(180),
         facilityType: z.string().optional(),
+        medicalContext: medicalContextSchema.optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const facilities = await ctx.db
-        .select()
-        .from(facility)
-        .where(
-          input.facilityType
-            ? eq(facility.facilityType, input.facilityType)
-            : undefined,
-        )
-        .limit(50);
+      const rows = await selectFacilities(
+        ctx,
+        {
+          facilityType: input.facilityType,
+          limit: 50,
+        },
+      );
 
-      const sorted = facilities
-        .map((fac) => {
-          const latitude = Number(fac.latitude);
-          const longitude = Number(fac.longitude);
+      const mapped = await summarizeLoad(
+        rows as Array<Record<string, unknown>>,
+        input.latitude,
+        input.longitude,
+        {
+          facilityType: input.facilityType,
+        },
+      );
 
-          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-            return null;
-          }
+      const ranked = rankFacilitiesForContext(
+        mapped,
+        input.medicalContext,
+      );
 
-          return {
-            ...fac,
-            distance: calculateDistanceKm(
-              input.latitude,
-              input.longitude,
-              latitude,
-              longitude,
-            ),
-          };
-        })
-        .filter(
-          (f): f is (typeof facilities)[0] & { distance: number } => f !== null,
-        )
-        .sort((a, b) => {
-          const typeRankDelta =
-            facilityTypeRank(a.facilityType) - facilityTypeRank(b.facilityType);
-
-          if (typeRankDelta !== 0) return typeRankDelta;
-
-          if (a.isPhilHealthAccredited && !b.isPhilHealthAccredited) return -1;
-          if (!a.isPhilHealthAccredited && b.isPhilHealthAccredited) return 1;
-          return a.distance - b.distance;
-        });
-
-      const best = sorted[0];
+      const best = ranked[0];
       if (!best) return null;
-
-      // In a real implementation, this summary would be generated by an LLM
-      const summary = `Best suggested ${best.facilityType ?? "facility"} based on your location is ${best.name}. It is a ${best.ownership} facility ${best.isPhilHealthAccredited ? "with PhilHealth accreditation" : ""}. Estimated travel distance is ${best.distance.toFixed(1)} km.`;
 
       return {
         ...best,
-        summary,
+        summary: await buildRecommendationSummary(
+          best,
+          input.medicalContext,
+          best.distance,
+        ),
       };
     }),
 
-  /**
-   * Search facilities by specialty
-   */
+  recommendByTestResults: publicProcedure
+    .input(recommendByTestResultsSchema)
+    .query(async ({ ctx, input }) => {
+      const rows = await selectFacilities(ctx, {
+        limit: 200,
+      });
+
+      const mapped = await summarizeLoad(
+        rows as Array<Record<string, unknown>>,
+        input.latitude,
+        input.longitude,
+        {
+          emergencyOnly: false,
+        },
+      );
+
+      const recommendations = await recommendFacilitiesByTests(
+        mapped,
+        input,
+      );
+
+      return recommendations;
+    }),
+
   searchBySpecialty: publicProcedure
     .input(
       z.object({
@@ -312,16 +369,10 @@ export const facilitiesRouter = {
       );
     }),
 
-  /**
-   * List facility types (for filtering)
-   */
   getTypes: publicProcedure.query(() => {
     return facilityTypeOrder;
   }),
 
-  /**
-   * Get operating hours for a facility
-   */
   getOperatingHours: publicProcedure
     .input(z.object({ id: z.uuid() }))
     .query(async ({ ctx, input }) => {

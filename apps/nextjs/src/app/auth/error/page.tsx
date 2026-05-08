@@ -1,17 +1,26 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-
 import { Button } from "@klaro/ui/button";
 
 import styles from "./page.module.css";
 
-function AuthErrorContent() {
-  const searchParams = useSearchParams();
-  const errorCode = searchParams.get("error");
-  const errorDescription = searchParams.get("error_description");
+type AuthErrorPageProps = Readonly<{
+  searchParams?: Readonly<{
+    error?: string | string[];
+    error_description?: string | string[];
+  }>;
+}>;
+
+function firstValue(value: string | string[] | undefined) {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value ?? null;
+}
+
+function AuthErrorContent({ searchParams }: AuthErrorPageProps) {
+  const errorCode = firstValue(searchParams?.error);
+  const errorDescription = firstValue(searchParams?.error_description);
 
   const getErrorMessage = (code: string | null, description: string | null) => {
     if (description) {
@@ -150,6 +159,7 @@ function AuthErrorContent() {
     </main>
   );
 }
-export default function AuthErrorPage() {
-  return <AuthErrorContent />;
+
+export default function AuthErrorPage({ searchParams }: AuthErrorPageProps) {
+  return <AuthErrorContent searchParams={searchParams} />;
 }

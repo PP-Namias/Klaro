@@ -33,10 +33,20 @@ export type {
 export {
   facilityTypeEnum,
   searchNearbySchema,
+  medicalContextSchema,
+  recommendByTestResultsSchema,
   facilityResponseSchema,
 } from "./facilities";
 export type {
   FacilityType,
   SearchNearbyInput,
+  MedicalContextInput,
+  RecommendByTestResultsInput,
   FacilityResponse,
 } from "./facilities";
+
+export {
+  aiScanAnalysisSchema,
+  analyzeScanInputSchema,
+} from "./scan-analysis";
+export type { AIScanAnalysis, AnalyzeScanInput } from "./scan-analysis";

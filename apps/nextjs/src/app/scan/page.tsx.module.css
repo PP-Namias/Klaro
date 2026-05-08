@@ -1,0 +1,4 @@
+.layout { display: flex; min-height: 100vh; }
+.mainWrapper { flex: 1; display: flex; flex-direction: column; }
+.mainContent { padding: 2rem; width: 100%; }
+.backgroundGlow { position: absolute; inset: 0; pointer-events: none; z-index: -1; }

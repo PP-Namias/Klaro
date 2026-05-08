@@ -11,6 +11,8 @@
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
     "start": "pnpm with-env next start",
     "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "unit-test": "node scripts/run-unit-test.cjs",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {

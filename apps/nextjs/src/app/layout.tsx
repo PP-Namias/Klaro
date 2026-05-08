@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Geist } from "next/font/google";
 
-
 import { cn } from "@klaro/ui";
 import { ThemeProvider, ThemeToggle } from "@klaro/ui/theme";
 import { Toaster } from "@klaro/ui/toast";
 
+import { LenisProvider } from "~/components/lenis-provider";
+import { ScrollToTopButton } from "~/components/scroll-to-top-button";
 import { env } from "~/env";
 import { TRPCReactProvider } from "~/trpc/react";
 
@@ -53,7 +54,7 @@ const geist = Geist({
   variable: "--font-geist",
 });
 
-export default function RootLayout(props: { children: React.ReactNode }) {
+export default function RootLayout(props: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -64,11 +65,14 @@ export default function RootLayout(props: { children: React.ReactNode }) {
         )}
       >
         <ThemeProvider>
-          <TRPCReactProvider>{props.children}</TRPCReactProvider>
-          <div className="absolute right-4 bottom-4">
-            <ThemeToggle />
-          </div>
-          <Toaster />
+          <LenisProvider>
+            <TRPCReactProvider>{props.children}</TRPCReactProvider>
+            <div className="absolute right-4 bottom-4">
+              <ThemeToggle />
+            </div>
+            <ScrollToTopButton />
+            <Toaster />
+          </LenisProvider>
         </ThemeProvider>
       </body>
     </html>

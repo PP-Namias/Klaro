@@ -1,30 +1,33 @@
-import { getSession } from "~/auth/server";
-import { ScanHeader } from "~/layouts/Scan/ScanHeader";
-import { ScanHero } from "~/layouts/Scan/ScanHero";
-import { ScanPreview } from "~/layouts/Scan/ScanPreview";
-import { ScanGrid } from "~/layouts/Scan/ScanGrid";
-import styles from "./page.module.css";
+import React from "react";
+import Image from "next/image";
 
-export default async function ScanPage() {
-  const session = await getSession();
+import { ScannerNavbar } from "~/layouts/SampleScanner/ScannerNavbar";
+import { Sidebar } from "~/layouts/SampleScanner/Sidebar";
+import { ScanContainer } from "~/components/scan-container";
+import styles from "./page.tsx.module.css";
 
-  return (
-    <main className={styles.scan}>
-      <div className={styles.scan__shell}>
-        <ScanHeader session={session} />
+export default function ScanPage() {
+	return (
+		<div className={styles.layout}>
+			<Sidebar />
+			<div className={styles.mainWrapper}>
+				<ScannerNavbar />
+				<main className={styles.mainContent}>
+					<React.Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+						<ScanContainer />
+					</React.Suspense>
+				</main>
+			</div>
+			<div className={styles.backgroundGlow}>
+				<Image
+					src="/scan-bg.svg"
+					alt="Glow Background"
+					fill
+					style={{ objectFit: "cover", objectPosition: "bottom" }}
+					priority
+				/>
+			</div>
+		</div>
+	);
+}
 
-        <section className={styles.scan__hero}>
-          <ScanHero session={session} />
-          <ScanPreview session={session} />
-        </section>
-
-        <ScanGrid />
-
-        <footer className={styles.scan__footer}>
-          <span>Guest mode remains visible for quick scans and private sharing.</span>
-          <span>Registered mode keeps saved analyses and follow-up context.</span>
-        </footer>
-      </div>
-    </main>
-  );
-}

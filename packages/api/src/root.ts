@@ -9,6 +9,7 @@ import { documentsRouter } from "./router/documents";
 import { facilitiesRouter } from "./router/facilities";
 import { paymentsRouter } from "./router/payments";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "./trpc";
+import { callLLMAPI } from "./services/llm";
 
 const apiVersion = "1.0.0";
 
@@ -24,6 +25,16 @@ export const appRouter = createTRPCRouter({
     version: apiVersion,
     timestamp: new Date().toISOString(),
   })),
+
+  // Quick LLM connectivity test (public) — returns model output for a short prompt
+  llmTest: publicProcedure
+    .input(z.object({ prompt: z.string().min(1).max(2000).optional() }).optional())
+    .query(async ({ input }) => {
+      const prompt = input?.prompt || "Say hello in Filipino and ask one follow-up question.";
+      const systemPrompt = "You are a helpful assistant.";
+      const output = await callLLMAPI(prompt, systemPrompt);
+      return { output };
+    }),
 
   me: protectedProcedure.query(({ ctx }) => ({
     id: ctx.session?.user?.id,
