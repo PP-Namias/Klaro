@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 export function Clarity() {
   const clarityItems = [
@@ -93,6 +95,13 @@ export function Clarity() {
               className="object-contain p-8 transition-transform duration-500 group-hover:scale-110"
             />
           </div>
+          <Link
+            href="/maps"
+            className="feature-card-description mt-8 inline-flex items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1"
+          >
+            Try it out{" "}
+            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </div>
     </section>
