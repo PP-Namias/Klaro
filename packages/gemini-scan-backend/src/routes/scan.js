@@ -10,6 +10,13 @@ const db = require('../db');
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+function isLikelyBase64(value) {
+  if (typeof value !== 'string') return false;
+  const sanitized = value.replace(/[\r\n\s]/g, '');
+  if (sanitized.length < 100 || sanitized.length % 4 !== 0) return false;
+  return /^[A-Za-z0-9+/=]+$/.test(sanitized);
+}
+
 router.post('/scan', upload.array('file'), async (req, res) => {
   try {
     let metadata = {};
@@ -18,15 +25,24 @@ router.post('/scan', upload.array('file'), async (req, res) => {
     }
     metadata = {
       ...metadata,
-      task: metadata.task || 'medical_scan'
+      task: metadata.task || 'medical_scan',
+      language: metadata.language === 'Filipino' ? 'Filipino' : 'English'
     };
     const scanId = metadata.requestId || uuidv4();
 
     // Support JSON body with images (base64) as well as multipart files
     const saved = [];
     if (req.is('application/json') && req.body && req.body.images) {
+      if (!Array.isArray(req.body.images) || req.body.images.length === 0) {
+        return res.status(400).json({ error: 'invalid_images', message: 'images[] is required' });
+      }
+
       for (const im of req.body.images) {
-        const buf = Buffer.from(im.bytesBase64 || '', 'base64');
+        if (!isLikelyBase64(im.bytesBase64)) {
+          return res.status(400).json({ error: 'invalid_base64', message: 'images[].bytesBase64 is malformed or empty' });
+        }
+
+        const buf = Buffer.from(im.bytesBase64, 'base64');
         // save locally
         const out = await storage.saveFile(scanId, im.filename || `image-${Date.now()}.jpg`, buf);
         // optionally upload to presigned url

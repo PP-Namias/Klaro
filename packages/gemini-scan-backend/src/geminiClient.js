@@ -235,7 +235,7 @@ async function processImages(images, metadata = {}, opts = {}) {
       parts: [{ text: buildUserPrompt(taskMetadata) }, ...inlineParts]
     }],
     generationConfig: {
-      temperature: 0.2,
+      temperature: 0,
       maxOutputTokens: 8192,
       responseMimeType: 'application/json'
     }
