@@ -152,6 +152,9 @@ export default function FacilitiesClient() {
     }),
   });
 
+  // If the facilities queries failed, surface a simple error UI so the map
+  // still has a helpful message instead of a perpetual Suspense/loading state.
+
   const facilities = (facilitiesQuery.data ?? []) as Facility[];
   const isFacilitiesLoading = facilitiesQuery.isLoading;
 
@@ -186,6 +189,11 @@ export default function FacilitiesClient() {
       rows.filter((row) => Boolean(row.id)).map((row) => [String(row.id), row]),
     );
   }, [recommendationsQuery.data]);
+
+  // Combine query error states after all queries have been created to avoid
+  // referencing a variable before it's initialized.
+  const hasQueryError =
+    facilitiesQuery.isError || bestSuggestedQuery.isError || recommendationsQuery.isError;
 
   const facilitySpecialties = useMemo(() => {
     const specialties = new Set<string>();
@@ -320,6 +328,12 @@ export default function FacilitiesClient() {
                   />
                 );
               })
+            )}
+            {hasQueryError && (
+              <div className="p-6 text-sm text-amber-700">
+                There was a problem loading nearby facilities. You can still use
+                the map, or try refreshing the page.
+              </div>
             )}
           </div>
         </aside>

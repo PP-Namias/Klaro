@@ -14,10 +14,6 @@ export function Footer() {
             <Image src="/klaro-dark.svg" alt="Klaro" width={24} height={24} />
             <span className="text-sm font-medium">Klaro</span>
           </Link>
-
-          <Link href="/scan" className="inline-flex items-center justify-center rounded-full bg-black px-3 py-1 text-xs font-medium text-white">
-            Start a scan
-          </Link>
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-xs text-zinc-600 md:grid-cols-3">

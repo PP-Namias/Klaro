@@ -1,19 +1,9 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import L from "leaflet";
+import { useEffect, useMemo, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
-import "leaflet/dist/leaflet.css";
-
-const iconFactory = (emoji: string, background: string) =>
-  L.divIcon({
-    className: "",
-    html: `<div style="width:32px;height:32px;border-radius:9999px;background:${background};display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(15,23,42,.25);border:2px solid white;font-size:16px;line-height:1">${emoji}</div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -30],
-  });
+// Icons are created dynamically after Leaflet is available in the browser.
 
 export interface Facility {
   id?: string;
@@ -74,11 +64,27 @@ export default function FacilityMap({
   scrollWheelZoom = true,
   zoomControl = true,
 }: FacilityMapProps) {
-  const defaultMarker = iconFactory("📍", "#18181b"); // zinc-900
-  const hospitalMarker = iconFactory("🏥", "#ef4444"); // red-500
-  const clinicMarker = iconFactory("🩺", "#10b981"); // emerald-500
-  const diagnosticMarker = iconFactory("🔬", "#8b5cf6"); // violet-500
-  const healthUnitMarker = iconFactory("💊", "#f97316"); // orange-500
+  const isBrowser = typeof globalThis.window !== "undefined";
+
+  // Client-only: dynamically create Leaflet divIcons to avoid referencing
+  // Leaflet at module import time. This prevents SSR/bundler issues and
+  // ensures icons are available once the browser has loaded Leaflet.
+  const [icons, setIcons] = useState<
+    | {
+        default: any;
+        hospital: any;
+        clinic: any;
+        diagnostic: any;
+        healthUnit: any;
+      }
+    | null
+  >(null);
+
+  const defaultMarker = icons?.default;
+  const hospitalMarker = icons?.hospital;
+  const clinicMarker = icons?.clinic;
+  const diagnosticMarker = icons?.diagnostic;
+  const healthUnitMarker = icons?.healthUnit;
 
   const getMarkerIcon = (facilityType?: string | null) => {
     const type = facilityType?.toLowerCase() ?? "";
@@ -90,7 +96,40 @@ export default function FacilityMap({
     return defaultMarker;
   };
 
-  const isBrowser = typeof window !== "undefined";
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const L = await import("leaflet");
+        await import("leaflet/dist/leaflet.css");
+        const factory = (emoji: string, background: string) =>
+          L.divIcon({
+            className: "",
+            html: `<div style="width:32px;height:32px;border-radius:9999px;background:${background};display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(15,23,42,.25);border:2px solid white;font-size:16px;line-height:1">${emoji}</div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -30],
+          });
+
+        if (!mounted) return;
+        setIcons({
+          default: factory("📍", "#18181b"),
+          hospital: factory("🏥", "#ef4444"),
+          clinic: factory("🩺", "#10b981"),
+          diagnostic: factory("🔬", "#8b5cf6"),
+          healthUnit: factory("💊", "#f97316"),
+        });
+      } catch (err) {
+        // Fail silently; markers will fall back to default icons.
+        // Console log for debug during development.
+        // eslint-disable-next-line no-console
+        console.warn("Failed to load Leaflet icons:", err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const validFacilities = useMemo(
     () =>
@@ -123,7 +162,7 @@ export default function FacilityMap({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {validFacilities.map((facility, index) => {
+        {validFacilities.map((facility, index) => {
         const position: [number, number] = [
           Number(facility.latitude),
           Number(facility.longitude),
@@ -133,7 +172,7 @@ export default function FacilityMap({
           <Marker
             key={facility.id ?? index}
             position={position}
-            icon={getMarkerIcon(facility.facilityType)}
+            {...(icons ? { icon: getMarkerIcon(facility.facilityType) } : {})}
             eventHandlers={{
               click: () => onMarkerClick?.(facility),
             }}

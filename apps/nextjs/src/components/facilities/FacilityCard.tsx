@@ -107,7 +107,15 @@ export function FacilityCard({
           aria-label="5 star rating"
         >
           {Array.from({ length: 5 }).map((_, index) => (
-            <Star key={index} className="h-3.5 w-3.5 fill-current text-white" />
+            <svg
+              key={index}
+              className="h-3.5 w-3.5 fill-current text-white"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path d="M12 .587l3.668 7.431L23.4 9.75l-5.7 5.554L19.335 24 12 19.897 4.665 24l1.636-8.696L.6 9.75l7.732-1.732L12 .587z" />
+            </svg>
           ))}
         </span>
       </div>
