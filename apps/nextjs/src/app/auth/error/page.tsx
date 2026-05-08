@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { Button } from "@klaro/ui/button";
 
 import styles from "./page.module.css";

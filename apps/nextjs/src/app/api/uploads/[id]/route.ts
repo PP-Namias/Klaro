@@ -3,6 +3,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { eq } from "drizzle-orm";
 
 import { db } from "@klaro/db";
+
 import { assertSession } from "~/lib/session-validation";
 
 cloudinary.config({
@@ -25,7 +26,7 @@ export const OPTIONS = () => {
 
 export const GET = async (
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) => {
   const { id } = await params;
 

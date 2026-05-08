@@ -1,9 +1,9 @@
 import type { NextRequest } from "next/server";
 
 import { appRouter, createTRPCContext } from "@klaro/api";
+import { searchNearbySchema } from "@klaro/validators";
 
 import { auth } from "~/auth/server";
-import { searchNearbySchema } from "@klaro/validators";
 
 const setCorsHeaders = (res: Response) => {
   res.headers.set("Access-Control-Allow-Origin", "*");
@@ -29,12 +29,16 @@ export const parseNearbyInput = (
     longitude: Number(fromQuery.longitude ?? body.longitude),
     radiusKm: Number(fromQuery.radiusKm ?? body.radiusKm ?? 10),
     limit: Number(fromQuery.limit ?? body.limit ?? 20),
-    facilityType: (fromQuery.facilityType ?? body.facilityType) as string | undefined,
+    facilityType: (fromQuery.facilityType ?? body.facilityType) as
+      | string
+      | undefined,
     ownership: (fromQuery.ownership ?? body.ownership) as
       | "public"
       | "private"
       | undefined,
-    philHealthOnly: parseBoolean(fromQuery.philHealthOnly ?? body.philHealthOnly),
+    philHealthOnly: parseBoolean(
+      fromQuery.philHealthOnly ?? body.philHealthOnly,
+    ),
     textSearch: (fromQuery.textSearch ?? body.textSearch) as string | undefined,
     specialty: (fromQuery.specialty ?? body.specialty) as string | undefined,
     emergencyOnly: parseBoolean(fromQuery.emergencyOnly ?? body.emergencyOnly),

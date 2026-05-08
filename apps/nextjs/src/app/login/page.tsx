@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-
 import Link from "next/link";
 
 import { Button } from "@klaro/ui/button";
 
 import { SignInButton } from "../../components/sign-in-button";
-
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -50,7 +48,9 @@ export default function LoginPage() {
               <article key={benefit.title} className={styles.login__benefit}>
                 <span className={styles.login__benefitIndex}>{index + 1}</span>
                 <div>
-                  <h2 className={styles.login__benefitTitle}>{benefit.title}</h2>
+                  <h2 className={styles.login__benefitTitle}>
+                    {benefit.title}
+                  </h2>
                   <p className={styles.login__benefitBody}>{benefit.body}</p>
                 </div>
               </article>

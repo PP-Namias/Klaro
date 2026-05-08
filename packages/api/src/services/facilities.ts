@@ -1,5 +1,5 @@
-import type { ExtractedTest } from "@klaro/validators/extraction";
 import type { FacilityResponse } from "@klaro/validators";
+import type { ExtractedTest } from "@klaro/validators/extraction";
 
 import { callLLMAPI } from "./llm";
 
@@ -111,8 +111,8 @@ export const matchesSpecialty = (specialties: unknown, specialty: string) => {
   const needle = normalize(specialty);
   if (!needle) return true;
 
-  return parseSpecialties(specialties).some(
-    (value) => normalize(value).includes(needle),
+  return parseSpecialties(specialties).some((value) =>
+    normalize(value).includes(needle),
   );
 };
 
@@ -145,10 +145,16 @@ export const isEmergencyCapable = (facility: FacilityLike) => {
   const openingHours = facility.openingHours;
   if (openingHours && typeof openingHours === "object") {
     const values = Object.values(openingHours as Record<string, unknown>)
-      .map((value) => normalize(typeof value === "string" ? value : String(value)))
+      .map((value) =>
+        normalize(typeof value === "string" ? value : String(value)),
+      )
       .join(" ");
 
-    if (values.includes("24") || values.includes("24/7") || values.includes("24 hours")) {
+    if (
+      values.includes("24") ||
+      values.includes("24/7") ||
+      values.includes("24 hours")
+    ) {
       return true;
     }
   }
@@ -160,19 +166,35 @@ const extractEmergencyTargets = (tests: ExtractedTest[]) => {
   const targets = new Set<string>();
   for (const test of tests) {
     const label = normalize(test.name);
-    if (label.includes("glucose") || label.includes("hba1c") || label.includes("blood sugar")) {
+    if (
+      label.includes("glucose") ||
+      label.includes("hba1c") ||
+      label.includes("blood sugar")
+    ) {
       targets.add("endocrinology");
       targets.add("internal medicine");
     }
-    if (label.includes("creatinine") || label.includes("bun") || label.includes("urinalysis")) {
+    if (
+      label.includes("creatinine") ||
+      label.includes("bun") ||
+      label.includes("urinalysis")
+    ) {
       targets.add("nephrology");
       targets.add("internal medicine");
     }
-    if (label.includes("cholesterol") || label.includes("ldl") || label.includes("triglyceride")) {
+    if (
+      label.includes("cholesterol") ||
+      label.includes("ldl") ||
+      label.includes("triglyceride")
+    ) {
       targets.add("cardiology");
       targets.add("internal medicine");
     }
-    if (label.includes("cbc") || label.includes("hemoglobin") || label.includes("platelet")) {
+    if (
+      label.includes("cbc") ||
+      label.includes("hemoglobin") ||
+      label.includes("platelet")
+    ) {
       targets.add("hematology");
       targets.add("internal medicine");
     }
@@ -181,12 +203,16 @@ const extractEmergencyTargets = (tests: ExtractedTest[]) => {
   return [...targets];
 };
 
-export const buildMedicalContext = (tests: ExtractedTest[]): MedicalContextInput => {
-  const flaggedTests = tests.filter((test) => test.flagged).map((test) => ({
-    name: test.name,
-    value: test.value,
-    unit: test.unit,
-  }));
+export const buildMedicalContext = (
+  tests: ExtractedTest[],
+): MedicalContextInput => {
+  const flaggedTests = tests
+    .filter((test) => test.flagged)
+    .map((test) => ({
+      name: test.name,
+      value: test.value,
+      unit: test.unit,
+    }));
 
   const severity =
     flaggedTests.length === 0
@@ -231,14 +257,20 @@ const scoreFacility = (
   const reasons: string[] = [];
   let score = 0;
 
-  score += Math.max(0, FACILITY_TYPE_ORDER.length - facilityTypeRank(facility.facilityType)) * 5;
+  score +=
+    Math.max(
+      0,
+      FACILITY_TYPE_ORDER.length - facilityTypeRank(facility.facilityType),
+    ) * 5;
 
   if (facility.isPhilHealthAccredited) {
     score += 3;
     reasons.push("PhilHealth accredited");
   }
 
-  const facilitySpecialties = parseSpecialties(facility.acceptedSpecialties).map((specialty) => normalize(specialty));
+  const facilitySpecialties = parseSpecialties(
+    facility.acceptedSpecialties,
+  ).map((specialty) => normalize(specialty));
   const matchedSpecialty = targetSpecialties.find((specialty) =>
     facilitySpecialties.some((value) => value.includes(normalize(specialty))),
   );
@@ -251,12 +283,18 @@ const scoreFacility = (
   if (medicalContext?.severity === "HIGH" && isEmergencyCapable(facility)) {
     score += 10;
     reasons.push("Emergency-capable for high severity findings");
-  } else if (medicalContext?.severity === "MODERATE" && isEmergencyCapable(facility)) {
+  } else if (
+    medicalContext?.severity === "MODERATE" &&
+    isEmergencyCapable(facility)
+  ) {
     score += 4;
     reasons.push("Suitable for follow-up care");
   }
 
-  const distance = typeof facility.distance === "number" ? facility.distance : Number.POSITIVE_INFINITY;
+  const distance =
+    typeof facility.distance === "number"
+      ? facility.distance
+      : Number.POSITIVE_INFINITY;
   if (Number.isFinite(distance)) {
     score += Math.max(0, 25 - Math.min(distance, 25));
   }
@@ -273,14 +311,20 @@ export const rankFacilitiesForContext = (
     .map((facility) => {
       const latitude = Number(facility.latitude);
       const longitude = Number(facility.longitude);
-      const distance = typeof facility.distance === "number"
-        ? facility.distance
-        : Number.isFinite(latitude) && Number.isFinite(longitude)
-          ? facility.distance ?? 0
-          : 0;
+      const distance =
+        typeof facility.distance === "number"
+          ? facility.distance
+          : Number.isFinite(latitude) && Number.isFinite(longitude)
+            ? (facility.distance ?? 0)
+            : 0;
 
-      const { score, reasons } = scoreFacility(facility, medicalContext, targetSpecialties);
-      const urgency: RankedFacility["urgency"] = medicalContext?.severity === "HIGH"
+      const { score, reasons } = scoreFacility(
+        facility,
+        medicalContext,
+        targetSpecialties,
+      );
+      const urgency: RankedFacility["urgency"] =
+        medicalContext?.severity === "HIGH"
           ? "HIGH"
           : medicalContext?.severity === "MODERATE"
             ? "MODERATE"
@@ -308,7 +352,8 @@ export const rankFacilitiesForContext = (
       if (scoreDelta !== 0) return scoreDelta;
       const distanceDelta = a.distance - b.distance;
       if (distanceDelta !== 0) return distanceDelta;
-      const rankDelta = facilityTypeRank(a.facilityType) - facilityTypeRank(b.facilityType);
+      const rankDelta =
+        facilityTypeRank(a.facilityType) - facilityTypeRank(b.facilityType);
       if (rankDelta !== 0) return rankDelta;
       return a.name.localeCompare(b.name);
     });
@@ -328,9 +373,15 @@ export const generateFacilityRecommendation = async (
   }
 
   const reasonParts = [
-    facility.facilityType ? `It is a ${facility.facilityType}.` : "It is a medical facility.",
-    facility.isPhilHealthAccredited ? "It accepts PhilHealth." : "PhilHealth is not listed.",
-    typeof distanceKm === "number" ? `It is about ${distanceKm.toFixed(1)} km away.` : undefined,
+    facility.facilityType
+      ? `It is a ${facility.facilityType}.`
+      : "It is a medical facility.",
+    facility.isPhilHealthAccredited
+      ? "It accepts PhilHealth."
+      : "PhilHealth is not listed.",
+    typeof distanceKm === "number"
+      ? `It is about ${distanceKm.toFixed(1)} km away.`
+      : undefined,
     medicalContext?.severity === "HIGH"
       ? "It is suitable to review sooner because your test results need urgent follow-up."
       : medicalContext?.severity === "MODERATE"
@@ -353,7 +404,9 @@ export const recommendFacilitiesByTests = async (
   facilities: FacilityLike[],
   input: RecommendByTestResultsInput,
 ) => {
-  const flaggedTests = input.extractedTests.filter((test) => Boolean(test.flagged));
+  const flaggedTests = input.extractedTests.filter((test) =>
+    Boolean(test.flagged),
+  );
   const normalizedTests: ExtractedTest[] = input.extractedTests.map((test) => ({
     name: test.name,
     value: test.value ?? "",
@@ -362,10 +415,13 @@ export const recommendFacilitiesByTests = async (
     referenceRange: undefined,
   }));
 
-  const medicalContext = buildMedicalContext(
-    normalizedTests,
-  );
-  medicalContext.severity = flaggedTests.length >= 3 ? "HIGH" : flaggedTests.length > 0 ? "MODERATE" : "LOW";
+  const medicalContext = buildMedicalContext(normalizedTests);
+  medicalContext.severity =
+    flaggedTests.length >= 3
+      ? "HIGH"
+      : flaggedTests.length > 0
+        ? "MODERATE"
+        : "LOW";
   medicalContext.testSummary = flaggedTests.length
     ? `${flaggedTests.length} flagged result(s) need follow-up.`
     : "No flagged results provided.";
@@ -378,7 +434,11 @@ export const recommendFacilitiesByTests = async (
   const radiusKm = input.radiusKm ?? 15;
   const limit = input.limit ?? 5;
 
-  const ranked = rankFacilitiesForContext(facilities, medicalContext, specialties)
+  const ranked = rankFacilitiesForContext(
+    facilities,
+    medicalContext,
+    specialties,
+  )
     .filter((facility) => facility.distance <= radiusKm)
     .slice(0, limit);
 

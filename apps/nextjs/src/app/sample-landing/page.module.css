@@ -131,14 +131,14 @@
 
 .cardBody {
   @apply card-description;
-  color: #8C8C8C;
+  color: #8c8c8c;
   margin: 0;
 }
 
 .bannerLight {
   background-color: #ffffff;
   padding: 1.5rem;
-  color: #8C8C8C;
+  color: #8c8c8c;
   font-size: 0.85rem;
   line-height: 1.5;
   border-radius: 24px;
@@ -454,7 +454,7 @@
   background-color: #e5e5e5;
   border-radius: 16px;
   width: 100%;
-  min-height:600px;
+  min-height: 600px;
 }
 
 .stackedCards {
@@ -534,7 +534,7 @@
 
 .avatarRole {
   font-size: 0.85rem;
-  color: #8C8C8C;
+  color: #8c8c8c;
   margin: 0;
 }
 
@@ -571,7 +571,7 @@
 
 .secureBody {
   font-size: 1.25rem;
-  color: #8C8C8C;
+  color: #8c8c8c;
   line-height: 1.5;
   margin: 0;
 }
@@ -619,7 +619,7 @@
 
 .testimonialRole {
   font-size: 1rem;
-  color: #8C8C8C;
+  color: #8c8c8c;
   margin: 0;
 }
 
@@ -707,8 +707,6 @@
   gap: 1rem;
   margin-bottom: 2rem;
 }
-
-
 
 /* --- Layout Classes for Footer --- */
 .footerFinal {
@@ -803,7 +801,7 @@
 
 .testimonialRole {
   font-size: 1rem;
-  color: #8C8C8C;
+  color: #8c8c8c;
   margin: 0;
 }
 
@@ -1007,8 +1005,9 @@
   width: 100%;
   max-width: 1400px;
   padding: 0 4rem;
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.35s ease;
+  transition:
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.35s ease;
   opacity: 0;
   pointer-events: none;
 }
@@ -1067,7 +1066,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .floatingBtnBlack:hover {

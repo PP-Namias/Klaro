@@ -1,15 +1,14 @@
 "use client";
 
-import React from "react";
-import { useEffect, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 
 import { Button } from "@klaro/ui/button";
 import { toast } from "@klaro/ui/toast";
 
-import { useTRPC } from "~/trpc/react";
 import { saveScanAnalysisSession } from "~/components/scan-session";
+import { useTRPC } from "~/trpc/react";
 
 interface SelectedFile {
   file: File;
@@ -69,8 +68,7 @@ export function UploadForm() {
   const [scanState, setScanState] = useState<ScanUIState>("idle");
   const [cameraActive, setCameraActive] = useState(false);
 
-  const isProcessing =
-    scanState === "uploading" || scanState === "processing";
+  const isProcessing = scanState === "uploading" || scanState === "processing";
 
   const trpc = useTRPC();
 
@@ -79,7 +77,8 @@ export function UploadForm() {
       onSuccess: (result) => {
         if (result.status === "error") {
           setScanState("error");
-          const message = "error" in result ? (result.error ?? "Scan failed") : "Scan failed";
+          const message =
+            "error" in result ? (result.error ?? "Scan failed") : "Scan failed";
           setUploadStatus(message);
           saveScanAnalysisSession({
             requestId: result.requestId,
@@ -109,12 +108,15 @@ export function UploadForm() {
               ? result.extractedData
               : undefined,
           plainLanguageSummary:
-            "plainLanguageSummary" in result && typeof result.plainLanguageSummary === "string"
+            "plainLanguageSummary" in result &&
+            typeof result.plainLanguageSummary === "string"
               ? result.plainLanguageSummary
               : undefined,
           urgency:
             "urgency" in result &&
-            (result.urgency === "LOW" || result.urgency === "MODERATE" || result.urgency === "HIGH")
+            (result.urgency === "LOW" ||
+              result.urgency === "MODERATE" ||
+              result.urgency === "HIGH")
               ? result.urgency
               : undefined,
           recommendations:
@@ -152,9 +154,14 @@ export function UploadForm() {
     let mounted = true;
     async function startCamera() {
       try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } } 
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)
+          return;
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
         });
         if (!mounted) return;
         if (videoRef.current) {
@@ -171,7 +178,10 @@ export function UploadForm() {
     void startCamera();
     return () => {
       mounted = false;
-      if (videoRef.current && videoRef.current.srcObject instanceof MediaStream) {
+      if (
+        videoRef.current &&
+        videoRef.current.srcObject instanceof MediaStream
+      ) {
         const st = videoRef.current.srcObject as MediaStream;
         st.getTracks().forEach((t) => t.stop());
       }
@@ -198,7 +208,9 @@ export function UploadForm() {
 
   const selectFile = (file: File) => {
     if (!acceptedTypes.has(file.type)) {
-      setError("File type not supported. Please use PNG, JPG, PDF, WebP, TIFF, BMP, or GIF.");
+      setError(
+        "File type not supported. Please use PNG, JPG, PDF, WebP, TIFF, BMP, or GIF.",
+      );
       setSelected(null);
       setScanState("error");
       return;
@@ -253,7 +265,8 @@ export function UploadForm() {
       requestId: pendingRequestId,
       status: "pending",
       language: "English",
-      plainLanguageSummary: "Your scan is uploading and will be processed shortly.",
+      plainLanguageSummary:
+        "Your scan is uploading and will be processed shortly.",
       warnings: ["processing_in_progress"],
       timestamp: new Date().toISOString(),
     });
@@ -290,7 +303,9 @@ export function UploadForm() {
     const data = c.toDataURL("image/png");
     const base64 = data.split(",")[1] || data;
     const blob = await (await fetch(data)).blob();
-    const file = new File([blob], `camera-${Date.now()}.png`, { type: "image/png" });
+    const file = new File([blob], `camera-${Date.now()}.png`, {
+      type: "image/png",
+    });
 
     const pendingRequestId = `scan-pending-${Date.now()}`;
     setScanState("uploading");
@@ -299,7 +314,8 @@ export function UploadForm() {
       requestId: pendingRequestId,
       status: "pending",
       language: "English",
-      plainLanguageSummary: "Your captured image is uploading and being processed.",
+      plainLanguageSummary:
+        "Your captured image is uploading and being processed.",
       warnings: ["processing_in_progress"],
       timestamp: new Date().toISOString(),
     });
@@ -314,23 +330,26 @@ export function UploadForm() {
       });
     } catch (err) {
       setScanState("error");
-      const message = err instanceof Error ? err.message : "Failed to process captured image";
+      const message =
+        err instanceof Error ? err.message : "Failed to process captured image";
       setUploadStatus(message);
       toast.error(message);
     }
   };
 
   return (
-    <div 
+    <div
       ref={dropZoneRef}
-      style={{ 
-        display: "flex", 
-        flexDirection: "column", 
-        gap: "2rem", 
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "2rem",
         padding: "2rem",
         minHeight: "100%",
         border: isDragging ? "2px dashed #1976d2" : "2px solid transparent",
-        backgroundColor: isDragging ? "rgba(227, 242, 253, 0.5)" : "transparent",
+        backgroundColor: isDragging
+          ? "rgba(227, 242, 253, 0.5)"
+          : "transparent",
         transition: "all 0.3s ease",
         borderRadius: "12px",
       }}
@@ -433,18 +452,24 @@ export function UploadForm() {
           }
         }}
       >
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Button
             type="button"
             variant="outline"
-            style={{ 
-              width: "100%", 
-              padding: "1.5rem", 
-              color: "#666", 
+            style={{
+              width: "100%",
+              padding: "1.5rem",
+              color: "#666",
               fontSize: "1rem",
               backgroundColor: "transparent",
               border: "none",
-              pointerEvents: "none"
+              pointerEvents: "none",
             }}
             disabled={isProcessing}
           >
@@ -463,12 +488,26 @@ export function UploadForm() {
 
       {/* Error and Status Messages */}
       {error && (
-        <p style={{ color: "#d32f2f", padding: "1rem", backgroundColor: "#ffebee", borderRadius: "4px" }}>
+        <p
+          style={{
+            color: "#d32f2f",
+            padding: "1rem",
+            backgroundColor: "#ffebee",
+            borderRadius: "4px",
+          }}
+        >
           {error}
         </p>
       )}
       {uploadStatus && (
-        <p style={{ color: "#1976d2", padding: "1rem", backgroundColor: "#e3f2fd", borderRadius: "4px" }}>
+        <p
+          style={{
+            color: "#1976d2",
+            padding: "1rem",
+            backgroundColor: "#e3f2fd",
+            borderRadius: "4px",
+          }}
+        >
           {uploadStatus}
         </p>
       )}
@@ -497,21 +536,50 @@ export function UploadForm() {
             borderRadius: "6px",
           }}
         >
-          The scheduler is still loading and may continue in the background. You can keep waiting here or open booking in a new tab.
+          The scheduler is still loading and may continue in the background. You
+          can keep waiting here or open booking in a new tab.
         </p>
       )}
 
       {/* File Preview Section */}
       {selected && (
-        <div style={{ padding: "1.5rem", border: "1px solid #ddd", borderRadius: "8px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <div
+          style={{
+            padding: "1.5rem",
+            border: "1px solid #ddd",
+            borderRadius: "8px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "1rem",
+            }}
+          >
             <div>
-              <p style={{ margin: 0, fontWeight: "500" }}>{selected.file.name}</p>
-              <p style={{ margin: "0.25rem 0 0 0", color: "#666", fontSize: "0.875rem" }}>
+              <p style={{ margin: 0, fontWeight: "500" }}>
+                {selected.file.name}
+              </p>
+              <p
+                style={{
+                  margin: "0.25rem 0 0 0",
+                  color: "#666",
+                  fontSize: "0.875rem",
+                }}
+              >
                 {formatBytes(selected.file.size)}
               </p>
             </div>
-            <span style={{ padding: "0.25rem 0.75rem", backgroundColor: "#e0e0e0", borderRadius: "4px", fontSize: "0.875rem" }}>
+            <span
+              style={{
+                padding: "0.25rem 0.75rem",
+                backgroundColor: "#e0e0e0",
+                borderRadius: "4px",
+                fontSize: "0.875rem",
+              }}
+            >
               {selected.kind === "pdf" ? "PDF" : "IMAGE"}
             </span>
           </div>
@@ -519,7 +587,13 @@ export function UploadForm() {
             <img
               src={selected.previewUrl}
               alt="Selected medical document"
-              style={{ width: "100%", maxHeight: "300px", objectFit: "contain", marginBottom: "1rem", borderRadius: "4px" }}
+              style={{
+                width: "100%",
+                maxHeight: "300px",
+                objectFit: "contain",
+                marginBottom: "1rem",
+                borderRadius: "4px",
+              }}
             />
           )}
           {selected.kind === "pdf" && (

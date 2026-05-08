@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
-
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 export function middleware(_request: NextRequest) {
   // Klaro uses Better Auth route handlers for session management.

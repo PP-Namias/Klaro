@@ -151,7 +151,10 @@ function getTanongMoPrompt(
   flaggedTests: ExtractedTest[],
 ): string {
   const testList = flaggedTests
-    .map((t: ExtractedTest) => `- ${t.name} (${t.value}${t.unit ? " " + t.unit : ""})`)
+    .map(
+      (t: ExtractedTest) =>
+        `- ${t.name} (${t.value}${t.unit ? " " + t.unit : ""})`,
+    )
     .join("\n");
 
   return `You are helping a Filipino patient prepare for a doctor visit. 
@@ -316,7 +319,10 @@ function generateQuestionsForDoctor(
     ],
   };
 
-  return (questions[dialect] ?? []).slice(0, Math.min(3, flaggedTests.length + 2));
+  return (questions[dialect] ?? []).slice(
+    0,
+    Math.min(3, flaggedTests.length + 2),
+  );
 }
 
 /**
@@ -410,10 +416,8 @@ function buildSummary(
     },
   };
 
-  return (
-    (summaries[dialect] && summaries[dialect][severity]) ??
-    (summaries.Filipino as Record<Severity, string>)[severity]
-  ) as string;
+  return ((summaries[dialect] && summaries[dialect][severity]) ??
+    (summaries.Filipino as Record<Severity, string>)[severity]) as string;
 }
 
 /**
@@ -586,12 +590,13 @@ export function registerPromptVersion(
   };
 
   // Ensure the promptType bucket exists and get a typed reference
-  const bucket: Record<Dialect, PromptVersion[]> =
-    (promptVersions[promptType] ||= {
-      Filipino: [],
-      Bisaya: [],
-      Ilocano: [],
-    });
+  const bucket: Record<Dialect, PromptVersion[]> = (promptVersions[
+    promptType
+  ] ||= {
+    Filipino: [],
+    Bisaya: [],
+    Ilocano: [],
+  });
 
   // Deactivate all previous versions
   (bucket[dialect] ||= []).forEach((v) => {

@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+
 import { Button } from "@klaro/ui/button";
-import { readScanAnalysisSession, type ScanAnalysisSession } from "~/components/scan-session";
+
+import type { ScanAnalysisSession } from "~/components/scan-session";
+import { readScanAnalysisSession } from "~/components/scan-session";
 
 interface ScanResultsProps {
   onScanAgain?: () => void;
@@ -27,9 +30,13 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
   const analysis = result?.analysis;
   const summary = result?.plainLanguageSummary || analysis?.summary;
   const urgency = result?.urgency || analysis?.urgency;
-  const recommendations = result?.recommendations || analysis?.recommendations || [];
+  const recommendations =
+    result?.recommendations || analysis?.recommendations || [];
 
-  const urgencyStyles: Record<"LOW" | "MODERATE" | "HIGH", { badge: string; panel: string; label: string }> = {
+  const urgencyStyles: Record<
+    "LOW" | "MODERATE" | "HIGH",
+    { badge: string; panel: string; label: string }
+  > = {
     LOW: {
       badge: "border-emerald-200 bg-emerald-100 text-emerald-800",
       panel: "border-emerald-200 bg-emerald-50",
@@ -47,7 +54,10 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
     },
   };
 
-  const urgencyPanelColors: Record<"LOW" | "MODERATE" | "HIGH", { border: string; background: string }> = {
+  const urgencyPanelColors: Record<
+    "LOW" | "MODERATE" | "HIGH",
+    { border: string; background: string }
+  > = {
     LOW: { border: "#a7f3d0", background: "#ecfdf5" },
     MODERATE: { border: "#fde68a", background: "#fffbeb" },
     HIGH: { border: "#fecdd3", background: "#fff1f2" },
@@ -65,7 +75,10 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
     return (
       <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
         <h1>No Scan Results</h1>
-        <p>No scan results found. Please upload a medical document to get started.</p>
+        <p>
+          No scan results found. Please upload a medical document to get
+          started.
+        </p>
       </div>
     );
   }
@@ -87,7 +100,8 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             color: "#0f172a",
           }}
         >
-          The scheduler is still loading and may continue in the background. You can open booking in a new tab, or continue waiting here.
+          The scheduler is still loading and may continue in the background. You
+          can open booking in a new tab, or continue waiting here.
         </div>
       </div>
     );
@@ -97,11 +111,10 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
     return (
       <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
         <h1 style={{ color: "#d32f2f" }}>Scan Failed</h1>
-        <p>{result.error || "An error occurred while scanning the document."}</p>
-        <Button
-          onClick={onScanAgain}
-          style={{ marginTop: "1rem" }}
-        >
+        <p>
+          {result.error || "An error occurred while scanning the document."}
+        </p>
+        <Button onClick={onScanAgain} style={{ marginTop: "1rem" }}>
           Try Again
         </Button>
       </div>
@@ -117,7 +130,8 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
           Scan ID: <code>{result.requestId}</code>
         </p>
         <p style={{ color: "#666" }}>
-          {result.timestamp && `Scanned: ${new Date(result.timestamp).toLocaleString()}`}
+          {result.timestamp &&
+            `Scanned: ${new Date(result.timestamp).toLocaleString()}`}
         </p>
       </div>
 
@@ -158,7 +172,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
           >
             {urgencyStyles[urgency].label}
           </div>
-          <h2 style={{ margin: 0, marginBottom: "0.5rem" }}>Urgency: {urgency}</h2>
+          <h2 style={{ margin: 0, marginBottom: "0.5rem" }}>
+            Urgency: {urgency}
+          </h2>
           <p style={{ margin: 0, color: "#334155" }}>
             {urgency === "HIGH"
               ? "This result needs prompt review. Seek care urgently if symptoms are worsening."
@@ -198,7 +214,13 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
                 }}
               />
             </div>
-            <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.9rem", color: "#666" }}>
+            <p
+              style={{
+                margin: "0.5rem 0 0 0",
+                fontSize: "0.9rem",
+                color: "#666",
+              }}
+            >
               {Math.round(result.confidence * 100)}% confident
             </p>
           </div>
@@ -309,9 +331,7 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
 
       {/* Actions */}
       <div style={{ marginTop: "2rem", display: "flex", gap: "1rem" }}>
-        <Button onClick={onScanAgain}>
-          Scan Another Document
-        </Button>
+        <Button onClick={onScanAgain}>Scan Another Document</Button>
         <Button asChild variant="outline">
           <Link href="/">Go to Home</Link>
         </Button>

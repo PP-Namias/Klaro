@@ -41,7 +41,7 @@ export async function GET(req: Request) {
     if (!redirectUrl) {
       return Response.json(
         { error: "Failed to initiate OAuth flow" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 

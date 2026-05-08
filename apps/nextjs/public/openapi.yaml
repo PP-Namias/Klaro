@@ -116,9 +116,9 @@ paths:
               type: string
             description: Error code returned by OAuth provider
         responses:
-          '302':
+          "302":
             description: Redirect to frontend (success or error page)
-          '400':
+          "400":
             description: Missing parameters or invalid request
   /api/uploads/sign:
     get:
@@ -1116,7 +1116,7 @@ paths:
             type: integer
             default: 20
       responses:
-        '200':
+        "200":
           description: A list of nearby facilities
           content:
             application/json:
@@ -1124,7 +1124,7 @@ paths:
                 type: array
                 items:
                   type: object
-        '400':
+        "400":
           description: Invalid input
   /api/trpc/doctor.updateDoctor:
     post:
@@ -1270,7 +1270,16 @@ components:
           nullable: true
         isPhilHealthAccredited:
           type: boolean
-      required: [id, name, address, latitude, longitude, distance, isPhilHealthAccredited]
+      required:
+        [
+          id,
+          name,
+          address,
+          latitude,
+          longitude,
+          distance,
+          isPhilHealthAccredited,
+        ]
   examples:
     NearbyResponseExample:
       summary: Example nearby facilities response

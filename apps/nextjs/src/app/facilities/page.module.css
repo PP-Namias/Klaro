@@ -111,11 +111,11 @@
     height: auto;
     min-height: 100vh;
   }
-  
+
   .facilities__shell {
     flex-direction: column;
   }
-  
+
   .facilities__sidebar {
     width: 100%;
     border-right: none;

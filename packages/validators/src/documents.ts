@@ -19,14 +19,19 @@ const ALLOWED_MIME_TYPES = [
   "application/pdf",
 ] as const;
 
-// Type guard for File - works in both browser and server environments
 declare const File: any;
-const hasFileConstructor = typeof File !== "undefined";
+// Type guard for File - works in both browser and server environments
+interface FileLike {
+  size: number;
+  type: string;
+}
+
+const hasFileConstructor = typeof globalThis.File !== "undefined";
 
 const fileSchema = (
   hasFileConstructor
-    ? z.instanceof(File)
-    : z.custom<File>((value) => {
+    ? z.instanceof(globalThis.File)
+    : z.custom<FileLike>((value): value is FileLike => {
         if (
           value === null ||
           value === undefined ||

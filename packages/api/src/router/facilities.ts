@@ -1,23 +1,36 @@
 import type { TRPCRouterRecord } from "@trpc/server";
+import type { SQL } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { and, eq, type SQL } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import { facility } from "@klaro/db/schema";
+import { searchNearbySchema } from "@klaro/validators";
+
 import {
-  searchNearbySchema,
-} from "@klaro/validators";
+  buildMedicalContext,
+  buildRecommendationSummary,
+  calculateDistanceKm,
+  matchesSpecialty,
+  matchesTextSearch,
+  rankFacilitiesForContext,
+  recommendFacilitiesByTests,
+  summarizeMedicalContext,
+} from "../services/facilities";
+import { publicProcedure } from "../trpc";
 
 const medicalContextSchema = z.object({
   severity: z.enum(["LOW", "MODERATE", "HIGH"]),
   testSummary: z.string().trim().min(1).max(500).optional(),
-  flaggedTests: z.array(
-    z.object({
-      name: z.string().trim().min(1),
-      value: z.string().trim().optional(),
-      unit: z.string().trim().optional(),
-    }),
-  ).default([]),
+  flaggedTests: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1),
+        value: z.string().trim().optional(),
+        unit: z.string().trim().optional(),
+      }),
+    )
+    .default([]),
 });
 
 const recommendByTestResultsSchema = z.object({
@@ -34,18 +47,6 @@ const recommendByTestResultsSchema = z.object({
   radiusKm: z.number().min(0.1).max(50).default(15),
   limit: z.number().min(1).max(10).default(5),
 });
-
-import { publicProcedure } from "../trpc";
-import {
-  buildMedicalContext,
-  buildRecommendationSummary,
-  calculateDistanceKm,
-  matchesSpecialty,
-  matchesTextSearch,
-  rankFacilitiesForContext,
-  recommendFacilitiesByTests,
-  summarizeMedicalContext,
-} from "../services/facilities";
 
 const facilityTypeOrder = [
   "hospital",
@@ -86,12 +87,21 @@ const isEmergencyCapable = (facilityRow: {
     return true;
   }
 
-  if (facilityRow.openingHours && typeof facilityRow.openingHours === "object") {
-    const values = Object.values(facilityRow.openingHours as Record<string, unknown>)
+  if (
+    facilityRow.openingHours &&
+    typeof facilityRow.openingHours === "object"
+  ) {
+    const values = Object.values(
+      facilityRow.openingHours as Record<string, unknown>,
+    )
       .map((value) => String(value).toLowerCase())
       .join(" ");
 
-    return values.includes("24") || values.includes("24/7") || values.includes("24 hours");
+    return (
+      values.includes("24") ||
+      values.includes("24/7") ||
+      values.includes("24 hours")
+    );
   }
 
   return false;
@@ -135,7 +145,10 @@ const summarizeLoad = async (
         return null;
       }
 
-      if (input.specialty && !matchesSpecialty(row.acceptedSpecialties, input.specialty)) {
+      if (
+        input.specialty &&
+        !matchesSpecialty(row.acceptedSpecialties, input.specialty)
+      ) {
         return null;
       }
 
@@ -143,7 +156,12 @@ const summarizeLoad = async (
         return null;
       }
 
-      const distance = calculateDistanceKm(latitude, longitude, rowLatitude, rowLongitude);
+      const distance = calculateDistanceKm(
+        latitude,
+        longitude,
+        rowLatitude,
+        rowLongitude,
+      );
 
       return {
         ...row,
@@ -152,17 +170,37 @@ const summarizeLoad = async (
         distance,
       };
     })
-    .filter((row): row is Record<string, unknown> & { distance: number; latitude: number; longitude: number } =>
-      row !== null,
+    .filter(
+      (
+        row,
+      ): row is Record<string, unknown> & {
+        distance: number;
+        latitude: number;
+        longitude: number;
+      } => row !== null,
     );
 };
 
-const selectFacilities = async (ctx: { db: { select: () => { from: (table: typeof facility) => { where: (clause: SQL<unknown>) => { limit: (value: number) => Promise<unknown[]> }; limit: (value: number) => Promise<unknown[]> } } } }, input: {
-  facilityType?: string;
-  ownership?: "public" | "private";
-  philHealthOnly?: boolean;
-  limit: number;
-}) => {
+const selectFacilities = async (
+  ctx: {
+    db: {
+      select: () => {
+        from: (table: typeof facility) => {
+          where: (clause: SQL<unknown>) => {
+            limit: (value: number) => Promise<unknown[]>;
+          };
+          limit: (value: number) => Promise<unknown[]>;
+        };
+      };
+    };
+  },
+  input: {
+    facilityType?: string;
+    ownership?: "public" | "private";
+    philHealthOnly?: boolean;
+    limit: number;
+  },
+) => {
   const conditions: SQL<unknown>[] = [];
 
   if (input.facilityType) {
@@ -226,10 +264,16 @@ export const facilitiesRouter = {
       }
 
       if (conditions.length === 1) {
-        return baseQuery.where(conditions[0]!).limit(input.limit).offset(input.offset);
+        return baseQuery
+          .where(conditions[0]!)
+          .limit(input.limit)
+          .offset(input.offset);
       }
 
-      return baseQuery.where(and(...conditions)!).limit(input.limit).offset(input.offset);
+      return baseQuery
+        .where(and(...conditions)!)
+        .limit(input.limit)
+        .offset(input.offset);
     }),
 
   byId: publicProcedure
@@ -266,9 +310,9 @@ export const facilitiesRouter = {
           const distanceDelta = a.distance - b.distance;
           if (distanceDelta !== 0) return distanceDelta;
 
-          const typeDelta = facilityTypeRank(
-            String(a.facilityType ?? ""),
-          ) - facilityTypeRank(String(b.facilityType ?? ""));
+          const typeDelta =
+            facilityTypeRank(String(a.facilityType ?? "")) -
+            facilityTypeRank(String(b.facilityType ?? ""));
           if (typeDelta !== 0) return typeDelta;
 
           return String(a.name ?? "").localeCompare(String(b.name ?? ""));
@@ -292,13 +336,10 @@ export const facilitiesRouter = {
       }),
     )
     .query(async ({ ctx, input }) => {
-      const rows = await selectFacilities(
-        ctx,
-        {
-          facilityType: input.facilityType,
-          limit: 50,
-        },
-      );
+      const rows = await selectFacilities(ctx, {
+        facilityType: input.facilityType,
+        limit: 50,
+      });
 
       const mapped = await summarizeLoad(
         rows as Array<Record<string, unknown>>,
@@ -309,10 +350,7 @@ export const facilitiesRouter = {
         },
       );
 
-      const ranked = rankFacilitiesForContext(
-        mapped,
-        input.medicalContext,
-      );
+      const ranked = rankFacilitiesForContext(mapped, input.medicalContext);
 
       const best = ranked[0];
       if (!best) return null;
@@ -343,10 +381,7 @@ export const facilitiesRouter = {
         },
       );
 
-      const recommendations = await recommendFacilitiesByTests(
-        mapped,
-        input,
-      );
+      const recommendations = await recommendFacilitiesByTests(mapped, input);
 
       return recommendations;
     }),

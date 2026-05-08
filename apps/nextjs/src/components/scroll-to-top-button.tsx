@@ -29,7 +29,9 @@ export function ScrollToTopButton() {
       data-visible={visible}
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0) scale(1)" : "translateY(12px) scale(0.92)",
+        transform: visible
+          ? "translateY(0) scale(1)"
+          : "translateY(12px) scale(0.92)",
         pointerEvents: visible ? "auto" : "none",
       }}
     >
@@ -39,7 +41,7 @@ export function ScrollToTopButton() {
         size="icon"
         onClick={scrollToTop}
         aria-label="Go back to top"
-        className="h-12 w-12 rounded-full border-border/60 bg-background/85 text-foreground shadow-[0_14px_35px_rgba(0,0,0,0.14)] backdrop-blur-md transition-transform hover:-translate-y-0.5 hover:bg-background"
+        className="border-border/60 bg-background/85 text-foreground hover:bg-background h-12 w-12 rounded-full shadow-[0_14px_35px_rgba(0,0,0,0.14)] backdrop-blur-md transition-transform hover:-translate-y-0.5"
       >
         <ArrowUp className="size-5" />
       </Button>
