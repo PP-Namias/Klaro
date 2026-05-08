@@ -98,11 +98,18 @@ export default function CalModal({
 
   const onIframeLoad = () => {
     setIframeLoaded(true);
-    setShowFallback(false);
   };
 
   const onOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) onClose();
+    // Close modal when clicking directly on overlay (black background)
+    if (e.target === e.currentTarget || (e.target as HTMLElement).className?.includes?.('bg-black')) {
+      onClose();
+    }
+  };
+
+  const onModalContentClick = (e: React.MouseEvent) => {
+    // Prevent overlay click handler from triggering when clicking inside modal
+    e.stopPropagation();
   };
 
   if (!open) return null;
@@ -116,7 +123,12 @@ export default function CalModal({
       onClick={onOverlayClick}
       className="fixed inset-0 z-1200 flex items-end md:items-center justify-center"
     >
-      <div className="absolute inset-0 bg-black/50" />
+      <div 
+        className="absolute inset-0 bg-black/50" 
+        onClick={onClose}
+        role="presentation"
+        aria-hidden="true"
+      />
 
       <div
         ref={(node) => {
@@ -124,6 +136,7 @@ export default function CalModal({
           // @ts-ignore - ergonomic assignment
           focusTrapRef.current = node;
         }}
+        onClick={onModalContentClick}
         className="relative z-1201 w-full md:w-[min(900px,95%)] max-h-[85vh] bg-white rounded-t-lg md:rounded-lg shadow-xl overflow-hidden"
         style={{ height: "85vh" }}
       >
