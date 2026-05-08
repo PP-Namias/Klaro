@@ -5,42 +5,35 @@ import { MARKETING_FOOTER_GROUPS } from "~/content/marketing-pages";
 
 export function Footer() {
   return (
-    <footer className="relative w-full overflow-hidden border-t border-zinc-200 bg-white px-6 py-16 text-zinc-900 sm:px-8 lg:px-10">
+    <footer className="relative w-full overflow-hidden border-t border-zinc-200 bg-white px-6 py-10 text-zinc-900 sm:px-8 lg:px-10">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.08),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.08),transparent_32%)]" />
 
-      <div className="relative mx-auto flex max-w-[1280px] flex-col gap-12">
-        <div className="grid gap-12 lg:grid-cols-[1fr_1.08fr] lg:items-stretch">
-          <div className="flex h-full flex-col justify-between gap-8 rounded-[32px] border border-zinc-200 bg-zinc-50/80 p-8 shadow-[0_12px_40px_rgba(0,0,0,0.04)] backdrop-blur-sm">
+      <div className="relative mx-auto flex max-w-[1280px] flex-col gap-8">
+        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
+          <div className="flex h-full flex-col justify-between gap-5 rounded-[28px] border border-zinc-200 bg-zinc-50/80 p-6 shadow-[0_10px_28px_rgba(0,0,0,0.03)] backdrop-blur-sm">
             <Link href="/" className="inline-flex items-center gap-3 text-zinc-950">
-              <Image src="/klaro-dark.svg" alt="Klaro" width={36} height={36} priority />
+              <Image src="/klaro-dark.svg" alt="Klaro" width={32} height={32} priority />
               <span className="feature-small-title text-zinc-950">Klaro</span>
             </Link>
 
-            <div className="max-w-xl space-y-4">
+            <div className="max-w-xl space-y-3">
               <p className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-1 text-[0.7rem] uppercase tracking-[0.26em] text-zinc-500">
                 Built for the Philippines
               </p>
               <h2 className="section-header text-balance text-zinc-950">
-                Clear health guidance from scan to next step.
+                Clear health guidance, without the fluff.
               </h2>
               <p className="feature-card-description max-w-lg text-zinc-600">
-                Klaro keeps the experience calm with scan explanations, care
-                discovery, and booking flows that stay easy to follow.
+                Scan, understand, and move to the next step with less noise.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/scan"
-                className="inline-flex items-center justify-center rounded-full bg-black px-5 py-3 text-sm font-medium text-white transition-transform hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center rounded-full bg-black px-4 py-2.5 text-sm font-medium text-white transition-transform hover:-translate-y-0.5"
               >
                 Start a scan
-              </Link>
-              <Link
-                href="/contact-support"
-                className="inline-flex items-center justify-center rounded-full border border-zinc-300 bg-white px-5 py-3 text-sm font-medium text-zinc-900 transition-colors hover:border-zinc-400 hover:bg-zinc-50"
-              >
-                Talk to support
               </Link>
             </div>
 
@@ -51,32 +44,17 @@ export function Footer() {
               <span className="rounded-full border border-zinc-200 bg-white px-3 py-1">
                 Philippines-first care
               </span>
-              <span className="rounded-full border border-zinc-200 bg-white px-3 py-1">
-                Scan, chat, book
-              </span>
-            </div>
-
-            <div className="space-y-2 border-t border-zinc-200 pt-5 text-sm text-zinc-600">
-              <span className="block font-medium text-zinc-900">Website</span>
-              <Link
-                href="https://www.klaro-scans.tech/"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex max-w-full items-center gap-2 truncate text-zinc-600 transition-colors hover:text-zinc-950"
-              >
-                <span className="truncate">https://www.klaro-scans.tech/</span>
-              </Link>
             </div>
           </div>
 
-          <div className="flex h-full flex-col justify-between rounded-[32px] border border-zinc-200 bg-white p-6 shadow-[0_12px_40px_rgba(0,0,0,0.04)]">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex h-full flex-col justify-between rounded-[28px] border border-zinc-200 bg-white p-5 shadow-[0_10px_28px_rgba(0,0,0,0.03)]">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {MARKETING_FOOTER_GROUPS.map((group) => (
-                <div key={group.title} className="flex flex-col gap-4">
+                <div key={group.title} className="flex flex-col gap-3">
                   <h3 className="feature-small-title text-zinc-950">
                     {group.title}
                   </h3>
-                  <nav className="flex flex-col gap-3">
+                  <nav className="flex flex-col gap-2.5">
                     {group.links.map((link) => (
                       <Link
                         key={link.label}
@@ -93,7 +71,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-zinc-200 pt-6 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-zinc-200 pt-4 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 Klaro. Built for the Philippines.</p>
 
           <div className="flex flex-wrap items-center gap-4">
