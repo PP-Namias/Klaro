@@ -19,20 +19,16 @@ export function ScannerNavbar() {
         Klaro
       </Link>
       <div className={styles.navLinks}>
-        <a href="#" className={styles.navLink}>
+        <Link href="/" className={styles.navLink}>
           Home
-        </a>
-        <a href="#" className={styles.navLink}>
-          Features
-          <ChevronDown
-            size={16}
-            className="ml-1 inline-block align-text-bottom"
-          />
-        </a>
-        <a href="#" className={styles.navLink}>
-          Security
-        </a>
-        <Link href="/login?auto=1" className={styles.navSignInBtn}>
+        </Link>
+        <Link href="/scan" className={styles.navLink}>
+          Scan
+        </Link>
+        <Link href="/maps" className={styles.navLink}>
+          Maps
+        </Link>
+        <Link href="/scan" className={styles.navSignInBtn}>
           Sign in
           <ArrowRight
             size={14}

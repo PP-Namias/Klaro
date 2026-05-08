@@ -50,7 +50,7 @@ export function FacilitySearchBar({
       <div className="relative">
         <input
           aria-label="Search facility name"
-          className="w-full rounded-[14px] border border-zinc-200 bg-white px-4 py-2.5 text-[14px] font-medium transition outline-none focus:border-zinc-900"
+          className="w-full rounded-[14px] border border-zinc-200 bg-white px-4 py-2.5 text-[14px] font-medium text-zinc-900 placeholder:text-zinc-400 outline-none transition focus:border-zinc-900"
           placeholder="Search by facility name or address"
           value={draft.textSearch}
           onChange={(event) =>
@@ -67,7 +67,7 @@ export function FacilitySearchBar({
           <span className="ml-1 font-semibold text-zinc-700">Specialty</span>
           <select
             aria-label="Specialty filter"
-            className="w-full rounded-[14px] border border-zinc-200 bg-white px-3 py-2.5 text-[13px] font-medium text-zinc-900 scheme-light transition outline-none focus:border-zinc-900"
+            className="w-full rounded-[14px] border border-zinc-200 bg-white px-3 py-2.5 text-[13px] font-medium text-zinc-900 scheme-light outline-none transition focus:border-zinc-900"
             value={draft.specialty}
             onChange={(event) =>
               setDraft((current) => ({
@@ -95,7 +95,7 @@ export function FacilitySearchBar({
           <span className="ml-1 font-semibold text-zinc-700">Ownership</span>
           <select
             aria-label="Ownership filter"
-            className="w-full rounded-[14px] border border-zinc-200 bg-white px-3 py-2.5 text-[13px] font-medium transition outline-none focus:border-zinc-900"
+            className="w-full rounded-[14px] border border-zinc-200 bg-white px-3 py-2.5 text-[13px] font-medium text-zinc-900 scheme-light outline-none transition focus:border-zinc-900"
             value={draft.ownership}
             onChange={(event) =>
               setDraft((current) => ({

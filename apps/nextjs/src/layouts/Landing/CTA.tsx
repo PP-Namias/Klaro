@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import styles from "../../app/page.module.css";
 
 export function CTA() {
   return (
@@ -28,7 +29,7 @@ export function CTA() {
           Clear results are just a scan away
         </h2>
 
-        <div className="relative -mt-8 -mb-12 h-[500px] w-[580px]">
+        <div className="relative -mt-24 -mb-24 h-[650px] w-[750px]">
           <Image
             src="/sections/cta/1.png"
             alt="Klaro App Preview"
@@ -38,17 +39,14 @@ export function CTA() {
           />
         </div>
 
-        <p className="cta-description mb-6 max-w-[600px] text-zinc-900">
+        <p className="cta-description mb-8 max-w-[600px] text-zinc-900">
           Join thousands of Filipinos decoding their health jargon.
           <br />
           Take control of your medical journey today.
         </p>
         <div className="mb-8 flex flex-row gap-4">
-          <Link
-            href="/login?auto=1"
-            className="flex cursor-pointer items-center justify-center rounded-lg bg-black px-6 py-2 text-[length:var(--text-button)] font-medium text-white transition-colors hover:bg-zinc-800"
-          >
-            Open on Web <ArrowRight size={16} className="ml-2" />
+          <Link href="/scan" className={styles.btnBlack}>
+            Get Started <ArrowRight size={16} className="ml-2" />
           </Link>
         </div>
       </div>
