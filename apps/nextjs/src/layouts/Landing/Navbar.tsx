@@ -11,6 +11,7 @@ import styles from "../../app/page.module.css";
 export function Navbar() {
   const [visible, setVisible] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [bookingPrefill, setBookingPrefill] = useState<Record<string, string> | undefined>(undefined);
   const lastY = useRef(0);
 
   useEffect(() => {
@@ -26,6 +27,17 @@ export function Navbar() {
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    function handler(e: Event) {
+      const detail = (e as CustomEvent)?.detail;
+      setBookingPrefill(detail?.prefill);
+      setIsBookingOpen(true);
+    }
+
+    globalThis.addEventListener('klaro:openBooking', handler as EventListener);
+    return () => globalThis.removeEventListener('klaro:openBooking', handler as EventListener);
   }, []);
 
   return (
@@ -51,10 +63,7 @@ export function Navbar() {
             Find a clinic
           </Link>
             {/* Open booking modal instead of navigating to /booking */}
-            <button
-              onClick={() => setIsBookingOpen(true)}
-              className={styles.headerLink}
-            >
+            <button onClick={() => openBooking()} className={styles.headerLink}>
               Book a doctor
             </button>
           <Link href="/scan" className={styles.headerBtn}>
@@ -84,10 +93,7 @@ export function Navbar() {
             <Link href="/maps" className={styles.floatingLink}>
               Find a clinic
             </Link>
-            <button
-              onClick={() => setIsBookingOpen(true)}
-              className={styles.floatingLink}
-            >
+            <button onClick={() => openBooking()} className={styles.floatingLink}>
               Book a doctor
             </button>
             <Link href="/scan" className={styles.floatingBtnBlack}>
@@ -100,7 +106,11 @@ export function Navbar() {
       {/* Booking modal (dynamically loaded) */}
       {isBookingOpen && (
         // dynamic import to avoid SSR for the modal
-        <CalModalWrapper onClose={() => setIsBookingOpen(false)} open={isBookingOpen} />
+        <CalModalWrapper
+          onClose={() => setIsBookingOpen(false)}
+          open={isBookingOpen}
+          prefill={bookingPrefill}
+        />
       )}
     </>
   );
@@ -111,6 +121,38 @@ const CalModal = dynamic(() => import("../../components/CalModal"), {
   ssr: false,
 });
 
-function CalModalWrapper({ open, onClose }: Readonly<{ open: boolean; onClose: () => void }>) {
-  return <CalModal open={open} onClose={onClose} />;
+function CalModalWrapper({
+  open,
+  onClose,
+  prefill,
+}: Readonly<{ open: boolean; onClose: () => void; prefill?: Record<string, string> }>) {
+  return <CalModal open={open} onClose={onClose} prefill={prefill} />;
+}
+
+async function fetchSessionPrefill() {
+  try {
+    const res = await fetch('/api/auth/session');
+    if (!res.ok) return undefined;
+    const data = await res.json();
+    return {
+      name: data?.name || '',
+      email: data?.email || '',
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+function openBooking(): void {
+  // fetch session then open modal, fire analytics
+  fetchSessionPrefill().then((prefill) => {
+    try {
+      if ((globalThis as any).analytics?.track) {
+        (globalThis as any).analytics.track('booking_opened', { source: 'nav' });
+      }
+    } catch {}
+    // set state via event to avoid hooks in this file scope
+    // find the Navbar component instance state by dispatching a custom event
+    globalThis.dispatchEvent(new CustomEvent('klaro:openBooking', { detail: { prefill } }));
+  });
 }

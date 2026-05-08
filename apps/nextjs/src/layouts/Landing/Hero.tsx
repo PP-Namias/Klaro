@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 
 import styles from "../../app/page.module.css";
 import { HeroBg } from "../../components/HeroBg";
-import { HeroBgTwo } from "../../components/HeroBgTwo";
+// import { HeroBgTwo } from "../../components/HeroBgTwo"; (unused)
 
 export function Hero() {
   return (
@@ -33,8 +33,8 @@ export function Hero() {
           so you know what to do next
         </p>
         <div className={styles.heroButtons}>
-          <Link href="/scan" className={styles.btnBlack}>
-            Get Started <ArrowRight size={16} className="ml-2" />
+          <Link href="/scan" className={styles.btnBlack} aria-label="Start a scan">
+            Start a scan <ArrowRight size={16} className="ml-2" />
           </Link>
           <button className={styles.btnOutline}>Learn More</button>
         </div>
