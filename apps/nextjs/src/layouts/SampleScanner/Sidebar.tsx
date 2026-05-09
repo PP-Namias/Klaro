@@ -2,22 +2,28 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
-  BarChart2,
+  Map,
   Calendar,
-  CircleUser,
   Home,
   PanelLeftClose,
-  SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
 
 import styles from "../../app/scan/page.module.css";
-import CalModal from "../../components/CalModal";
+
+function openBooking(): void {
+  try {
+    if ((globalThis as any).analytics?.track) {
+      (globalThis as any).analytics.track('booking_opened', { source: 'sidebar' });
+    }
+  } catch {}
+  window.dispatchEvent(new CustomEvent('klaro:openBooking'));
+}
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isCalOpen, setIsCalOpen] = useState(false);
 
   return (
     <aside
@@ -62,29 +68,24 @@ export function Sidebar() {
       </div>
 
       <nav className={styles.sidebarNav}>
-        <a href="#" className={styles.navItem}>
+        <Link href="/" className={styles.navItem}>
           <Home size={20} color="#999" /> {!isCollapsed && <span>Home</span>}
-        </a>
-        <a href="#" className={styles.navItem}>
-          <BarChart2 size={20} color="#999" />{" "}
-          {!isCollapsed && <span>Results</span>}
-        </a>
+        </Link>
+        <Link href="/maps" className={styles.navItem}>
+          <Map size={20} color="#999" />{" "}
+          {!isCollapsed && <span>Maps</span>}
+        </Link>
         <hr className={styles.sidebarDivider} />
-        <a href="#" className={styles.navItem}>
-          <SlidersHorizontal size={20} color="#999" />{" "}
-          {!isCollapsed && <span>Settings</span>}
-        </a>
       </nav>
 
       <div className={styles.sidebarFooter}>
         <button
           className={styles.bookDoctorBtn}
-          onClick={() => setIsCalOpen(true)}
+          onClick={openBooking}
         >
           <Calendar size={20} color="#999" />{" "}
           {!isCollapsed && <span>Book a Doctor</span>}
         </button>
-        <CalModal open={isCalOpen} onClose={() => setIsCalOpen(false)} />
       </div>
     </aside>
   );

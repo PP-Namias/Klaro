@@ -3,9 +3,31 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 import styles from "../../app/scan/page.module.css";
+
+async function fetchSessionPrefill() {
+  try {
+    const res = await fetch('/api/auth/session');
+    if (!res.ok) return undefined;
+    const data = await res.json();
+    return { name: data?.name || '', email: data?.email || '' };
+  } catch {
+    return undefined;
+  }
+}
+
+function openBooking(): void {
+  fetchSessionPrefill().then((prefill) => {
+    try {
+      if ((globalThis as any).analytics?.track) {
+        (globalThis as any).analytics.track('booking_opened', { source: 'nav' });
+      }
+    } catch {}
+    window.dispatchEvent(new CustomEvent('klaro:openBooking', { detail: { prefill } }));
+  });
+}
 
 export function ScannerNavbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -56,16 +78,9 @@ export function ScannerNavbar() {
           <Link href="/maps" className={styles.navLink}>
             Clinics and Hospitals
           </Link>
-          <Link href="/book" className={styles.navLink}>
+          <button onClick={openBooking} className={styles.navLink}>
             Book a Doctor
-          </Link>
-          {/* <Link href="/scan" className={styles.navSignInBtn}>
-            Sign in
-            <ArrowRight
-              size={14}
-              className="ml-1 inline-block align-text-bottom"
-            /> */}
-          {/* </Link> */}
+          </button>
         </div>
 
         {/* Mobile Hamburger Toggle */}
@@ -95,13 +110,15 @@ export function ScannerNavbar() {
           >
             Clinics and Hospitals
           </Link>
-          <Link 
-            href="/book" 
+          <button 
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              openBooking();
+            }} 
             className={styles.mobileNavLink}
-            onClick={() => setIsMobileMenuOpen(false)}
           >
             Book a Doctor
-          </Link>
+          </button>
         </div>
       </div>
     </>

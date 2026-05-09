@@ -3,11 +3,13 @@ import Image from "next/image";
 
 import { ScannerUI } from "~/layouts/SampleScanner/ScannerUI";
 import { ScannerNavbar } from "~/layouts/SampleScanner/ScannerNavbar";
+import { Sidebar } from "~/layouts/SampleScanner/Sidebar";
 import styles from "./page.module.css";
 
 export default function ScanPage() {
   return (
     <div className={styles.layout}>
+      <Sidebar />
       <div className={styles.mainWrapper}>
         <ScannerNavbar />
         <main className={styles.mainContent}>

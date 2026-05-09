@@ -9,6 +9,7 @@ import { LenisProvider } from "~/components/lenis-provider";
 import { ScrollToTopButton } from "~/components/scroll-to-top-button";
 import { env } from "~/env";
 import { TRPCReactProvider } from "~/trpc/react";
+import { GlobalBookingModal } from "~/components/GlobalBookingModal";
 
 import "~/styles/globals.css";
 
@@ -71,7 +72,10 @@ export default function RootLayout(
       >
         <ThemeProvider>
           <LenisProvider>
-            <TRPCReactProvider>{props.children}</TRPCReactProvider>
+            <TRPCReactProvider>
+              {props.children}
+              <GlobalBookingModal />
+            </TRPCReactProvider>
             <div className="absolute right-4 bottom-4">
               <ThemeToggle />
             </div>

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { X, ExternalLink } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import useFocusTrap from "./useFocusTrap";
 
@@ -119,106 +121,108 @@ export default function CalModal({
   };
 
   const onOverlayClick = (e: React.MouseEvent) => {
-    // Close modal when clicking directly on overlay (black background)
-    if (
-      e.target === e.currentTarget ||
-      (e.target as HTMLElement).className?.includes?.("bg-black")
-    ) {
+    if (e.target === e.currentTarget) {
       onClose();
     }
   };
 
-  const onModalContentClick = (e: React.MouseEvent) => {
-    // Prevent overlay click handler from triggering when clicking inside modal
-    e.stopPropagation();
-  };
-
-  if (!open) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="cal-modal-title"
-      aria-describedby="cal-modal-desc"
-      onClick={onOverlayClick}
-      className="fixed inset-0 z-1200 flex items-end justify-center md:items-center"
-    >
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-        role="presentation"
-        aria-hidden="true"
-      />
+    <AnimatePresence>
+      {open && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cal-modal-title"
+          aria-describedby="cal-modal-desc"
+          className="fixed inset-0 z-[2000] flex items-center justify-center p-4 md:p-6"
+        >
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/20 backdrop-blur-md"
+            role="presentation"
+            aria-hidden="true"
+          />
 
-      <div
-        ref={(node) => {
-          dialogRef.current = node;
-          // @ts-ignore - ergonomic assignment
-          focusTrapRef.current = node;
-        }}
-        onClick={onModalContentClick}
-        className="relative z-1201 max-h-[85vh] w-full overflow-hidden rounded-t-lg bg-white shadow-xl md:w-[min(900px,95%)] md:rounded-lg"
-        style={{ height: "85vh" }}
-      >
-        <div className="flex items-start justify-between border-b bg-white p-4">
-          <div>
-            <h2
-              id="cal-modal-title"
-              className="text-lg font-semibold text-black"
-            >
-              {title}
-            </h2>
-            <p id="cal-modal-desc" className="text-sm text-black">
-              Schedule a secure session. Select a time that works for you.
-            </p>
-          </div>
-          <div className="ml-4 flex items-center gap-2">
-            <a
-              href={computedUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm text-black hover:underline"
-            >
-              Open in new tab
-            </a>
-            <button
-              aria-label="Close booking modal"
-              onClick={onClose}
-              className="ml-2 rounded p-1 hover:bg-gray-100 focus:ring focus:outline-none"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
+          {/* Modal Card */}
+          <motion.div
+            ref={(node) => {
+              dialogRef.current = node;
+              // @ts-ignore
+              focusTrapRef.current = node;
+            }}
+            initial={{ opacity: 0, scale: 0.98, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, y: 10 }}
+            transition={{ type: "spring", damping: 30, stiffness: 400 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative z-[2001] flex flex-col w-full max-w-[1000px] overflow-hidden rounded-[28px] border border-white/40 bg-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-2xl"
+            style={{ height: "min(720px, 80vh)" }}
+          >
+            {/* Header */}
+            <div className="relative flex items-center justify-between border-b border-black/5 bg-transparent px-8 py-6">
+              <div className="space-y-0.5">
+                <h2
+                  id="cal-modal-title"
+                  className="font-cormorant text-2xl font-medium tracking-tight text-zinc-900 md:text-3xl"
+                  style={{ fontFamily: 'var(--font-cormorant)' }}
+                >
+                  {title}
+                </h2>
+                <p id="cal-modal-desc" className="font-geist text-[0.9rem] text-zinc-500/80" style={{ fontFamily: 'var(--font-geist)' }}>
+                  Schedule a secure session at your convenience.
+                </p>
+              </div>
 
-        <div className="relative h-full p-0">
-          {!loadIframe && (
-            <div className="flex h-full items-center justify-center p-6">
-              <button
-                onClick={() => setLoadIframe(true)}
-                className="rounded bg-blue-600 px-4 py-2 text-white"
-              >
-                Open booking
-              </button>
+              <div className="flex items-center gap-4">
+                <a
+                  href={computedUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hidden items-center gap-1.5 text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-900 md:flex"
+                  style={{ fontFamily: 'var(--font-geist)' }}
+                >
+                  <ExternalLink size={14} />
+                  New tab
+                </a>
+                <button
+                  aria-label="Close booking modal"
+                  onClick={onClose}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5 text-zinc-500 transition-all hover:bg-black/10 hover:text-zinc-900 active:scale-90"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
-          )}
 
-          {loadIframe && (
-            <div className="h-full">
+            {/* Content Area */}
+            <div className="relative flex-1 overflow-hidden bg-transparent">
               {!iframeLoaded && (
-                <div className="flex flex-col items-center justify-center gap-3 p-6">
-                  <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
-                  <div className="h-4 w-48 animate-pulse rounded bg-gray-200" />
-                  <p className="text-sm text-black">
-                    Loading scheduling tool — this may take a moment.
-                  </p>
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
+                  <div className="flex gap-1.5">
+                    {[0, 1, 2].map((i) => (
+                      <motion.div
+                        key={i}
+                        animate={{
+                          y: [0, -6, 0],
+                          opacity: [0.3, 1, 0.3],
+                        }}
+                        transition={{
+                          duration: 0.8,
+                          repeat: Infinity,
+                          delay: i * 0.15,
+                        }}
+                        className="h-1.5 w-1.5 rounded-full bg-zinc-400"
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
 
-              <div
-                className={`h-[calc(85vh-96px)] w-full ${iframeLoaded ? "" : "hidden"}`}
-              >
+              <div className="h-full w-full">
                 <iframe
                   title={iframeTitle}
                   src={computedUrl}
@@ -226,23 +230,13 @@ export default function CalModal({
                   className="h-full w-full border-0"
                   sandbox="allow-scripts allow-forms allow-same-origin"
                   referrerPolicy="no-referrer-when-downgrade"
+                  style={{ opacity: iframeLoaded ? 1 : 0, transition: 'opacity 0.4s ease' }}
                 />
               </div>
-
-              {!iframeLoaded && (
-                <iframe
-                  title={`${iframeTitle}-preload`}
-                  src={computedUrl}
-                  onLoad={onIframeLoad}
-                  className="hidden"
-                  sandbox="allow-scripts allow-forms allow-same-origin"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              )}
             </div>
-          )}
+          </motion.div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }

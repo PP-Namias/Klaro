@@ -1,15 +1,23 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-
+import { motion } from "framer-motion";
 import styles from "../../app/page.module.css";
 
 export function CTA() {
   return (
-    <section className="relative left-1/2 flex w-screen -translate-x-1/2 flex-col items-center overflow-hidden pt-16 pb-32 text-center">
+    <motion.section 
+      className="relative left-1/2 flex w-screen -translate-x-1/2 flex-col items-center overflow-hidden pt-16 pb-32 text-center"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
       {/* full-width bg image pinned to bottom with top fade */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[600px] md:h-[900px]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[900px]"
         style={{
           maskImage: "linear-gradient(to bottom, transparent, black 15%)",
           WebkitMaskImage: "linear-gradient(to bottom, transparent, black 15%)",
@@ -30,7 +38,7 @@ export function CTA() {
           Clear results are just a scan away
         </h2>
 
-        <div className="relative -mt-12 -mb-12 h-[350px] w-full max-w-[750px] md:-mt-24 md:-mb-24 md:h-[650px]">
+        <div className="relative -mt-24 -mb-24 h-[650px] w-[750px]">
           <Image
             src="/sections/cta/1.png"
             alt="Klaro App Preview"
@@ -41,14 +49,16 @@ export function CTA() {
         </div>
 
         <p className="cta-description mb-8 max-w-[600px] text-zinc-900">
-          Claim your clarity and be the first to decode your health jargon with us.
+          Experience medical guidance that feels clearer and calmer.
+          <br />
+          Decode your health jargon and take control of your medical journey today.
         </p>
         <div className="mb-8 flex flex-row gap-4">
           <Link href="/scan" className={styles.btnBlack}>
-            Get Started <ArrowRight size={16} className="ml-2" />
+            Start a scan <ArrowRight size={16} className="ml-2" />
           </Link>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

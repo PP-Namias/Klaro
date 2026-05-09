@@ -54,6 +54,10 @@
   padding: 1.25rem 0.5rem;
 }
 
+.sidebar + .mainWrapper {
+  margin-left: 260px;
+}
+
 .sidebarCollapsed + .mainWrapper {
   margin-left: 72px;
 }
@@ -231,6 +235,7 @@
   text-decoration: none;
   font-size: 0.95rem;
   font-weight: 400;
+  cursor: pointer;
 }
 
 .navSignInBtn {

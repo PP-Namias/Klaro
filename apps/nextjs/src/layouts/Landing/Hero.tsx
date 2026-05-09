@@ -7,19 +7,20 @@ import { motion } from "framer-motion";
 
 import styles from "../../app/page.module.css";
 import { HeroBg } from "../../components/HeroBg";
-// import { HeroBgTwo } from "../../components/HeroBgTwo"; (unused)
+
 
 export function Hero() {
   return (
     <section className={`${styles.heroSection} relative overflow-hidden`}>
       <HeroBg />
       {/* <HeroBgTwo /> */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-0 h-[600px] w-full opacity-90 md:-bottom-80 md:h-[800px]">
+      <div className="pointer-events-none absolute -bottom-80 left-1/2 z-0 h-auto w-[1920px] -translate-x-1/2 opacity-90">
         <Image
           src="/showcase-bg.svg"
           alt="Showcase Background"
-          fill
-          className="object-cover object-bottom"
+          width={1920}
+          height={600}
+          className="h-auto w-full"
           priority
         />
       </div>

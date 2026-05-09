@@ -876,6 +876,7 @@
   font-size: 0.875rem;
   font-weight: 450;
   transition: color 0.2s ease;
+  cursor: pointer;
 }
 
 .floatingBtnBlack {
@@ -940,6 +941,7 @@
   text-decoration: none;
   font-size: 0.95rem;
   font-weight: 400;
+  cursor: pointer;
 }
 
 .headerBtn {

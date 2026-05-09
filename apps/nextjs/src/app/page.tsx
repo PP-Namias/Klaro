@@ -16,12 +16,11 @@ export default function HomePage() {
       <Navbar />
 
       <Hero />
-      {/* <LandingDemoVideo /> */}
       <main className={styles.main}>
         <Clarity />
         <Features />
         <MoreThanScanning />
-        {/* <Security /> */}
+        <Security />
         <Testimonials />
         <Cta />
       </main>
