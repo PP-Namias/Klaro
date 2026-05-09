@@ -3,13 +3,49 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import dynamic from "next/dynamic";
+import { ArrowRight, Menu, X } from "lucide-react";
 
 import styles from "../../app/page.module.css";
 
-export function Navbar() {
+// Dynamic load
+const CalModal = dynamic(() => import("../../components/CalModal"), { ssr: false });
+
+function CalModalWrapper({
+  open,
+  onClose,
+  prefill,
+}: Readonly<{ open: boolean; onClose: () => void; prefill?: Record<string, string> }>) {
+  return <CalModal open={open} onClose={onClose} prefill={prefill} />;
+}
+
+async function fetchSessionPrefill() {
+  try {
+    const res = await fetch('/api/auth/session');
+    if (!res.ok) return undefined;
+    const data = await res.json();
+    return { name: data?.name || '', email: data?.email || '' };
+  } catch {
+    return undefined;
+  }
+}
+
+function openBooking(): void {
+  fetchSessionPrefill().then((prefill) => {
+    try {
+      if ((globalThis as any).analytics?.track) {
+        (globalThis as any).analytics.track('booking_opened', { source: 'nav' });
+      }
+    } catch {}
+    window.dispatchEvent(new CustomEvent('klaro:openBooking', { detail: { prefill } }));
+  });
+}
+
+export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
   const [visible, setVisible] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [bookingPrefill, setBookingPrefill] = useState<Record<string, string> | undefined>(undefined);
   const lastY = useRef(0);
 
   useEffect(() => {
@@ -18,7 +54,6 @@ export function Navbar() {
       const goingUp = y < lastY.current;
       const pastThreshold = y > 80;
 
-      setScrolled(pastThreshold && goingUp);
       setVisible(goingUp && pastThreshold);
       lastY.current = y;
     };
@@ -27,39 +62,69 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    function handler(e: Event) {
+      const detail = (e as CustomEvent)?.detail;
+      setBookingPrefill(detail?.prefill);
+      setIsBookingOpen(true);
+      setIsMobileMenuOpen(false);
+    }
+
+    window.addEventListener('klaro:openBooking', handler as EventListener);
+    return () => window.removeEventListener('klaro:openBooking', handler as EventListener);
+  }, []);
+
+  // Prevent scrolling when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <>
       {/* default transparent header */}
       <header className={styles.headerNav}>
         <Link href="/" className={styles.headerLogo}>
           <Image
-            src="/klaro.svg"
+            src={theme === "light" ? "/klaro-dark.svg" : "/klaro.svg"}
             alt="Klaro Logo"
             width={38}
             height={38}
             className="mr-1"
             priority
           />
-          Klaro
+          <span className={theme === "light" ? "text-zinc-900" : "text-white"}>Klaro</span>
         </Link>
         <div className={styles.headerLinks}>
-          <Link href="/" className={styles.headerLink}>
-            Home
-          </Link>
           <Link href="/scan" className={styles.headerLink}>
-            Scan
+            Scan & Analyze
           </Link>
           <Link href="/maps" className={styles.headerLink}>
-            Maps
+            Clinics and Hospitals
           </Link>
-          <Link href="/scan" className={styles.headerBtn}>
-            Sign in
-            <ArrowRight
-              size={14}
-              className="ml-1 inline-block align-text-bottom"
-            />
-          </Link>
+          <button onClick={openBooking} className={styles.headerLink}>
+            Book a doctor
+          </button>
         </div>
+
+        {/* Mobile Toggle */}
+        <button 
+          className="flex md:hidden" 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {isMobileMenuOpen ? (
+            <X className={theme === "light" ? "text-zinc-900" : "text-white"} size={28} />
+          ) : (
+            <Menu className={theme === "light" ? "text-zinc-900" : "text-white"} size={28} />
+          )}
+        </button>
       </header>
 
       {/* scroll-up floating pill header */}
@@ -76,25 +141,74 @@ export function Navbar() {
             Klaro
           </Link>
           <div className={styles.floatingLinks}>
-            <Link href="/" className={styles.floatingLink}>
-              Home
-            </Link>
             <Link href="/scan" className={styles.floatingLink}>
-              Scan
+              Scan & Analyze
             </Link>
             <Link href="/maps" className={styles.floatingLink}>
-              Maps
+              Clinics and Hospitals
             </Link>
-            <Link href="/scan" className={styles.floatingBtnBlack}>
-              Sign in
-              <ArrowRight
-                size={13}
-                className="ml-1 inline-block align-text-bottom"
-              />
-            </Link>
+            <button onClick={openBooking} className={styles.floatingLink}>
+              Book a doctor
+            </button>
           </div>
+          <button 
+            className="flex md:hidden" 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="text-zinc-900" size={24} /> : <Menu className="text-zinc-900" size={24} />}
+          </button>
         </header>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[2000] flex flex-col bg-white p-8 md:hidden">
+          <div className="flex items-center justify-between mb-12">
+            <Link href="/" className="flex items-center gap-2 text-xl font-semibold text-zinc-900" onClick={() => setIsMobileMenuOpen(false)}>
+              <Image src="/klaro-dark.svg" alt="Klaro" width={32} height={32} />
+              Klaro
+            </Link>
+            <button onClick={() => setIsMobileMenuOpen(false)}>
+              <X size={32} className="text-zinc-900" />
+            </button>
+          </div>
+          <nav className="flex flex-col gap-8">
+            <Link href="/scan" className="text-2xl font-medium text-zinc-900" onClick={() => setIsMobileMenuOpen(false)}>
+              Scan & Analyze
+            </Link>
+            <Link href="/maps" className="text-2xl font-medium text-zinc-900" onClick={() => setIsMobileMenuOpen(false)}>
+              Clinics and Hospitals
+            </Link>
+            <button 
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                openBooking();
+              }} 
+              className="text-left text-2xl font-medium text-zinc-900"
+            >
+              Book a doctor
+            </button>
+          </nav>
+          <div className="mt-auto">
+            <Link 
+              href="/scan" 
+              className="flex w-full items-center justify-center rounded-full bg-black py-4 text-lg font-medium text-white"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Start a scan <ArrowRight className="ml-2" size={20} />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Modal (Client Side) */}
+      {isBookingOpen && (
+        <CalModalWrapper
+          onClose={() => setIsBookingOpen(false)}
+          open={isBookingOpen}
+          prefill={bookingPrefill}
+        />
+      )}
     </>
   );
 }
