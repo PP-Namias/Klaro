@@ -9,7 +9,7 @@ export function CTA() {
     <section className="relative left-1/2 flex w-screen -translate-x-1/2 flex-col items-center overflow-hidden pt-16 pb-32 text-center">
       {/* full-width bg image pinned to bottom with top fade */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[900px]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[600px] md:h-[900px]"
         style={{
           maskImage: "linear-gradient(to bottom, transparent, black 15%)",
           WebkitMaskImage: "linear-gradient(to bottom, transparent, black 15%)",
@@ -30,7 +30,7 @@ export function CTA() {
           Clear results are just a scan away
         </h2>
 
-        <div className="relative -mt-24 -mb-24 h-[650px] w-[750px]">
+        <div className="relative -mt-12 -mb-12 h-[350px] w-full max-w-[750px] md:-mt-24 md:-mb-24 md:h-[650px]">
           <Image
             src="/sections/cta/1.png"
             alt="Klaro App Preview"
@@ -41,9 +41,7 @@ export function CTA() {
         </div>
 
         <p className="cta-description mb-8 max-w-[600px] text-zinc-900">
-          Join thousands of Filipinos decoding their health jargon.
-          <br />
-          Take control of your medical journey today.
+          Claim your clarity and be the first to decode your health jargon with us.
         </p>
         <div className="mb-8 flex flex-row gap-4">
           <Link href="/scan" className={styles.btnBlack}>

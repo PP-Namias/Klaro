@@ -5,7 +5,7 @@ export function Testimonials() {
   return (
     <section className="mt-[100px] flex flex-col gap-[2rem]">
       <h2 className="section-header w-full text-left tracking-[0px] text-black">
-        People helped by Klaro
+        Our Klaro Testimonials
       </h2>
 
       <div className="flex flex-col gap-6">
@@ -26,13 +26,13 @@ export function Testimonials() {
               designed, focusing on professional guidance rather than
               self-medication.”
             </p>
-            <a
+            {/* <a
               href="#"
               className="testimonial-role inline-flex w-fit items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1"
             >
               Read Full Story{" "}
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </a>
+            </a> */}
           </div>
           <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-[16px] md:w-[480px]">
             <Image
@@ -53,7 +53,7 @@ export function Testimonials() {
                 Catherine Lozano
               </h3>
               <p className="testimonial-role-small text-[#8C8C8C]">
-                Science Teacher - SEAIT
+                BSED Major in Science Student
               </p>
             </div>
             <p className="testimonial-quote-small text-black">

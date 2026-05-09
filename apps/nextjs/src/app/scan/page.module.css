@@ -3,9 +3,9 @@
   width: 100%;
   background-color: #fcfcfc;
   background-image: url("/scan-bg.svg");
-  background-position: center 690px;
+  background-position: center bottom;
   background-repeat: no-repeat;
-  background-size: 85vw auto;
+  background-size: 100vw auto;
   background-attachment: fixed;
 }
 
@@ -14,7 +14,7 @@
   flex-direction: column;
   position: relative;
   z-index: 10;
-  margin-left: 260px;
+  margin-left: 0;
   transition: margin-left 0.3s ease;
   max-width: 100%;
   min-height: 100vh;
@@ -201,14 +201,14 @@
   overflow: hidden;
 }
 
-/* Navbar Styles */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
   width: 100%;
-  z-index: 20;
+  z-index: 100;
+  position: relative;
 }
 
 .navLogo {
@@ -890,4 +890,142 @@
 
 .backgroundGlow {
   display: none;
+}
+
+/* Mobile Navbar Styles */
+.mobileMenuToggle {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  z-index: 100;
+}
+
+.mobileMenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ffffff;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 6rem 2rem 2rem 2rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.mobileMenuOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobileNavLinks {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.mobileNavLink {
+  font-family: var(--font-geist);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #000;
+  text-decoration: none;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+  .navLinks {
+    display: none;
+  }
+  
+  .mobileMenuToggle {
+    display: flex;
+  }
+  
+  .navbar {
+    padding: 1rem;
+  }
+
+  .mainContent {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 2.2rem;
+    padding: 0 1rem;
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+    padding: 0 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Miniature Cards Grid for UX */
+  .cardGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+    width: 100%;
+  }
+  
+  .scanCard {
+    min-height: auto;
+    padding: 0.8rem;
+  }
+  
+  .scanCardTitle {
+    font-size: 1.15rem;
+    margin-bottom: 0.2rem;
+  }
+  
+  .scanCardDesc {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+  
+  .scanCardImageContainer {
+    height: 75px;
+    margin-top: 0;
+  }
+
+  /* Scale down chat UI slightly for mobile */
+  .claraChatBubble {
+    font-size: 0.95rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .userChatBubble {
+    font-size: 0.95rem;
+  }
+  
+  .claraChatAvatar {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .scannerBox {
+    height: 120px;
+    margin: 0 0.5rem 0.5rem 0.5rem;
+  }
+  
+  .uploadBox {
+    padding: 1rem;
+    min-height: 60px;
+  }
+  
+  .primaryBtn, .secondaryBtn {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.8rem;
+  }
 }
