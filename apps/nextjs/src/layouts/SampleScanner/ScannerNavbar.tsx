@@ -3,21 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { Menu, X } from "lucide-react";
 
 import styles from "../../app/scan/page.module.css";
-
-// Dynamic load
-const CalModal = dynamic(() => import("../../components/CalModal"), { ssr: false });
-
-function CalModalWrapper({
-  open,
-  onClose,
-  prefill,
-}: Readonly<{ open: boolean; onClose: () => void; prefill?: Record<string, string> }>) {
-  return <CalModal open={open} onClose={onClose} prefill={prefill} />;
-}
 
 async function fetchSessionPrefill() {
   try {
@@ -43,8 +31,6 @@ function openBooking(): void {
 
 export function ScannerNavbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [bookingPrefill, setBookingPrefill] = useState<Record<string, string> | undefined>(undefined);
 
   // Prevent scrolling when mobile menu is open
   useEffect(() => {
@@ -68,17 +54,6 @@ export function ScannerNavbar() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [isMobileMenuOpen]);
-
-  useEffect(() => {
-    function handler(e: Event) {
-      const detail = (e as CustomEvent)?.detail;
-      setBookingPrefill(detail?.prefill);
-      setIsBookingOpen(true);
-    }
-
-    window.addEventListener('klaro:openBooking', handler as EventListener);
-    return () => window.removeEventListener('klaro:openBooking', handler as EventListener);
-  }, []);
 
   return (
     <>
@@ -146,15 +121,6 @@ export function ScannerNavbar() {
           </button>
         </div>
       </div>
-
-      {/* Booking Modal (Client Side) */}
-      {isBookingOpen && (
-        <CalModalWrapper
-          onClose={() => setIsBookingOpen(false)}
-          open={isBookingOpen}
-          prefill={bookingPrefill}
-        />
-      )}
     </>
   );
 }

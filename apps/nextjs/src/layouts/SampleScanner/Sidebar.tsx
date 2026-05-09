@@ -12,11 +12,18 @@ import {
 } from "lucide-react";
 
 import styles from "../../app/scan/page.module.css";
-import CalModal from "../../components/CalModal";
+
+function openBooking(): void {
+  try {
+    if ((globalThis as any).analytics?.track) {
+      (globalThis as any).analytics.track('booking_opened', { source: 'sidebar' });
+    }
+  } catch {}
+  window.dispatchEvent(new CustomEvent('klaro:openBooking'));
+}
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isCalOpen, setIsCalOpen] = useState(false);
 
   return (
     <aside
@@ -74,12 +81,11 @@ export function Sidebar() {
       <div className={styles.sidebarFooter}>
         <button
           className={styles.bookDoctorBtn}
-          onClick={() => setIsCalOpen(true)}
+          onClick={openBooking}
         >
           <Calendar size={20} color="#999" />{" "}
           {!isCollapsed && <span>Book a Doctor</span>}
         </button>
-        <CalModal open={isCalOpen} onClose={() => setIsCalOpen(false)} />
       </div>
     </aside>
   );

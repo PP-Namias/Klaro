@@ -3,21 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { ArrowRight, Menu, X } from "lucide-react";
 
 import styles from "../../app/page.module.css";
-
-// Dynamic load
-const CalModal = dynamic(() => import("../../components/CalModal"), { ssr: false });
-
-function CalModalWrapper({
-  open,
-  onClose,
-  prefill,
-}: Readonly<{ open: boolean; onClose: () => void; prefill?: Record<string, string> }>) {
-  return <CalModal open={open} onClose={onClose} prefill={prefill} />;
-}
 
 async function fetchSessionPrefill() {
   try {
@@ -44,8 +32,6 @@ function openBooking(): void {
 export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
   const [visible, setVisible] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [bookingPrefill, setBookingPrefill] = useState<Record<string, string> | undefined>(undefined);
   const lastY = useRef(0);
 
   useEffect(() => {
@@ -60,18 +46,6 @@ export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    function handler(e: Event) {
-      const detail = (e as CustomEvent)?.detail;
-      setBookingPrefill(detail?.prefill);
-      setIsBookingOpen(true);
-      setIsMobileMenuOpen(false);
-    }
-
-    window.addEventListener('klaro:openBooking', handler as EventListener);
-    return () => window.removeEventListener('klaro:openBooking', handler as EventListener);
   }, []);
 
   // Prevent scrolling when mobile menu is open
@@ -199,15 +173,6 @@ export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
             </Link>
           </div>
         </div>
-      )}
-
-      {/* Booking Modal (Client Side) */}
-      {isBookingOpen && (
-        <CalModalWrapper
-          onClose={() => setIsBookingOpen(false)}
-          open={isBookingOpen}
-          prefill={bookingPrefill}
-        />
       )}
     </>
   );
