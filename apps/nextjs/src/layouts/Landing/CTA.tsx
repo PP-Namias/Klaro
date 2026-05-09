@@ -49,9 +49,9 @@ export function CTA() {
         </div>
 
         <p className="cta-description mb-8 max-w-[600px] text-zinc-900">
-          Join thousands of Filipinos decoding their health jargon.
+          Experience medical guidance that feels clearer and calmer.
           <br />
-          Take control of your medical journey today.
+          Decode your health jargon and take control of your medical journey today.
         </p>
         <div className="mb-8 flex flex-row gap-4">
           <Link href="/scan" className={styles.btnBlack}>

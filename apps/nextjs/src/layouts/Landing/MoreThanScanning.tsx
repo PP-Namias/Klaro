@@ -94,8 +94,7 @@ export function MoreThanScanning() {
                   Medical <br /> Documents
                 </h3>
                 <p className="feature-card-description max-w-[280px] text-zinc-500">
-                  Easily upload and organize all your results and prescriptions for
-                  instant clarity.
+                  Easily upload and scan documents
                 </p>
               </div>
               <div className="relative min-h-[180px] w-56 shrink-0 self-stretch overflow-hidden rounded-[16px] md:w-72">
