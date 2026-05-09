@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
-  BarChart2,
+  Map,
   Calendar,
-  CircleUser,
   Home,
   PanelLeftClose,
-  SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
 
@@ -62,18 +61,14 @@ export function Sidebar() {
       </div>
 
       <nav className={styles.sidebarNav}>
-        <a href="#" className={styles.navItem}>
+        <Link href="/" className={styles.navItem}>
           <Home size={20} color="#999" /> {!isCollapsed && <span>Home</span>}
-        </a>
-        <a href="#" className={styles.navItem}>
-          <BarChart2 size={20} color="#999" />{" "}
-          {!isCollapsed && <span>Results</span>}
-        </a>
+        </Link>
+        <Link href="/maps" className={styles.navItem}>
+          <Map size={20} color="#999" />{" "}
+          {!isCollapsed && <span>Maps</span>}
+        </Link>
         <hr className={styles.sidebarDivider} />
-        <a href="#" className={styles.navItem}>
-          <SlidersHorizontal size={20} color="#999" />{" "}
-          {!isCollapsed && <span>Settings</span>}
-        </a>
       </nav>
 
       <div className={styles.sidebarFooter}>
