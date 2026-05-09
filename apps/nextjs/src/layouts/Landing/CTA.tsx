@@ -1,11 +1,20 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 import styles from "../../app/page.module.css";
 
 export function CTA() {
   return (
-    <section className="relative left-1/2 flex w-screen -translate-x-1/2 flex-col items-center overflow-hidden pt-16 pb-32 text-center">
+    <motion.section 
+      className="relative left-1/2 flex w-screen -translate-x-1/2 flex-col items-center overflow-hidden pt-16 pb-32 text-center"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
       {/* full-width bg image pinned to bottom with top fade */}
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[900px]"
@@ -46,10 +55,10 @@ export function CTA() {
         </p>
         <div className="mb-8 flex flex-row gap-4">
           <Link href="/scan" className={styles.btnBlack}>
-            Get Started <ArrowRight size={16} className="ml-2" />
+            Start a scan <ArrowRight size={16} className="ml-2" />
           </Link>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

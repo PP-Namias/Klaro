@@ -1,9 +1,18 @@
+"use client";
+
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function Security() {
   return (
-    <section className="-mt-4 flex w-full flex-col">
+    <motion.section 
+      className="-mt-4 flex w-full flex-col"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
       <h2 className="section-header mb-16 text-left text-zinc-900">
         Secure by Design
       </h2>
@@ -35,6 +44,6 @@ export function Security() {
           </a>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

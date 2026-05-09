@@ -1,8 +1,17 @@
+"use client";
+
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 export function MoreThanScanning() {
   return (
-    <section className="-mx-4 rounded-[40px] bg-[#fafafa] px-4 py-24 md:-mx-16 md:px-16">
+    <motion.section 
+      className="-mx-4 rounded-[40px] bg-[#fafafa] px-4 py-24 md:-mx-16 md:px-16"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
       <div className="w-full">
         <h2 className="section-header mb-[2.5rem] text-center text-zinc-900">
           More than just Scanning
@@ -82,17 +91,17 @@ export function MoreThanScanning() {
             <div className="flex flex-1 flex-row gap-6 rounded-[24px] border border-[#eeeeee] bg-white px-[1.5rem] pt-[1rem] pb-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
               <div className="flex flex-1 flex-col py-2">
                 <h3 className="feature-card-title mb-2 text-zinc-900">
-                  Secure Medical <br /> History
+                  Medical <br /> Documents
                 </h3>
                 <p className="feature-card-description max-w-[280px] text-zinc-500">
-                  One encrypted vault for all your labs, prescriptions, and
-                  discharge summaries.
+                  Easily upload and organize all your results and prescriptions for
+                  instant clarity.
                 </p>
               </div>
               <div className="relative min-h-[180px] w-56 shrink-0 self-stretch overflow-hidden rounded-[16px] md:w-72">
                 <Image
                   src="/sections/scanning/3.png"
-                  alt="Secure Medical History"
+                  alt="Medical Documents"
                   fill
                   className="object-contain object-center"
                   quality={100}
@@ -135,6 +144,6 @@ export function MoreThanScanning() {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }
