@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { MapPreview } from "~/components/facilities/MapPreview";
 
@@ -31,8 +34,14 @@ export function Clarity() {
   const item3 = clarityItems[2]!;
 
   return (
-    <section className="mt-[100px] flex flex-col gap-[2.5rem]">
-      <h2 className="section-header m-0 w-full tracking-[0px] text-black">
+    <motion.section 
+      className="mt-[100px] flex flex-col gap-[2.5rem]"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
+      <h2 className="section-header m-0 h-auto w-max tracking-[0px] text-black">
         Clarity From Results to Care
       </h2>
 
@@ -40,14 +49,14 @@ export function Clarity() {
         {/* Left Column - Stacked Cards */}
         <div className="flex flex-col gap-6">
           {/* Card 1: Connect to Real Doctors */}
-          <div className="group flex flex-1 flex-col items-center gap-6 rounded-[24px] border border-[#eeeeee] bg-white p-6 shadow-[0_4px_8px_0_rgba(0,0,0,0.03)] md:flex-row md:items-stretch md:gap-8">
-            <div className="flex flex-1 flex-col text-center md:text-left">
-              <h3 className="card-title mb-2 text-zinc-900">
+          <div className="group flex flex-1 flex-row gap-8 rounded-[24px] border border-[#eeeeee] bg-white p-6 shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
+            <div className="flex flex-1 flex-col">
+              <h3 className="card-title mb-2 whitespace-nowrap text-zinc-900">
                 {item1.title}
               </h3>
               <p className="card-description text-zinc-500">{item1.body}</p>
             </div>
-            <div className="relative flex w-full max-w-[140px] shrink-0 items-center justify-center md:w-48 md:max-w-none lg:w-56">
+            <div className="relative -left-10 flex w-48 shrink-0 items-center justify-center self-stretch md:w-64">
               <Image
                 src={item1.image}
                 alt={item1.alt}
@@ -60,14 +69,14 @@ export function Clarity() {
           </div>
 
           {/* Card 2: Understand Your Results */}
-          <div className="group flex flex-1 flex-col items-center gap-6 rounded-[24px] border border-[#eeeeee] bg-white p-6 shadow-[0_4px_8px_0_rgba(0,0,0,0.03)] md:flex-row md:items-stretch md:gap-8">
-            <div className="flex flex-1 flex-col text-center md:text-left">
-              <h3 className="card-title mb-2 text-zinc-900">
+          <div className="group flex flex-1 flex-row gap-8 rounded-[24px] border border-[#eeeeee] bg-white p-6 shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
+            <div className="flex flex-1 flex-col">
+              <h3 className="card-title mb-2 whitespace-nowrap text-zinc-900">
                 {item2.title}
               </h3>
               <p className="card-description text-zinc-500">{item2.body}</p>
             </div>
-            <div className="relative flex w-full max-w-[140px] shrink-0 items-center justify-center md:w-48 md:max-w-none lg:w-56">
+            <div className="relative -left-10 flex w-48 shrink-0 items-center justify-center self-stretch md:w-64">
               <Image
                 src={item2.image}
                 alt={item2.alt}
@@ -83,8 +92,8 @@ export function Clarity() {
         {/* Right Column - Tall Card */}
         {/* Card 3: Find the Right Care Near You */}
         <div className="group flex min-h-[650px] flex-col rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)]">
-          <div className="flex flex-col text-center md:text-left">
-            <h3 className="card-title mb-2 text-zinc-900">
+          <div className="flex flex-col">
+            <h3 className="card-title mb-2 whitespace-nowrap text-zinc-900">
               {item3.title}
             </h3>
             <p className="card-description mb-6 text-zinc-500">{item3.body}</p>
@@ -96,7 +105,7 @@ export function Clarity() {
             </div>
             <Link
               href="/maps"
-              className="feature-card-description mx-auto inline-flex items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1 md:mx-0"
+              className="feature-card-description inline-flex items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1"
             >
               Try it out{" "}
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -104,6 +113,6 @@ export function Clarity() {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }
