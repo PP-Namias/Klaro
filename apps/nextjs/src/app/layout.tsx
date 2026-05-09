@@ -28,6 +28,14 @@ export const metadata: Metadata = {
       "Upload lab results, prescriptions, or discharge summaries and get clear guidance fast.",
     url: "https://klaro.app",
     siteName: "Klaro",
+    images: [
+      {
+        url: "/Klaro.png",
+        width: 1200,
+        height: 630,
+        alt: "Klaro - AI-powered medical document assistant",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
