@@ -1,0 +1,218 @@
+.navbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  z-index: 40;
+}
+
+/* Mobile: Full width fixed top bar on scroll */
+.navbar--floating {
+  position: fixed;
+  background-color: rgba(255, 255, 255, 0.98);
+  border-bottom: 1px solid #e4e4e7;
+  padding: 1rem 2rem;
+  transform: translateY(-100%);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  z-index: 50;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.navbar--visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Desktop: The Old Floating Pill Design */
+@media (min-width: 768px) {
+  .navbar--floating {
+    top: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(-200%);
+    width: 100%;
+    max-width: 900px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(24px);
+    border: none;
+    padding: 0.6rem 1.5rem;
+  }
+
+  .navbar--floating.navbar--visible {
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.navbar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #09090b;
+  font-weight: 600;
+  font-size: 1.125rem;
+  text-decoration: none;
+  font-family: var(--font-cormorant);
+}
+
+.navbar__brand--white {
+  color: #ffffff;
+}
+
+.navbar__links {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .navbar__links {
+    display: flex;
+    align-items: center;
+    gap: 1.8rem;
+  }
+}
+
+.navbar__link {
+  font-size: 0.95rem;
+  color: #52525b;
+  text-decoration: none;
+  font-weight: 400;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+/* On the absolute top header, links might need to be white depending on the hero background */
+.navbar:not(.navbar--floating) .navbar__link {
+  color: #ffffff;
+}
+
+.navbar--floating .navbar__link {
+  color: #1a1a1a;
+  font-weight: 450;
+  font-size: 0.875rem;
+}
+
+.navbar__link:hover {
+  color: #09090b;
+}
+
+.navbar:not(.navbar--floating) .navbar__link:hover {
+  color: #f4f4f5;
+}
+
+.navbar__btn {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: #000000;
+  color: white;
+  padding: 0.4rem 1.2rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  border: none;
+}
+
+.navbar:not(.navbar--floating) .navbar__btn {
+  background-color: #ffffff;
+  color: #000000;
+  border-radius: 6px;
+}
+
+.navbar__btn:hover {
+  background-color: #1a1a1a;
+  transform: translateY(-1px);
+}
+
+.navbar:not(.navbar--floating) .navbar__btn:hover {
+  background-color: #f4f4f5;
+}
+
+.navbar__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #09090b;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-right: -0.5rem;
+}
+
+.navbar:not(.navbar--floating) .navbar__toggle {
+  color: #ffffff;
+}
+
+.navbar.navbar--light:not(.navbar--floating) .navbar__link {
+  color: #52525b;
+}
+
+.navbar.navbar--light:not(.navbar--floating) .navbar__link:hover {
+  color: #09090b;
+}
+
+.navbar.navbar--light:not(.navbar--floating) .navbar__btn {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.navbar.navbar--light:not(.navbar--floating) .navbar__btn:hover {
+  background-color: #1a1a1a;
+}
+
+.navbar.navbar--light:not(.navbar--floating) .navbar__toggle {
+  color: #09090b;
+}
+
+@media (min-width: 768px) {
+  .navbar__toggle {
+    display: none;
+  }
+}
+
+/* Mobile Menu Overlay */
+.mobileMenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #ffffff;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 2rem;
+}
+
+.mobileMenu__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.mobileMenu__links {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.mobileMenu__link {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #09090b;
+  text-decoration: none;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0;
+}

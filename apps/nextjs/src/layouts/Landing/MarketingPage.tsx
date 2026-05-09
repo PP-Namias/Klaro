@@ -12,9 +12,9 @@ interface MarketingPageProps {
 export function MarketingPage({ content }: MarketingPageProps) {
   return (
     <div className="overflow-x-hidden bg-[#f9fafb]">
-      <Navbar />
+      <Navbar theme="light" />
 
-      <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-20 px-6 pb-20 pt-10 md:px-8 lg:px-10">
+      <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-20 px-6 pb-20 pt-32 md:px-8 lg:px-10">
         <section className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
           <div className="space-y-6">
             <p className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-1 text-[0.7rem] uppercase tracking-[0.28em] text-zinc-500">
@@ -43,6 +43,7 @@ export function MarketingPage({ content }: MarketingPageProps) {
             </div>
           </div>
 
+          {/* Soft removal of the stats section
           <div className="grid gap-4 rounded-[28px] border border-zinc-200 bg-white p-6 shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
             {content.stats.map((stat) => (
               <div
@@ -58,6 +59,7 @@ export function MarketingPage({ content }: MarketingPageProps) {
               </div>
             ))}
           </div>
+          */}
         </section>
 
         <section className="space-y-6">

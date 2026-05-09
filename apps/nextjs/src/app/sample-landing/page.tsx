@@ -19,7 +19,7 @@ export default function HomePage() {
         <Clarity />
         <Features />
         <MoreThanScanning />
-        <Security />
+        {/* <Security /> */}
         <Testimonials />
         <CTA />
       </main>

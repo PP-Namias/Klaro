@@ -64,7 +64,7 @@ export default function RootLayout(
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "bg-background text-foreground min-h-screen antialiased",
+          "bg-background text-foreground min-h-screen antialiased overflow-x-hidden w-full max-w-[100vw]",
           geist.className,
           cormorant.variable,
         )}

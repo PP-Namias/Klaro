@@ -13,6 +13,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 import styles from "../../app/scan/page.module.css";
 
@@ -174,7 +175,12 @@ export function ScannerUI() {
   return (
     <div className={styles.scannerContainer}>
       {!isCaptured ? (
-        <>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
+        >
           <h1 className={styles.title}>
             Scan Your Results. Understand Them Instantly.
           </h1>
@@ -183,11 +189,16 @@ export function ScannerUI() {
             <br />
             then ask <span className={styles.claraText}>Clara</span> anything
           </p>
-        </>
+        </motion.div>
       ) : (
-        <>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
+        >
           <h1 className={styles.placeholderTitle}>
-            Placeholder title of your document
+            Patient's medical document
           </h1>
           <div className={styles.centeredImageContainer}>
             <div className={styles.centeredImage}>
@@ -201,11 +212,16 @@ export function ScannerUI() {
               )}
             </div>
           </div>
-        </>
+        </motion.div>
       )}
 
       {!isScanning && !isCaptured && (
-        <div className={styles.cardGrid}>
+        <motion.div 
+          className={styles.cardGrid}
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+        >
           <div className={styles.scanCard}>
             <h3 className={styles.scanCardTitle}>Lab Results</h3>
             <p className={styles.scanCardDesc}>
@@ -273,11 +289,14 @@ export function ScannerUI() {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      <div
+      <motion.div
         className={`${styles.workspaceWrapper} ${isScanning || isCaptured ? styles.workspaceExpanded : ""}`}
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, ease: "easeOut", delay: 0.4 }}
       >
         <div
           className={`${styles.claraChatWrapper} ${isCaptured ? styles.claraCaptured : ""}`}
@@ -591,7 +610,7 @@ export function ScannerUI() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
       <canvas ref={canvasRef} style={{ display: "none" }} />
       <input
         type="file"

@@ -84,10 +84,6 @@ export function Sidebar() {
           <Calendar size={20} color="#999" />{" "}
           {!isCollapsed && <span>Book a Doctor</span>}
         </button>
-        <a href="#" className={styles.navItem}>
-          <CircleUser size={20} color="#555" />{" "}
-          {!isCollapsed && <span>Profile</span>}
-        </a>
         <CalModal open={isCalOpen} onClose={() => setIsCalOpen(false)} />
       </div>
     </aside>
