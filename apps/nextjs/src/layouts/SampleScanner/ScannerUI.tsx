@@ -8,33 +8,40 @@ import {
   Focus,
   Lock,
   Paperclip,
-  Scan,
   Send,
-  Sparkles,
   X,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import styles from "../../app/scan/page.module.css";
 
-type ChatMessage = {
+interface ChatMessage {
   id: string;
   sender: "user" | "clara";
   text: string;
   image?: string;
-};
+}
+
+interface ScanAsset {
+  id: string;
+  file: File;
+  previewUrl: string;
+}
 
 export function ScannerUI() {
   const [isScanning, setIsScanning] = useState(false);
   const [isCaptured, setIsCaptured] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [scanAssets, setScanAssets] = useState<ScanAsset[]>([]);
   const [chatAttachment, setChatAttachment] = useState<string | null>(null);
   const [scanTarget, setScanTarget] = useState<"main" | "chat">("main");
   const [chatInput, setChatInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const primaryPreview = capturedImage ?? scanAssets[0]?.previewUrl ?? null;
+  const showUploadAction = !isScanning && !isCaptured;
 
   const scrollToBottom = () => {
     window.scrollTo({
@@ -57,16 +64,44 @@ export function ScannerUI() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatFileInputRef = useRef<HTMLInputElement>(null);
 
+  const normalizeFiles = (files: File[]) =>
+    files
+      .filter((file) => file.type.startsWith("image/"))
+      .map((file) => ({
+        id: `${file.name}-${file.size}-${file.lastModified}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }));
+
+  const addScanAssets = (files: File[]) => {
+    const nextAssets = normalizeFiles(files);
+    if (nextAssets.length === 0) return;
+
+    setScanAssets((prev) => {
+      const seen = new Set(prev.map((asset) => asset.id));
+      const merged = [...prev];
+
+      nextAssets.forEach((asset) => {
+        if (seen.has(asset.id)) {
+          URL.revokeObjectURL(asset.previewUrl);
+        } else {
+          merged.push(asset);
+          seen.add(asset.id);
+        }
+      });
+
+      return merged;
+    });
+
+    setIsCaptured(true);
+  };
+
   const handleStartScan = async (target: "main" | "chat" = "main") => {
     setScanTarget(target);
     setIsScanning(true);
     try {
       // Use the device camera (front-facing by default) so users can point
       // the camera at the person/document. Prefer front camera for "focus on her".
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Camera not available");
-      }
-
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "user",
@@ -78,7 +113,7 @@ export function ScannerUI() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         // attempt to play the video
-        videoRef.current.play().catch(() => {});
+        void videoRef.current.play();
       }
     } catch (err) {
       console.error("Error accessing display media:", err);
@@ -88,21 +123,8 @@ export function ScannerUI() {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        setCapturedImage(dataUrl);
-        setIsCaptured(true);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      // unsupported type: ignore or show a console warning
-      console.warn("Dropped file is not an image:", file.type);
-    }
+    const files = Array.from(e.dataTransfer.files);
+    addScanAssets(files);
   };
 
   const handleCancelScan = () => {
@@ -114,22 +136,33 @@ export function ScannerUI() {
     setIsScanning(false);
   };
 
+  const removeScanAsset = (assetId: string) => {
+    setScanAssets((prev) => {
+      const asset = prev.find((item) => item.id === assetId);
+      if (asset) {
+        URL.revokeObjectURL(asset.previewUrl);
+      }
+      return prev.filter((item) => item.id !== assetId);
+    });
+  };
+
+  const clearScanAssets = () => {
+    setScanAssets((prev) => {
+      prev.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      return [];
+    });
+    setCapturedImage(null);
+    setIsCaptured(false);
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        setCapturedImage(dataUrl);
-        setIsCaptured(true);
-      };
-      reader.readAsDataURL(file);
-    }
+    addScanAssets(Array.from(e.target.files ?? []));
+    e.target.value = "";
   };
 
   const handleChatFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
+    if (file?.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (event) => {
         const dataUrl = event.target?.result as string;
@@ -154,7 +187,7 @@ export function ScannerUI() {
       id: Date.now().toString(),
       sender: "user",
       text: chatInput,
-      image: chatAttachment || undefined,
+      image: chatAttachment ?? undefined,
     };
 
     setMessages((prev) => [...prev, newMsg]);
@@ -205,9 +238,17 @@ export function ScannerUI() {
       }
     }
   };
+
+  useEffect(() => {
+    return () => {
+      scanAssets.forEach((asset) => URL.revokeObjectURL(asset.previewUrl));
+    };
+  }, [scanAssets]);
+
   return (
-    <div
+    <section
       className={styles.scannerContainer}
+      aria-label="Scan document workspace"
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -215,7 +256,7 @@ export function ScannerUI() {
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
     >
-      {!isCaptured ? (
+      {isCaptured ? (
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -232,7 +273,7 @@ export function ScannerUI() {
           </p>
           {isDragging && (
             <div style={{ marginTop: 12, color: "#0369a1" }}>
-              Drop image here to upload
+              Drop 1 or more images here to upload
             </div>
           )}
         </motion.div>
@@ -248,16 +289,122 @@ export function ScannerUI() {
           </h1>
           <div className={styles.centeredImageContainer}>
             <div className={styles.centeredImage}>
-              {capturedImage && (
+              {primaryPreview && (
                 <Image
-                  src={capturedImage}
-                  alt="Captured document"
+                  src={primaryPreview}
+                  alt="Selected document preview"
                   fill
                   style={{ objectFit: "cover", borderRadius: "12px" }}
                 />
               )}
             </div>
           </div>
+          {scanAssets.length > 0 && (
+            <div
+              style={{
+                marginTop: "1rem",
+                width: "min(100%, 920px)",
+                borderRadius: 16,
+                padding: "1rem",
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.12)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 12,
+                  marginBottom: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <strong>{scanAssets.length} image{scanAssets.length > 1 ? "s" : ""} ready</strong>
+                  <div style={{ fontSize: 13, opacity: 0.8 }}>
+                    Drag more pages in, or remove ones you don’t need before scanning.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearScanAssets}
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    background: "transparent",
+                    color: "inherit",
+                    borderRadius: 999,
+                    padding: "0.5rem 0.9rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  Clear all
+                </button>
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                  gap: 12,
+                }}
+              >
+                {scanAssets.map((asset) => (
+                  <div
+                    key={asset.id}
+                    style={{
+                      position: "relative",
+                      borderRadius: 14,
+                      overflow: "hidden",
+                      background: "rgba(255,255,255,0.12)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      minHeight: 140,
+                    }}
+                  >
+                    <Image
+                      src={asset.previewUrl}
+                      alt={asset.file.name}
+                      fill
+                      style={{ objectFit: "cover" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeScanAsset(asset.id)}
+                      style={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        border: 0,
+                        borderRadius: 999,
+                        width: 28,
+                        height: 28,
+                        background: "rgba(0,0,0,0.65)",
+                        color: "#fff",
+                        cursor: "pointer",
+                      }}
+                      aria-label={`Remove ${asset.file.name}`}
+                    >
+                      ×
+                    </button>
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        padding: "0.7rem",
+                        background:
+                          "linear-gradient(180deg, transparent, rgba(0,0,0,0.7))",
+                        color: "#fff",
+                        fontSize: 12,
+                      }}
+                    >
+                      {asset.file.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </motion.div>
       )}
 
@@ -371,11 +518,78 @@ export function ScannerUI() {
                 <span className={styles.mediumText}>
                   ask me a health question
                 </span>
-                .
+                {"."}
               </>
             )}
           </div>
         </div>
+
+        {scanAssets.length > 0 && (
+          <div
+            style={{
+              width: "100%",
+              margin: "1rem 0 0",
+              padding: "1rem",
+              borderRadius: 16,
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.04)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 12 }}>
+              <div>
+                <div style={{ fontSize: 13, opacity: 0.8 }}>Selected pages</div>
+                <strong>{scanAssets.length} image{scanAssets.length > 1 ? "s" : ""}</strong>
+              </div>
+              <button
+                type="button"
+                onClick={clearScanAssets}
+                style={{
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  background: "transparent",
+                  color: "inherit",
+                  borderRadius: 999,
+                  padding: "0.45rem 0.85rem",
+                  cursor: "pointer",
+                }}
+              >
+                Clear queue
+              </button>
+            </div>
+            <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
+              {scanAssets.map((asset) => (
+                <button
+                  key={asset.id}
+                  type="button"
+                  onClick={() => removeScanAsset(asset.id)}
+                  style={{
+                    minWidth: 104,
+                    maxWidth: 104,
+                    padding: 0,
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: 14,
+                    overflow: "hidden",
+                    background: "rgba(0,0,0,0.18)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                  aria-label={`Remove ${asset.file.name}`}
+                >
+                  <div style={{ position: "relative", aspectRatio: "4 / 5" }}>
+                    <Image
+                      src={asset.previewUrl}
+                      alt={asset.file.name}
+                      fill
+                      style={{ objectFit: "cover" }}
+                    />
+                  </div>
+                  <div style={{ padding: "0.55rem 0.6rem", fontSize: 11, lineHeight: 1.25, color: "#fff" }}>
+                    {asset.file.name}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {messages.length > 0 && (
           <div className={styles.chatHistory}>
@@ -545,14 +759,20 @@ export function ScannerUI() {
                 </svg>
 
                 {isScanning && (
-                  <>
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      playsInline
-                      className={styles.cameraFeed}
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className={styles.cameraFeed}
+                  >
+                    <track
+                      kind="captions"
+                      label="Camera preview"
+                      srcLang="en"
+                      src="data:text/vtt,WEBVTT%0A%0A00:00.000%20--%3E%2000:10.000%0ACamera%20preview"
+                      default
                     />
-                  </>
+                  </video>
                 )}
 
                 {!isScanning && (
@@ -632,14 +852,16 @@ export function ScannerUI() {
                     <Check size={18} /> Scan image
                   </button>
                 </div>
-              ) : !isCaptured ? (
+              ) : null}
+
+              {showUploadAction ? (
                 <div className={styles.uploadWrapper}>
                   <div className={styles.uploadBox}>
                     <button
                       className={styles.secondaryBtn}
                       onClick={triggerUpload}
                     >
-                      <Paperclip size={18} /> Drag or Upload a document
+                      <Paperclip size={18} /> Drag or Upload 1+ images
                     </button>
                   </div>
                 </div>
@@ -663,6 +885,7 @@ export function ScannerUI() {
         ref={fileInputRef}
         style={{ display: "none" }}
         accept="image/*"
+        multiple
         onChange={handleFileUpload}
       />
       <input
@@ -672,6 +895,6 @@ export function ScannerUI() {
         accept="image/*"
         onChange={handleChatFileUpload}
       />
-    </div>
+    </section>
   );
 }
