@@ -28,6 +28,7 @@ export function ScannerUI() {
   const [isScanning, setIsScanning] = useState(false);
   const [isCaptured, setIsCaptured] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [chatAttachment, setChatAttachment] = useState<string | null>(null);
   const [scanTarget, setScanTarget] = useState<"main" | "chat">("main");
   const [chatInput, setChatInput] = useState("");
@@ -81,6 +82,26 @@ export function ScannerUI() {
       }
     } catch (err) {
       console.error("Error accessing display media:", err);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        setCapturedImage(dataUrl);
+        setIsCaptured(true);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // unsupported type: ignore or show a console warning
+      console.warn("Dropped file is not an image:", file.type);
     }
   };
 
@@ -185,7 +206,15 @@ export function ScannerUI() {
     }
   };
   return (
-    <div className={styles.scannerContainer}>
+    <div
+      className={styles.scannerContainer}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragging(true);
+      }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={handleDrop}
+    >
       {!isCaptured ? (
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -201,6 +230,11 @@ export function ScannerUI() {
             <br />
             then ask <span className={styles.claraText}>Clara</span> anything
           </p>
+          {isDragging && (
+            <div style={{ marginTop: 12, color: "#0369a1" }}>
+              Drop image here to upload
+            </div>
+          )}
         </motion.div>
       ) : (
         <motion.div
