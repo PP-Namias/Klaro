@@ -60,12 +60,24 @@ export function ScannerUI() {
     setScanTarget(target);
     setIsScanning(true);
     try {
-      // Using getDisplayMedia for screen recording/sharing as a test fallback
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
+      // Use the device camera (front-facing by default) so users can point
+      // the camera at the person/document. Prefer front camera for "focus on her".
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera not available");
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
       });
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // attempt to play the video
+        videoRef.current.play().catch(() => {});
       }
     } catch (err) {
       console.error("Error accessing display media:", err);
