@@ -3,12 +3,20 @@
  * Orchestrates the complete pipeline: Upload → OCR → Extraction → Analysis → Plain Language
  */
 
-import type { ExtractedTest } from "@klaro/validators/extraction";
-import type { Dialect, Severity } from "@klaro/validators/llm";
+import type { Dialect, LLMResponse, Severity } from "@klaro/validators/llm";
 
 import { extractTestsFromText } from "./extraction";
 import { generatePlainLanguageExplanation } from "./llm";
 import { performOcrWithFallback } from "./ocr";
+
+/** Local extracted test type with guaranteed flagged boolean */
+interface ExtractedTestResult {
+  name: string;
+  value: string;
+  unit?: string;
+  referenceRange?: string;
+  flagged: boolean;
+}
 
 export interface WorkflowConfig {
   /** Enable Gemini Vision for complex documents */
@@ -36,15 +44,15 @@ export interface WorkflowResult {
   /** OCR confidence score */
   ocrConfidence: number;
   /** Extracted test results */
-  extractedTests: ExtractedTest[];
-  /** Flagged (abnormal) tests */
-  flaggedTests: ExtractedTest[];
+  extractedTests: ExtractedTestResult[];
+  /** Flagged (abnormal) tests - tests where flagged === true */
+  flaggedTests: ExtractedTestResult[];
   /** Plain language explanation */
   plainLanguage: {
     summary: string;
     tests: Array<{
       name: string;
-      value: string;
+      value?: string;
       interpretation: string;
       recommendation?: string;
     }>;
@@ -96,12 +104,27 @@ export async function executeDocumentWorkflow(
     const ocrResults = await processOCR(images, fullConfig, warnings);
 
     // Stage 2: Extract test data
-    const extractedTests = extractTestsFromText(ocrResults.combinedText);
+    const rawExtractedTests = extractTestsFromText(ocrResults.combinedText);
+    const extractedTests: ExtractedTestResult[] = rawExtractedTests.map((t) => ({
+      name: t.name,
+      value: t.value,
+      unit: t.unit,
+      referenceRange: t.referenceRange,
+      flagged: t.flagged === true,
+    }));
     const flaggedTests = extractedTests.filter((t) => t.flagged);
 
     // Stage 3: Generate plain language explanation
+    // Map to the type expected by LLM service
+    const llmTests = extractedTests.map((t) => ({
+      name: t.name,
+      value: t.value,
+      unit: t.unit,
+      referenceRange: t.referenceRange,
+      flagged: t.flagged,
+    }));
     const plainLanguage = await generatePlainLanguageExplanation(
-      extractedTests,
+      llmTests,
       fullConfig.dialect,
     );
 
@@ -195,7 +218,7 @@ async function processOCR(
           threshold: config.ocrThreshold,
         });
 
-        if (audit.usedFallback) {
+        if (audit.usedCloudFallback) {
           warnings.push(`Cloud OCR used for ${image.filename}`);
         }
 
