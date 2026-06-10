@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "NODE_ENV=development node src/index.js",
+    "dev": "cross-env NODE_ENV=development node src/index.js",
     "test": "jest --runInBand",
     "postman:generate": "node scripts/generate-postman.js",
     "postman:test": "node scripts/run-postman.js"
@@ -19,6 +19,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "jest": "^29.6.1",
     "supertest": "^6.3.3"
   }
