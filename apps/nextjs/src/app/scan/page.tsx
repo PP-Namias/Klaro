@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 
 import { ScannerUI } from "~/layouts/SampleScanner/ScannerUI";
 import { ScannerNavbar } from "~/layouts/SampleScanner/ScannerNavbar";
@@ -15,7 +14,7 @@ export default function ScanPage() {
         <main className={styles.mainContent}>
           <React.Suspense
             fallback={
-              <div style={{ padding: "2rem", textAlign: "center" }}>
+              <div style={{ padding: "2rem", textAlign: "center" }} aria-live="polite">
                 Loading...
               </div>
             }
