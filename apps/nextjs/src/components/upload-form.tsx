@@ -489,6 +489,7 @@ export function UploadForm() {
       {/* Error and Status Messages */}
       {error && (
         <p
+          role="alert"
           style={{
             color: "#d32f2f",
             padding: "1rem",
@@ -501,6 +502,7 @@ export function UploadForm() {
       )}
       {uploadStatus && (
         <p
+          aria-live="polite"
           style={{
             color: "#1976d2",
             padding: "1rem",
@@ -511,19 +513,6 @@ export function UploadForm() {
           {uploadStatus}
         </p>
       )}
-
-      <p
-        style={{
-          margin: 0,
-          fontSize: "0.9rem",
-          color: "#475569",
-          backgroundColor: "#f8fafc",
-          padding: "0.75rem 1rem",
-          borderRadius: "6px",
-        }}
-      >
-        State: <strong>{scanState}</strong>
-      </p>
 
       {scanState === "processing" && (
         <p
