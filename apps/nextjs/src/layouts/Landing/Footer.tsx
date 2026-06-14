@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -24,30 +25,30 @@ export function Footer() {
             <div className="flex flex-col gap-4">
               <h4 className="feature-small-title text-zinc-600">Features</h4>
               <nav className="flex flex-col gap-2">
-                <a
-                  href="#"
+                <Link
+                  href="/scan"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   Scan & Analyze
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/scan"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   AI Medical Chat
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/maps"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   Clinic Finder
-                </a>
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
+                </Link>
+                <span
+                  className="feature-small-desc cursor-not-allowed text-zinc-300"
+                  aria-disabled="true"
                 >
                   Doctor Booking
-                </a>
+                </span>
               </nav>
             </div>
 
