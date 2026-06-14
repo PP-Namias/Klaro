@@ -66,13 +66,14 @@ export const paymentsRouter = {
           status: "pending",
           // TODO: Set actual Stripe IDs from API response
           stripePaymentIntentId: "pi_placeholder",
-          stripeClientSecret: "sk_placeholder",
+          stripeClientSecret: null,
         })
         .returning();
 
       return {
         paymentId: newPayment?.id,
-        clientSecret: "sk_placeholder",
+        // TODO: Return actual clientSecret from Stripe API response
+        clientSecret: null,
         amount,
         currency: "PHP",
         status: "pending",
