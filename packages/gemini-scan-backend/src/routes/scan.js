@@ -8,7 +8,12 @@ const geminiClient = require('../geminiClient');
 const db = require('../db');
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
+const MAX_FILES = 10;
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_FILE_SIZE, files: MAX_FILES },
+});
 
 function sanitizePathSegment(value) {
   if (typeof value !== 'string') return 'unknown';
