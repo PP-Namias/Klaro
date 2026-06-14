@@ -44,7 +44,9 @@ export function Hero() {
           <Link href="/scan" className={styles.btnBlack} aria-label="Start a scan">
             Start a scan <ArrowRight size={16} className="ml-2" />
           </Link>
-          <button className={styles.btnOutline}>Learn More</button>
+          <Link href="/scan" className={styles.btnOutline}>
+            Learn More
+          </Link>
         </div>
       </motion.div>
 
