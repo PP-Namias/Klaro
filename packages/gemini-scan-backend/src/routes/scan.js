@@ -15,6 +15,8 @@ const upload = multer({
   limits: { fileSize: MAX_FILE_SIZE, files: MAX_FILES },
 });
 
+const MAX_BASE64_SIZE = 10 * 1024 * 1024; // 10MB decoded
+
 function sanitizePathSegment(value) {
   if (typeof value !== 'string') return 'unknown';
   return value.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.{2,}/g, '_').slice(0, 128);
@@ -46,6 +48,9 @@ router.post('/scan', upload.array('file'), async (req, res) => {
       if (!Array.isArray(req.body.images) || req.body.images.length === 0) {
         return res.status(400).json({ error: 'invalid_images', message: 'images[] is required' });
       }
+      if (req.body.images.length > MAX_FILES) {
+        return res.status(400).json({ error: 'too_many_images', message: `Maximum ${MAX_FILES} images allowed` });
+      }
 
       for (const im of req.body.images) {
         if (!isLikelyBase64(im.bytesBase64)) {
@@ -53,6 +58,9 @@ router.post('/scan', upload.array('file'), async (req, res) => {
         }
 
         const buf = Buffer.from(im.bytesBase64, 'base64');
+        if (buf.length > MAX_BASE64_SIZE) {
+          return res.status(413).json({ error: 'file_too_large', message: `Image exceeds ${MAX_BASE64_SIZE / 1024 / 1024}MB limit` });
+        }
         // save locally
         const out = await storage.saveFile(scanId, sanitizePathSegment(im.filename) || `image-${Date.now()}.jpg`, buf);
         // optionally upload to presigned url
