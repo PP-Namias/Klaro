@@ -64,7 +64,7 @@ export function Hero() {
             height={1200}
             className="h-auto w-full object-contain"
             priority
-            quality={100}
+            quality={85}
           />
         </div>
       </motion.div>
