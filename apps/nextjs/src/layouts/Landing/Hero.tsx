@@ -13,7 +13,6 @@ export function Hero() {
   return (
     <section className={`${styles.heroSection} relative overflow-hidden`}>
       <HeroBg />
-      {/* <HeroBgTwo /> */}
       <div className="pointer-events-none absolute -bottom-80 left-1/2 z-0 h-auto w-[1920px] -translate-x-1/2 opacity-90">
         <Image
           src="/showcase-bg.svg"
