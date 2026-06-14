@@ -5,7 +5,7 @@ import { z } from "zod/v4";
 
 import { booking, doctor, payment } from "@klaro/db/schema";
 
-import { protectedProcedure } from "../trpc";
+import { protectedProcedure, publicProcedure } from "../trpc";
 
 export const paymentsRouter = {
   /**
@@ -137,18 +137,28 @@ export const paymentsRouter = {
 
   /**
    * Handle Stripe webhook for payment confirmation
-   * Called by Stripe when payment status changes
+   * Called by Stripe when payment status changes.
+   * NOTE: In production, this should be a standalone API route (not tRPC)
+   * with raw body parsing and stripe.webhooks.constructEvent() verification.
    */
-  handleWebhook: protectedProcedure
+  handleWebhook: publicProcedure
     .input(
       z.object({
         paymentIntentId: z.string(),
         status: z.enum(["succeeded", "failed", "canceled"]),
+        stripeSignature: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      // Verify webhook signature with Stripe
-      // TODO: Implement Stripe webhook signature verification
+      // TODO: In production, verify webhook signature:
+      // const event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+      // For now, require stripeSignature to be present as a basic safeguard.
+      if (!input.stripeSignature) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Missing Stripe webhook signature",
+        });
+      }
 
       // Find payment by Stripe intent ID
       const [pay] = await ctx.db
