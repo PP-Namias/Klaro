@@ -62,7 +62,7 @@ export function Clarity() {
                 alt={item1.alt}
                 width={200}
                 height={200}
-                quality={200}
+                quality={85}
                 className="object-contain transition-transform duration-300 group-hover:scale-105"
               />
             </div>
@@ -82,7 +82,7 @@ export function Clarity() {
                 alt={item2.alt}
                 width={200}
                 height={200}
-                quality={200}
+                quality={85}
                 className="object-contain transition-transform duration-300 group-hover:scale-105"
               />
             </div>
