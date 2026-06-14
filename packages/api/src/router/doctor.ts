@@ -7,6 +7,19 @@ import { doctor, doctorAvailability } from "@klaro/db/schema";
 
 import { protectedProcedure, publicProcedure } from "../trpc";
 
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
+  .split(",")
+  .map((e: string) => e.trim().toLowerCase())
+  .filter(Boolean);
+
+async function requireAdmin(ctx: { db: any; session: any }) {
+  if (!ctx.session?.user?.id) return false;
+  if (ADMIN_EMAILS.length === 0) return false;
+  const email = ctx.session.user.email?.toLowerCase();
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email);
+}
+
 const doctorSessionTypesSchema = z.array(
   z.enum(["chat_consult", "video_consult", "async_review"]),
 );
@@ -323,6 +336,13 @@ const togglePrcVerification = protectedProcedure
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User must be authenticated",
+      });
+    }
+
+    if (!(await requireAdmin(ctx))) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only admins can verify doctors",
       });
     }
 
