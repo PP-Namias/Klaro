@@ -128,6 +128,7 @@ export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
           <button 
             className="flex md:hidden" 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X className="text-zinc-900" size={24} /> : <Menu className="text-zinc-900" size={24} />}
           </button>
