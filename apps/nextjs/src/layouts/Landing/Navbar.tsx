@@ -137,7 +137,12 @@ export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[2000] flex flex-col bg-white p-8 md:hidden">
+        <div
+          className="fixed inset-0 z-[2000] flex flex-col bg-white p-8 md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation"
+        >
           <div className="flex items-center justify-between mb-12">
             <Link href="/" className="flex items-center gap-2 text-xl font-semibold text-zinc-900" onClick={() => setIsMobileMenuOpen(false)}>
               <Image src="/klaro-dark.svg" alt="Klaro" width={32} height={32} />
