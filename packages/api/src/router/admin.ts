@@ -7,11 +7,19 @@ import { doctor } from "@klaro/db/schema";
 
 import { protectedProcedure } from "../trpc";
 
-// Simple admin check - in production, use role-based access control
-const isAdmin = (userId: string) => {
-  // TODO: Implement proper admin role checking from database
-  // For now, this is a placeholder
-  return true;
+// Admin authorization via environment variable ADMIN_EMAILS (comma-separated).
+// In production, replace with a proper role column on the user table.
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
+const isAdmin = async (ctx: { db: any; session: any }) => {
+  if (!ctx.session?.user?.id) return false;
+  if (ADMIN_EMAILS.length === 0) return false;
+  const email = ctx.session.user.email?.toLowerCase();
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email);
 };
 
 const verifyDoctor = protectedProcedure
@@ -30,7 +38,7 @@ const verifyDoctor = protectedProcedure
       });
     }
 
-    if (!isAdmin(ctx.session.user.id)) {
+    if (!(await isAdmin(ctx))) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Only admins can verify doctors",
@@ -85,7 +93,7 @@ export const adminRouter = {
       });
     }
 
-    if (!isAdmin(ctx.session.user.id)) {
+    if (!(await isAdmin(ctx))) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Only admins can access this",
@@ -112,7 +120,7 @@ export const adminRouter = {
       });
     }
 
-    if (!isAdmin(ctx.session.user.id)) {
+    if (!(await isAdmin(ctx))) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Only admins can access this",
@@ -140,7 +148,7 @@ export const adminRouter = {
       });
     }
 
-    if (!isAdmin(ctx.session.user.id)) {
+    if (!(await isAdmin(ctx))) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Only admins can access this",
@@ -179,7 +187,7 @@ export const adminRouter = {
         });
       }
 
-      if (!isAdmin(ctx.session.user.id)) {
+      if (!(await isAdmin(ctx))) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only admins can access this",
@@ -212,7 +220,7 @@ export const adminRouter = {
         });
       }
 
-      if (!isAdmin(ctx.session.user.id)) {
+      if (!(await isAdmin(ctx))) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only admins can access this",
