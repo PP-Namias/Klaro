@@ -249,7 +249,7 @@ const scoreFacility = (
   score +=
     Math.max(
       0,
-      FACILITY_TYPE_ORDER.length - facilityTypeRank(facility.facilityType),
+      facilityTypeOrder.length - facilityTypeRank(facility.facilityType),
     ) * 5;
 
   if (facility.isPhilHealthAccredited) {

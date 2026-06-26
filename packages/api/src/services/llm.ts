@@ -538,6 +538,10 @@ async function callGemini(
   systemPrompt: string,
   config: LLMConfig,
 ): Promise<string> {
+  if (!config.apiKey) {
+    throw new Error("Gemini API key is required");
+  }
+
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${config.model || "gemini-1.5-pro"}:generateContent`,
     {

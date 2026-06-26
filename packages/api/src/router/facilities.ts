@@ -2,6 +2,7 @@ import type { TRPCRouterRecord } from "@trpc/server";
 import type { SQL } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
+import { z } from "zod/v4";
 
 import { facility } from "@klaro/db/schema";
 import {
