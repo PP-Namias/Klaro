@@ -10,6 +10,25 @@ export const facilityTypeEnum = z.enum([
   "birthing_home",
 ]);
 
+export const facilityTypeOrder = [
+  "hospital",
+  "clinic",
+  "medical_center",
+  "diagnostic_center",
+  "health_unit",
+  "rural_health_unit",
+  "birthing_home",
+] as const;
+
+export const facilityTypeRank = (type: string | null | undefined) => {
+  const normalizedType = type?.toLowerCase() ?? "";
+  const rank = facilityTypeOrder.indexOf(
+    normalizedType as (typeof facilityTypeOrder)[number],
+  );
+
+  return rank === -1 ? facilityTypeOrder.length : rank;
+};
+
 export const searchNearbySchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),

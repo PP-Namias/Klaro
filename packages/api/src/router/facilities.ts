@@ -2,10 +2,14 @@ import type { TRPCRouterRecord } from "@trpc/server";
 import type { SQL } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
-import { z } from "zod/v4";
 
 import { facility } from "@klaro/db/schema";
-import { searchNearbySchema } from "@klaro/validators";
+import {
+  facilityTypeRank,
+  medicalContextSchema,
+  recommendByTestResultsSchema,
+  searchNearbySchema,
+} from "@klaro/validators";
 
 import {
   buildMedicalContext,
@@ -18,54 +22,6 @@ import {
   summarizeMedicalContext,
 } from "../services/facilities";
 import { publicProcedure } from "../trpc";
-
-const medicalContextSchema = z.object({
-  severity: z.enum(["LOW", "MODERATE", "HIGH"]),
-  testSummary: z.string().trim().min(1).max(500).optional(),
-  flaggedTests: z
-    .array(
-      z.object({
-        name: z.string().trim().min(1),
-        value: z.string().trim().optional(),
-        unit: z.string().trim().optional(),
-      }),
-    )
-    .default([]),
-});
-
-const recommendByTestResultsSchema = z.object({
-  extractedTests: z.array(
-    z.object({
-      name: z.string().trim().min(1),
-      value: z.string().trim().optional(),
-      unit: z.string().trim().optional(),
-      flagged: z.boolean().default(false),
-    }),
-  ),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  radiusKm: z.number().min(0.1).max(50).default(15),
-  limit: z.number().min(1).max(10).default(5),
-});
-
-const facilityTypeOrder = [
-  "hospital",
-  "clinic",
-  "medical_center",
-  "diagnostic_center",
-  "health_unit",
-  "rural_health_unit",
-  "birthing_home",
-] as const;
-
-const facilityTypeRank = (type: string | null | undefined) => {
-  const normalizedType = type?.toLowerCase() ?? "";
-  const rank = facilityTypeOrder.indexOf(
-    normalizedType as (typeof facilityTypeOrder)[number],
-  );
-
-  return rank === -1 ? facilityTypeOrder.length : rank;
-};
 
 const toNumber = (value: unknown) => {
   const parsed = Number(value);
