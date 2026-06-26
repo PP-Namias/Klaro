@@ -2879,6 +2879,589 @@
     "relatedTickets": ["E-700-S4"],
     "status": "open"
   },
+  "codebaseAudit": {
+    "auditDate": "2026-06-27",
+    "auditor": "AI Codebase Audit Agent",
+    "summary": "Comprehensive audit of Klaro monorepo covering security, code quality, dependencies, and file cleanup opportunities.",
+    "findings": {
+      "high": [
+        {
+          "id": "SEC-001",
+          "title": "Real secrets committed to version control",
+          "description": ".env files contain production-grade credentials (Neon PostgreSQL password, Google Gemini API keys, Cal.com API key)",
+          "files": [".env", "packages/gemini-scan-backend/.env"],
+          "impact": "Critical security vulnerability - credentials exposed in working directory",
+          "fix": "Rotate all credentials immediately; add pre-commit hooks to block .env commits"
+        },
+        {
+          "id": "SEC-002",
+          "title": "API key exposed in URL query parameter",
+          "description": "Gemini API key passed as URL query parameter in llm.ts line 542, gets logged in server access logs and browser history",
+          "files": ["packages/api/src/services/llm.ts"],
+          "line": 542,
+          "impact": "API key exposed in logs and browser history",
+          "fix": "Move to x-goog-api-key header instead of URL parameter"
+        },
+        {
+          "id": "SEC-003",
+          "title": "Cloudinary API key leaked to client",
+          "description": "Cloudinary API key returned in JSON response to client in sign/route.ts line 55",
+          "files": ["apps/nextjs/src/app/api/uploads/sign/route.ts"],
+          "line": 55,
+          "impact": "API key exposed allowing unauthorized API calls",
+          "fix": "Remove apiKey from response body; use server-side upload only"
+        },
+        {
+          "id": "SEC-004",
+          "title": "Wildcard CORS on sensitive endpoints",
+          "description": "All API routes use Access-Control-Allow-Origin: * allowing any website to make requests",
+          "files": [
+            "apps/nextjs/src/app/api/uploads/[id]/route.ts",
+            "apps/nextjs/src/app/api/uploads/sign/route.ts",
+            "apps/nextjs/src/app/api/uploads/server/route.ts",
+            "apps/nextjs/src/app/api/scheduling/webhook/route.ts",
+            "apps/nextjs/src/app/api/scheduling/create/route.ts",
+            "apps/nextjs/src/app/api/maps/nearby/route.ts",
+            "apps/nextjs/src/app/api/trpc/[trpc]/route.ts"
+          ],
+          "impact": "CSRF attacks possible from any origin",
+          "fix": "Restrict CORS to known origins"
+        },
+        {
+          "id": "SEC-005",
+          "title": "Auth bypass in dev mode",
+          "description": "protectedProcedure middleware bypasses authentication entirely in development mode (trpc.ts lines 126-129)",
+          "files": ["packages/api/src/trpc.ts"],
+          "line": 126,
+          "impact": "All protected endpoints accessible without auth if isDev is true",
+          "fix": "Remove or gate behind explicit dev-only flag that cannot be true in production"
+        },
+        {
+          "id": "SEC-006",
+          "title": "Cal.com API key embedded in URL",
+          "description": "Cal.com API key passed as URL query parameter and returned to client in scheduling/create/route.ts line 53",
+          "files": ["apps/nextjs/src/app/api/scheduling/create/route.ts"],
+          "line": 53,
+          "impact": "API key exposed in client-side code",
+          "fix": "Make server-side API call instead of passing URL to frontend"
+        },
+        {
+          "id": "SEC-007",
+          "title": "Stripe webhook without real verification",
+          "description": "handleWebhook is a public tRPC mutation that accepts client-supplied stripeSignature instead of verifying HMAC",
+          "files": ["packages/api/src/router/payments.ts"],
+          "line": 145,
+          "impact": "Webhook can be spoofed by attacker",
+          "fix": "Implement proper stripe.webhooks.constructEvent() verification"
+        },
+        {
+          "id": "SEC-008",
+          "title": "Stripe client secret stored in database",
+          "description": "stripeClientSecret stored in payments table (schema.ts line 238) - these are ephemeral and should never be persisted",
+          "files": ["packages/db/src/schema.ts"],
+          "line": 238,
+          "impact": "Payment session tokens exposed if database compromised",
+          "fix": "Remove column from schema"
+        }
+      ],
+      "medium": [
+        {
+          "id": "BUG-001",
+          "title": "In-memory rate limiter not shareable across instances",
+          "description": "Rate limit store is module-scoped plain object; doesn't work across serverless function invocations",
+          "files": ["apps/nextjs/src/lib/rate-limit.ts"],
+          "impact": "Rate limit trivially bypassable in production",
+          "fix": "Use Redis or Vercel KV for distributed rate limiting"
+        },
+        {
+          "id": "BUG-002",
+          "title": "Duplicate admin functions across routers",
+          "description": "isAdmin/requireAdmin functions duplicated in admin.ts and doctor.ts with different names",
+          "files": ["packages/api/src/router/admin.ts", "packages/api/src/router/doctor.ts"],
+          "impact": "Code duplication and maintenance confusion",
+          "fix": "Extract to shared middleware module"
+        },
+        {
+          "id": "BUG-003",
+          "title": "Duplicate doctor router exports",
+          "description": "Every doctor endpoint exported twice under different names (camelCase alias and PascalCase)",
+          "files": ["packages/api/src/router/doctor.ts"],
+          "line": 380,
+          "impact": "Doubled API surface area and confusion",
+          "fix": "Remove alias duplicates"
+        },
+        {
+          "id": "BUG-004",
+          "title": "FacilityTypeRank and FACILITY_TYPE_ORDER duplicated",
+          "description": "Same constant/function defined in 3 locations: facilities.ts router, facilities.ts service, and validators",
+          "files": [
+            "packages/api/src/router/facilities.ts",
+            "packages/api/src/services/facilities.ts",
+            "packages/validators/src/facilities.ts"
+          ],
+          "impact": "Changes in one location won't propagate to others",
+          "fix": "Extract to shared validators package"
+        },
+        {
+          "id": "BUG-005",
+          "title": "searchBySpecialty does not filter at DB level",
+          "description": "Fetches limit facilities from DB then filters in JavaScript instead of SQL",
+          "files": ["packages/api/src/router/facilities.ts"],
+          "line": 389,
+          "impact": "Performance degradation with large datasets",
+          "fix": "Move filter to SQL level using JSONB query"
+        },
+        {
+          "id": "BUG-006",
+          "title": "Duplicate Zod schemas between validators and API",
+          "description": "medicalContextSchema and recommendByTestResultsSchema defined in both packages",
+          "files": ["packages/validators/src/facilities.ts", "packages/api/src/router/facilities.ts"],
+          "impact": "Schema drift and validation inconsistencies",
+          "fix": "Use schemas from validators package only"
+        },
+        {
+          "id": "BUG-007",
+          "title": "assertSession throws raw Error with string comparison",
+          "description": "assertSession() throws Error('UNAUTHORIZED') and callers match on message string",
+          "files": ["apps/nextjs/src/lib/session-validation.ts"],
+          "line": 38,
+          "impact": "Fragile error handling",
+          "fix": "Use custom error class or typed error code"
+        },
+        {
+          "id": "CODE-001",
+          "title": "Dead code: unused export in validators",
+          "description": "export const unused = z.string().describe(...) exists as documentation only",
+          "files": ["packages/validators/src/index.ts"],
+          "line": 3,
+          "impact": "Dead code cluttering API",
+          "fix": "Remove unused export"
+        },
+        {
+          "id": "CODE-002",
+          "title": "In-memory prompt version store resets on restart",
+          "description": "A/B testing prompt versions stored in module-level variables; lost on cold start",
+          "files": ["packages/api/src/services/llm.ts"],
+          "line": 57,
+          "impact": "Loss of A/B testing metrics in production",
+          "fix": "Move to database storage"
+        },
+        {
+          "id": "CODE-003",
+          "title": "Excessive console.log in production",
+          "description": "46 instances of console.log/warn/error throughout codebase without structured logging",
+          "files": ["Multiple files across codebase"],
+          "impact": "Noisy logs and potential log injection",
+          "fix": "Introduce structured logger with log levels"
+        },
+        {
+          "id": "CODE-004",
+          "title": "page.new.tsx dead file",
+          "description": "File named page.new.tsx sits alongside page.tsx in scan directory - Next.js ignores .new.tsx extension",
+          "files": ["apps/nextjs/src/app/scan/page.new.tsx"],
+          "impact": "Dead code",
+          "fix": "Remove or replace existing page"
+        },
+        {
+          "id": "CODE-005",
+          "title": "Inconsistent as any type casts",
+          "description": "24 instances of as any across codebase bypassing TypeScript type safety",
+          "files": ["Multiple files"],
+          "impact": "Type safety compromised",
+          "fix": "Add proper type definitions"
+        },
+        {
+          "id": "CODE-006",
+          "title": "Timing middleware adds artificial delays in dev",
+          "description": "Every tRPC request in dev mode has random 100-500ms delay added",
+          "files": ["packages/api/src/trpc.ts"],
+          "line": 89,
+          "impact": "Development sluggishness",
+          "fix": "Make configurable via env var"
+        }
+      ],
+      "low": [
+        {
+          "id": "DEP-001",
+          "title": "Beta auth dependency",
+          "description": "better-auth 1.4.0-beta.9 used for healthcare application",
+          "files": ["pnpm-workspace.yaml"],
+          "impact": "Potential breaking changes and security issues in beta",
+          "fix": "Plan migration to stable release"
+        },
+        {
+          "id": "CODE-007",
+          "title": "Inconsistent Zod imports",
+          "description": "Mix of zod/v4 subpath imports vs potential bare zod imports",
+          "files": ["Multiple files"],
+          "impact": "Import confusion",
+          "fix": "Standardize on zod/v4 imports"
+        },
+        {
+          "id": "CODE-008",
+          "title": "analyzeScanBatch exported but never used",
+          "description": "Function defined and exported but never imported anywhere",
+          "files": ["packages/api/src/services/scan-analysis.ts"],
+          "line": 320,
+          "impact": "Dead code",
+          "fix": "Remove if not needed"
+        },
+        {
+          "id": "CODE-009",
+          "title": "getWorkflowStatus is a fake stub",
+          "description": "Always returns 'completed' regardless of input",
+          "files": ["packages/api/src/services/ai-workflow.ts"],
+          "line": 330,
+          "impact": "Incomplete implementation",
+          "fix": "Implement properly or remove"
+        }
+      ]
+    }
+  },
+  "fileCleanupPlan": {
+    "description": "Files to remove from codebase for cleanup",
+    "categories": {
+      "logFiles": [
+        {
+          "file": "tmp_check.log",
+          "reason": "Temporary check log file from debugging session",
+          "size": "Unknown"
+        },
+        {
+          "file": "apps/nextjs/build.log",
+          "reason": "Build artifact log file",
+          "size": "Unknown"
+        }
+      ],
+      "textFiles": [
+        {
+          "file": "git_commit.txt",
+          "reason": "Binary/unreadable scratch file with pasted git commands",
+          "size": "Unknown"
+        },
+        {
+          "file": "git_push.txt",
+          "reason": "Empty placeholder file",
+          "size": "0 bytes"
+        },
+        {
+          "file": "progress.txt",
+          "reason": "Historical development log - redundant with git history",
+          "size": "963 lines"
+        },
+        {
+          "file": "WEBSITE_DESIGN_STATUS.txt",
+          "reason": "Redundant with docs in docs/ directory",
+          "size": "541 lines"
+        }
+      ],
+      "scratchFiles": [
+        {
+          "file": "test.css",
+          "reason": "Temporary font testing file not imported anywhere",
+          "size": "133 lines"
+        }
+      ],
+      "junkImages": [
+        {
+          "file": "apps/nextjs/public/qweqwe.ico",
+          "reason": "Junk test file with nonsensical name, not referenced in code",
+          "size": "167 KB"
+        },
+        {
+          "file": "apps/nextjs/public/test-sample.png",
+          "reason": "Test file not referenced in code",
+          "size": "14 bytes"
+        },
+        {
+          "file": "apps/nextjs/public/test-large.png",
+          "reason": "Test file not referenced in code",
+          "size": "940 bytes"
+        }
+      ],
+      "duplicateVideos": [
+        {
+          "file": "public/assets/klaro.mp4",
+          "reason": "Duplicate of public/klaro.mp4 (identical 5.16 MB)",
+          "action": "Remove one duplicate"
+        }
+      ],
+      "presentationAssets": [
+        {
+          "file": "screenshots/booking-modal.png",
+          "reason": "Unreferenced screenshot for documentation/design reference",
+          "action": "Remove if no longer needed"
+        },
+        {
+          "file": "public/assets/clara.png",
+          "reason": "Duplicate avatar image",
+          "action": "Keep apps/nextjs/public/clara.png, remove this"
+        },
+        {
+          "file": "public/assets/colorscheme.png",
+          "reason": "Presentation/design reference image",
+          "action": "Remove"
+        },
+        {
+          "file": "public/assets/main.png",
+          "reason": "Screenshot/reference image",
+          "action": "Remove"
+        },
+        {
+          "file": "public/assets/mobile.png",
+          "reason": "Screenshot/reference image",
+          "action": "Remove"
+        },
+        {
+          "file": "public/assets/scan.png",
+          "reason": "Screenshot/reference image",
+          "action": "Remove"
+        },
+        {
+          "file": "public/assets/slides.png",
+          "reason": "Presentation slide image",
+          "action": "Remove"
+        },
+        {
+          "file": "public/assets/slides-1.png",
+          "reason": "Presentation slide image variant",
+          "action": "Remove"
+        },
+        {
+          "file": "public/assets/slides-2.png",
+          "reason": "Presentation slide image variant",
+          "action": "Remove"
+        }
+      ],
+      "architecturePrompts": [
+        {
+          "file": "ERASER_KLARO_ARCHITECTURE_COMPACT_RIGHT.md",
+          "reason": "One-time diagram generation prompt"
+        },
+        {
+          "file": "ERASER_KLARO_ARCHITECTURE_DIAGRAM_CODE.md",
+          "reason": "One-time diagram code output"
+        },
+        {
+          "file": "ERASER_KLARO_ARCHITECTURE_FINAL.md",
+          "reason": "One-time diagram prompt"
+        },
+        {
+          "file": "ERASER_KLARO_ARCHITECTURE_PROMPT.md",
+          "reason": "One-time diagram prompt"
+        },
+        {
+          "file": "ERASER_KLARO_ARCHITECTURE_QA.md",
+          "reason": "One-time diagram Q&A"
+        },
+        {
+          "file": "ERASER_KLARO_ARCHITECTURE_SMOOTHER_FLOW.md",
+          "reason": "One-time diagram code block"
+        },
+        {
+          "file": "ERASER_KLARO_ARCHITECTURE_TASKS.md",
+          "reason": "One-time architecture tasks checklist"
+        }
+      ],
+      "gammaPrompts": [
+        {
+          "file": "GAMMA_APP_PRESENTATION_PROMPT.md",
+          "reason": "One-time hackathon presentation prompt"
+        },
+        {
+          "file": "GAMMA_KLARO_DEVKADA_10_SLIDES_PROMPT.md",
+          "reason": "One-time hackathon presentation prompt"
+        },
+        {
+          "file": "GAMMA_PRESENTATION_PROMPT.md",
+          "reason": "One-time hackathon presentation prompt"
+        }
+      ],
+      "agentPrompts": [
+        {
+          "file": "AI_AGENT_PROMPT_MAPS_IMPLEMENTATION.md",
+          "reason": "One-time agent task prompt for /maps feature"
+        },
+        {
+          "file": "AI_AGENT_PROMPT_MEDICAL_LOCATIONS.md",
+          "reason": "One-time agent prompt for medical facility enhancements"
+        },
+        {
+          "file": "AI_AGENT_PROMPT_SCAN_PAGE_INPUT_PROCESS_OUTPUT.md",
+          "reason": "One-time agent prompt for /scan page"
+        },
+        {
+          "file": "AI_AGENT_PROMPT_SCAN_PROCESS.md",
+          "reason": "One-time agent prompt for /scan workflow"
+        },
+        {
+          "file": "AI_AGENT_PROMPT_SCAN_UIUX_FIRST.md",
+          "reason": "One-time agent prompt for /scan UI/UX"
+        },
+        {
+          "file": "AI_WORKFLOWS_PRD.md",
+          "reason": "One-time AI workflows backend architecture PRD"
+        },
+        {
+          "file": "SCAN_ANALYSIS_AGENT_PROMPT.md",
+          "reason": "One-time agent prompt for scan analysis"
+        }
+      ],
+      "implementationPlans": [
+        {
+          "file": "KLARO_10_SLIDE_PRESENTATION_SCRIPT.md",
+          "reason": "One-time presentation recording script"
+        },
+        {
+          "file": "MAPS_IMPLEMENTATION_PLAN.md",
+          "reason": "One-time implementation plan"
+        },
+        {
+          "file": "MEDICAL_LOCATIONS_PLAN.md",
+          "reason": "One-time architectural plan"
+        },
+        {
+          "file": "PHASE_1_AGENT_PROMPT.md",
+          "reason": "One-time project setup prompt"
+        },
+        {
+          "file": "UPLOAD_SCHEDULING_API_GUIDE.md",
+          "reason": "One-time deployment guide"
+        }
+      ],
+      "deadCode": [
+        {
+          "file": "apps/nextjs/src/app/scan/page.new.tsx",
+          "reason": "Dead file - Next.js ignores .new.tsx extension"
+        }
+      ],
+      "turboCache": {
+        "directory": ".turbo/cache/",
+        "size": "51.79 MB (125 .tar.zst archives + 125 meta JSON)",
+        "reason": "Auto-generated cache, safe to delete, will be recreated",
+        "action": "Delete directory"
+      }
+    },
+    "summary": {
+      "totalFiles": 42,
+      "estimatedSizeSaved": "~55 MB (including turbo cache and duplicate videos)",
+      "highPriorityFiles": 8,
+      "mediumPriorityFiles": 25,
+      "lowPriorityFiles": 9
+    }
+  },
+  "devBranchPlan": {
+    "branchName": "dev",
+    "strategy": "Create feature branch from main, implement fixes in small incremental commits for rich commit history",
+    "commitHistoryStrategy": {
+      "description": "Make multiple small, focused commits to build rich commit history",
+      "commitsPerFix": "1-3 commits per fix category",
+      "commitMessageFormat": "type(scope): description",
+      "commitTypes": [
+        "chore: cleanup and maintenance",
+        "fix: bug fixes",
+        "security: security improvements",
+        "refactor: code restructuring",
+        "test: add or update tests"
+      ]
+    },
+    "implementationPhases": [
+      {
+        "phase": 1,
+        "name": "File Cleanup",
+        "description": "Remove all unnecessary files from codebase",
+        "estimatedCommits": 8,
+        "tasks": [
+          "Remove log files (tmp_check.log, build.log)",
+          "Remove text files (git_commit.txt, git_push.txt, progress.txt, WEBSITE_DESIGN_STATUS.txt)",
+          "Remove scratch files (test.css)",
+          "Remove junk images (qweqwe.ico, test-sample.png, test-large.png)",
+          "Remove duplicate videos (public/assets/klaro.mp4)",
+          "Remove presentation assets (screenshots/, public/assets/)",
+          "Remove architecture prompts (ERASER_*.md)",
+          "Remove gamma prompts (GAMMA_*.md)",
+          "Remove agent prompts (AI_AGENT_PROMPT_*.md, AI_WORKFLOWS_PRD.md, SCAN_ANALYSIS_AGENT_PROMPT.md)",
+          "Remove implementation plans (KLARO_10_SLIDE_PRESENTATION_SCRIPT.md, MAPS_IMPLEMENTATION_PLAN.md, etc.)",
+          "Remove dead code (page.new.tsx)",
+          "Clean turbo cache directory"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "Security Fixes - Critical",
+        "description": "Fix critical security vulnerabilities",
+        "estimatedCommits": 12,
+        "tasks": [
+          "Rotate all credentials (Neon DB, Gemini API, Cal.com)",
+          "Add .env files to .gitignore enforcement",
+          "Move Gemini API key from URL parameter to header (llm.ts)",
+          "Remove Cloudinary API key from client response (sign/route.ts)",
+          "Restrict CORS to known origins on all API routes",
+          "Fix auth bypass in dev mode (trpc.ts)",
+          "Move Cal.com API key to server-side only (scheduling/create/route.ts)",
+          "Implement proper Stripe webhook verification (payments.ts)",
+          "Remove stripeClientSecret from database schema",
+          "Add pre-commit hooks to prevent .env commits"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Security Fixes - Medium",
+        "description": "Fix medium-priority security and code quality issues",
+        "estimatedCommits": 8,
+        "tasks": [
+          "Replace in-memory rate limiter with Redis/KV (rate-limit.ts)",
+          "Extract shared admin middleware (admin.ts, doctor.ts)",
+          "Remove duplicate doctor router exports (doctor.ts)",
+          "Consolidate facilityTypeRank and FACILITY_TYPE_ORDER to single source",
+          "Move searchBySpecialty filter to SQL level (facilities.ts)",
+          "Consolidate duplicate Zod schemas (validators, facilities.ts)",
+          "Replace assertSession string comparison with typed errors"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "Code Quality Improvements",
+        "description": "Fix code smells and anti-patterns",
+        "estimatedCommits": 10,
+        "tasks": [
+          "Remove unused export in validators (index.ts)",
+          "Move prompt version store to database (llm.ts)",
+          "Replace console.log with structured logger",
+          "Remove dead file page.new.tsx",
+          "Fix inconsistent as any type casts",
+          "Make timing middleware configurable",
+          "Standardize Zod imports across codebase",
+          "Remove unused analyzeScanBatch function",
+          "Implement or remove getWorkflowStatus stub",
+          "Add missing API test script to packages/api"
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Test and Build Verification",
+        "description": "Run all tests and build to verify fixes",
+        "estimatedCommits": 5,
+        "tasks": [
+          "Run pnpm lint and fix any issues",
+          "Run pnpm typecheck and fix any type errors",
+          "Run pnpm test and verify all tests pass",
+          "Run pnpm build and verify successful build",
+          "Run pnpm format:fix to ensure consistent formatting"
+        ]
+      }
+    ],
+    "estimatedTotalCommits": 43,
+    "verificationSteps": [
+      "All tests pass (vitest, node:test, jest)",
+      "TypeScript compilation succeeds",
+      "ESLint passes with no errors",
+      "Prettier formatting consistent",
+      "Build completes successfully",
+      "No secrets in working directory",
+      "All unnecessary files removed"
+    ]
+  },
   "testPlan": {
     "ci": [
       "Unit tests run on PRs",
