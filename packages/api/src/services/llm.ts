@@ -539,11 +539,12 @@ async function callGemini(
   config: LLMConfig,
 ): Promise<string> {
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${config.model || "gemini-1.5-pro"}:generateContent?key=${config.apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${config.model || "gemini-1.5-pro"}:generateContent`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "x-goog-api-key": config.apiKey,
       },
       body: JSON.stringify({
         contents: [

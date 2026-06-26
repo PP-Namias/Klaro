@@ -52,7 +52,6 @@ export const GET = async (req: NextRequest) => {
       .digest("hex");
 
     const body = {
-      apiKey,
       cloudName,
       timestamp,
       signature,
