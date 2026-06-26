@@ -6,6 +6,7 @@ import { z } from "zod/v4";
 
 import { facility } from "@klaro/db/schema";
 import {
+  facilityTypeOrder,
   facilityTypeRank,
   medicalContextSchema,
   recommendByTestResultsSchema,
