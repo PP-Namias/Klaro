@@ -235,7 +235,6 @@ export const payment = pgTable(
     currency: varchar("currency", { length: 3 }).default("PHP"),
     status: paymentStatusEnum("status").default("pending").notNull(),
     stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 255 }),
-    stripeClientSecret: text("stripe_client_secret"),
     failureReason: text("failure_reason"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
