@@ -3694,6 +3694,94 @@
         "db": "PostgreSQL + Drizzle ORM"
       }
     },
+    "currentStatus": {
+      "branch": "dev",
+      "totalCommitsAhead": 25,
+      "testCount": 136,
+      "buildStatus": "passing",
+      "completedTasks": [
+        {
+          "id": "P1-T2",
+          "title": "File validation utility + 28 unit tests",
+          "commit": "fe65fa9",
+          "files": ["packages/api/src/utils/fileValidation.ts", "packages/api/src/utils/__tests__/fileValidation.test.ts"]
+        },
+        {
+          "id": "P1-T3",
+          "title": "Document service + 11 unit tests",
+          "commit": "af73d33",
+          "files": ["packages/api/src/services/documentService.ts", "packages/api/src/services/__tests__/documentService.test.ts"]
+        },
+        {
+          "id": "P1-T4",
+          "title": "Upload progress tracking + 17 unit tests",
+          "commit": "fe5e76f",
+          "files": ["packages/api/src/services/uploadProgress.ts", "packages/api/src/services/__tests__/uploadProgress.test.ts"]
+        },
+        {
+          "id": "P2-T2",
+          "title": "Enhanced OCR preprocessing + 24 unit tests",
+          "commit": "d77dec3",
+          "files": ["packages/api/src/services/enhancedOcr.ts", "packages/api/src/services/__tests__/enhancedOcr.test.ts"]
+        },
+        {
+          "id": "P3-T3",
+          "title": "Gemini extraction service + 20 unit tests",
+          "commit": "a2cdb8c",
+          "files": ["packages/api/src/services/geminiExtraction.ts", "packages/api/src/services/__tests__/geminiExtraction.test.ts"]
+        },
+        {
+          "id": "P4-T1",
+          "title": "Plain language generation + 15 unit tests",
+          "commit": "83a5e8c",
+          "files": ["packages/api/src/services/plainLanguage.ts", "packages/api/src/services/__tests__/plainLanguage.test.ts"]
+        },
+        {
+          "id": "P5-T2",
+          "title": "Clara chat service + 21 unit tests",
+          "commit": "959fff0",
+          "files": ["packages/api/src/services/claraChat.ts", "packages/api/src/services/__tests__/claraChat.test.ts"]
+        }
+      ],
+      "nextTasks": [
+        "P1-T1: Server-side Cloudinary upload route",
+        "P2-T1: Tesseract OCR initialization",
+        "P2-T3: Google Vision cloud fallback",
+        "P2-T4: OCR result normalization",
+        "P3-T1: Gemini Vision API client",
+        "P3-T2: Medical image analysis prompts",
+        "P3-T4: Gemini fallback handling",
+        "P3-T5: End-to-end extraction pipeline",
+        "P4-T2: Medical terminology converter",
+        "P4-T3: Severity scoring with medical context",
+        "P4-T4: Tanong Mo Sa Doktor card generator",
+        "P4-T5: Analysis storage service",
+        "P5-T1: Context assembler enhancement",
+        "P5-T3: Dialect detection + response adaptation",
+        "P5-T4: Chat history management",
+        "P5-T5: Chat safety + content filtering",
+        "P6-T1: Unified scan pipeline route",
+        "P6-T2: Clara chatbot tRPC route",
+        "P6-T3: Root router updates",
+        "P6-T4: OpenAPI spec updates",
+        "P7-T1: Upload form server-side processing",
+        "P7-T2: Scan results display",
+        "P7-T3: Clara chatbot UI component",
+        "P7-T4: Workflow progress visualization",
+        "P7-T5: Scan page integrated workflow",
+        "P8-T1: E2E upload-extraction flow",
+        "P8-T2: E2E Clara chatbot interaction",
+        "P8-T3: E2E patient journey",
+        "P8-T4: Performance + accessibility tests",
+        "P9-T1: Global error boundary",
+        "P9-T2: Retry logic + circuit breaker",
+        "P9-T3: Structured logging",
+        "P10-T1: Full test suite verification",
+        "P10-T2: Documentation updates",
+        "P10-T3: Demo seed script",
+        "P10-T4: Final build verification"
+      ]
+    },
     "phases": [
       {
         "phase": 1,
@@ -4468,12 +4556,19 @@
         "1. Write failing test (Red)",
         "2. Implement minimal code to pass (Green)",
         "3. Refactor while keeping tests passing (Refactor)",
-        "4. Commit with descriptive message",
-        "5. Run full test suite to verify"
+        "4. Run single test file to verify",
+        "5. Run full test suite to verify no regressions",
+        "6. Commit with descriptive message"
       ],
+      "testFrameworks": {
+        "unit": "vitest (packages/api)",
+        "integration": "vitest with vi.mock()",
+        "e2e": "playwright (apps/nextjs)",
+        "component": "@testing-library/react + vitest"
+      },
       "testCategories": {
         "unit": "Test individual functions in isolation",
-        "integration": "Test service interactions",
+        "integration": "Test service interactions with mocked dependencies",
         "contract": "Test API contracts and schemas",
         "e2e": "Test complete user flows"
       },
@@ -4481,10 +4576,15 @@
         "unit": "90% line coverage",
         "integration": "80% service coverage",
         "e2e": "100% critical path coverage"
+      },
+      "testFileConventions": {
+        "location": "co-located with source in __tests__/ directory",
+        "naming": "<filename>.test.ts",
+        "imports": "import { describe, expect, it, vi, beforeEach } from 'vitest'"
       }
     },
     "commitStrategy": {
-      "description": "Each task produces one commit with descriptive message",
+      "description": "Each task produces one commit with descriptive message. Run tests after each commit.",
       "format": "type(scope): description + test coverage",
       "types": [
         "feat: new feature",
@@ -4495,17 +4595,25 @@
         "chore: maintenance"
       ],
       "totalExpectedCommits": 43,
+      "completedCommits": 7,
+      "remainingCommits": 36,
       "commitsPerPhase": {
-        "phase1": 4,
-        "phase2": 4,
-        "phase3": 5,
-        "phase4": 5,
-        "phase5": 5,
-        "phase6": 4,
-        "phase7": 5,
-        "phase8": 4,
-        "phase9": 3,
-        "phase10": 4
+        "phase1": "4 (3 done, 1 remaining)",
+        "phase2": "4 (1 done, 3 remaining)",
+        "phase3": "5 (1 done, 4 remaining)",
+        "phase4": "5 (1 done, 4 remaining)",
+        "phase5": "5 (1 done, 4 remaining)",
+        "phase6": "4 (0 done, 4 remaining)",
+        "phase7": "5 (0 done, 5 remaining)",
+        "phase8": "4 (0 done, 4 remaining)",
+        "phase9": "3 (0 done, 3 remaining)",
+        "phase10": "4 (0 done, 4 remaining)"
+      },
+      "testCommands": {
+        "unit": "cd packages/api && npx vitest run src/utils/__tests__/ src/services/__tests__/",
+        "singleFile": "cd packages/api && npx vitest run <test-file-path>",
+        "build": "pnpm --filter @klaro/api build",
+        "typecheck": "pnpm --filter @klaro/api typecheck"
       }
     },
     "acceptanceCriteria": {
