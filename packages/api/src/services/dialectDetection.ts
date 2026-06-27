@@ -67,7 +67,7 @@ export function detectDialect(text: string): DialectDetectionResult {
 
   const topDialect = dialectConfidences[0];
 
-  if (topDialect.confidence === 0) {
+  if (!topDialect || topDialect.confidence === 0) {
     return {
       dialect: "en",
       confidence: 1,
@@ -149,6 +149,6 @@ export function getMessageLanguage(
   const userMessages = messages.filter((m) => m.role === "user");
   if (userMessages.length === 0) return "en";
 
-  const lastMessage = userMessages[userMessages.length - 1];
-  return detectDialect(lastMessage.content).dialect;
+  const lastMessage = userMessages.at(-1);
+  return detectDialect(lastMessage?.content ?? "").dialect;
 }

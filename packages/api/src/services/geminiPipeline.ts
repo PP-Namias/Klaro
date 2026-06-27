@@ -100,7 +100,7 @@ export async function executePlainLanguageStage(
 
   try {
     const { generatePlainLanguageSummary } = await import("./plainLanguage");
-    const result = generatePlainLanguageSummary(extractedData, { language });
+    const result = generatePlainLanguageSummary(extractedData, { language: language as "en" | "fil" | "tl" });
 
     return {
       text: result.plainText,

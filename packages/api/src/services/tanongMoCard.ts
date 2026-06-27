@@ -137,7 +137,7 @@ export function generateTanongMoCard(
     questions,
     recommendations,
     bookingCta: includeBookingCta && (severity === "high" || severity === "critical"),
-    disclaimer: DISCLAIMERS[language] || DISCLAIMERS.en,
+    disclaimer: DISCLAIMERS[language] ?? DISCLAIMERS.en ?? "Consult your doctor.",
     generatedAt: new Date(),
   };
 }
