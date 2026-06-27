@@ -1,4 +1,4 @@
-import type { OcrResult, OcrOptions } from "./ocr";
+import type { OcrResult } from "./ocr";
 
 export interface ImagePreprocessOptions {
   grayscale?: boolean;
@@ -10,7 +10,7 @@ export interface ImagePreprocessOptions {
   binarizeThreshold?: number;
 }
 
-export interface EnhancedOcrOptions extends OcrOptions {
+export interface EnhancedOcrOptions {
   preprocess?: ImagePreprocessOptions;
   retryCount?: number;
   retryDelay?: number;
