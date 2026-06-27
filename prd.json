@@ -3696,8 +3696,8 @@
     },
     "currentStatus": {
       "branch": "dev",
-      "totalCommitsAhead": 25,
-      "testCount": 136,
+      "totalCommitsAhead": 30,
+      "testCount": 283,
       "buildStatus": "passing",
       "completedTasks": [
         {
@@ -3741,6 +3741,24 @@
           "title": "Clara chat service + 21 unit tests",
           "commit": "959fff0",
           "files": ["packages/api/src/services/claraChat.ts", "packages/api/src/services/__tests__/claraChat.test.ts"]
+        },
+        {
+          "id": "P5-T3",
+          "title": "Dialect detection + response adaptation + 14 unit tests",
+          "commit": "2f58fff",
+          "files": ["packages/api/src/services/dialectDetection.ts", "packages/api/src/services/__tests__/dialectDetection.test.ts"]
+        },
+        {
+          "id": "P5-T4",
+          "title": "Chat history management + 14 unit tests",
+          "commit": "73e049a",
+          "files": ["packages/api/src/services/chatHistory.ts", "packages/api/src/services/__tests__/chatHistory.test.ts"]
+        },
+        {
+          "id": "P5-T5",
+          "title": "Chat safety + content filtering + 23 unit tests",
+          "commit": "342b2a3",
+          "files": ["packages/api/src/services/chatSafety.ts", "packages/api/src/services/__tests__/chatSafety.test.ts"]
         }
       ],
       "nextTasks": [
@@ -3756,10 +3774,6 @@
         "P4-T3: Severity scoring with medical context",
         "P4-T4: Tanong Mo Sa Doktor card generator",
         "P4-T5: Analysis storage service",
-        "P5-T1: Context assembler enhancement",
-        "P5-T3: Dialect detection + response adaptation",
-        "P5-T4: Chat history management",
-        "P5-T5: Chat safety + content filtering",
         "P6-T1: Unified scan pipeline route",
         "P6-T2: Clara chatbot tRPC route",
         "P6-T3: Root router updates",
