@@ -3670,5 +3670,870 @@
       ],
       "githubIssueTemplate": "### Summary\nAdd README quickstart, sample dataset and demo script for contributors.\n\n### Acceptance Criteria\n- README quickstart works\n- Sample dataset included\n"
     }
+  },
+  "geminiAiImplementationPlan": {
+    "title": "Complete Gemini AI-Powered Patient Data Extraction & Clara Chatbot",
+    "description": "End-to-end implementation of file upload (PDF/images), Gemini Vision AI extraction of patient medical data, plain-language transformation, and Clara AI chatbot for patient explanations and clarifications.",
+    "architecture": {
+      "flow": "Upload -> OCR -> Gemini Extraction -> Plain Language -> Clara Chat",
+      "components": [
+        "File Upload (Web + Mobile)",
+        "OCR Processing (Tesseract + Cloud fallback)",
+        "Gemini Vision AI Extraction",
+        "Structured Data Normalization",
+        "Plain Language Explanation (Filipino/Bisaya/Ilocano)",
+        "Tanong Mo Sa Doktor Card Generation",
+        "Clara AI Chatbot (Context-Aware)"
+      ],
+      "techStack": {
+        "upload": "Cloudinary + Base64",
+        "ocr": "Tesseract.js + Google Vision",
+        "extraction": "Gemini Vision API",
+        "llm": "OpenAI/Claude/Gemini (multi-provider)",
+        "chat": "tRPC + LLM with document context",
+        "db": "PostgreSQL + Drizzle ORM"
+      }
+    },
+    "phases": [
+      {
+        "phase": 1,
+        "name": "File Upload Foundation",
+        "description": "Complete file upload infrastructure with validation, storage, and retrieval",
+        "estimatedCommits": 4,
+        "tasks": [
+          {
+            "id": "P1-T1",
+            "title": "Fix Cloudinary upload to use server-side only",
+            "file": "apps/nextjs/src/app/api/uploads/server/route.ts",
+            "testFile": "apps/nextjs/src/app/api/uploads/__tests__/server-upload.test.ts",
+            "tests": [
+              "POST /api/uploads/server with valid file creates document record",
+              "POST /api/uploads/server without auth returns 401",
+              "POST /api/uploads/server with oversized file returns 413",
+              "POST /api/uploads/server with invalid type returns 415",
+              "POST /api/uploads/server stores file to Cloudinary",
+              "POST /api/uploads/server returns document ID and metadata"
+            ],
+            "commitMessage": "fix(upload): server-side Cloudinary upload + add validation tests"
+          },
+          {
+            "id": "P1-T2",
+            "title": "Create file validation utility with comprehensive checks",
+            "file": "packages/api/src/utils/fileValidation.ts",
+            "testFile": "packages/api/src/utils/__tests__/fileValidation.test.ts",
+            "tests": [
+              "validateFileType accepts PNG, JPEG, PDF, TIFF, BMP, GIF",
+              "validateFileType rejects EXE, BAT, SH files",
+              "validateFileSize accepts files under 50MB",
+              "validateFileSize rejects files over 50MB",
+              "validateFileName sanitizes special characters",
+              "validateFileName rejects empty names",
+              "validateFile returns comprehensive result object"
+            ],
+            "commitMessage": "feat(upload): add file validation utility + comprehensive unit tests"
+          },
+          {
+            "id": "P1-T3",
+            "title": "Create document metadata service with CRUD operations",
+            "file": "packages/api/src/services/documentService.ts",
+            "testFile": "packages/api/src/services/__tests__/documentService.test.ts",
+            "tests": [
+              "createDocument inserts record with correct fields",
+              "getDocumentById returns document or null",
+              "getDocumentsByUserId returns user documents with pagination",
+              "updateDocumentStatus updates status field",
+              "deleteDocument removes record and Cloudinary asset",
+              "getDocumentStats returns counts by status"
+            ],
+            "commitMessage": "feat(upload): document metadata service + CRUD unit tests"
+          },
+          {
+            "id": "P1-T4",
+            "title": "Add file upload progress tracking and error recovery",
+            "file": "apps/nextjs/src/lib/uploadProgress.ts",
+            "testFile": "apps/nextjs/src/lib/__tests__/uploadProgress.test.ts",
+            "tests": [
+              "trackUploadProgress emits progress events",
+              "trackUploadProgress handles network errors",
+              "trackUploadProgress supports abort/cancel",
+              "retryUpload retries failed uploads up to 3 times",
+              "retryUpload exponential backoff timing",
+              "formatUploadError returns user-friendly messages"
+            ],
+            "commitMessage": "feat(upload): upload progress tracking + error recovery tests"
+          }
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "OCR Processing Pipeline",
+        "description": "Complete OCR pipeline with local Tesseract and cloud fallback",
+        "estimatedCommits": 4,
+        "tasks": [
+          {
+            "id": "P2-T1",
+            "title": "Fix Tesseract OCR initialization and language support",
+            "file": "packages/api/src/services/ocr.ts",
+            "testFile": "packages/api/src/__tests__/ocr.test.ts",
+            "tests": [
+              "performOcr initializes Tesseract worker with EN language",
+              "performOcr processes image and returns text",
+              "performOcr computes confidence score 0-100",
+              "performOcrWithFallback uses local when confidence >= 70",
+              "performOcrWithFallback falls back to cloud when confidence < 70",
+              "performOcrWithFallback returns cloud result when local fails",
+              "buildOcrAudit creates audit trail record",
+              "computeConfidence calculates weighted average",
+              "shouldUseCloudFallback respects threshold config",
+              "getOcrConfidenceThreshold reads env var correctly"
+            ],
+            "commitMessage": "fix(ocr): Tesseract initialization + language support + unit tests"
+          },
+          {
+            "id": "P2-T2",
+            "title": "Implement image preprocessing for better OCR accuracy",
+            "file": "packages/api/src/services/imagePreprocessing.ts",
+            "testFile": "packages/api/src/services/__tests__/imagePreprocessing.test.ts",
+            "tests": [
+              "deskewImage corrects rotated text",
+              "denoiseImage reduces noise artifacts",
+              "binarizeImage converts to black/white",
+              "contrastEnhancement improves readability",
+              "preprocessImage runs full pipeline",
+              "preprocessImage handles different image formats"
+            ],
+            "commitMessage": "feat(ocr): image preprocessing pipeline + unit tests"
+          },
+          {
+            "id": "P2-T3",
+            "title": "Implement Google Vision cloud OCR fallback",
+            "file": "packages/api/src/services/cloudOcr.ts",
+            "testFile": "packages/api/src/services/__tests__/cloudOcr.test.ts",
+            "tests": [
+              "callGoogleVision sends correct API request",
+              "callGoogleVision returns extracted text",
+              "callGoogleVision handles API errors gracefully",
+              "callGoogleVision returns confidence score",
+              "callGoogleVision batches multiple images",
+              "cloudOcrWithRetry retries on transient errors"
+            ],
+            "commitMessage": "feat(ocr): Google Vision cloud fallback + unit tests"
+          },
+          {
+            "id": "P2-T4",
+            "title": "Create OCR result normalization and storage",
+            "file": "packages/api/src/services/ocrResult.ts",
+            "testFile": "packages/api/src/services/__tests__/ocrResult.test.ts",
+            "tests": [
+              "normalizeOcrResult standardizes text output",
+              "normalizeOcrResult extracts confidence per paragraph",
+              "normalizeOcrResult detects document language",
+              "storeOcrResult saves to database",
+              "getOcrResult retrieves stored result",
+              "compareOcrResults detects differences between versions"
+            ],
+            "commitMessage": "feat(ocr): OCR result normalization + storage tests"
+          }
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Gemini Vision AI Extraction",
+        "description": "Gemini Vision API integration for medical data extraction from images",
+        "estimatedCommits": 5,
+        "tasks": [
+          {
+            "id": "P3-T1",
+            "title": "Create Gemini Vision API client with retry logic",
+            "file": "packages/api/src/services/geminiVision.ts",
+            "testFile": "packages/api/src/services/__tests__/geminiVision.test.ts",
+            "tests": [
+              "callGeminiVision sends image with correct prompt",
+              "callGeminiVision returns structured JSON response",
+              "callGeminiVision handles API rate limits",
+              "callGeminiVision retries on 5xx errors",
+              "callGeminiVision validates response schema",
+              "callGeminiVision handles network timeouts"
+            ],
+            "commitMessage": "feat(gemini): Gemini Vision API client + retry logic tests"
+          },
+          {
+            "id": "P3-T2",
+            "title": "Create medical image analysis prompts for Gemini",
+            "file": "packages/api/src/services/geminiPrompts.ts",
+            "testFile": "packages/api/src/services/__tests__/geminiPrompts.test.ts",
+            "tests": [
+              "buildSystemPrompt includes medical extraction instructions",
+              "buildSystemPrompt specifies output JSON schema",
+              "buildUserPrompt includes image metadata",
+              "buildUserPrompt handles multiple images",
+              "buildExtractionPrompt targets lab results",
+              "buildPrescriptionPrompt targets medication data",
+              "buildDischargePrompt targets discharge summary"
+            ],
+            "commitMessage": "feat(gemini): medical image analysis prompts + tests"
+          },
+          {
+            "id": "P3-T3",
+            "title": "Implement structured data extraction from Gemini response",
+            "file": "packages/api/src/services/geminiExtraction.ts",
+            "testFile": "packages/api/src/services/__tests__/geminiExtraction.test.ts",
+            "tests": [
+              "extractPatientData parses patient name, age, sex",
+              "extractLabResults parses test name, value, unit, reference",
+              "extractMedications parses drug name, dosage, frequency",
+              "extractDiagnoses parses diagnosis codes and descriptions",
+              "normalizeGeminiResponse standardizes field names",
+              "validateGeminiOutput checks required fields present",
+              "handleMalformedResponse returns partial data with warnings"
+            ],
+            "commitMessage": "feat(gemini): structured data extraction + validation tests"
+          },
+          {
+            "id": "P3-T4",
+            "title": "Implement Gemini fallback to mock when API unavailable",
+            "file": "packages/api/src/services/geminiFallback.ts",
+            "testFile": "packages/api/src/services/__tests__/geminiFallback.test.ts",
+            "tests": [
+              "geminiFallback returns mock data when API key missing",
+              "geminiFallback returns mock data on API failure",
+              "geminiFallback preserves original file metadata",
+              "geminiFallback generates realistic mock results",
+              "geminiFallback logs fallback reason",
+              "geminiFallback marks result as mock for debugging"
+            ],
+            "commitMessage": "feat(gemini): Gemini API fallback handling + tests"
+          },
+          {
+            "id": "P3-T5",
+            "title": "Create end-to-end Gemini extraction pipeline",
+            "file": "packages/api/src/services/geminiPipeline.ts",
+            "testFile": "packages/api/src/services/__tests__/geminiPipeline.test.ts",
+            "tests": [
+              "geminiPipeline processes image through full flow",
+              "geminiPipeline stores extracted data in database",
+              "geminiPipeline handles extraction errors gracefully",
+              "geminiPipeline returns structured result with confidence",
+              "geminiPipeline supports batch processing",
+              "geminiPipeline logs processing metrics"
+            ],
+            "commitMessage": "feat(gemini): end-to-end extraction pipeline + integration tests"
+          }
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "Plain Language Transformation",
+        "description": "Transform extracted medical data into patient-friendly explanations",
+        "estimatedCommits": 5,
+        "tasks": [
+          {
+            "id": "P4-T1",
+            "title": "Fix and enhance LLM multi-dialect support",
+            "file": "packages/api/src/services/llm.ts",
+            "testFile": "packages/api/src/__tests__/llm.test.ts",
+            "tests": [
+              "generatePlainLanguageExplanation in Filipino produces correct output",
+              "generatePlainLanguageExplanation in Bisaya produces correct output",
+              "generatePlainLanguageExplanation in Ilocano produces correct output",
+              "computeSeverityForTests returns LOW for normal values",
+              "computeSeverityForTests returns MODERATE for borderline values",
+              "computeSeverityForTests returns HIGH for critical values",
+              "buildTanongMoCard generates 3+ relevant questions",
+              "buildTanongMoCard includes booking CTA for HIGH severity",
+              "PROMPT_TEMPLATES contains all required templates",
+              "registerPromptVersion stores version correctly",
+              "getActivePromptVersion returns current version",
+              "logPromptUsage records usage metrics"
+            ],
+            "commitMessage": "fix(llm): enhance multi-dialect support + comprehensive tests"
+          },
+          {
+            "id": "P4-T2",
+            "title": "Create medical terminology to plain language converter",
+            "file": "packages/api/src/services/medicalTerminology.ts",
+            "testFile": "packages/api/src/services/__tests__/medicalTerminology.test.ts",
+            "tests": [
+              "convertToPlainLanguage maps HGB to 'Hemoglobin (dugo)'",
+              "convertToPlainLanguage maps CRE to 'Creatinine (bato)'",
+              "convertToPlainLanguage handles 60+ test name mappings",
+              "convertToPlainLanguage returns original if no mapping found",
+              "getFilipinoTerm returns Filipino translation",
+              "getBisayaTerm returns Bisaya translation",
+              "getIlocanoTerm returns Ilocano translation",
+              "batchConvert processes multiple tests at once"
+            ],
+            "commitMessage": "feat(llm): medical terminology converter + dialect tests"
+          },
+          {
+            "id": "P4-T3",
+            "title": "Implement severity scoring with medical context",
+            "file": "packages/api/src/services/severityScoring.ts",
+            "testFile": "packages/api/src/services/__tests__/severityScoring.test.ts",
+            "tests": [
+              "calculateSeverity returns HIGH for critical lab values",
+              "calculateSeverity returns MODERATE for borderline values",
+              "calculateSeverity returns LOW for normal values",
+              "calculateSeverity considers patient age context",
+              "calculateSeverity considers patient sex context",
+              "calculateSeverity flags abnormal reference ranges",
+              "calculateSeverity handles missing reference ranges",
+              "batchCalculateSeverity processes multiple tests",
+              "getSeverityColor returns correct badge color",
+              "getSeverityIcon returns correct icon name"
+            ],
+            "commitMessage": "feat(llm): severity scoring with medical context + tests"
+          },
+          {
+            "id": "P4-T4",
+            "title": "Create Tanong Mo Sa Doktor card generator",
+            "file": "packages/api/src/services/tanongMoCard.ts",
+            "testFile": "packages/api/src/services/__tests__/tanongMoCard.test.ts",
+            "tests": [
+              "generateTanongMoCard creates card for flagged tests",
+              "generateTanongMoCard includes 3+ targeted questions",
+              "generateTanongMoCard questions are dialect-appropriate",
+              "generateTanongMoCard HIGH severity includes booking CTA",
+              "generateTanongMoCard MODERATE severity includes recommendation",
+              "generateTanongMoCard LOW severity includes reassurance",
+              "formatTanongMoCard returns formatted JSON structure",
+              "validateTanongMoCard checks required fields"
+            ],
+            "commitMessage": "feat(llm): Tanong Mo Sa Doktor card generator + tests"
+          },
+          {
+            "id": "P4-T5",
+            "title": "Implement analysis result storage and retrieval",
+            "file": "packages/api/src/services/analysisStorage.ts",
+            "testFile": "packages/api/src/services/__tests__/analysisStorage.test.ts",
+            "tests": [
+              "saveAnalysis stores extracted fields as JSONB",
+              "saveAnalysis stores flagged values separately",
+              "saveAnalysis stores plain language summary",
+              "saveAnalysis stores Tanong Mo card",
+              "getAnalysis retrieves complete analysis",
+              "getAnalysisByDocumentId returns latest analysis",
+              "updateAnalysisStatus updates status field",
+              "deleteAnalysis removes analysis and related chat messages"
+            ],
+            "commitMessage": "feat(llm): analysis storage service + CRUD tests"
+          }
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Clara AI Chatbot Integration",
+        "description": "Context-aware Clara chatbot for patient explanations and clarifications",
+        "estimatedCommits": 5,
+        "tasks": [
+          {
+            "id": "P5-T1",
+            "title": "Fix and enhance chat context assembler",
+            "file": "packages/api/src/services/contextAssembler.ts",
+            "testFile": "packages/api/src/services/__tests__/contextAssembler.test.ts",
+            "tests": [
+              "assembleDocumentContext includes extracted fields",
+              "assembleDocumentContext includes plain language summary",
+              "assembleDocumentContext includes recent chat history",
+              "assembleDocumentContext limits history to 5 messages",
+              "assembleDocumentContext handles empty analysis",
+              "assembleDocumentContext handles no chat history",
+              "buildSystemPrompt includes medical context instructions",
+              "buildSystemPrompt includes safety disclaimers"
+            ],
+            "commitMessage": "fix(chat): enhance context assembler + comprehensive tests"
+          },
+          {
+            "id": "P5-T2",
+            "title": "Implement Clara AI chat service with safety layers",
+            "file": "packages/api/src/services/claraChat.ts",
+            "testFile": "packages/api/src/services/__tests__/claraChat.test.ts",
+            "tests": [
+              "claraChat sends message and returns response",
+              "claraChat includes document context in prompt",
+              "claraChat adds safety disclaimer for HIGH severity",
+              "claraChat suggests booking for critical results",
+              "claraChat filters inappropriate content",
+              "claraChat respects dialect preference",
+              "claraChat maintains conversation history",
+              "claraChat handles LLM errors gracefully",
+              "claraChat returns suggested follow-up questions",
+              "claraChat limits response length for readability"
+            ],
+            "commitMessage": "feat(chat): Clara AI chat service + safety layer tests"
+          },
+          {
+            "id": "P5-T3",
+            "title": "Implement dialect detection and response adaptation",
+            "file": "packages/api/src/services/dialectDetection.ts",
+            "testFile": "packages/api/src/services/__tests__/dialectDetection.test.ts",
+            "tests": [
+              "detectDialect identifies Filipino text",
+              "detectDialect identifies Bisaya text",
+              "detectDialect identifies Ilocano text",
+              "detectDialect returns Filipino as default",
+              "detectDialect handles mixed language input",
+              "adaptResponseToDialect converts response to detected dialect",
+              "adaptResponseToDialect preserves medical terms",
+              "simplifyLanguage reduces reading level",
+              "simplifyLanguage maintains accuracy"
+            ],
+            "commitMessage": "feat(chat): dialect detection + response adaptation tests"
+          },
+          {
+            "id": "P5-T4",
+            "title": "Create chat history management and persistence",
+            "file": "packages/api/src/services/chatHistory.ts",
+            "testFile": "packages/api/src/services/__tests__/chatHistory.test.ts",
+            "tests": [
+              "saveChatMessage stores user message",
+              "saveChatMessage stores assistant response",
+              "getChatHistory returns messages in order",
+              "getChatHistory limits to last N messages",
+              "getChatHistory filters by analysis ID",
+              "clearChatHistory removes all messages for analysis",
+              "getChatStats returns message count and timestamps",
+              "exportChatHistory formats as JSON"
+            ],
+            "commitMessage": "feat(chat): chat history management + persistence tests"
+          },
+          {
+            "id": "P5-T5",
+            "title": "Implement chat safety and content filtering",
+            "file": "packages/api/src/services/chatSafety.ts",
+            "testFile": "packages/api/src/services/__tests__/chatSafety.test.ts",
+            "tests": [
+              "filterContent blocks medical advice requests",
+              "filterContent blocks prescription requests",
+              "filterContent allows health information queries",
+              "filterContent allows clarification requests",
+              "getChatSafetyLevel returns appropriate level",
+              "buildSafetyDisclaimer returns disclaimer text",
+              "shouldSuggestBooking returns true for HIGH severity",
+              "shouldSuggestBooking returns false for LOW severity",
+              "logSafetyEvent records filtered messages"
+            ],
+            "commitMessage": "feat(chat): chat safety + content filtering tests"
+          }
+        ]
+      },
+      {
+        "phase": 6,
+        "name": "Integration & API Routes",
+        "description": "Connect all services through tRPC routes and API endpoints",
+        "estimatedCommits": 4,
+        "tasks": [
+          {
+            "id": "P6-T1",
+            "title": "Create unified scan pipeline route",
+            "file": "packages/api/src/router/scanPipeline.ts",
+            "testFile": "packages/api/src/router/__tests__/scanPipeline.test.ts",
+            "tests": [
+              "scanPipeline processes upload through full flow",
+              "scanPipeline returns extraction + analysis + chat ready",
+              "scanPipeline handles partial failures gracefully",
+              "scanPipeline stores all intermediate results",
+              "scanPipeline supports guest and authenticated modes",
+              "scanPipeline validates input schema"
+            ],
+            "commitMessage": "feat(api): unified scan pipeline route + integration tests"
+          },
+          {
+            "id": "P6-T2",
+            "title": "Create Clara chatbot tRPC route with streaming",
+            "file": "packages/api/src/router/claraChat.ts",
+            "testFile": "packages/api/src/router/__tests__/claraChat.test.ts",
+            "tests": [
+              "claraChat.sendMessage returns response with context",
+              "claraChat.getHistory returns paginated messages",
+              "claraChat.clearHistory removes conversation",
+              "claraChat streams response for real-time UX",
+              "claraChat enforces authentication",
+              "claraChat validates input length limits"
+            ],
+            "commitMessage": "feat(api): Clara chatbot tRPC route + streaming tests"
+          },
+          {
+            "id": "P6-T3",
+            "title": "Update root router with new routes",
+            "file": "packages/api/src/root.ts",
+            "testFile": "packages/api/src/__tests__/root.test.ts",
+            "tests": [
+              "appRouter includes scanPipeline route",
+              "appRouter includes claraChat route",
+              "appRouter health endpoint still works",
+              "appRouter version endpoint still works",
+              "scanPipeline is accessible as public for guests",
+              "claraChat requires authentication"
+            ],
+            "commitMessage": "feat(api): update root router + route accessibility tests"
+          },
+          {
+            "id": "P6-T4",
+            "title": "Add API documentation and OpenAPI spec updates",
+            "file": "packages/api/src/openapi.ts",
+            "testFile": "packages/api/src/__tests__/openapi.test.ts",
+            "tests": [
+              "OpenAPI spec includes scanPipeline endpoint",
+              "OpenAPI spec includes claraChat endpoint",
+              "OpenAPI spec includes all request/response schemas",
+              "OpenAPI spec includes authentication requirements",
+              "OpenAPI spec is valid JSON",
+              "OpenAPI spec matches tRPC router structure"
+            ],
+            "commitMessage": "feat(api): OpenAPI spec updates + documentation tests"
+          }
+        ]
+      },
+      {
+        "phase": 7,
+        "name": "Frontend Integration",
+        "description": "Connect frontend components to backend services",
+        "estimatedCommits": 5,
+        "tasks": [
+          {
+            "id": "P7-T1",
+            "title": "Fix upload form to use server-side processing",
+            "file": "apps/nextjs/src/components/upload-form.tsx",
+            "testFile": "apps/nextjs/src/components/__tests__/upload-form.test.tsx",
+            "tests": [
+              "UploadForm submits to server endpoint",
+              "UploadForm shows progress during upload",
+              "UploadForm handles upload errors",
+              "UploadForm validates file before upload",
+              "UploadForm supports drag-and-drop",
+              "UploadForm supports camera capture"
+            ],
+            "commitMessage": "fix(upload): upload form server-side processing + tests"
+          },
+          {
+            "id": "P7-T2",
+            "title": "Create scan results display with extracted data",
+            "file": "apps/nextjs/src/components/scan-results.tsx",
+            "testFile": "apps/nextjs/src/components/__tests__/scan-results.test.tsx",
+            "tests": [
+              "ScanResults displays extracted tests table",
+              "ScanResults shows severity badges correctly",
+              "ScanResults shows plain language summary",
+              "ScanResults shows Tanong Mo card",
+              "ScanResults handles loading state",
+              "ScanResults handles error state",
+              "ScanResults supports dialect switching"
+            ],
+            "commitMessage": "feat(frontend): scan results display + component tests"
+          },
+          {
+            "id": "P7-T3",
+            "title": "Create Clara chatbot UI component",
+            "file": "apps/nextjs/src/components/clara-chat.tsx",
+            "testFile": "apps/nextjs/src/components/__tests__/clara-chat.test.tsx",
+            "tests": [
+              "ClaraChat renders chat interface",
+              "ClaraChat sends message via tRPC",
+              "ClaraChat displays response with markdown",
+              "ClaraChat shows typing indicator",
+              "ClaraChat maintains scroll position",
+              "ClaraChat supports clear history",
+              "ClaraChat shows suggested questions"
+            ],
+            "commitMessage": "feat(frontend): Clara chatbot UI component + tests"
+          },
+          {
+            "id": "P7-T4",
+            "title": "Create workflow progress visualization",
+            "file": "apps/nextjs/src/components/workflow-progress.tsx",
+            "testFile": "apps/nextjs/src/components/__tests__/workflow-progress.test.tsx",
+            "tests": [
+              "WorkflowProgress shows all 5 stages",
+              "WorkflowProgress highlights current stage",
+              "WorkflowProgress shows completion checkmarks",
+              "WorkflowProgress handles error state",
+              "WorkflowProgress animates transitions",
+              "WorkflowProgress shows estimated time"
+            ],
+            "commitMessage": "feat(frontend): workflow progress visualization + tests"
+          },
+          {
+            "id": "P7-T5",
+            "title": "Create scan page with integrated workflow",
+            "file": "apps/nextjs/src/app/scan/page.tsx",
+            "testFile": "apps/nextjs/src/app/scan/__tests__/page.test.tsx",
+            "tests": [
+              "ScanPage renders upload form initially",
+              "ScanPage transitions to workflow progress",
+              "ScanPage shows results after processing",
+              "ScanPage integrates Clara chatbot",
+              "ScanPage handles guest vs authenticated",
+              "ScanPage preserves scan state in session"
+            ],
+            "commitMessage": "feat(frontend): scan page integrated workflow + tests"
+          }
+        ]
+      },
+      {
+        "phase": 8,
+        "name": "End-to-End Testing",
+        "description": "Complete E2E tests for the full patient data flow",
+        "estimatedCommits": 4,
+        "tasks": [
+          {
+            "id": "P8-T1",
+            "title": "Create E2E test for upload to extraction flow",
+            "file": "apps/nextjs/e2e/upload-extraction.spec.ts",
+            "testFile": "apps/nextjs/e2e/upload-extraction.spec.ts",
+            "tests": [
+              "Upload lab result PDF and see extracted data",
+              "Upload prescription image and see medications",
+              "Upload discharge summary and see diagnosis",
+              "Handle large file upload gracefully",
+              "Show progress during processing",
+              "Display results with plain language"
+            ],
+            "commitMessage": "test(e2e): upload to extraction flow tests"
+          },
+          {
+            "id": "P8-T2",
+            "title": "Create E2E test for Clara chatbot interaction",
+            "file": "apps/nextjs/e2e/clara-chat.spec.ts",
+            "testFile": "apps/nextjs/e2e/clara-chat.spec.ts",
+            "tests": [
+              "Open Clara chat after scan results",
+              "Ask follow-up question about results",
+              "Receive context-aware response",
+              "Switch dialect in conversation",
+              "Clear chat history",
+              "View suggested questions"
+            ],
+            "commitMessage": "test(e2e): Clara chatbot interaction tests"
+          },
+          {
+            "id": "P8-T3",
+            "title": "Create E2E test for complete patient journey",
+            "file": "apps/nextjs/e2e/patient-journey.spec.ts",
+            "testFile": "apps/nextjs/e2e/patient-journey.spec.ts",
+            "tests": [
+              "Complete journey: upload -> extract -> chat -> book",
+              "Guest flow without authentication",
+              "Authenticated flow with history",
+              "Save results to user account",
+              "Share results via link",
+              "Export results as PDF"
+            ],
+            "commitMessage": "test(e2e): complete patient journey tests"
+          },
+          {
+            "id": "P8-T4",
+            "title": "Create performance and accessibility tests",
+            "file": "apps/nextjs/e2e/performance.spec.ts",
+            "testFile": "apps/nextjs/e2e/performance.spec.ts",
+            "tests": [
+              "Upload page loads under 3 seconds",
+              "Scan processing completes under 30 seconds",
+              "Chat responses arrive under 5 seconds",
+              "All pages pass axe accessibility audit",
+              "Mobile responsive on iPhone and Android",
+              "Keyboard navigation works throughout"
+            ],
+            "commitMessage": "test(e2e): performance + accessibility tests"
+          }
+        ]
+      },
+      {
+        "phase": 9,
+        "name": "Error Handling & Edge Cases",
+        "description": "Comprehensive error handling and edge case coverage",
+        "estimatedCommits": 3,
+        "tasks": [
+          {
+            "id": "P9-T1",
+            "title": "Implement global error boundary and error pages",
+            "file": "apps/nextjs/src/app/error.tsx",
+            "testFile": "apps/nextjs/src/app/__tests__/error.test.tsx",
+            "tests": [
+              "ErrorBoundary catches component errors",
+              "ErrorBoundary shows user-friendly message",
+              "ErrorBoundary offers retry option",
+              "ErrorBoundary logs error to monitoring",
+              "NotFoundPage shows 404 with helpful links",
+              "LoadingPage shows skeleton during load"
+            ],
+            "commitMessage": "fix(errors): global error boundary + error pages tests"
+          },
+          {
+            "id": "P9-T2",
+            "title": "Implement retry logic and circuit breaker for external APIs",
+            "file": "packages/api/src/utils/retryLogic.ts",
+            "testFile": "packages/api/src/utils/__tests__/retryLogic.test.ts",
+            "tests": [
+              "retryWithBackoff retries failed operations",
+              "retryWithBackoff uses exponential backoff",
+              "retryWithBackoff respects max retries",
+              "circuitBreaker opens after failures",
+              "circuitBreaker closes after success",
+              "circuitBreaker half-open state",
+              "circuitBreaker records failure metrics"
+            ],
+            "commitMessage": "fix(errors): retry logic + circuit breaker tests"
+          },
+          {
+            "id": "P9-T3",
+            "title": "Add comprehensive logging and monitoring",
+            "file": "packages/api/src/services/logger.ts",
+            "testFile": "packages/api/src/services/__tests__/logger.test.ts",
+            "tests": [
+              "logger.info logs informational messages",
+              "logger.warn logs warning messages",
+              "logger.error logs error messages with stack",
+              "logger.metric records custom metrics",
+              "logger.timing records operation duration",
+              "logger.context adds request context",
+              "logger.redact removes sensitive data"
+            ],
+            "commitMessage": "feat(monitoring): structured logging + monitoring tests"
+          }
+        ]
+      },
+      {
+        "phase": 10,
+        "name": "Final Integration & Build Verification",
+        "description": "Final integration, build verification, and documentation",
+        "estimatedCommits": 4,
+        "tasks": [
+          {
+            "id": "P10-T1",
+            "title": "Run full test suite and fix any failures",
+            "file": "multiple",
+            "testFile": "all test files",
+            "tests": [
+              "All unit tests pass",
+              "All integration tests pass",
+              "All E2E tests pass",
+              "No TypeScript errors",
+              "No ESLint errors",
+              "Build completes successfully"
+            ],
+            "commitMessage": "fix(tests): resolve all test failures + full suite verification"
+          },
+          {
+            "id": "P10-T2",
+            "title": "Update documentation and README",
+            "file": "README.md",
+            "testFile": "none",
+            "tests": [
+              "README includes setup instructions",
+              "README includes API documentation",
+              "README includes architecture diagram",
+              "README includes testing guide",
+              ".env.example includes all required vars",
+              "Package.json scripts are documented"
+            ],
+            "commitMessage": "docs: update README + API documentation"
+          },
+          {
+            "id": "P10-T3",
+            "title": "Create demo dataset and seed script",
+            "file": "packages/api/src/scripts/seed-demo.ts",
+            "testFile": "packages/api/src/scripts/__tests__/seed-demo.test.ts",
+            "tests": [
+              "Seed script creates demo users",
+              "Seed script creates demo documents",
+              "Seed script creates demo analyses",
+              "Seed script creates demo chat messages",
+              "Seed script is idempotent",
+              "Seed script handles missing env vars"
+            ],
+            "commitMessage": "feat(demo): seed script + demo dataset tests"
+          },
+          {
+            "id": "P10-T4",
+            "title": "Final build and deployment verification",
+            "file": "multiple",
+            "testFile": "none",
+            "tests": [
+              "TypeScript compilation succeeds",
+              "Next.js build completes",
+              "Expo build completes",
+              "API build completes",
+              "No circular dependencies",
+              "Bundle size within limits"
+            ],
+            "commitMessage": "chore(build): final build verification + deployment prep"
+          }
+        ]
+      }
+    ],
+    "testDrivenDevelopment": {
+      "principle": "Write tests first, then implement, then refactor",
+      "workflow": [
+        "1. Write failing test (Red)",
+        "2. Implement minimal code to pass (Green)",
+        "3. Refactor while keeping tests passing (Refactor)",
+        "4. Commit with descriptive message",
+        "5. Run full test suite to verify"
+      ],
+      "testCategories": {
+        "unit": "Test individual functions in isolation",
+        "integration": "Test service interactions",
+        "contract": "Test API contracts and schemas",
+        "e2e": "Test complete user flows"
+      },
+      "coverageTargets": {
+        "unit": "90% line coverage",
+        "integration": "80% service coverage",
+        "e2e": "100% critical path coverage"
+      }
+    },
+    "commitStrategy": {
+      "description": "Each task produces one commit with descriptive message",
+      "format": "type(scope): description + test coverage",
+      "types": [
+        "feat: new feature",
+        "fix: bug fix",
+        "test: adding tests",
+        "refactor: code restructuring",
+        "docs: documentation",
+        "chore: maintenance"
+      ],
+      "totalExpectedCommits": 43,
+      "commitsPerPhase": {
+        "phase1": 4,
+        "phase2": 4,
+        "phase3": 5,
+        "phase4": 5,
+        "phase5": 5,
+        "phase6": 4,
+        "phase7": 5,
+        "phase8": 4,
+        "phase9": 3,
+        "phase10": 4
+      }
+    },
+    "acceptanceCriteria": {
+      "functional": [
+        "User can upload PDF/images of medical documents",
+        "System extracts patient data using Gemini Vision AI",
+        "System generates plain-language explanations in Filipino/Bisaya/Ilocano",
+        "Clara chatbot provides context-aware follow-up explanations",
+        "System handles errors gracefully with user-friendly messages",
+        "All tests pass with required coverage"
+      ],
+      "technical": [
+        "TypeScript compilation succeeds with no errors",
+        "All unit tests pass",
+        "All integration tests pass",
+        "All E2E tests pass",
+        "ESLint passes with no errors",
+        "Build completes successfully",
+        "No security vulnerabilities"
+      ],
+      "userExperience": [
+        "Upload completes under 5 seconds",
+        "Scan processing completes under 30 seconds",
+        "Chat responses arrive under 5 seconds",
+        "Mobile responsive on all devices",
+        "Accessible via keyboard navigation",
+        "Clear progress indicators during processing"
+      ]
+    }
   }
 }
