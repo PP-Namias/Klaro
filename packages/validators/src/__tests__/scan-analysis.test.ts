@@ -47,11 +47,11 @@ describe("aiScanAnalysisSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects empty recommendations", () => {
+  it("rejects recommendations over 3 items", () => {
     const result = aiScanAnalysisSchema.safeParse({
       summary: "Summary",
       urgency: "LOW",
-      recommendations: [""],
+      recommendations: ["R1", "R2", "R3", "R4"],
     });
     expect(result.success).toBe(false);
   });
@@ -133,8 +133,7 @@ describe("scanStatusSchema", () => {
 });
 
 describe("scanGuestInputSchema", () => {
-  const validBase64 =
-    "data:image/png;base64," + "A".repeat(100);
+  const validBase64 = "A".repeat(100);
 
   it("accepts valid base64 image", () => {
     const result = scanGuestInputSchema.safeParse({

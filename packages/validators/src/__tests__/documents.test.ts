@@ -56,7 +56,7 @@ describe("uploadDocumentInputSchema", () => {
   it("rejects invalid mimeType format", () => {
     const result = uploadDocumentInputSchema.safeParse({
       fileName: "test.exe",
-      mimeType: "application/exe",
+      mimeType: "APPLICATION/EXE",
       fileSize: 1024,
     });
     expect(result.success).toBe(false);

@@ -41,15 +41,6 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
-  "devDependencies": {
-    "@klaro/eslint-config": "workspace:*",
-    "@klaro/prettier-config": "workspace:*",
-    "@klaro/tsconfig": "workspace:*",
-    "eslint": "catalog:",
-    "prettier": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "^4.1.9"
-  },
   "dependencies": {
     "zod": "catalog:"
   },
@@ -59,7 +50,8 @@
     "@klaro/tsconfig": "workspace:*",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^4.1.9"
   },
   "prettier": "@klaro/prettier-config"
 }
