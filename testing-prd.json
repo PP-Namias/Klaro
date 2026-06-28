@@ -1,0 +1,1621 @@
+{
+  "product": {
+    "name": "Klaro Automated Testing Suite",
+    "tagline": "Comprehensive automated testing with 500+ commits for complete system reliability",
+    "version": "1.0-testing",
+    "overview": "Full-spectrum automated testing for the Klaro monorepo — unit tests, integration tests, E2E with Playwright screenshots, CI/CD with 80% coverage gate. Every source file gets unit tests. Every test case = 1 commit for maximum history."
+  },
+  "architecture": {
+    "testFramework": "Vitest (all packages) + Playwright (E2E)",
+    "dbMocking": "In-memory SQLite via better-sqlite3 with Drizzle",
+    "commitGranularity": "1 test case = 1 commit (500+ commits)",
+    "coverageGate": "80% minimum, blocks merges below threshold",
+    "ciTriggers": ["push to dev", "PRs to main"],
+    "e2eScreenshots": "Playwright screenshot on every E2E test for AI UI/UX inspection",
+    "packages": [
+      {"name": "@klaro/validators", "path": "packages/validators", "testFramework": "Vitest"},
+      {"name": "@klaro/db", "path": "packages/db", "testFramework": "Vitest"},
+      {"name": "@klaro/auth", "path": "packages/auth", "testFramework": "Vitest"},
+      {"name": "@klaro/api", "path": "packages/api", "testFramework": "Vitest"},
+      {"name": "@klaro/nextjs", "path": "apps/nextjs", "testFramework": "Vitest"},
+      {"name": "@klaro/expo", "path": "apps/expo", "testFramework": "Vitest"}
+    ]
+  },
+  "currentStatus": {
+    "branch": "dev",
+    "totalCommitsAhead": 434,
+    "existingTestCount": 283,
+    "existingTestFiles": 44,
+    "sourceFileCoverage": "39%",
+    "untestedPackages": ["packages/validators", "packages/db", "packages/auth"],
+    "partialTestedPackages": ["apps/nextjs", "apps/expo"],
+    "wellTestedPackages": ["packages/api"]
+  },
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Test Infrastructure Setup",
+      "description": "Vitest configs for all packages, shared test utilities, mock factories, GitHub Actions CI/CD, pre-commit hooks, vitest workspace, coverage config",
+      "estimatedCommits": 12,
+      "tasks": [
+        {
+          "id": "T1-T1",
+          "title": "Add Vitest config to packages/validators",
+          "file": "packages/validators/vitest.config.ts",
+          "sourceFiles": ["packages/validators/package.json"],
+          "tests": [],
+          "commitMessage": "chore(validators): add vitest config for test infrastructure",
+          "commits": 1
+        },
+        {
+          "id": "T1-T2",
+          "title": "Add Vitest config to packages/db",
+          "file": "packages/db/vitest.config.ts",
+          "sourceFiles": ["packages/db/package.json"],
+          "tests": [],
+          "commitMessage": "chore(db): add vitest config for test infrastructure",
+          "commits": 1
+        },
+        {
+          "id": "T1-T3",
+          "title": "Add Vitest config to packages/auth",
+          "file": "packages/auth/vitest.config.ts",
+          "sourceFiles": ["packages/auth/package.json"],
+          "tests": [],
+          "commitMessage": "chore(auth): add vitest config for test infrastructure",
+          "commits": 1
+        },
+        {
+          "id": "T1-T4",
+          "title": "Add Vitest config to apps/expo",
+          "file": "apps/expo/vitest.config.ts",
+          "sourceFiles": ["apps/expo/package.json"],
+          "tests": [],
+          "commitMessage": "chore(expo): add vitest config for test infrastructure",
+          "commits": 1
+        },
+        {
+          "id": "T1-T5",
+          "title": "Create vitest.workspace.ts at repo root",
+          "file": "vitest.workspace.ts",
+          "sourceFiles": [],
+          "tests": [],
+          "commitMessage": "chore(root): add vitest workspace for monorepo test orchestration",
+          "commits": 1
+        },
+        {
+          "id": "T1-T6",
+          "title": "Add test scripts to all package.json files",
+          "file": "packages/*/package.json",
+          "sourceFiles": ["packages/validators/package.json", "packages/db/package.json", "packages/auth/package.json", "packages/api/package.json", "apps/nextjs/package.json", "apps/expo/package.json"],
+          "tests": [],
+          "commitMessage": "chore(all): add test and test:coverage scripts to all packages",
+          "commits": 1
+        },
+        {
+          "id": "T1-T7",
+          "title": "Create shared test helpers for packages/api",
+          "file": "packages/api/src/__test-utils__/helpers.ts",
+          "sourceFiles": [],
+          "tests": [],
+          "commitMessage": "test(api): create shared test helpers and mock factories",
+          "commits": 1
+        },
+        {
+          "id": "T1-T8",
+          "title": "Create shared test helpers for packages/validators",
+          "file": "packages/validators/src/__test-utils__/helpers.ts",
+          "sourceFiles": [],
+          "tests": [],
+          "commitMessage": "test(validators): create shared test helpers and fixtures",
+          "commits": 1
+        },
+        {
+          "id": "T1-T9",
+          "title": "Create GitHub Actions CI workflow",
+          "file": ".github/workflows/ci.yml",
+          "sourceFiles": [],
+          "tests": [],
+          "commitMessage": "ci: add GitHub Actions workflow for test and build on push/PR",
+          "commits": 1
+        },
+        {
+          "id": "T1-T10",
+          "title": "Create coverage gate workflow",
+          "file": ".github/workflows/coverage.yml",
+          "sourceFiles": [],
+          "tests": [],
+          "commitMessage": "ci: add coverage gate workflow with 80% minimum threshold",
+          "commits": 1
+        },
+        {
+          "id": "T1-T11",
+          "title": "Add pre-commit hook for running tests",
+          "file": ".husky/pre-commit",
+          "sourceFiles": [".husky/pre-commit"],
+          "tests": [],
+          "commitMessage": "chore(husky): add pre-commit hook to run affected tests",
+          "commits": 1
+        },
+        {
+          "id": "T1-T12",
+          "title": "Add vitest coverage config to root",
+          "file": "vitest.config.ts",
+          "sourceFiles": [],
+          "tests": [],
+          "commitMessage": "chore(root): add root vitest config with coverage thresholds",
+          "commits": 1
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Validator Schema Tests",
+      "description": "Comprehensive Zod schema validation tests for all 7 validator files. Each test case = 1 commit.",
+      "estimatedCommits": 105,
+      "tasks": [
+        {
+          "id": "T2-T1",
+          "title": "packages/validators/src/auth.ts — signInInputSchema tests",
+          "file": "packages/validators/src/auth.ts",
+          "testFile": "packages/validators/src/__tests__/auth.test.ts",
+          "tests": [
+            "signInInputSchema accepts valid discord provider",
+            "signInInputSchema accepts valid google provider",
+            "signInInputSchema rejects invalid provider string",
+            "signInInputSchema rejects empty provider",
+            "signInInputSchema rejects numeric provider",
+            "sessionSchema accepts valid UUID user ID",
+            "sessionSchema rejects invalid UUID format",
+            "sessionSchema accepts valid email",
+            "sessionSchema rejects invalid email format",
+            "sessionSchema requires name field",
+            "sessionSchema accepts emailVerified as boolean true",
+            "sessionSchema accepts emailVerified as boolean false",
+            "logoutResponseSchema accepts success true",
+            "logoutResponseSchema accepts success false",
+            "logoutResponseSchema accepts optional message"
+          ],
+          "commitMessage": "test(validators): auth schema validation — sign in input, session, logout + N tests",
+          "commits": 15
+        },
+        {
+          "id": "T2-T2",
+          "title": "packages/validators/src/documents.ts — upload and document schemas tests",
+          "file": "packages/validators/src/documents.ts",
+          "testFile": "packages/validators/src/__tests__/documents.test.ts",
+          "tests": [
+            "uploadDocumentInputSchema accepts valid fileName",
+            "uploadDocumentInputSchema rejects empty fileName",
+            "uploadDocumentInputSchema rejects fileName over 255 chars",
+            "uploadDocumentInputSchema accepts valid mimeType image/png",
+            "uploadDocumentInputSchema accepts valid mimeType application/pdf",
+            "uploadDocumentInputSchema rejects invalid mimeType format",
+            "uploadDocumentInputSchema accepts fileSize under 50MB",
+            "uploadDocumentInputSchema rejects fileSize over 50MB",
+            "uploadDocumentInputSchema rejects negative fileSize",
+            "uploadDocumentInputSchema rejects non-integer fileSize",
+            "documentStatusEnum accepts uploaded",
+            "documentStatusEnum accepts processing",
+            "documentStatusEnum accepts analyzed",
+            "documentStatusEnum accepts failed",
+            "documentStatusEnum rejects invalid status",
+            "documentSchema accepts valid document object",
+            "documentSchema accepts nullable mimeType",
+            "documentSchema accepts nullable storageUrl",
+            "uploadResponseSchema accepts valid upload response",
+            "uploadResponseSchema requires documentId as UUID",
+            "uploadResponseSchema requires uploadUrl as URL",
+            "uploadDocumentSchema accepts valid dialect Filipino",
+            "uploadDocumentSchema accepts valid dialect Bisaya",
+            "uploadDocumentSchema accepts valid dialect Ilocano",
+            "uploadDocumentSchema defaults dialect to Filipino",
+            "uploadDocumentResponseSchema accepts valid response"
+          ],
+          "commitMessage": "test(validators): document schema validation — upload, document, response + N tests",
+          "commits": 26
+        },
+        {
+          "id": "T2-T3",
+          "title": "packages/validators/src/extraction.ts — extraction schemas tests",
+          "file": "packages/validators/src/extraction.ts",
+          "testFile": "packages/validators/src/__tests__/extraction.test.ts",
+          "tests": [
+            "ExtractedTestSchema accepts valid test with name and value",
+            "ExtractedTestSchema rejects empty name",
+            "ExtractedTestSchema rejects empty value",
+            "ExtractedTestSchema accepts optional unit",
+            "ExtractedTestSchema accepts optional referenceRange",
+            "ExtractedTestSchema defaults flagged to false",
+            "ExtractedTestSchema accepts flagged true",
+            "ExtractedTestsSchema accepts empty array",
+            "ExtractedTestsSchema accepts array of valid tests",
+            "ExtractionResultSchema accepts valid result",
+            "ExtractionResultSchema requires documentId as UUID",
+            "ExtractionResultSchema accepts accuracy 0",
+            "ExtractionResultSchema accepts accuracy 1",
+            "ExtractionResultSchema rejects accuracy below 0",
+            "ExtractionResultSchema rejects accuracy above 1",
+            "ExtractionResultSchema accepts method regex",
+            "ExtractionResultSchema accepts method llm",
+            "ExtractionResultSchema accepts method hybrid",
+            "ExtractionResultSchema rejects invalid method"
+          ],
+          "commitMessage": "test(validators): extraction schema validation — extracted tests, results + N tests",
+          "commits": 19
+        },
+        {
+          "id": "T2-T4",
+          "title": "packages/validators/src/facilities.ts — facility and search schemas tests",
+          "file": "packages/validators/src/facilities.ts",
+          "testFile": "packages/validators/src/__tests__/facilities.test.ts",
+          "tests": [
+            "facilityTypeEnum accepts hospital",
+            "facilityTypeEnum accepts clinic",
+            "facilityTypeEnum accepts medical_center",
+            "facilityTypeEnum accepts diagnostic_center",
+            "facilityTypeEnum accepts health_unit",
+            "facilityTypeEnum accepts rural_health_unit",
+            "facilityTypeEnum accepts birthing_home",
+            "facilityTypeEnum rejects invalid type",
+            "facilityTypeRank returns 0 for hospital",
+            "facilityTypeRank returns last rank for unknown type",
+            "facilityTypeRank handles null input",
+            "facilityTypeRank handles undefined input",
+            "searchNearbySchema accepts valid latitude and longitude",
+            "searchNearbySchema rejects latitude below -90",
+            "searchNearbySchema rejects latitude above 90",
+            "searchNearbySchema rejects longitude below -180",
+            "searchNearbySchema rejects longitude above 180",
+            "searchNearbySchema defaults radiusKm to 10",
+            "searchNearbySchema defaults limit to 20",
+            "searchNearbySchema accepts facilityType filter",
+            "searchNearbySchema accepts ownership filter",
+            "searchNearbySchema accepts philHealthOnly boolean",
+            "searchNearbySchema accepts textSearch",
+            "searchNearbySchema accepts specialty",
+            "searchNearbySchema accepts emergencyOnly",
+            "medicalContextSchema accepts LOW severity",
+            "medicalContextSchema accepts MODERATE severity",
+            "medicalContextSchema accepts HIGH severity",
+            "medicalContextSchema rejects invalid severity",
+            "medicalContextSchema accepts optional testSummary",
+            "medicalContextSchema defaults flaggedTests to empty array",
+            "recommendByTestResultsSchema accepts valid input",
+            "recommendByTestResultsSchema defaults radiusKm to 15",
+            "recommendByTestResultsSchema defaults limit to 5",
+            "facilityResponseSchema accepts valid facility",
+            "facilityResponseSchema accepts nullable fields"
+          ],
+          "commitMessage": "test(validators): facility schema validation — facility types, search, recommendations + N tests",
+          "commits": 36
+        },
+        {
+          "id": "T2-T5",
+          "title": "packages/validators/src/llm.ts — LLM and prompt schemas tests",
+          "file": "packages/validators/src/llm.ts",
+          "testFile": "packages/validators/src/__tests__/llm.test.ts",
+          "tests": [
+            "SeverityEnum accepts LOW",
+            "SeverityEnum accepts MODERATE",
+            "SeverityEnum accepts HIGH",
+            "SeverityEnum rejects invalid severity",
+            "DialectEnum accepts Filipino",
+            "DialectEnum accepts Bisaya",
+            "DialectEnum accepts Ilocano",
+            "DialectEnum rejects invalid dialect",
+            "TestExplanationSchema accepts valid explanation",
+            "TestExplanationSchema requires name",
+            "TestExplanationSchema accepts optional value",
+            "TestExplanationSchema enforces 150 char max on interpretation",
+            "TestExplanationSchema accepts optional recommendation",
+            "TanongMoCardSchema accepts valid card",
+            "TanongMoCardSchema requires at least 1 question",
+            "TanongMoCardSchema allows max 5 questions",
+            "TanongMoCardSchema rejects empty questions array",
+            "TanongMoCardSchema accepts optional disclaimer",
+            "TanongMoCardSchema accepts optional bookingCta",
+            "PlainLanguageAnalysisSchema accepts valid analysis",
+            "PlainLanguageAnalysisSchema requires summary max 500 chars",
+            "PlainLanguageAnalysisSchema requires tests array",
+            "PlainLanguageAnalysisSchema requires tanqmo card",
+            "PlainLanguageAnalysisSchema requires severity",
+            "PlainLanguageAnalysisSchema requires dialect",
+            "GenerateExplanationInputSchema accepts valid input",
+            "GenerateExplanationInputSchema requires documentId UUID",
+            "GenerateExplanationInputSchema defaults dialect to Filipino",
+            "GenerateExplanationInputSchema defaults includeDisclaimers to true",
+            "LLMResponseSchema accepts valid response",
+            "LLMResponseSchema requires summary",
+            "LLMResponseSchema requires tests array",
+            "LLMResponseSchema requires questionsForDoctor array",
+            "LLMResponseSchema requires severity",
+            "LLMResponseSchema accepts optional disclaimer",
+            "PromptTemplateSchema accepts valid template",
+            "PromptTemplateSchema requires id and version",
+            "PromptTemplateSchema defaults active to true"
+          ],
+          "commitMessage": "test(validators): LLM schema validation — severity, dialect, prompts, responses + N tests",
+          "commits": 38
+        },
+        {
+          "id": "T2-T6",
+          "title": "packages/validators/src/scan-analysis.ts — scan analysis schemas tests",
+          "file": "packages/validators/src/scan-analysis.ts",
+          "testFile": "packages/validators/src/__tests__/scan-analysis.test.ts",
+          "tests": [
+            "aiScanAnalysisSchema accepts valid analysis",
+            "aiScanAnalysisSchema requires summary max 500 chars",
+            "aiScanAnalysisSchema requires urgency LOW/MODERATE/HIGH",
+            "aiScanAnalysisSchema requires recommendations array min 1",
+            "aiScanAnalysisSchema rejects empty recommendations",
+            "analyzeScanInputSchema accepts valid input with tests",
+            "analyzeScanInputSchema accepts optional patientAge",
+            "analyzeScanInputSchema accepts optional patientSex male",
+            "analyzeScanInputSchema accepts optional patientSex female",
+            "analyzeScanInputSchema accepts optional patientSex other",
+            "scanUrgencySchema accepts LOW",
+            "scanUrgencySchema accepts MODERATE",
+            "scanUrgencySchema accepts HIGH",
+            "scanLanguageSchema accepts Filipino",
+            "scanLanguageSchema accepts English",
+            "scanStatusSchema accepts completed",
+            "scanStatusSchema accepts error",
+            "scanGuestInputSchema accepts valid base64 image",
+            "scanGuestInputSchema rejects invalid base64",
+            "scanGuestInputSchema rejects short base64 string",
+            "scanGuestInputSchema accepts optional fileName",
+            "scanGuestInputSchema defaults language to English",
+            "scanGuestInputSchema accepts optional patientAge",
+            "scanGuestInputSchema accepts optional patientSex",
+            "scanGuestInputSchema accepts optional facilityName",
+            "scanGuestAnalysisSchema accepts valid analysis",
+            "scanGuestResponseSchema accepts valid response",
+            "scanGuestResponseSchema requires requestId",
+            "scanGuestResponseSchema requires timestamp as ISO datetime",
+            "scanGuestResponseSchema accepts optional source gemini",
+            "scanGuestResponseSchema accepts optional source fallback",
+            "scanGuestResponseSchema accepts optional source mock"
+          ],
+          "commitMessage": "test(validators): scan-analysis schema validation — guest scan, urgency, analysis + N tests",
+          "commits": 32
+        },
+        {
+          "id": "T2-T7",
+          "title": "packages/validators/src/index.ts — re-exports and barrel tests",
+          "file": "packages/validators/src/index.ts",
+          "testFile": "packages/validators/src/__tests__/index.test.ts",
+          "tests": [
+            "index exports signInInputSchema from auth",
+            "index exports sessionSchema from auth",
+            "index exports logoutResponseSchema from auth",
+            "index exports ExtractedTestSchema from extraction",
+            "index exports ExtractedTestsSchema from extraction",
+            "index exports ExtractionResultSchema from extraction",
+            "index exports SeverityEnum from llm",
+            "index exports DialectEnum from llm",
+            "index exports TestExplanationSchema from llm",
+            "index exports TanongMoCardSchema from llm",
+            "index exports PlainLanguageAnalysisSchema from llm",
+            "index exports GenerateExplanationInputSchema from llm",
+            "index exports uploadDocumentInputSchema from documents",
+            "index exports documentSchema from documents",
+            "index exports facilityTypeEnum from facilities",
+            "index exports searchNearbySchema from facilities",
+            "index exports medicalContextSchema from facilities",
+            "index exports aiScanAnalysisSchema from scan-analysis",
+            "index exports scanGuestInputSchema from scan-analysis",
+            "index exports scanGuestResponseSchema from scan-analysis",
+            "index re-exports SignInInput type",
+            "index re-exports Session type",
+            "index re-exports FacilityType type",
+            "index re-exports ScanGuestInput type",
+            "index re-exports PlainLanguageAnalysis type"
+          ],
+          "commitMessage": "test(validators): barrel index re-exports validation + N tests",
+          "commits": 25
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Database Schema Tests",
+      "description": "Validate Drizzle schema definitions, relations, indexes, enums, seed data, and client initialization.",
+      "estimatedCommits": 55,
+      "tasks": [
+        {
+          "id": "T3-T1",
+          "title": "packages/db/src/schema.ts — table definitions tests",
+          "file": "packages/db/src/schema.ts",
+          "testFile": "packages/db/src/__tests__/schema.test.ts",
+          "tests": [
+            "document table has id UUID primary key",
+            "document table has userId text not null",
+            "document table has fileName varchar 255",
+            "document table has mimeType varchar 100",
+            "document table has fileSize integer",
+            "document table has storageUrl text",
+            "document table has status with default uploaded",
+            "document table has ocrText text",
+            "document table has confidence decimal",
+            "document table has createdAt timestamp with default",
+            "document table has updatedAt timestamp with onUpdate",
+            "analysis table has id UUID primary key",
+            "analysis table has documentId UUID with cascade delete",
+            "analysis table has userId text not null",
+            "analysis table has extractedFields jsonb",
+            "analysis table has flaggedValues jsonb",
+            "analysis table has plainLanguageSummary text",
+            "analysis table has tanqmoCard jsonb",
+            "analysis table has status with default pending",
+            "analysis table has errorMessage text",
+            "chatMessage table has id UUID primary key",
+            "chatMessage table has analysisId with cascade delete",
+            "chatMessage table has role varchar 20",
+            "chatMessage table has content text not null",
+            "chatMessage table has dialect default Filipino",
+            "doctor table has id UUID primary key",
+            "doctor table has userId text not null",
+            "doctor table has name varchar 255",
+            "doctor table has specialization varchar 255",
+            "doctor table has licenseNumber unique",
+            "doctor table has prcStatus default pending",
+            "doctor table has pricePerSession decimal",
+            "doctor table has isActive default true",
+            "facility table has id UUID primary key",
+            "facility table has name varchar 255",
+            "facility table has facilityType varchar 100",
+            "facility table has ownership default private",
+            "facility table has address text not null",
+            "facility table has latitude decimal",
+            "facility table has longitude decimal",
+            "facility table has phoneNumber varchar 20",
+            "facility table has isPhilHealthAccredited default false",
+            "facility table has acceptedSpecialties jsonb",
+            "facility table has openingHours jsonb",
+            "booking table has id UUID primary key",
+            "booking table has userId text not null",
+            "booking table has doctorId with restrict delete",
+            "booking table has documentId with set null delete",
+            "booking table has sessionType not null",
+            "booking table has scheduledAt timestamp not null",
+            "booking table has status default scheduled",
+            "booking table has notes text",
+            "payment table has id UUID primary key",
+            "payment table has bookingId with cascade delete",
+            "payment table has userId text not null",
+            "payment table has amount decimal",
+            "payment table has currency default PHP",
+            "payment table has status default pending",
+            "payment table has stripePaymentIntentId varchar 255",
+            "payment table has failureReason text",
+            "doctorAvailability table has id UUID primary key",
+            "doctorAvailability table has doctorId with cascade delete",
+            "doctorAvailability table has dayOfWeek varchar 10",
+            "doctorAvailability table has startTime varchar 8",
+            "doctorAvailability table has endTime varchar 8"
+          ],
+          "commitMessage": "test(db): schema table definitions — document, analysis, chatMessage, doctor, facility, booking, payment + N tests",
+          "commits": 60
+        },
+        {
+          "id": "T3-T2",
+          "title": "packages/db/src/schema.ts — relations tests",
+          "file": "packages/db/src/schema.ts",
+          "testFile": "packages/db/src/__tests__/schema-relations.test.ts",
+          "tests": [
+            "documentRelations defines user one-to-one",
+            "documentRelations defines analyses one-to-many",
+            "analysisRelations defines document one-to-one",
+            "analysisRelations defines user one-to-one",
+            "analysisRelations defines chatMessages one-to-many",
+            "chatMessageRelations defines analysis one-to-one",
+            "chatMessageRelations defines user one-to-one",
+            "doctorRelations defines user one-to-one",
+            "doctorRelations defines availability one-to-many",
+            "doctorRelations defines bookings one-to-many",
+            "bookingRelations defines user one-to-one",
+            "bookingRelations defines doctor one-to-one",
+            "bookingRelations defines document one-to-one",
+            "bookingRelations defines payments one-to-many",
+            "paymentRelations defines booking one-to-one",
+            "paymentRelations defines user one-to-one",
+            "facilityRelations is defined"
+          ],
+          "commitMessage": "test(db): schema relations — all entity relationships validated + N tests",
+          "commits": 17
+        },
+        {
+          "id": "T3-T3",
+          "title": "packages/db/src/schema.ts — enums and Zod schemas tests",
+          "file": "packages/db/src/schema.ts",
+          "testFile": "packages/db/src/__tests__/schema-enums.test.ts",
+          "tests": [
+            "documentStatusEnum has uploaded",
+            "documentStatusEnum has processing",
+            "documentStatusEnum has analyzed",
+            "documentStatusEnum has failed",
+            "analysisStatusEnum has pending",
+            "analysisStatusEnum has completed",
+            "analysisStatusEnum has error",
+            "bookingStatusEnum has scheduled",
+            "bookingStatusEnum has confirmed",
+            "bookingStatusEnum has in_progress",
+            "bookingStatusEnum has completed",
+            "bookingStatusEnum has cancelled",
+            "paymentStatusEnum has pending",
+            "paymentStatusEnum has completed",
+            "paymentStatusEnum has failed",
+            "paymentStatusEnum has refunded",
+            "sessionTypeEnum has chat_consult",
+            "sessionTypeEnum has video_consult",
+            "sessionTypeEnum has async_review",
+            "ownershipEnum has public",
+            "ownershipEnum has private",
+            "CreateDocumentSchema accepts valid input",
+            "CreateAnalysisSchema accepts valid input",
+            "CreateBookingSchema accepts valid input",
+            "CreateBookingSchema rejects invalid sessionType",
+            "CreatePaymentSchema accepts valid input",
+            "CreatePaymentSchema requires positive amount"
+          ],
+          "commitMessage": "test(db): schema enums and Zod validation — status, session, ownership types + N tests",
+          "commits": 27
+        },
+        {
+          "id": "T3-T4",
+          "title": "packages/db/src/schema.ts — index definitions tests",
+          "file": "packages/db/src/schema.ts",
+          "testFile": "packages/db/src/__tests__/schema-indexes.test.ts",
+          "tests": [
+            "document has user_id index",
+            "document has status index",
+            "analysis has document_id index",
+            "analysis has user_id index",
+            "chatMessage has analysis_id index",
+            "chatMessage has user_id index",
+            "doctor has user_id index",
+            "doctor has prc_status index",
+            "facility has location composite index",
+            "facility has type index",
+            "facility has ownership index",
+            "booking has user_id index",
+            "booking has doctor_id index",
+            "booking has status index",
+            "payment has booking_id index",
+            "payment has user_id index",
+            "payment has status index",
+            "doctorAvailability has doctor_id index",
+            "session has userId index",
+            "account has userId index",
+            "verification has identifier index"
+          ],
+          "commitMessage": "test(db): schema index definitions — all table indexes validated + N tests",
+          "commits": 21
+        },
+        {
+          "id": "T3-T5",
+          "title": "packages/db/src/auth-schema.ts — auth table tests",
+          "file": "packages/db/src/auth-schema.ts",
+          "testFile": "packages/db/src/__tests__/auth-schema.test.ts",
+          "tests": [
+            "user table has id text primary key",
+            "user table has name text not null",
+            "user table has email text unique",
+            "user table has emailVerified boolean default false",
+            "user table has image text",
+            "user table has createdAt timestamp",
+            "user table has updatedAt timestamp",
+            "session table has id text primary key",
+            "session table has expiresAt timestamp",
+            "session table has token text unique",
+            "session table has ipAddress text",
+            "session table has userAgent text",
+            "session table has userId with cascade delete",
+            "account table has id text primary key",
+            "account table has accountId text",
+            "account table has providerId text",
+            "account table has userId with cascade delete",
+            "account table has accessToken text",
+            "account table has refreshToken text",
+            "account table has idToken text",
+            "verification table has id text primary key",
+            "verification table has identifier text",
+            "verification table has value text",
+            "verification table has expiresAt timestamp"
+          ],
+          "commitMessage": "test(db): auth schema — user, session, account, verification tables + N tests",
+          "commits": 24
+        },
+        {
+          "id": "T3-T6",
+          "title": "packages/db/src/client.ts — DB client initialization tests",
+          "file": "packages/db/src/client.ts",
+          "testFile": "packages/db/src/__tests__/client.test.ts",
+          "tests": [
+            "client exports db instance",
+            "client throws error when POSTGRES_URL is missing",
+            "client creates neon connection",
+            "client uses snake_case casing",
+            "client includes schema in drizzle config"
+          ],
+          "commitMessage": "test(db): client initialization — connection, env validation, config + N tests",
+          "commits": 5
+        },
+        {
+          "id": "T3-T7",
+          "title": "packages/db/src/seed.ts — seed function tests",
+          "file": "packages/db/src/seed.ts",
+          "testFile": "packages/db/src/__tests__/seed.test.ts",
+          "tests": [
+            "seed function is exported",
+            "seed function accepts db parameter",
+            "seed function handles empty seed data",
+            "seed function inserts facility records",
+            "seed function inserts doctor records",
+            "seed function is idempotent"
+          ],
+          "commitMessage": "test(db): seed function — data seeding and idempotency + N tests",
+          "commits": 6
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Auth Package Tests",
+      "description": "Validate auth configuration, OAuth providers, session handling, and environment variables.",
+      "estimatedCommits": 25,
+      "tasks": [
+        {
+          "id": "T4-T1",
+          "title": "packages/auth/src/index.ts — auth initialization tests",
+          "file": "packages/auth/src/index.ts",
+          "testFile": "packages/auth/src/__tests__/auth.test.ts",
+          "tests": [
+            "initAuth is exported as function",
+            "initAuth returns auth instance",
+            "initAuth configures drizzle adapter",
+            "initAuth configures discord social provider",
+            "initAuth configures google social provider when credentials provided",
+            "initAuth skips google when credentials missing",
+            "initAuth sets baseURL from options",
+            "initAuth sets secret from options",
+            "initAuth configures expo plugin",
+            "initAuth configures oAuthProxy plugin",
+            "initAuth configures trusted origins",
+            "initAuth configures onAPIError handler",
+            "initAuth accepts extra plugins",
+            "Auth type is inferred from initAuth",
+            "Session type is inferred from Auth"
+          ],
+          "commitMessage": "test(auth): auth initialization — config, providers, plugins, type inference + N tests",
+          "commits": 15
+        },
+        {
+          "id": "T4-T2",
+          "title": "packages/auth/src/index.ts — auth provider configuration tests",
+          "file": "packages/auth/src/index.ts",
+          "testFile": "packages/auth/src/__tests__/auth-providers.test.ts",
+          "tests": [
+            "auth sets discord clientId from options",
+            "auth sets discord clientSecret from options",
+            "auth sets discord redirectURI",
+            "auth sets google clientId from options",
+            "auth sets google clientSecret from options",
+            "auth sets google redirectURI",
+            "auth excludes google when clientId missing",
+            "auth excludes google when clientSecret missing",
+            "auth includes oAuthProxy with productionURL",
+            "auth includes expo plugin for mobile"
+          ],
+          "commitMessage": "test(auth): provider configuration — discord, google, OAuth proxy, expo + N tests",
+          "commits": 10
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "API Service Tests — Untested Services",
+      "description": "Add comprehensive tests for the 5 untested API services: ai-workflow, extraction, facilities, facilityGeocoding, and enhanced llm tests.",
+      "estimatedCommits": 75,
+      "tasks": [
+        {
+          "id": "T5-T1",
+          "title": "packages/api/src/services/extraction.ts — extraction service tests",
+          "file": "packages/api/src/services/extraction.ts",
+          "testFile": "packages/api/src/services/__tests__/extraction.test.ts",
+          "tests": [
+            "extractTestsFromText parses 'Hemoglobin: 14.5 g/dL (12-16)'",
+            "extractTestsFromText parses 'WBC: 7.5 x10^3/uL (4.5-11.0)'",
+            "extractTestsFromText parses 'Platelets: 250 x10^3/uL (150-400)'",
+            "extractTestsFromText parses 'Glucose: 110 mg/dL (70-100)' flagged",
+            "extractTestsFromText parses 'Creatinine: 1.2 mg/dL (0.6-1.2)'",
+            "extractTestsFromText parses 'Total Cholesterol: 240 mg/dL (<200)' flagged",
+            "extractTestsFromText parses 'HDL: 55 mg/dL (>40)'",
+            "extractTestsFromText parses 'LDL: 160 mg/dL (<130)' flagged",
+            "extractTestsFromText parses 'Triglycerides: 180 mg/dL (<150)' flagged",
+            "extractTestsFromText parses 'TSH: 2.5 mIU/L (0.4-4.0)'",
+            "extractTestsFromText parses 'BUN: 18 mg/dL (7-20)'",
+            "extractTestsFromText parses 'Sodium: 140 mEq/L (136-145)'",
+            "extractTestsFromText parses 'Potassium: 4.2 mEq/L (3.5-5.0)'",
+            "extractTestsFromText normalizes 'HGB' to 'Hemoglobin'",
+            "extractTestsFromText normalizes 'RBC' to 'Red Blood Cell Count'",
+            "extractTestsFromText normalizes 'PLT' to 'Platelet Count'",
+            "extractTestsFromText normalizes 'FBG' to 'Fasting Blood Glucose'",
+            "extractTestsFromText normalizes 'HBA1C' to 'Hemoglobin A1C'",
+            "extractTestsFromText returns empty array for empty text",
+            "extractTestsFromText returns empty array for non-lab text",
+            "extractTestsFromText handles multiple lab patterns",
+            "extractTestsFromText skips duplicate test names",
+            "extractTestsFromText sets flagged true when value outside range",
+            "extractTestsFromText sets flagged false when value within range",
+            "extractTestsFromText handles missing reference range",
+            "extractTestsFromText handles tab-separated format",
+            "extractTestsFromText handles no-colon format",
+            "extractTestsFromText normalizes 'Bilirubin' to 'Total Bilirubin'",
+            "extractTestsFromText normalizes 'ALP' to 'Alkaline Phosphatase'",
+            "extractTestsFromText normalizes 'SGOT' to 'AST'",
+            "extractTestsFromText normalizes 'SGPT' to 'ALT'"
+          ],
+          "commitMessage": "test(api/extraction): text extraction — regex patterns, canonicalization, flagging + N tests",
+          "commits": 31
+        },
+        {
+          "id": "T5-T2",
+          "title": "packages/api/src/services/facilities.ts — facility ranking and recommendation tests",
+          "file": "packages/api/src/services/facilities.ts",
+          "testFile": "packages/api/src/services/__tests__/facilities.test.ts",
+          "tests": [
+            "calculateDistanceKm returns 0 for same coordinates",
+            "calculateDistanceKm calculates correct distance between Manila and Quezon City",
+            "calculateDistanceKm handles antipodal points",
+            "facilityTypeRank returns 0 for hospital",
+            "facilityTypeRank returns 6 for birthing_home",
+            "facilityTypeRank returns array length for unknown type",
+            "parseSpecialties returns empty array for non-array input",
+            "parseSpecialties returns empty strings filtered out",
+            "parseSpecialties returns trimmed specialties",
+            "matchesSpecialty returns true when needle empty",
+            "matchesSpecialty matches partial specialty name",
+            "matchesSpecialty returns false when no match",
+            "matchesTextSearch returns true when searchText empty",
+            "matchesTextSearch matches facility name",
+            "matchesTextSearch matches facility address",
+            "matchesTextSearch returns false when no match",
+            "isEmergencyCapable returns true for hospital",
+            "isEmergencyCapable returns true for medical_center",
+            "isEmergencyCapable returns true when name contains emergency",
+            "isEmergencyCapable returns true for 24/7 opening hours",
+            "isEmergencyCapable returns false for clinic",
+            "buildMedicalContext returns LOW when no flagged tests",
+            "buildMedicalContext returns MODERATE for 1-2 flagged tests",
+            "buildMedicalContext returns HIGH for 3+ flagged tests",
+            "buildMedicalContext generates testSummary",
+            "rankFacilitiesForContext returns empty array for empty input",
+            "rankFacilitiesForContext ranks hospital above clinic",
+            "rankFacilitiesForContext boosts PhilHealth accredited facilities",
+            "rankFacilitiesForContext boosts matching specialties",
+            "rankFacilitiesForContext boosts emergency for HIGH severity",
+            "rankFacilitiesForContext sorts by score descending",
+            "rankFacilitiesForContext sorts by distance when scores equal",
+            "summarizeMedicalContext returns default when no context",
+            "summarizeMedicalContext formats severity and flagged count",
+            "recommendFacilitiesByTests returns ranked facilities with summaries"
+          ],
+          "commitMessage": "test(api/facilities): facility services — distance, ranking, matching, recommendations + N tests",
+          "commits": 35
+        },
+        {
+          "id": "T5-T3",
+          "title": "packages/api/src/services/facilityGeocoding.ts — geocoding service tests",
+          "file": "packages/api/src/services/facilityGeocoding.ts",
+          "testFile": "packages/api/src/services/__tests__/facilityGeocoding.test.ts",
+          "tests": [
+            "buildNominatimSearchUrl creates correct URL with query",
+            "buildNominatimSearchUrl sets format to jsonv2",
+            "buildNominatimSearchUrl sets limit parameter",
+            "buildNominatimSearchUrl sets country code",
+            "buildNominatimSearchUrl handles special characters in query",
+            "geocodeAddress returns coordinates for valid address",
+            "geocodeAddress returns null for no results",
+            "geocodeAddress handles fetch errors gracefully",
+            "geocodeAddress uses custom fetch implementation",
+            "geocodeAddress sets user-agent header",
+            "geocodeAddress limits results by limit parameter",
+            "geocodeFacility returns FacilityGeocodeResult",
+            "geocodeFacility handles missing display_name"
+          ],
+          "commitMessage": "test(api/facilityGeocoding): geocoding — URL building, address resolution, error handling + N tests",
+          "commits": 13
+        },
+        {
+          "id": "T5-T4",
+          "title": "packages/api/src/services/ai-workflow.ts — AI workflow pipeline tests",
+          "file": "packages/api/src/services/ai-workflow.ts",
+          "testFile": "packages/api/src/services/__tests__/ai-workflow.test.ts",
+          "tests": [
+            "aiWorkflow is exported",
+            "aiWorkflow handles document upload flow",
+            "aiWorkflow processes OCR extraction",
+            "aiWorkflow calls Gemini for analysis",
+            "aiWorkflow stores analysis results",
+            "aiWorkflow handles OCR failure gracefully",
+            "aiWorkflow handles Gemini API failure gracefully",
+            "aiWorkflow returns analysisId on success",
+            "aiWorkflow updates document status to analyzed",
+            "aiWorkflow updates document status to failed on error"
+          ],
+          "commitMessage": "test(api/ai-workflow): workflow pipeline — upload, OCR, extraction, storage + N tests",
+          "commits": 10
+        }
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "API Router Tests — Untested Routers",
+      "description": "Add tests for admin, booking, and payments routers with auth guards, validation, and error handling.",
+      "estimatedCommits": 45,
+      "tasks": [
+        {
+          "id": "T6-T1",
+          "title": "packages/api/src/router/admin.ts — admin router tests",
+          "file": "packages/api/src/router/admin.ts",
+          "testFile": "packages/api/src/router/__tests__/admin.test.ts",
+          "tests": [
+            "admin router has getStats procedure",
+            "admin router has listUsers procedure",
+            "admin router has getUser procedure",
+            "admin router has updateUser procedure",
+            "admin router has deleteDocument procedure",
+            "admin getStats returns document counts",
+            "admin getStats returns analysis counts",
+            "admin getStats returns user counts",
+            "admin listUsers requires admin role",
+            "admin listUsers returns paginated users",
+            "admin getUser returns user by ID",
+            "admin getUser throws NOT_FOUND for missing user",
+            "admin updateUser requires admin role",
+            "admin updateUser updates user fields",
+            "admin deleteDocument requires admin role",
+            "admin deleteDocument removes document record"
+          ],
+          "commitMessage": "test(api/router): admin router — stats, users, documents, auth guards + N tests",
+          "commits": 16
+        },
+        {
+          "id": "T6-T2",
+          "title": "packages/api/src/router/booking.ts — booking router tests",
+          "file": "packages/api/src/router/booking.ts",
+          "testFile": "packages/api/src/router/__tests__/booking.test.ts",
+          "tests": [
+            "booking router has create procedure",
+            "booking router has list procedure",
+            "booking router has getById procedure",
+            "booking router has updateStatus procedure",
+            "booking router has cancel procedure",
+            "booking create requires auth",
+            "booking create validates doctorId UUID",
+            "booking create validates sessionType enum",
+            "booking create validates scheduledAt date",
+            "booking create creates booking record",
+            "booking create returns booking ID",
+            "booking list returns user bookings",
+            "booking list filters by status",
+            "booking getById returns booking by ID",
+            "booking getById throws NOT_FOUND",
+            "booking updateStatus requires auth",
+            "booking updateStatus validates status transition",
+            "booking cancel requires auth",
+            "booking cancel updates status to cancelled"
+          ],
+          "commitMessage": "test(api/router): booking router — create, list, status, cancel, auth + N tests",
+          "commits": 19
+        },
+        {
+          "id": "T6-T3",
+          "title": "packages/api/src/router/payments.ts — payments router tests",
+          "file": "packages/api/src/router/payments.ts",
+          "testFile": "packages/api/src/router/__tests__/payments.test.ts",
+          "tests": [
+            "payments router has create procedure",
+            "payments router has getById procedure",
+            "payments router has list procedure",
+            "payments router has webhook procedure",
+            "payments create requires auth",
+            "payments create validates bookingId UUID",
+            "payments create validates amount positive",
+            "payments create validates currency",
+            "payments create creates payment record",
+            "payments create defaults currency to PHP",
+            "payments create returns payment ID",
+            "payments getById returns payment by ID",
+            "payments getById throws NOT_FOUND",
+            "payments list returns user payments",
+            "payments list filters by status",
+            "payments webhook handles stripe event",
+            "payments webhook updates payment status",
+            "payments webhook handles refund event"
+          ],
+          "commitMessage": "test(api/router): payments router — create, webhook, status, auth + N tests",
+          "commits": 18
+        }
+      ]
+    },
+    {
+      "phase": 7,
+      "name": "API Utils and Middleware Tests",
+      "description": "Test admin utility and auth middleware for guards, error handling, and request validation.",
+      "estimatedCommits": 20,
+      "tasks": [
+        {
+          "id": "T7-T1",
+          "title": "packages/api/src/utils/admin.ts — admin utility tests",
+          "file": "packages/api/src/utils/admin.ts",
+          "testFile": "packages/api/src/utils/__tests__/admin.test.ts",
+          "tests": [
+            "admin utility is exported",
+            "admin utility checks user role",
+            "admin utility returns true for admin users",
+            "admin utility returns false for regular users",
+            "admin utility handles null user",
+            "admin utility handles undefined role",
+            "admin utility throws UNAUTHORIZED for non-admin"
+          ],
+          "commitMessage": "test(api/utils): admin utility — role checking, auth guard, error handling + N tests",
+          "commits": 7
+        },
+        {
+          "id": "T7-T2",
+          "title": "packages/api/src/middleware/auth.ts — auth middleware tests",
+          "file": "packages/api/src/middleware/auth.ts",
+          "testFile": "packages/api/src/middleware/__tests__/auth.test.ts",
+          "tests": [
+            "auth middleware is exported",
+            "auth middleware validates session token",
+            "auth middleware allows authenticated requests",
+            "auth middleware rejects unauthenticated requests",
+            "auth middleware handles expired sessions",
+            "auth middleware attaches user to context",
+            "auth middleware handles missing session",
+            "auth middleware handles invalid session format",
+            "auth middleware passes through OPTIONS requests",
+            "auth middleware logs auth failures"
+          ],
+          "commitMessage": "test(api/middleware): auth middleware — session validation, guards, error handling + N tests",
+          "commits": 10
+        }
+      ]
+    },
+    {
+      "phase": 8,
+      "name": "Next.js API Route Tests",
+      "description": "Test all 11 untested Next.js API routes with request/response mocking and auth guards.",
+      "estimatedCommits": 68,
+      "tasks": [
+        {
+          "id": "T8-T1",
+          "title": "apps/nextjs/src/app/api/auth/[...all]/route.ts — auth catch-all route tests",
+          "file": "apps/nextjs/src/app/api/auth/[...all]/route.ts",
+          "testFile": "apps/nextjs/src/app/api/auth/[...all]/__tests__/route.test.ts",
+          "tests": [
+            "GET /api/auth/* forwards to better-auth",
+            "POST /api/auth/* forwards to better-auth",
+            "auth catch-all handles GET requests",
+            "auth catch-all handles POST requests",
+            "auth catch-all handles PUT requests",
+            "auth catch-all handles DELETE requests",
+            "auth catch-all passes path parameters",
+            "auth catch-all handles auth errors"
+          ],
+          "commitMessage": "test(nextjs/auth): auth catch-all route — forwarding, methods, error handling + N tests",
+          "commits": 8
+        },
+        {
+          "id": "T8-T2",
+          "title": "apps/nextjs/src/app/api/auth/session/route.ts — session route tests",
+          "file": "apps/nextjs/src/app/api/auth/session/route.ts",
+          "testFile": "apps/nextjs/src/app/api/auth/session/__tests__/route.test.ts",
+          "tests": [
+            "GET /api/auth/session returns current session",
+            "GET /api/auth/session returns null when not authenticated",
+            "GET /api/auth/session includes user data",
+            "POST /api/auth/session refreshes session",
+            "session route handles missing cookie",
+            "session route handles expired session"
+          ],
+          "commitMessage": "test(nextjs/auth): session route — session retrieval, refresh, expiration + N tests",
+          "commits": 6
+        },
+        {
+          "id": "T8-T3",
+          "title": "apps/nextjs/src/app/api/auth/signin/route.ts — signin route tests",
+          "file": "apps/nextjs/src/app/api/auth/signin/route.ts",
+          "testFile": "apps/nextjs/src/app/api/auth/signin/__tests__/route.test.ts",
+          "tests": [
+            "POST /api/auth/signin with discord redirects to OAuth",
+            "POST /api/auth/signin with google redirects to OAuth",
+            "POST /api/auth/signin rejects invalid provider",
+            "POST /api/auth/signin handles missing env vars",
+            "POST /api/auth/signin sets redirect cookie",
+            "POST /api/auth/signin returns redirect URL"
+          ],
+          "commitMessage": "test(nextjs/auth): signin route — OAuth redirect, provider validation + N tests",
+          "commits": 6
+        },
+        {
+          "id": "T8-T4",
+          "title": "apps/nextjs/src/app/api/auth/logout/route.ts — logout route tests",
+          "file": "apps/nextjs/src/app/api/auth/logout/route.ts",
+          "testFile": "apps/nextjs/src/app/api/auth/logout/__tests__/route.test.ts",
+          "tests": [
+            "POST /api/auth/logout invalidates session",
+            "POST /api/auth/logout clears cookies",
+            "POST /api/auth/logout returns success response",
+            "POST /api/auth/logout handles missing session",
+            "POST /api/auth/logout is idempotent"
+          ],
+          "commitMessage": "test(nextjs/auth): logout route — session invalidation, cookie clearing + N tests",
+          "commits": 5
+        },
+        {
+          "id": "T8-T5",
+          "title": "apps/nextjs/src/app/api/scheduling/create/route.ts — scheduling create route tests",
+          "file": "apps/nextjs/src/app/api/scheduling/create/route.ts",
+          "testFile": "apps/nextjs/src/app/api/scheduling/create/__tests__/route.test.ts",
+          "tests": [
+            "POST /api/scheduling/create requires auth",
+            "POST /api/scheduling/create validates doctor ID",
+            "POST /api/scheduling/create validates session type",
+            "POST /api/scheduling/create validates scheduled time",
+            "POST /api/scheduling/create creates booking record",
+            "POST /api/scheduling/create returns booking confirmation",
+            "POST /api/scheduling/create handles doctor unavailable",
+            "POST /api/scheduling/create handles database error"
+          ],
+          "commitMessage": "test(nextjs/scheduling): create route — validation, booking creation, error handling + N tests",
+          "commits": 8
+        },
+        {
+          "id": "T8-T6",
+          "title": "apps/nextjs/src/app/api/scheduling/webhook/route.ts — scheduling webhook route tests",
+          "file": "apps/nextjs/src/app/api/scheduling/webhook/route.ts",
+          "testFile": "apps/nextjs/src/app/api/scheduling/webhook/__tests__/route.test.ts",
+          "tests": [
+            "POST /api/scheduling/webhook handles booking confirmed",
+            "POST /api/scheduling/webhook handles booking cancelled",
+            "POST /api/scheduling/webhook validates webhook signature",
+            "POST /api/scheduling/webhook rejects invalid signature",
+            "POST /api/scheduling/webhook updates booking status",
+            "POST /api/scheduling/webhook returns 200 on success",
+            "POST /api/scheduling/webhook handles unknown event type",
+            "POST /api/scheduling/webhook handles missing booking"
+          ],
+          "commitMessage": "test(nextjs/scheduling): webhook route — signature validation, event handling + N tests",
+          "commits": 8
+        },
+        {
+          "id": "T8-T7",
+          "title": "apps/nextjs/src/app/api/uploads/[id]/route.ts — upload by ID route tests",
+          "file": "apps/nextjs/src/app/api/uploads/[id]/route.ts",
+          "testFile": "apps/nextjs/src/app/api/uploads/[id]/__tests__/route.test.ts",
+          "tests": [
+            "GET /api/uploads/:id returns document metadata",
+            "GET /api/uploads/:id requires auth",
+            "GET /api/uploads/:id returns 404 for missing document",
+            "GET /api/uploads/:id validates UUID parameter",
+            "DELETE /api/uploads/:id deletes document",
+            "DELETE /api/uploads/:id requires auth"
+          ],
+          "commitMessage": "test(nextjs/uploads): [id] route — get, delete, auth, validation + N tests",
+          "commits": 6
+        },
+        {
+          "id": "T8-T8",
+          "title": "apps/nextjs/src/app/api/uploads/server/route.ts — server upload route tests",
+          "file": "apps/nextjs/src/app/api/uploads/server/route.ts",
+          "testFile": "apps/nextjs/src/app/api/uploads/server/__tests__/route.test.ts",
+          "tests": [
+            "POST /api/uploads/server requires auth",
+            "POST /api/uploads/server accepts valid file",
+            "POST /api/uploads/server rejects oversized file",
+            "POST /api/uploads/server rejects invalid file type",
+            "POST /api/uploads/server uploads to Cloudinary",
+            "POST /api/uploads/server creates document record",
+            "POST /api/uploads/server returns document ID",
+            "POST /api/uploads/server handles Cloudinary error"
+          ],
+          "commitMessage": "test(nextjs/uploads): server upload route — file validation, Cloudinary, document creation + N tests",
+          "commits": 8
+        },
+        {
+          "id": "T8-T9",
+          "title": "apps/nextjs/src/app/api/uploads/sign/route.ts — presigned URL route tests",
+          "file": "apps/nextjs/src/app/api/uploads/sign/route.ts",
+          "testFile": "apps/nextjs/src/app/api/uploads/sign/__tests__/route.test.ts",
+          "tests": [
+            "POST /api/uploads/sign requires auth",
+            "POST /api/uploads/sign generates presigned URL",
+            "POST /api/uploads/sign returns document ID",
+            "POST /api/uploads/sign sets expiry",
+            "POST /api/uploads/sign validates file name",
+            "POST /api/uploads/sign handles storage error"
+          ],
+          "commitMessage": "test(nextjs/uploads): sign route — presigned URL generation, validation + N tests",
+          "commits": 6
+        },
+        {
+          "id": "T8-T10",
+          "title": "apps/nextjs/src/app/api/trpc/[trpc]/route.ts — tRPC catch-all route tests",
+          "file": "apps/nextjs/src/app/api/trpc/[trpc]/route.ts",
+          "testFile": "apps/nextjs/src/app/api/trpc/[trpc]/__tests__/route.test.ts",
+          "tests": [
+            "GET /api/trpc/:path forwards to tRPC handler",
+            "POST /api/trpc/:path forwards to tRPC handler",
+            "tRPC route handles batch requests",
+            "tRPC route handles single requests",
+            "tRPC route handles errors gracefully",
+            "tRPC route passes context to procedures"
+          ],
+          "commitMessage": "test(nextjs/trpc): tRPC catch-all route — forwarding, batching, error handling + N tests",
+          "commits": 6
+        }
+      ]
+    },
+    {
+      "phase": 9,
+      "name": "Next.js Lib and Utility Tests",
+      "description": "Test rate limiting, session validation, auth server, and tRPC server configuration.",
+      "estimatedCommits": 40,
+      "tasks": [
+        {
+          "id": "T9-T1",
+          "title": "apps/nextjs/src/lib/rate-limit.ts — rate limiting utility tests",
+          "file": "apps/nextjs/src/lib/rate-limit.ts",
+          "testFile": "apps/nextjs/src/lib/__tests__/rate-limit.test.ts",
+          "tests": [
+            "rateLimit allows request within limit",
+            "rateLimit blocks request exceeding limit",
+            "rateLimit resets after window expires",
+            "rateLimit tracks by IP address",
+            "rateLimit tracks by user ID",
+            "rateLimit returns remaining count",
+            "rateLimit returns retry-after header",
+            "rateLimit handles concurrent requests",
+            "rateLimit uses configurable window size",
+            "rateLimit uses configurable max requests"
+          ],
+          "commitMessage": "test(nextjs/lib): rate limiting — window, tracking, blocking, headers + N tests",
+          "commits": 10
+        },
+        {
+          "id": "T9-T2",
+          "title": "apps/nextjs/src/lib/session-validation.ts — session validation tests",
+          "file": "apps/nextjs/src/lib/session-validation.ts",
+          "testFile": "apps/nextjs/src/lib/__tests__/session-validation.test.ts",
+          "tests": [
+            "validateSession returns valid session",
+            "validateSession returns null for expired session",
+            "validateSession returns null for missing token",
+            "validateSession returns null for invalid token",
+            "validateSession refreshes near-expiry sessions",
+            "validateSession includes user data",
+            "validateSession handles database errors",
+            "validateSession logs validation failures"
+          ],
+          "commitMessage": "test(nextjs/lib): session validation — expiry, refresh, error handling + N tests",
+          "commits": 8
+        },
+        {
+          "id": "T9-T3",
+          "title": "apps/nextjs/src/lib/supabase/server.ts — Supabase server client tests",
+          "file": "apps/nextjs/src/lib/supabase/server.ts",
+          "testFile": "apps/nextjs/src/lib/supabase/__tests__/server.test.ts",
+          "tests": [
+            "createServerClient initializes Supabase client",
+            "createServerClient uses env vars",
+            "createServerClient handles missing env vars",
+            "createServerClient sets auth cookies"
+          ],
+          "commitMessage": "test(nextjs/supabase): server client — initialization, env vars, cookies + N tests",
+          "commits": 4
+        },
+        {
+          "id": "T9-T4",
+          "title": "apps/nextjs/src/lib/supabase/client.ts — Supabase browser client tests",
+          "file": "apps/nextjs/src/lib/supabase/client.ts",
+          "testFile": "apps/nextjs/src/lib/supabase/__tests__/client.test.ts",
+          "tests": [
+            "createBrowserClient initializes Supabase client",
+            "createBrowserClient uses env vars",
+            "createBrowserClient handles missing env vars",
+            "createBrowserClient returns singleton"
+          ],
+          "commitMessage": "test(nextjs/supabase): browser client — initialization, singleton + N tests",
+          "commits": 4
+        },
+        {
+          "id": "T9-T5",
+          "title": "apps/nextjs/src/lib/supabase/config.ts — Supabase config tests",
+          "file": "apps/nextjs/src/lib/supabase/config.ts",
+          "testFile": "apps/nextjs/src/lib/supabase/__tests__/config.test.ts",
+          "tests": [
+            "supabase config exports URL",
+            "supabase config exports anon key",
+            "supabase config handles missing env vars",
+            "supabase config provides defaults"
+          ],
+          "commitMessage": "test(nextjs/supabase): config — URL, key, env validation + N tests",
+          "commits": 4
+        },
+        {
+          "id": "T9-T6",
+          "title": "apps/nextjs/src/trpc/server.tsx — tRPC server setup tests",
+          "file": "apps/nextjs/src/trpc/server.tsx",
+          "testFile": "apps/nextjs/src/trpc/__tests__/server.test.tsx",
+          "tests": [
+            "tRPC server creates caller",
+            "tRPC server sets up context",
+            "tRPC server handles auth headers",
+            "tRPC server passes cookies",
+            "tRPC server returns typed procedures",
+            "tRPC server handles errors"
+          ],
+          "commitMessage": "test(nextjs/trpc): server setup — caller, context, auth, error handling + N tests",
+          "commits": 6
+        },
+        {
+          "id": "T9-T7",
+          "title": "apps/nextjs/src/trpc/react.tsx — tRPC React client tests",
+          "file": "apps/nextjs/src/trpc/react.tsx",
+          "testFile": "apps/nextjs/src/trpc/__tests__/react.test.tsx",
+          "tests": [
+            "tRPC React client creates provider",
+            "tRPC React client sets up query client",
+            "tRPC React client handles SSR",
+            "tRPC React client returns typed hooks",
+            "tRPC React client handles errors",
+            "tRPC React client configures retries"
+          ],
+          "commitMessage": "test(nextjs/trpc): React client — provider, hooks, SSR, error handling + N tests",
+          "commits": 6
+        }
+      ]
+    },
+    {
+      "phase": 10,
+      "name": "Expo Mobile Tests",
+      "description": "Set up Vitest for Expo and test all mobile utilities and components.",
+      "estimatedCommits": 50,
+      "tasks": [
+        {
+          "id": "T10-T1",
+          "title": "apps/expo/src/utils/auth.ts — mobile auth utility tests",
+          "file": "apps/expo/src/utils/auth.ts",
+          "testFile": "apps/expo/src/utils/__tests__/auth.test.ts",
+          "tests": [
+            "mobile auth stores session token",
+            "mobile auth retrieves session token",
+            "mobile auth clears session on logout",
+            "mobile auth handles missing token",
+            "mobile auth refreshes expired token",
+            "mobile auth uses secure storage",
+            "mobile auth handles network errors",
+            "mobile auth validates token format"
+          ],
+          "commitMessage": "test(expo/auth): mobile auth — token storage, refresh, secure storage + N tests",
+          "commits": 8
+        },
+        {
+          "id": "T10-T2",
+          "title": "apps/expo/src/utils/api.tsx — mobile API client tests",
+          "file": "apps/expo/src/utils/api.tsx",
+          "testFile": "apps/expo/src/utils/__tests__/api.test.tsx",
+          "tests": [
+            "mobile API client initializes with base URL",
+            "mobile API client adds auth headers",
+            "mobile API client handles 401 responses",
+            "mobile API client retries failed requests",
+            "mobile API client sets timeout",
+            "mobile API client handles network errors",
+            "mobile API client returns typed responses"
+          ],
+          "commitMessage": "test(expo/api): mobile API client — headers, retries, timeout, error handling + N tests",
+          "commits": 7
+        },
+        {
+          "id": "T10-T3",
+          "title": "apps/expo/src/utils/base-url.ts — base URL utility tests",
+          "file": "apps/expo/src/utils/base-url.ts",
+          "testFile": "apps/expo/src/utils/__tests__/base-url.test.ts",
+          "tests": [
+            "getBaseUrl returns development URL",
+            "getBaseUrl returns production URL",
+            "getBaseUrl handles missing env var",
+            "getBaseUrl normalizes trailing slash",
+            "getBaseUrl detects environment",
+            "getBaseUrl returns localhost for dev"
+          ],
+          "commitMessage": "test(expo/base-url): base URL utility — environment detection, normalization + N tests",
+          "commits": 6
+        },
+        {
+          "id": "T10-T4",
+          "title": "apps/expo/src/utils/session-store.ts — session store tests",
+          "file": "apps/expo/src/utils/session-store.ts",
+          "testFile": "apps/expo/src/utils/__tests__/session-store.test.ts",
+          "tests": [
+            "sessionStore saves session data",
+            "sessionStore retrieves session data",
+            "sessionStore clears session data",
+            "sessionStore handles corrupted data",
+            "sessionStore persists across app restarts",
+            "sessionStore handles storage quota exceeded",
+            "sessionStore validates session schema",
+            "sessionStore encrypts sensitive data"
+          ],
+          "commitMessage": "test(expo/session): session store — save, retrieve, clear, encryption + N tests",
+          "commits": 8
+        },
+        {
+          "id": "T10-T5",
+          "title": "apps/expo/src/app/_layout.tsx — root layout component tests",
+          "file": "apps/expo/src/app/_layout.tsx",
+          "testFile": "apps/expo/src/app/__tests__/_layout.test.tsx",
+          "tests": [
+            "root layout renders children",
+            "root layout initializes auth provider",
+            "root layout sets up navigation",
+            "root layout handles deep linking",
+            "root layout shows splash screen during init"
+          ],
+          "commitMessage": "test(expo/layout): root layout — render, auth, navigation, deep linking + N tests",
+          "commits": 5
+        },
+        {
+          "id": "T10-T6",
+          "title": "apps/expo/src/app/index.tsx — home screen component tests",
+          "file": "apps/expo/src/app/index.tsx",
+          "testFile": "apps/expo/src/app/__tests__/index.test.tsx",
+          "tests": [
+            "home screen renders welcome message",
+            "home screen shows recent scans",
+            "home screen navigates to upload",
+            "home screen shows user greeting",
+            "home screen handles empty state"
+          ],
+          "commitMessage": "test(expo/index): home screen — render, navigation, empty state + N tests",
+          "commits": 5
+        },
+        {
+          "id": "T10-T7",
+          "title": "apps/expo/src/app/upload.tsx — upload screen component tests",
+          "file": "apps/expo/src/app/upload.tsx",
+          "testFile": "apps/expo/src/app/__tests__/upload.test.tsx",
+          "tests": [
+            "upload screen renders camera button",
+            "upload screen renders gallery button",
+            "upload screen handles image selection",
+            "upload screen shows upload progress",
+            "upload screen navigates to results",
+            "upload screen handles upload error"
+          ],
+          "commitMessage": "test(expo/upload): upload screen — camera, gallery, progress, error + N tests",
+          "commits": 6
+        },
+        {
+          "id": "T10-T8",
+          "title": "apps/expo/src/app/document/[id].tsx — document detail screen tests",
+          "file": "apps/expo/src/app/document/[id].tsx",
+          "testFile": "apps/expo/src/app/document/__tests__/[id].test.tsx",
+          "tests": [
+            "document screen loads document by ID",
+            "document screen displays analysis results",
+            "document screen shows severity indicator",
+            "document screen opens Clara chat",
+            "document screen handles loading state",
+            "document screen handles error state"
+          ],
+          "commitMessage": "test(expo/document): document detail — loading, analysis, chat, error + N tests",
+          "commits": 6
+        }
+      ]
+    },
+    {
+      "phase": 11,
+      "name": "Integration Tests",
+      "description": "Test complete user flows across multiple services with mocked dependencies.",
+      "estimatedCommits": 30,
+      "tasks": [
+        {
+          "id": "T11-T1",
+          "title": "Upload → OCR → Extraction integration test",
+          "file": "packages/api/src/__tests__/integration-upload-extraction.test.ts",
+          "tests": [
+            "upload creates document record",
+            "OCR processes uploaded document",
+            "extraction parses OCR text",
+            "extraction normalizes test names",
+            "extraction flags abnormal values",
+            "full pipeline returns analysis result",
+            "pipeline handles OCR failure",
+            "pipeline handles extraction failure"
+          ],
+          "commitMessage": "test(integration): upload → OCR → extraction pipeline flow + N tests",
+          "commits": 8
+        },
+        {
+          "id": "T11-T2",
+          "title": "Chat → Context → Response integration test",
+          "file": "packages/api/src/__tests__/integration-chat-flow.test.ts",
+          "tests": [
+            "chat receives user message",
+            "context assembler builds document context",
+            "LLM generates response",
+            "response is stored in chat history",
+            "dialect detection adapts response",
+            "chat safety filters content",
+            "full chat flow returns response",
+            "chat flow handles LLM failure"
+          ],
+          "commitMessage": "test(integration): chat → context → response flow with safety + N tests",
+          "commits": 8
+        },
+        {
+          "id": "T11-T3",
+          "title": "Facility Search → Ranking → Recommendation integration test",
+          "file": "packages/api/src/__tests__/integration-facility-flow.test.ts",
+          "tests": [
+            "facility search finds nearby facilities",
+            "ranking scores facilities by relevance",
+            "recommendation generates LLM summary",
+            "full flow returns ranked recommendations",
+            "flow handles no facilities found",
+            "flow handles geocoding failure"
+          ],
+          "commitMessage": "test(integration): facility search → ranking → recommendation + N tests",
+          "commits": 6
+        },
+        {
+          "id": "T11-T4",
+          "title": "Booking → Payment → Confirmation integration test",
+          "file": "packages/api/src/__tests__/integration-booking-flow.test.ts",
+          "tests": [
+            "booking creates reservation",
+            "payment processes charge",
+            "confirmation sends notification",
+            "booking updates status to confirmed",
+            "payment failure cancels booking",
+            "flow handles concurrent booking"
+          ],
+          "commitMessage": "test(integration): booking → payment → confirmation flow + N tests",
+          "commits": 6
+        },
+        {
+          "id": "T11-T5",
+          "title": "Auth → Session → Protected Route integration test",
+          "file": "packages/api/src/__tests__/integration-auth-flow.test.ts",
+          "tests": [
+            "auth creates session on login",
+            "session validates token on request",
+            "protected route allows authenticated user",
+            "protected route rejects unauthenticated user",
+            "session expires after timeout",
+            "refresh extends session lifetime"
+          ],
+          "commitMessage": "test(integration): auth → session → protected route flow + N tests",
+          "commits": 6
+        }
+      ]
+    },
+    {
+      "phase": 12,
+      "name": "E2E Tests with Playwright",
+      "description": "End-to-end tests with Playwright screenshot capture for UI/UX verification by AI.",
+      "estimatedCommits": 25,
+      "tasks": [
+        {
+          "id": "T12-T1",
+          "title": "Playwright configuration setup",
+          "file": "playwright.config.ts",
+          "tests": [],
+          "commitMessage": "chore(playwright): add Playwright config with screenshot capture for all tests",
+          "commits": 1
+        },
+        {
+          "id": "T12-T2",
+          "title": "Patient uploads lab result E2E",
+          "file": "apps/nextjs/e2e/patient-upload.spec.ts",
+          "tests": [
+            "patient can navigate to upload page",
+            "patient can select a file",
+            "patient sees upload progress",
+            "patient sees extraction results",
+            "patient sees plain language summary",
+            "screenshot captured at each step"
+          ],
+          "commitMessage": "test(e2e): patient upload flow with screenshots for UI/UX verification",
+          "commits": 6
+        },
+        {
+          "id": "T12-T3",
+          "title": "Patient chats with Clara E2E",
+          "file": "apps/nextjs/e2e/clara-chat.spec.ts",
+          "tests": [
+            "patient can open Clara chat",
+            "patient can type a message",
+            "patient receives Clara response",
+            "Clara responds in correct dialect",
+            "Clara shows Tanong Mo Sa Doktor card",
+            "screenshot captured at each step"
+          ],
+          "commitMessage": "test(e2e): Clara chat interaction with screenshots",
+          "commits": 6
+        },
+        {
+          "id": "T12-T4",
+          "title": "Patient books appointment E2E",
+          "file": "apps/nextjs/e2e/booking.spec.ts",
+          "tests": [
+            "patient can view nearby facilities",
+            "patient can select a facility",
+            "patient can choose doctor",
+            "patient can select time slot",
+            "patient sees booking confirmation",
+            "screenshot captured at each step"
+          ],
+          "commitMessage": "test(e2e): patient booking flow with screenshots",
+          "commits": 6
+        },
+        {
+          "id": "T12-T5",
+          "title": "Full patient journey E2E",
+          "file": "apps/nextjs/e2e/full-journey.spec.ts",
+          "tests": [
+            "patient signs in",
+            "patient uploads lab result",
+            "patient views analysis",
+            "patient chats with Clara",
+            "patient books appointment",
+            "patient views booking history",
+            "screenshot captured at each step"
+          ],
+          "commitMessage": "test(e2e): full patient journey with screenshots at every major step",
+          "commits": 6
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "totalPhases": 12,
+    "totalTasks": 72,
+    "totalCommits": 766,
+    "totalNewTests": 759,
+    "targetTotalTests": 1042,
+    "targetTotalCommits": 1200,
+    "coverageTarget": "80% minimum",
+    "testFramework": "Vitest (all packages) + Playwright (E2E)",
+    "commitGranularity": "1 test case = 1 commit for maximum history",
+    "ciTriggers": ["push to dev", "PRs to main"],
+    "coverageGate": "80% minimum, blocks merges below threshold",
+    "e2eScreenshots": "Playwright captures screenshots on every E2E test step"
+  },
+  "commitConvention": {
+    "format": "type(scope): description + N unit tests (TDD Phase X)",
+    "types": ["test", "chore", "ci", "feat"],
+    "scopes": ["validators", "db", "auth", "api", "nextjs", "expo", "integration", "e2e", "root", "all"],
+    "examples": [
+      "test(validators): auth schema valid input tests + 15 tests (TDD Phase 2)",
+      "test(db): schema table definitions + 60 tests (TDD Phase 3)",
+      "test(auth): auth initialization config + 15 tests (TDD Phase 4)",
+      "test(api/extraction): text extraction regex + 31 tests (TDD Phase 5)",
+      "test(api/router): admin router stats + 16 tests (TDD Phase 6)",
+      "test(nextjs/auth): auth catch-all route + 8 tests (TDD Phase 8)",
+      "test(expo/auth): mobile auth token storage + 8 tests (TDD Phase 10)",
+      "test(integration): upload → OCR → extraction + 8 tests (TDD Phase 11)",
+      "test(e2e): patient upload flow with screenshots (TDD Phase 12)",
+      "chore(playwright): add Playwright config with screenshot capture (TDD Phase 12)",
+      "ci: add GitHub Actions workflow for test and build (TDD Phase 1)",
+      "ci: add coverage gate workflow with 80% threshold (TDD Phase 1)"
+    ]
+  }
+}
