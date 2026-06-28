@@ -26,6 +26,9 @@
     "push": "pnpm with-env drizzle-kit push",
     "seed": "pnpm with-env tsx src/seed.ts",
     "studio": "pnpm with-env drizzle-kit studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
     "with-env": "dotenv -e ../../.env --"
   },
@@ -43,7 +46,8 @@
     "eslint": "catalog:",
     "prettier": "catalog:",
     "tsx": "^4.19.1",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^4.1.9"
   },
   "prettier": "@klaro/prettier-config"
 }
