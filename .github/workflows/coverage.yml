@@ -1,0 +1,46 @@
+name: Coverage Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [dev, main]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Copy env
+        shell: bash
+        run: cp .env.example .env
+
+      - name: Run tests with coverage
+        run: pnpm test:coverage
+
+      - name: Check coverage threshold
+        run: |
+          echo "Checking coverage threshold of 80%..."
+          if [ -f coverage/coverage-summary.json ]; then
+            COVERAGE=$(cat coverage/coverage-summary.json | node -e "const data=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));console.log(data.total.lines.pct)")
+            echo "Line coverage: $COVERAGE%"
+            if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+              echo "❌ Coverage $COVERAGE% is below 80% threshold"
+              exit 1
+            fi
+            echo "✅ Coverage $COVERAGE% meets 80% threshold"
+          else
+            echo "⚠️ No coverage report found, skipping check"
+          fi
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
