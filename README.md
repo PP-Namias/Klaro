@@ -1,6 +1,6 @@
 <div align="center">
 
-# <img src="https://placehold.co/40x40/0ea5e9/ffffff?text=K" alt="Klaro Logo" width="40" height="40" style="border-radius: 10px;"> Klaro
+# <img src="./apps/nextjs/public/klaro.svg" alt="Klaro" width="48" height="48"> Klaro
 
 ### Instant plain-language medical document understanding for the Philippines
 
@@ -19,9 +19,13 @@
 
 ---
 
-![Klaro Banner](https://placehold.co/1200x400/0ea5e9/ffffff?text=Klaro+-+AI+Health+Companion+for+the+Philippines&font=poppins)
+<div align="center">
 
-<br>
+![Klaro Showcase](./apps/nextjs/public/klaro-showcase.png)
+
+</div>
+
+---
 
 ## The Problem
 
@@ -55,17 +59,45 @@ When a Filipino patient receives lab results, prescriptions, or discharge summar
 
 <div align="center">
 
-### [Try Klaro Live](https://www.klaro-scans.tech/)
+### [Try Klaro Live →](https://www.klaro-scans.tech/)
 
 </div>
 
 <br>
 
-![Document Scan](https://placehold.co/800x450/1e293b/ffffff?text=Document+Scan+%26+AI+Analysis&font=roboto)
+<div align="center">
 
-![Clara AI Chat](https://placehold.co/800x450/0f172a/22d3ee?text=Clara+AI+Chatbot+-+Multilingual+Support&font=roboto)
+<img src="./apps/nextjs/public/sections/scanning/1.png" width="100" alt="Document Scan">
 
-![Facility Finder](https://placehold.co/800x450/1e293b/a78bfa?text=Healthcare+Facility+Discovery&font=roboto)
+**Document Scan & AI Analysis**
+
+Upload lab results, prescriptions, or discharge summaries — Klaro explains everything in plain language.
+
+</div>
+
+<br>
+
+<div align="center">
+
+<img src="./apps/nextjs/public/clara.png" width="120" alt="Clara AI">
+
+**Clara AI Chatbot**
+
+Ask follow-up questions about your medical documents in Filipino, Bisaya, Ilocano, or English.
+
+</div>
+
+<br>
+
+<div align="center">
+
+<img src="./apps/nextjs/public/sections/scanning/2.png" width="100" alt="Healthcare Facilities">
+
+**Healthcare Facility Discovery**
+
+Find nearby clinics and hospitals with PhilHealth accreditation status and real-time availability.
+
+</div>
 
 ---
 
@@ -87,6 +119,14 @@ When a Filipino patient receives lab results, prescriptions, or discharge summar
 
 ## Key Features
 
+<div align="center">
+
+<img src="./apps/nextjs/public/scan/1.png" width="80" alt="Lab Results"> <img src="./apps/nextjs/public/sections/clarity/1.png" width="80" alt="Stethoscope"> <img src="./apps/nextjs/public/sections/scanning/3.png" width="80" alt="Medical Kit"> <img src="./apps/nextjs/public/sections/scanning/1.png" width="80" alt="Scan">
+
+</div>
+
+<br>
+
 ### Document Scan & AI Analysis
 
 Upload lab results, prescriptions, or discharge summaries — Klaro extracts and explains everything in plain language.
@@ -98,12 +138,16 @@ Upload lab results, prescriptions, or discharge summaries — Klaro extracts and
 
 ### Clara AI Chatbot
 
+<img src="./apps/nextjs/public/clara.png" width="60" align="right" alt="Clara">
+
 Ask follow-up questions about your medical documents in your preferred dialect.
 
 - **Context-aware**: Remembers your scanned documents
 - **Multilingual**: Filipino, Bisaya, Ilocano, English
 - **Safety-first**: Built-in content filtering for medical advice
 - **Language adaptation**: Responds in your preferred dialect
+
+<br clear="right">
 
 ### Healthcare Facility Discovery
 
@@ -302,6 +346,8 @@ Comprehensive documentation is available in the [`docs/`](./docs/) directory:
 
 Built with <3 by:
 
+<div align="center">
+
 <a href="https://github.com/PP-Namias">
   <img src="https://github.com/PP-Namias.png" width="80" style="border-radius: 50%;" alt="Jhon Keneth Namias">
 </a>
@@ -317,6 +363,8 @@ Built with <3 by:
 | <img src="https://github.com/PP-Namias.png?size=40" style="border-radius: 50%;"> | **Jhon Keneth Namias** | [@PP-Namias](https://github.com/PP-Namias) |
 | <img src="https://github.com/aikhe.png?size=40" style="border-radius: 50%;"> | **aikhe** | [@aikhe](https://github.com/aikhe) |
 | <img src="https://github.com/frtzhahn.png?size=40" style="border-radius: 50%;"> | **aldrin** | [@frtzhahn](https://github.com/frtzhahn) |
+
+</div>
 
 ---
 
