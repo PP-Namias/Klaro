@@ -64,10 +64,11 @@ export function useFileUpload({
     async (files: File[]) => {
       const { valid, invalid } = validateFiles(files);
 
-      if (invalid.length > 0) {
-        setError(invalid[0].error ?? "Invalid file");
+      if (invalid.length > 0 && invalid[0]) {
+        const errorMsg = invalid[0].error ?? "Invalid file";
+        setError(errorMsg);
         setStage("error");
-        onError?.(invalid[0].error ?? "Invalid file");
+        onError?.(errorMsg);
         return;
       }
 
