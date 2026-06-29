@@ -25,7 +25,7 @@
     0 0 0 1px rgba(255, 255, 255, 0.2) inset;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .header {
@@ -101,7 +101,10 @@
 .content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 1.5rem;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .footer {
