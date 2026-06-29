@@ -13,6 +13,11 @@ import {
 } from "~/components/file-preview";
 import { UploadProgress } from "~/components/upload-progress";
 import { DropOverlay } from "~/components/drop-overlay";
+import { DemoModal } from "~/components/demo-modal";
+import { DemoLabResults } from "~/components/demo/lab-results";
+import { DemoPrescription } from "~/components/demo/prescription";
+import { DemoDischarge } from "~/components/demo/discharge";
+import { DemoOtherDoc } from "~/components/demo/other-doc";
 import { useFileUpload } from "~/hooks/use-file-upload";
 import { useChat } from "~/hooks/use-chat";
 import {
@@ -20,6 +25,16 @@ import {
   createPreviewUrl,
   getFileKind,
 } from "~/lib/file-validation";
+import {
+  type DemoType,
+  getDemoData,
+  getDemoTitle,
+  getDemoDescription,
+  labResultsDemo,
+  prescriptionDemo,
+  dischargeDemo,
+  xrayReportDemo,
+} from "~/data/demo-index";
 import styles from "../../app/scan/page.module.css";
 
 interface ScannerUIProps {
@@ -35,6 +50,8 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const [chatAttachment, setChatAttachment] = useState<string | null>(null);
   const [chatInput, setChatInput] = useState("");
   const [uploadedRequestId, setUploadedRequestId] = useState<string | null>(null);
+  const [demoModalOpen, setDemoModalOpen] = useState(false);
+  const [activeDemoType, setActiveDemoType] = useState<DemoType>("lab");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -119,6 +136,11 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     setCapturedImage(imageData);
     handleCancelScan();
   };
+
+  const openDemo = useCallback((type: DemoType) => {
+    setActiveDemoType(type);
+    setDemoModalOpen(true);
+  }, []);
 
   const handleFilesSelected = useCallback((files: File[]) => {
     const { valid, invalid } = validateFiles(files);
@@ -275,7 +297,14 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
         >
-          <div className={styles.scanCard}>
+          <div
+            className={styles.scanCard}
+            onClick={() => openDemo("lab")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDemo("lab"); } }}
+            style={{ cursor: "pointer" }}
+          >
             <h3 className={styles.scanCardTitle}>Lab Results</h3>
             <p className={styles.scanCardDesc}>
               Blood tests, CBC, cholesterol, and more
@@ -288,9 +317,17 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
+            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>Click to see demo</span>
           </div>
 
-          <div className={styles.scanCard}>
+          <div
+            className={styles.scanCard}
+            onClick={() => openDemo("prescription")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDemo("prescription"); } }}
+            style={{ cursor: "pointer" }}
+          >
             <h3 className={styles.scanCardTitle}>Prescriptions</h3>
             <p className={styles.scanCardDesc}>
               Understand medicines and instructions clearly
@@ -303,9 +340,17 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
+            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>Click to see demo</span>
           </div>
 
-          <div className={styles.scanCard}>
+          <div
+            className={styles.scanCard}
+            onClick={() => openDemo("discharge")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDemo("discharge"); } }}
+            style={{ cursor: "pointer" }}
+          >
             <h3 className={styles.scanCardTitle}>
               Discharge
               <br />
@@ -322,9 +367,17 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
+            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>Click to see demo</span>
           </div>
 
-          <div className={styles.scanCard}>
+          <div
+            className={styles.scanCard}
+            onClick={() => openDemo("other")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDemo("other"); } }}
+            style={{ cursor: "pointer" }}
+          >
             <h3 className={styles.scanCardTitle}>
               Other
               <br />
@@ -341,6 +394,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
+            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>Click to see demo</span>
           </div>
         </motion.div>
 
@@ -779,6 +833,18 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
           onChange={handleChatFileUpload}
         />
       </section>
+
+      <DemoModal
+        isOpen={demoModalOpen}
+        onClose={() => setDemoModalOpen(false)}
+        title={getDemoTitle(activeDemoType)}
+        description={getDemoDescription(activeDemoType)}
+      >
+        {activeDemoType === "lab" && <DemoLabResults data={labResultsDemo} />}
+        {activeDemoType === "prescription" && <DemoPrescription data={prescriptionDemo} />}
+        {activeDemoType === "discharge" && <DemoDischarge data={dischargeDemo} />}
+        {activeDemoType === "other" && <DemoOtherDoc data={xrayReportDemo} />}
+      </DemoModal>
     </>
   );
 }
