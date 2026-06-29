@@ -1,6 +1,6 @@
-import { expect, vi } from "vitest";
+import { expect, vi, type Mock } from "vitest";
 
-export const createMockContext = (overrides?: Record<string, unknown>) => ({
+export const createMockContext = (overrides?: Record<string, unknown>): Record<string, unknown> => ({
   db: {
     select: vi.fn().mockReturnThis(),
     from: vi.fn().mockReturnThis(),
@@ -31,7 +31,7 @@ export const createMockContext = (overrides?: Record<string, unknown>) => ({
   ...overrides,
 });
 
-export const createMockRouter = () => ({
+export const createMockRouter = (): Record<string, unknown> => ({
   createCaller: vi.fn(),
 });
 
