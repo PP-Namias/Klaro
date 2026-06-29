@@ -13,7 +13,7 @@ import {
 } from "~/components/file-preview";
 import { UploadProgress } from "~/components/upload-progress";
 import { DropOverlay } from "~/components/drop-overlay";
-import { DemoModal } from "~/components/demo-modal";
+import { DemoModal, type DemoLanguage } from "~/components/demo-modal";
 import { DemoLabResults } from "~/components/demo/lab-results";
 import { DemoPrescription } from "~/components/demo/prescription";
 import { DemoDischarge } from "~/components/demo/discharge";
@@ -52,6 +52,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const [uploadedRequestId, setUploadedRequestId] = useState<string | null>(null);
   const [demoModalOpen, setDemoModalOpen] = useState(false);
   const [activeDemoType, setActiveDemoType] = useState<DemoType>("lab");
+  const [demoLanguage, setDemoLanguage] = useState<DemoLanguage>("tl");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -839,11 +840,13 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
         onClose={() => setDemoModalOpen(false)}
         title={getDemoTitle(activeDemoType)}
         description={getDemoDescription(activeDemoType)}
+        language={demoLanguage}
+        onLanguageChange={setDemoLanguage}
       >
-        {activeDemoType === "lab" && <DemoLabResults data={labResultsDemo} />}
-        {activeDemoType === "prescription" && <DemoPrescription data={prescriptionDemo} />}
-        {activeDemoType === "discharge" && <DemoDischarge data={dischargeDemo} />}
-        {activeDemoType === "other" && <DemoOtherDoc data={xrayReportDemo} />}
+        {activeDemoType === "lab" && <DemoLabResults data={labResultsDemo} language={demoLanguage} />}
+        {activeDemoType === "prescription" && <DemoPrescription data={prescriptionDemo} language={demoLanguage} />}
+        {activeDemoType === "discharge" && <DemoDischarge data={dischargeDemo} language={demoLanguage} />}
+        {activeDemoType === "other" && <DemoOtherDoc data={xrayReportDemo} language={demoLanguage} />}
       </DemoModal>
     </>
   );

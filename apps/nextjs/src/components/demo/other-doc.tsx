@@ -3,19 +3,24 @@
 import React from "react";
 
 import type { OtherDocDemo } from "~/data/demo-other-docs";
+import { otherDocEnglish, ecgReportEnglish } from "~/data/demo-english";
+import type { DemoLanguage } from "~/components/demo-modal";
 
 interface DemoOtherDocProps {
   data: OtherDocDemo;
+  language?: DemoLanguage;
 }
 
-export function DemoOtherDoc({ data }: DemoOtherDocProps) {
+export function DemoOtherDoc({ data, language = "tl" }: DemoOtherDocProps) {
+  const englishData = data.documentType.includes("ECG") ? ecgReportEnglish : otherDocEnglish;
+  const d = language === "en" ? { ...data, ...englishData } : data;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       {/* Document Type Badge */}
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={docTypeBadgeStyle}>{data.documentType}</span>
+        <span style={docTypeBadgeStyle}>{d.documentType}</span>
         <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>
-          Confidence: {Math.round(data.confidence * 100)}%
+          Confidence: {Math.round(d.confidence * 100)}%
         </span>
       </div>
 
@@ -23,51 +28,51 @@ export function DemoOtherDoc({ data }: DemoOtherDocProps) {
       <div style={infoCardStyle}>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Patient:</span>
-          <span style={infoValueStyle}>{data.patientName}</span>
+          <span style={infoValueStyle}>{d.patientName}</span>
         </div>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Age/Sex:</span>
-          <span style={infoValueStyle}>{data.patientAge} / {data.patientSex}</span>
+          <span style={infoValueStyle}>{d.patientAge} / {d.patientSex}</span>
         </div>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Facility:</span>
-          <span style={infoValueStyle}>{data.facilityName}</span>
+          <span style={infoValueStyle}>{d.facilityName}</span>
         </div>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Physician:</span>
-          <span style={infoValueStyle}>{data.physician}</span>
+          <span style={infoValueStyle}>{d.physician}</span>
         </div>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Date:</span>
-          <span style={infoValueStyle}>{data.dateIssued}</span>
+          <span style={infoValueStyle}>{d.dateIssued}</span>
         </div>
       </div>
 
       {/* Urgency Badge */}
-      <div style={urgencyBadgeStyle(data.urgency)}>
+      <div style={urgencyBadgeStyle(d.urgency)}>
         <span style={{ fontWeight: 600 }}>
-          {data.urgency === "HIGH" ? "MATAAS" : data.urgency === "MODERATE" ? "GITNA" : "MABABA"}
+          {d.urgency === "HIGH" ? "MATAAS" : d.urgency === "MODERATE" ? "GITNA" : "MABABA"}
         </span>
       </div>
 
       {/* Summary */}
       <div style={summaryStyle}>
         <h4 style={sectionTitleStyle}>Summary</h4>
-        <p style={summaryTextStyle}>{data.summary}</p>
+        <p style={summaryTextStyle}>{d.summary}</p>
       </div>
 
       {/* Extracted Fields */}
       <div>
         <h4 style={sectionTitleStyle}>Extracted Data</h4>
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          {data.extractedFields.map((field, i) => (
+          {d.extractedFields.map((field, i) => (
             <div
               key={i}
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 padding: "10px 14px",
-                borderBottom: i < data.extractedFields.length - 1 ? "1px solid #e5e7eb" : "none",
+                borderBottom: i < d.extractedFields.length - 1 ? "1px solid #e5e7eb" : "none",
                 background: i % 2 === 0 ? "#f9fafb" : "#ffffff",
               }}
             >
@@ -81,10 +86,10 @@ export function DemoOtherDoc({ data }: DemoOtherDocProps) {
       </div>
 
       {/* Warnings */}
-      {data.warnings.length > 0 && (
+      {d.warnings.length > 0 && (
         <div style={warningBoxStyle}>
           <h4 style={{ ...sectionTitleStyle, color: "#991b1b", marginBottom: 8 }}>Warnings</h4>
-          {data.warnings.map((w, i) => (
+          {d.warnings.map((w, i) => (
             <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
               <span style={{ color: "#dc2626", flexShrink: 0 }}>&#9888;</span>
               <span style={{ fontSize: "0.85rem", color: "#7f1d1d", lineHeight: 1.4 }}>{w}</span>
@@ -96,7 +101,7 @@ export function DemoOtherDoc({ data }: DemoOtherDocProps) {
       {/* Recommendations */}
       <div style={recommendationBoxStyle}>
         <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>Recommendations</h4>
-        {data.recommendations.map((r, i) => (
+        {d.recommendations.map((r, i) => (
           <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
             <span style={{ color: "#3b82f6", flexShrink: 0, fontWeight: 600 }}>{i + 1}.</span>
             <span style={{ fontSize: "0.85rem", color: "#1e3a5f", lineHeight: 1.4 }}>{r}</span>
@@ -107,7 +112,7 @@ export function DemoOtherDoc({ data }: DemoOtherDocProps) {
       {/* Tanong Mo Sa Doktor */}
       <div style={tanongMoStyle}>
         <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>Tanong Mo Sa Doktor</h4>
-        {data.tanongMoQuestions.map((q, i) => (
+        {d.tanongMoQuestions.map((q, i) => (
           <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, padding: "8px 12px", background: "#eff6ff", borderRadius: 8 }}>
             <span style={{ color: "#3b82f6", flexShrink: 0 }}>&#10067;</span>
             <span style={{ fontSize: "0.85rem", color: "#1e40af", lineHeight: 1.4 }}>{q}</span>

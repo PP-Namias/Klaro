@@ -3,67 +3,71 @@
 import React from "react";
 
 import type { DischargeDemo } from "~/data/demo-discharge";
+import { dischargeEnglish } from "~/data/demo-english";
+import type { DemoLanguage } from "~/components/demo-modal";
 
 interface DemoDischargeProps {
   data: DischargeDemo;
+  language?: DemoLanguage;
 }
 
-export function DemoDischarge({ data }: DemoDischargeProps) {
+export function DemoDischarge({ data, language = "tl" }: DemoDischargeProps) {
+  const d = language === "en" ? { ...data, ...dischargeEnglish } : data;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       {/* Patient Info */}
       <div style={infoCardStyle}>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Patient:</span>
-          <span style={infoValueStyle}>{data.patientName}</span>
+          <span style={infoValueStyle}>{d.patientName}</span>
         </div>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Age/Sex:</span>
-          <span style={infoValueStyle}>{data.patientAge} / {data.patientSex}</span>
+          <span style={infoValueStyle}>{d.patientAge} / {d.patientSex}</span>
         </div>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Facility:</span>
-          <span style={infoValueStyle}>{data.facilityName}</span>
+          <span style={infoValueStyle}>{d.facilityName}</span>
         </div>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Physician:</span>
-          <span style={infoValueStyle}>{data.admittingPhysician}</span>
+          <span style={infoValueStyle}>{d.admittingPhysician}</span>
         </div>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Department:</span>
-          <span style={infoValueStyle}>{data.department}</span>
+          <span style={infoValueStyle}>{d.department}</span>
         </div>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Admitted:</span>
-          <span style={infoValueStyle}>{data.dateAdmitted}</span>
+          <span style={infoValueStyle}>{d.dateAdmitted}</span>
         </div>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Discharged:</span>
-          <span style={infoValueStyle}>{data.dateDischarged}</span>
+          <span style={infoValueStyle}>{d.dateDischarged}</span>
         </div>
         <div style={infoRowStyle}>
           <span style={infoLabelStyle}>Stay:</span>
-          <span style={{ ...infoValueStyle, fontWeight: 600 }}>{data.lengthOfStay}</span>
+          <span style={{ ...infoValueStyle, fontWeight: 600 }}>{d.lengthOfStay}</span>
         </div>
       </div>
 
       {/* Diagnosis */}
       <div style={diagnosisStyle}>
         <h4 style={sectionTitleStyle}>Diagnosis</h4>
-        <p style={diagnosisTextStyle}>{data.diagnosis}</p>
+        <p style={diagnosisTextStyle}>{d.diagnosis}</p>
       </div>
 
       {/* Summary */}
       <div style={summaryStyle}>
         <h4 style={sectionTitleStyle}>Summary</h4>
-        <p style={summaryTextStyle}>{data.summary}</p>
+        <p style={summaryTextStyle}>{d.summary}</p>
       </div>
 
       {/* Procedures */}
       <div>
         <h4 style={sectionTitleStyle}>Procedures</h4>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          {data.procedures.map((p, i) => (
+          {d.procedures.map((p, i) => (
             <div key={i} style={{ display: "flex", gap: 8, padding: "6px 12px", background: "#f9fafb", borderRadius: 8 }}>
               <span style={{ color: "#6366f1", flexShrink: 0, fontWeight: 600, fontSize: "0.8rem" }}>{i + 1}.</span>
               <span style={{ fontSize: "0.85rem", color: "#374151" }}>{p}</span>
@@ -76,7 +80,7 @@ export function DemoDischarge({ data }: DemoDischargeProps) {
       <div>
         <h4 style={sectionTitleStyle}>Discharge Medications</h4>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          {data.dischargeMedications.map((med, i) => (
+          {d.dischargeMedications.map((med, i) => (
             <div key={i} style={medCardStyle}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontWeight: 600, color: "#111", fontSize: "0.9rem" }}>{med.name}</span>
@@ -94,7 +98,7 @@ export function DemoDischarge({ data }: DemoDischargeProps) {
       {/* Follow-up Instructions */}
       <div style={followUpStyle}>
         <h4 style={{ ...sectionTitleStyle, color: "#166534", marginBottom: 8 }}>Follow-Up Instructions</h4>
-        {data.followUpInstructions.map((f, i) => (
+        {d.followUpInstructions.map((f, i) => (
           <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
             <span style={{ color: "#16a34a", flexShrink: 0, fontWeight: 600 }}>{i + 1}.</span>
             <span style={{ fontSize: "0.85rem", color: "#14532d", lineHeight: 1.4 }}>{f}</span>
@@ -103,10 +107,10 @@ export function DemoDischarge({ data }: DemoDischargeProps) {
       </div>
 
       {/* Warnings */}
-      {data.warnings.length > 0 && (
+      {d.warnings.length > 0 && (
         <div style={warningBoxStyle}>
           <h4 style={{ ...sectionTitleStyle, color: "#991b1b", marginBottom: 8 }}>Warnings</h4>
-          {data.warnings.map((w, i) => (
+          {d.warnings.map((w, i) => (
             <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
               <span style={{ color: "#dc2626", flexShrink: 0 }}>&#9888;</span>
               <span style={{ fontSize: "0.85rem", color: "#7f1d1d", lineHeight: 1.4 }}>{w}</span>
@@ -118,7 +122,7 @@ export function DemoDischarge({ data }: DemoDischargeProps) {
       {/* Tanong Mo Sa Doktor */}
       <div style={tanongMoStyle}>
         <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>Tanong Mo Sa Doktor</h4>
-        {data.tanongMoQuestions.map((q, i) => (
+        {d.tanongMoQuestions.map((q, i) => (
           <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, padding: "8px 12px", background: "#eff6ff", borderRadius: 8 }}>
             <span style={{ color: "#3b82f6", flexShrink: 0 }}>&#10067;</span>
             <span style={{ fontSize: "0.85rem", color: "#1e40af", lineHeight: 1.4 }}>{q}</span>

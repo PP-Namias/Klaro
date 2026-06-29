@@ -3,12 +3,16 @@
 import React from "react";
 
 import type { PrescriptionDemo } from "~/data/demo-prescriptions";
+import { prescriptionEnglish } from "~/data/demo-english";
+import type { DemoLanguage } from "~/components/demo-modal";
 
 interface DemoPrescriptionProps {
   data: PrescriptionDemo;
+  language?: DemoLanguage;
 }
 
-export function DemoPrescription({ data }: DemoPrescriptionProps) {
+export function DemoPrescription({ data, language = "tl" }: DemoPrescriptionProps) {
+  const d = language === "en" ? { ...data, ...prescriptionEnglish } : data;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       {/* Patient Info */}

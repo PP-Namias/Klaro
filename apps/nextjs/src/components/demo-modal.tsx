@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect, useCallback, useRef } from "react";
+import React, { useEffect, useCallback, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Sparkles } from "lucide-react";
+import { X, Sparkles, Globe } from "lucide-react";
 
 import styles from "./demo-modal.module.css";
+
+export type DemoLanguage = "en" | "tl";
 
 interface DemoModalProps {
   isOpen: boolean;
@@ -12,6 +14,8 @@ interface DemoModalProps {
   title: string;
   description: string;
   children: React.ReactNode;
+  language?: DemoLanguage;
+  onLanguageChange?: (lang: DemoLanguage) => void;
 }
 
 export function DemoModal({
@@ -20,6 +24,8 @@ export function DemoModal({
   title,
   description,
   children,
+  language = "tl",
+  onLanguageChange,
 }: DemoModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -44,6 +50,10 @@ export function DemoModal({
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) onClose();
+  };
+
+  const toggleLanguage = () => {
+    onLanguageChange?.(language === "tl" ? "en" : "tl");
   };
 
   return (
@@ -80,21 +90,33 @@ export function DemoModal({
                   <p className={styles.description}>{description}</p>
                 </div>
               </div>
-              <button
-                className={styles.closeBtn}
-                onClick={onClose}
-                aria-label="Close demo"
-              >
-                <X size={20} />
-              </button>
+              <div className={styles.headerActions}>
+                <button
+                  className={styles.langToggle}
+                  onClick={toggleLanguage}
+                  aria-label={`Switch to ${language === "tl" ? "English" : "Tagalog"}`}
+                  title={language === "tl" ? "Switch to English" : "Mag-switch sa Tagalog"}
+                >
+                  <Globe size={14} />
+                  <span>{language === "tl" ? "EN" : "TL"}</span>
+                </button>
+                <button
+                  className={styles.closeBtn}
+                  onClick={onClose}
+                  aria-label="Close demo"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             <div className={styles.content}>{children}</div>
 
             <div className={styles.footer}>
               <p className={styles.footerText}>
-                Ito ay isang demo lamang. Mag-upload ng sarili mong document
-                para makita ang tunay na resulta.
+                {language === "tl"
+                  ? "Ito ay isang demo lamang. Mag-upload ng sarili mong document para makita ang tunay na resulta."
+                  : "This is just a demo. Upload your own document to see real results."}
               </p>
             </div>
           </motion.div>
