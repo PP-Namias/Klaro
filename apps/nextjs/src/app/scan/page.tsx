@@ -1,8 +1,8 @@
 import React from "react";
 
-import { ScannerUI } from "~/layouts/SampleScanner/ScannerUI";
 import { ScannerNavbar } from "~/layouts/SampleScanner/ScannerNavbar";
 import { Sidebar } from "~/layouts/SampleScanner/Sidebar";
+import { ScanPageClient } from "./scan-page-client";
 import styles from "./page.module.css";
 
 export default function ScanPage() {
@@ -19,7 +19,7 @@ export default function ScanPage() {
               </div>
             }
           >
-            <ScannerUI />
+            <ScanPageClient />
           </React.Suspense>
         </main>
       </div>
