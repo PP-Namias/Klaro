@@ -10,6 +10,11 @@ import {
   type OtherDocDemo,
 } from "./demo-other-docs";
 
+export { labResultsDemo } from "./demo-lab-results";
+export { prescriptionDemo } from "./demo-prescriptions";
+export { dischargeDemo } from "./demo-discharge";
+export { xrayReportDemo, ecgReportDemo } from "./demo-other-docs";
+
 export type DemoType = "lab" | "prescription" | "discharge" | "other";
 
 export interface DemoDataMap {
