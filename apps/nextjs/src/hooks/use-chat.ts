@@ -5,6 +5,8 @@ import { useMutation } from "@tanstack/react-query";
 
 import { useTRPC } from "~/trpc/react";
 
+type Dialect = "Filipino" | "Bisaya" | "Ilocano";
+
 interface ChatMessage {
   id: string;
   sender: "user" | "clara";
@@ -15,7 +17,7 @@ interface ChatMessage {
 
 interface UseChatOptions {
   analysisId?: string;
-  dialect?: string;
+  dialect?: Dialect;
   onSuccess?: (response: ChatMessage) => void;
   onError?: (error: string) => void;
 }
@@ -30,7 +32,7 @@ interface UseChatReturn {
 
 export function useChat({
   analysisId,
-  dialect = "English",
+  dialect = "Filipino",
   onSuccess,
   onError,
 }: UseChatOptions = {}): UseChatReturn {
@@ -44,9 +46,9 @@ export function useChat({
     trpc.chat.sendMessage.mutationOptions({
       onSuccess: (result) => {
         const assistantMsg: ChatMessage = {
-          id: result.assistantMessage?.id || `clara-${Date.now()}`,
+          id: `clara-${Date.now()}`,
           sender: "clara",
-          text: result.assistantMessage?.content || result.response || "I can help explain what you scanned.",
+          text: result.assistantMessage?.content || "I can help explain what you scanned.",
           timestamp: Date.now(),
         };
         setMessages((prev) => [...prev, assistantMsg]);

@@ -7,8 +7,6 @@ import { useTRPC } from "~/trpc/react";
 import {
   validateFiles,
   fileToBase64,
-  getFileKind,
-  createPreviewUrl,
 } from "~/lib/file-validation";
 import type { UploadStage } from "~/components/upload-progress";
 
@@ -43,16 +41,15 @@ export function useFileUpload({
       onSuccess: (result) => {
         if (result.status === "error") {
           setStage("error");
-          const message = result.message || "Scan failed. Please try again.";
+          const message = result.error || "Scan failed. Please try again.";
           setError(message);
           onError?.(message);
           return;
         }
         setStage("complete");
         setProgress(100);
-        const id = result.requestId ?? result.id ?? null;
-        setRequestId(id);
-        if (id) onSuccess?.(id);
+        setRequestId(result.requestId);
+        onSuccess?.(result.requestId);
       },
       onError: (err) => {
         setStage("error");
@@ -68,9 +65,9 @@ export function useFileUpload({
       const { valid, invalid } = validateFiles(files);
 
       if (invalid.length > 0) {
-        setError(invalid[0].error);
+        setError(invalid[0].error ?? "Invalid file");
         setStage("error");
-        onError?.(invalid[0].error);
+        onError?.(invalid[0].error ?? "Invalid file");
         return;
       }
 
@@ -87,6 +84,12 @@ export function useFileUpload({
 
       try {
         const file = valid[0];
+        if (!file) {
+          setError("No valid files selected.");
+          setStage("error");
+          return;
+        }
+
         setStage("uploading");
         setProgress(30);
 
@@ -97,8 +100,7 @@ export function useFileUpload({
         setProgress(80);
 
         scanGuestImage.mutate({
-          imageBase64: base64,
-          mimeType: file.type,
+          base64Image: base64,
           fileName: file.name,
         });
       } catch (err) {
