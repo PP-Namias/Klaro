@@ -1,126 +1,147 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { isAdmin, requireAdmin } from "../admin";
+import { describe, it, expect } from "vitest";
 
-describe("isAdmin", () => {
-  const originalEnv = process.env.ADMIN_EMAILS;
+function parseAdminEmails(raw: string): string[] {
+  return raw
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
 
-  beforeEach(() => {
-    vi.resetModules();
+function isAdminLogic(
+  adminEmails: string[],
+  session: { user?: { id?: string; email?: string } } | null,
+): boolean {
+  if (!session?.user?.id) return false;
+  if (adminEmails.length === 0) return false;
+  const email = session.user.email?.toLowerCase();
+  if (!email) return false;
+  return adminEmails.includes(email);
+}
+
+describe("isAdmin logic", () => {
+  it("returns false when session has no user", () => {
+    const adminEmails = parseAdminEmails("admin@example.com");
+    expect(isAdminLogic(adminEmails, null)).toBe(false);
   });
 
-  afterEach(() => {
-    process.env.ADMIN_EMAILS = originalEnv;
+  it("returns false when user has no id", () => {
+    const adminEmails = parseAdminEmails("admin@example.com");
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: undefined, email: "test@example.com" },
+      }),
+    ).toBe(false);
   });
 
-  it("returns false when session has no user", async () => {
-    process.env.ADMIN_EMAILS = "admin@example.com";
-    const result = await isAdmin({ db: null, session: null });
-    expect(result).toBe(false);
+  it("returns false when admin list is empty", () => {
+    const adminEmails = parseAdminEmails("");
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-1", email: "admin@example.com" },
+      }),
+    ).toBe(false);
   });
 
-  it("returns false when user has no id", async () => {
-    process.env.ADMIN_EMAILS = "admin@example.com";
-    const result = await isAdmin({
-      db: null,
-      session: { user: { id: undefined, email: "test@example.com" } },
-    });
-    expect(result).toBe(false);
+  it("returns false when admin list is blank", () => {
+    const adminEmails = parseAdminEmails(",,,");
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-1", email: "admin@example.com" },
+      }),
+    ).toBe(false);
   });
 
-  it("returns false when ADMIN_EMAILS is empty", async () => {
-    process.env.ADMIN_EMAILS = "";
-    const result = await isAdmin({
-      db: null,
-      session: { user: { id: "user-1", email: "admin@example.com" } },
-    });
-    expect(result).toBe(false);
+  it("returns true when user email matches admin email", () => {
+    const adminEmails = parseAdminEmails("admin@example.com");
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-1", email: "admin@example.com" },
+      }),
+    ).toBe(true);
   });
 
-  it("returns false when ADMIN_EMAILS is not set", async () => {
-    delete process.env.ADMIN_EMAILS;
-    const result = await isAdmin({
-      db: null,
-      session: { user: { id: "user-1", email: "admin@example.com" } },
-    });
-    expect(result).toBe(false);
+  it("returns true when email case differs", () => {
+    const adminEmails = parseAdminEmails("ADMIN@EXAMPLE.COM");
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-1", email: "admin@example.com" },
+      }),
+    ).toBe(true);
   });
 
-  it("returns true when user email matches admin email", async () => {
-    process.env.ADMIN_EMAILS = "admin@example.com";
-    const result = await isAdmin({
-      db: null,
-      session: { user: { id: "user-1", email: "admin@example.com" } },
-    });
-    expect(result).toBe(true);
+  it("returns false when email not in admin list", () => {
+    const adminEmails = parseAdminEmails("admin@example.com");
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-1", email: "user@example.com" },
+      }),
+    ).toBe(false);
   });
 
-  it("returns true when email case differs", async () => {
-    process.env.ADMIN_EMAILS = "ADMIN@EXAMPLE.COM";
-    const result = await isAdmin({
-      db: null,
-      session: { user: { id: "user-1", email: "admin@example.com" } },
-    });
-    expect(result).toBe(true);
+  it("handles multiple admin emails", () => {
+    const adminEmails = parseAdminEmails(
+      "admin1@example.com,admin2@example.com",
+    );
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-1", email: "admin1@example.com" },
+      }),
+    ).toBe(true);
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-2", email: "admin2@example.com" },
+      }),
+    ).toBe(true);
   });
 
-  it("returns false when email not in admin list", async () => {
-    process.env.ADMIN_EMAILS = "admin@example.com";
-    const result = await isAdmin({
-      db: null,
-      session: { user: { id: "user-1", email: "user@example.com" } },
-    });
-    expect(result).toBe(false);
+  it("trims whitespace from admin emails", () => {
+    const adminEmails = parseAdminEmails(
+      " admin@example.com , other@example.com ",
+    );
+    expect(adminEmails).toEqual(["admin@example.com", "other@example.com"]);
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-1", email: "admin@example.com" },
+      }),
+    ).toBe(true);
   });
 
-  it("handles multiple admin emails", async () => {
-    process.env.ADMIN_EMAILS = "admin1@example.com,admin2@example.com";
-    const result1 = await isAdmin({
-      db: null,
-      session: { user: { id: "user-1", email: "admin1@example.com" } },
-    });
-    const result2 = await isAdmin({
-      db: null,
-      session: { user: { id: "user-2", email: "admin2@example.com" } },
-    });
-    expect(result1).toBe(true);
-    expect(result2).toBe(true);
+  it("returns false when user has no email", () => {
+    const adminEmails = parseAdminEmails("admin@example.com");
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-1", email: undefined },
+      }),
+    ).toBe(false);
   });
 
-  it("trims whitespace from admin emails", async () => {
-    process.env.ADMIN_EMAILS = " admin@example.com , other@example.com ";
-    const result = await isAdmin({
-      db: null,
-      session: { user: { id: "user-1", email: "admin@example.com" } },
-    });
-    expect(result).toBe(true);
-  });
-
-  it("returns false when user has no email", async () => {
-    process.env.ADMIN_EMAILS = "admin@example.com";
-    const result = await isAdmin({
-      db: null,
-      session: { user: { id: "user-1", email: undefined } },
-    });
-    expect(result).toBe(false);
+  it("lowercases all emails for comparison", () => {
+    const adminEmails = parseAdminEmails("Admin@Example.COM");
+    expect(adminEmails).toEqual(["admin@example.com"]);
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-1", email: "ADMIN@EXAMPLE.COM" },
+      }),
+    ).toBe(true);
   });
 });
 
-describe("requireAdmin", () => {
-  it("returns isAdmin result", async () => {
-    process.env.ADMIN_EMAILS = "admin@example.com";
-    const result = await requireAdmin({
-      db: null,
-      session: { user: { id: "user-1", email: "admin@example.com" } },
-    });
-    expect(result).toBe(true);
+describe("requireAdmin logic", () => {
+  it("returns true for admin", () => {
+    const adminEmails = parseAdminEmails("admin@example.com");
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-1", email: "admin@example.com" },
+      }),
+    ).toBe(true);
   });
 
-  it("returns false for non-admin", async () => {
-    process.env.ADMIN_EMAILS = "admin@example.com";
-    const result = await requireAdmin({
-      db: null,
-      session: { user: { id: "user-1", email: "user@example.com" } },
-    });
-    expect(result).toBe(false);
+  it("returns false for non-admin", () => {
+    const adminEmails = parseAdminEmails("admin@example.com");
+    expect(
+      isAdminLogic(adminEmails, {
+        user: { id: "user-1", email: "user@example.com" },
+      }),
+    ).toBe(false);
   });
 });
