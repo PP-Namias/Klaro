@@ -48,6 +48,7 @@
     "@klaro/prettier-config": "workspace:*",
     "@klaro/tailwind-config": "workspace:*",
     "@klaro/tsconfig": "workspace:*",
+    "@playwright/test": "^1.61.1",
     "@types/leaflet": "^1.9.21",
     "@types/node": "catalog:",
     "@types/react": "catalog:react19",
