@@ -1,0 +1,111 @@
+.progressContainer {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: #f0f7ff;
+  border: 1px solid #bfdbfe;
+  margin-top: 0.75rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.progressContainer.complete {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.progressContainer.error {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.progressHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progressIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+}
+
+.complete .progressIcon {
+  color: #22c55e;
+}
+
+.error .progressIcon {
+  color: #ef4444;
+}
+
+.progressLabel {
+  font-family: var(--font-geist);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #1e40af;
+  flex: 1;
+}
+
+.complete .progressLabel {
+  color: #166534;
+}
+
+.error .progressLabel {
+  color: #991b1b;
+}
+
+.progressPercent {
+  font-family: var(--font-geist);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.progressBar {
+  width: 100%;
+  height: 4px;
+  background: #dbeafe;
+  border-radius: 2px;
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.complete .progressFill {
+  background: #22c55e;
+}
+
+.error .progressFill {
+  background: #ef4444;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
