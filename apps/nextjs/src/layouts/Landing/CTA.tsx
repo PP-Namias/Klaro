@@ -5,8 +5,10 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import styles from "../../app/page.module.css";
+import { useLanguage } from "~/providers/language-provider";
 
 export function CTA() {
+  const { t } = useLanguage();
   return (
     <motion.section 
       className="relative left-1/2 flex w-screen -translate-x-1/2 flex-col items-center overflow-hidden pt-16 pb-32 text-center"
@@ -35,7 +37,7 @@ export function CTA() {
 
       <div className="relative z-10 flex w-full max-w-[1400px] flex-col items-center px-6">
         <h2 className="cta-title mb-2 text-zinc-900">
-          Clear results are just a scan away
+          {t("cta.heading")}
         </h2>
 
         <div className="relative -mt-24 -mb-24 h-[650px] w-[750px]">
@@ -49,13 +51,13 @@ export function CTA() {
         </div>
 
         <p className="cta-description mb-8 max-w-[600px] text-zinc-900">
-          Experience medical guidance that feels clearer and calmer.
+          {t("cta.desc1")}
           <br />
-          Decode your health jargon and take control of your medical journey today.
+          {t("cta.desc2")}
         </p>
         <div className="mb-8 flex flex-row gap-4">
           <Link href="/scan" className={styles.btnBlack}>
-            Start a scan <ArrowRight size={16} className="ml-2" />
+            {t("btn.startAScan")} <ArrowRight size={16} className="ml-2" />
           </Link>
         </div>
       </div>

@@ -7,9 +7,11 @@ import { motion } from "framer-motion";
 
 import styles from "../../app/page.module.css";
 import { HeroBg } from "../../components/HeroBg";
+import { useLanguage } from "~/providers/language-provider";
 
 
 export function Hero() {
+  const { t } = useLanguage();
   return (
     <section className={`${styles.heroSection} relative overflow-hidden`}>
       <HeroBg />
@@ -30,21 +32,21 @@ export function Hero() {
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
         <h1 className={styles.heroTitle}>
-          Precision Insights for
-          <br className="hidden md:block" /> Medical Results
+          {t("hero.title1")}
+          <br className="hidden md:block" /> {t("hero.title2")}
         </h1>
-        <h2 className={styles.heroSubheading}>It shouldn’t be confusing.</h2>
+        <h2 className={styles.heroSubheading}>{t("hero.subtitle1")}</h2>
         <p className={styles.heroSubtitle}>
-          Upload your medical results and get clear explanations{" "}
+          {t("hero.subtitle2")}{" "}
           <br className="hidden md:block" />
-          so you know what to do next
+          {t("hero.subtitle3")}
         </p>
         <div className={styles.heroButtons}>
-          <Link href="/scan" className={styles.btnBlack} aria-label="Start a scan">
-            Start a scan <ArrowRight size={16} className="ml-2" />
+          <Link href="/scan" className={styles.btnBlack} aria-label={t("btn.startAScan")}>
+            {t("btn.startAScan")} <ArrowRight size={16} className="ml-2" />
           </Link>
           <Link href="/scan" className={styles.btnOutline}>
-            Learn More
+            {t("btn.learnMore")}
           </Link>
         </div>
       </motion.div>

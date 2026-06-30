@@ -6,24 +6,27 @@ import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { MapPreview } from "~/components/facilities/MapPreview";
+import { useLanguage } from "~/providers/language-provider";
 
 export function Clarity() {
+  const { t } = useLanguage();
+
   const clarityItems = [
     {
-      title: "Connect to Real Doctors",
-      body: "Consult licensed Filipino doctors via chat or video and get guidance based on your results",
+      title: t("clarity.connectDoctors"),
+      body: t("clarity.connectDoctors.desc"),
       image: "/sections/clarity/1.png",
       alt: "Stethoscope icon",
     },
     {
-      title: "Understand Your Results",
-      body: "Upload your medical documents and get clear explanations with key insights",
+      title: t("clarity.understandResults"),
+      body: t("clarity.understandResults.desc"),
       image: "/sections/clarity/2.png",
       alt: "Medical documents icon",
     },
     {
-      title: "Find the Right Care Near You",
-      body: "Find nearby clinics and hospitals based on your needs, availability, and specialty",
+      title: t("clarity.findCare"),
+      body: t("clarity.findCare.desc"),
       image: "/sections/clarity/3.png",
       alt: "Magnifying glass icon",
     },
@@ -42,7 +45,7 @@ export function Clarity() {
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
       <h2 className="section-header m-0 h-auto w-max tracking-[0px] text-black">
-        Clarity From Results to Care
+        {t("clarity.heading")}
       </h2>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -107,7 +110,7 @@ export function Clarity() {
               href="/maps"
               className="feature-card-description inline-flex items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1"
             >
-              Try it out{" "}
+              {t("btn.tryItOut")}{" "}
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
