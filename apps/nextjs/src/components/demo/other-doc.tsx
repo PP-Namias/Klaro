@@ -5,6 +5,7 @@ import React from "react";
 import type { OtherDocDemo } from "~/data/demo-other-docs";
 import { otherDocEnglish, ecgReportEnglish } from "~/data/demo-english";
 import type { DemoLanguage } from "~/components/demo-modal";
+import { useLanguage } from "~/providers/language-provider";
 
 interface DemoOtherDocProps {
   data: OtherDocDemo;
@@ -12,6 +13,7 @@ interface DemoOtherDocProps {
 }
 
 export function DemoOtherDoc({ data, language = "tl" }: DemoOtherDocProps) {
+  const { t } = useLanguage();
   const englishData = data.documentType.includes("ECG") ? ecgReportEnglish : otherDocEnglish;
   const d = language === "en" ? { ...data, ...englishData } : data;
   return (
@@ -51,19 +53,21 @@ export function DemoOtherDoc({ data, language = "tl" }: DemoOtherDocProps) {
       {/* Urgency Badge */}
       <div style={urgencyBadgeStyle(d.urgency)}>
         <span style={{ fontWeight: 600 }}>
-          {d.urgency === "HIGH" ? "MATAAS" : d.urgency === "MODERATE" ? "GITNA" : "MABABA"}
+          {language === "tl"
+            ? (d.urgency === "HIGH" ? "MATAAS" : d.urgency === "MODERATE" ? "GITNA" : "MABABA")
+            : (d.urgency === "HIGH" ? "HIGH" : d.urgency === "MODERATE" ? "MODERATE" : "LOW")}
         </span>
       </div>
 
       {/* Summary */}
       <div style={summaryStyle}>
-        <h4 style={sectionTitleStyle}>Summary</h4>
+        <h4 style={sectionTitleStyle}>{t("results.section.summary")}</h4>
         <p style={summaryTextStyle}>{d.summary}</p>
       </div>
 
       {/* Extracted Fields */}
       <div>
-        <h4 style={sectionTitleStyle}>Extracted Data</h4>
+        <h4 style={sectionTitleStyle}>{t("results.section.extractedData")}</h4>
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           {d.extractedFields.map((field, i) => (
             <div
@@ -88,7 +92,7 @@ export function DemoOtherDoc({ data, language = "tl" }: DemoOtherDocProps) {
       {/* Warnings */}
       {d.warnings.length > 0 && (
         <div style={warningBoxStyle}>
-          <h4 style={{ ...sectionTitleStyle, color: "#991b1b", marginBottom: 8 }}>Warnings</h4>
+          <h4 style={{ ...sectionTitleStyle, color: "#991b1b", marginBottom: 8 }}>{t("results.section.warnings")}</h4>
           {d.warnings.map((w, i) => (
             <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
               <span style={{ color: "#dc2626", flexShrink: 0 }}>&#9888;</span>
@@ -100,7 +104,7 @@ export function DemoOtherDoc({ data, language = "tl" }: DemoOtherDocProps) {
 
       {/* Recommendations */}
       <div style={recommendationBoxStyle}>
-        <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>Recommendations</h4>
+        <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>{t("results.section.recommendations")}</h4>
         {d.recommendations.map((r, i) => (
           <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
             <span style={{ color: "#3b82f6", flexShrink: 0, fontWeight: 600 }}>{i + 1}.</span>
@@ -111,7 +115,7 @@ export function DemoOtherDoc({ data, language = "tl" }: DemoOtherDocProps) {
 
       {/* Tanong Mo Sa Doktor */}
       <div style={tanongMoStyle}>
-        <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>Tanong Mo Sa Doktor</h4>
+        <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>{t("results.section.tanqmo")}</h4>
         {d.tanongMoQuestions.map((q, i) => (
           <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, padding: "8px 12px", background: "#eff6ff", borderRadius: 8 }}>
             <span style={{ color: "#3b82f6", flexShrink: 0 }}>&#10067;</span>

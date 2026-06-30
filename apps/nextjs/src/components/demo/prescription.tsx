@@ -5,6 +5,7 @@ import React from "react";
 import type { PrescriptionDemo } from "~/data/demo-prescriptions";
 import { prescriptionEnglish } from "~/data/demo-english";
 import type { DemoLanguage } from "~/components/demo-modal";
+import { useLanguage } from "~/providers/language-provider";
 
 interface DemoPrescriptionProps {
   data: PrescriptionDemo;
@@ -12,6 +13,7 @@ interface DemoPrescriptionProps {
 }
 
 export function DemoPrescription({ data, language = "tl" }: DemoPrescriptionProps) {
+  const { t } = useLanguage();
   const d = language === "en" ? { ...data, ...prescriptionEnglish } : data;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -45,13 +47,13 @@ export function DemoPrescription({ data, language = "tl" }: DemoPrescriptionProp
 
       {/* Summary */}
       <div style={summaryStyle}>
-        <h4 style={sectionTitleStyle}>Summary</h4>
+        <h4 style={sectionTitleStyle}>{t("results.section.summary")}</h4>
         <p style={summaryTextStyle}>{data.summary}</p>
       </div>
 
       {/* Medicines */}
       <div>
-        <h4 style={sectionTitleStyle}>Mga Gamot (Medicines)</h4>
+        <h4 style={sectionTitleStyle}>{language === "tl" ? "Mga Gamot (Medicines)" : "Medicines"}</h4>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {data.medicines.map((med, i) => (
             <div key={i} style={medicineCardStyle}>

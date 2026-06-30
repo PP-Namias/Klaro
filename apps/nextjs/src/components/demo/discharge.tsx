@@ -5,6 +5,7 @@ import React from "react";
 import type { DischargeDemo } from "~/data/demo-discharge";
 import { dischargeEnglish } from "~/data/demo-english";
 import type { DemoLanguage } from "~/components/demo-modal";
+import { useLanguage } from "~/providers/language-provider";
 
 interface DemoDischargeProps {
   data: DischargeDemo;
@@ -12,6 +13,7 @@ interface DemoDischargeProps {
 }
 
 export function DemoDischarge({ data, language = "tl" }: DemoDischargeProps) {
+  const { t } = useLanguage();
   const d = language === "en" ? { ...data, ...dischargeEnglish } : data;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -53,19 +55,19 @@ export function DemoDischarge({ data, language = "tl" }: DemoDischargeProps) {
 
       {/* Diagnosis */}
       <div style={diagnosisStyle}>
-        <h4 style={sectionTitleStyle}>Diagnosis</h4>
+        <h4 style={sectionTitleStyle}>{language === "tl" ? "Diagnosis" : "Diagnosis"}</h4>
         <p style={diagnosisTextStyle}>{d.diagnosis}</p>
       </div>
 
       {/* Summary */}
       <div style={summaryStyle}>
-        <h4 style={sectionTitleStyle}>Summary</h4>
+        <h4 style={sectionTitleStyle}>{t("results.section.summary")}</h4>
         <p style={summaryTextStyle}>{d.summary}</p>
       </div>
 
       {/* Procedures */}
       <div>
-        <h4 style={sectionTitleStyle}>Procedures</h4>
+        <h4 style={sectionTitleStyle}>{language === "tl" ? "Procedures" : "Procedures"}</h4>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           {d.procedures.map((p, i) => (
             <div key={i} style={{ display: "flex", gap: 8, padding: "6px 12px", background: "#f9fafb", borderRadius: 8 }}>
@@ -78,7 +80,7 @@ export function DemoDischarge({ data, language = "tl" }: DemoDischargeProps) {
 
       {/* Discharge Medications */}
       <div>
-        <h4 style={sectionTitleStyle}>Discharge Medications</h4>
+        <h4 style={sectionTitleStyle}>{language === "tl" ? "Discharge Medications" : "Discharge Medications"}</h4>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {d.dischargeMedications.map((med, i) => (
             <div key={i} style={medCardStyle}>
@@ -97,7 +99,7 @@ export function DemoDischarge({ data, language = "tl" }: DemoDischargeProps) {
 
       {/* Follow-up Instructions */}
       <div style={followUpStyle}>
-        <h4 style={{ ...sectionTitleStyle, color: "#166534", marginBottom: 8 }}>Follow-Up Instructions</h4>
+        <h4 style={{ ...sectionTitleStyle, color: "#166534", marginBottom: 8 }}>{language === "tl" ? "Follow-up Instructions" : "Follow-up Instructions"}</h4>
         {d.followUpInstructions.map((f, i) => (
           <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
             <span style={{ color: "#16a34a", flexShrink: 0, fontWeight: 600 }}>{i + 1}.</span>
@@ -121,7 +123,7 @@ export function DemoDischarge({ data, language = "tl" }: DemoDischargeProps) {
 
       {/* Tanong Mo Sa Doktor */}
       <div style={tanongMoStyle}>
-        <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>Tanong Mo Sa Doktor</h4>
+        <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>{t("results.section.tanqmo")}</h4>
         {d.tanongMoQuestions.map((q, i) => (
           <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, padding: "8px 12px", background: "#eff6ff", borderRadius: 8 }}>
             <span style={{ color: "#3b82f6", flexShrink: 0 }}>&#10067;</span>
