@@ -26,6 +26,10 @@
     "./scan-analysis": {
       "types": "./src/scan-analysis.ts",
       "default": "./src/scan-analysis.ts"
+    },
+    "./language": {
+      "types": "./src/language.ts",
+      "default": "./src/language.ts"
     }
   },
   "imports": {},

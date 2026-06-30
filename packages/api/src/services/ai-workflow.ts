@@ -135,7 +135,9 @@ export async function executeDocumentWorkflow(
           ? "Itatanong Mo Sa Doktor"
           : fullConfig.dialect === "Bisaya"
             ? "Pangutanon Para Sa Doktor"
-            : "Itatanong Mo Sa Doktor",
+            : fullConfig.dialect === "Ilocano"
+              ? "Itatanong Mo Kadagiti Doktor"
+              : "Questions For Your Doctor",
       questions: plainLanguage.questionsForDoctor.slice(0, 5),
       severity: plainLanguage.severity,
       disclaimer: plainLanguage.disclaimer,
@@ -258,7 +260,7 @@ async function processOCR(
 export async function executeGuestWorkflow(
   base64Images: Array<{ bytesBase64: string; filename: string }>,
   options: {
-    language?: "Filipino" | "English";
+    language?: "Filipino" | "English" | "Bisaya" | "Ilocano";
     patientAge?: number;
     patientSex?: "male" | "female" | "other";
   } = {},
@@ -270,7 +272,7 @@ export async function executeGuestWorkflow(
     mimeType: guessMimeType(img.filename),
   }));
 
-  const dialect: Dialect = options.language === "English" ? "Filipino" : (options.language as Dialect) || "Filipino";
+  const dialect: Dialect = (options.language as Dialect) || "Filipino";
 
   return executeDocumentWorkflow(images, {
     dialect,

@@ -10,7 +10,7 @@ export type Severity = z.infer<typeof SeverityEnum>;
 /**
  * Supported dialects for plain-language explanations
  */
-export const DialectEnum = z.enum(["Filipino", "Bisaya", "Ilocano"]);
+export const DialectEnum = z.enum(["English", "Filipino", "Bisaya", "Ilocano"]);
 export type Dialect = z.infer<typeof DialectEnum>;
 
 /**

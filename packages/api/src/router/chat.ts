@@ -5,6 +5,8 @@ import { z } from "zod/v4";
 
 import { analysis, chatMessage } from "@klaro/db/schema";
 
+import { DialectEnum } from "@klaro/validators/llm";
+
 import { assembleDocumentContext } from "../services/contextAssembler";
 import { callLLMAPI } from "../services/llm";
 import { protectedProcedure } from "../trpc";
@@ -86,7 +88,7 @@ export const chatRouter = {
       z.object({
         analysisId: z.string().uuid(),
         content: z.string().min(1).max(2000),
-        dialect: z.enum(["Filipino", "Bisaya", "Ilocano"]).default("Filipino"),
+        dialect: DialectEnum.default("Filipino"),
       }),
     )
     .use(async ({ ctx, input, next }) => {

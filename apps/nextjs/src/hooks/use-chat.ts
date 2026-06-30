@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 
 import { useTRPC } from "~/trpc/react";
 
-type Dialect = "Filipino" | "Bisaya" | "Ilocano";
+type Dialect = "English" | "Filipino" | "Bisaya" | "Ilocano";
 
 interface ChatMessage {
   id: string;

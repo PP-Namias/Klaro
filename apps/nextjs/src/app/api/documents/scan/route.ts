@@ -26,7 +26,7 @@ const ALLOWED_TYPES = new Set([
   "application/pdf",
 ]);
 
-const DIALECTS = ["Filipino", "Bisaya", "Ilocano"] as const;
+const DIALECTS = ["English", "Filipino", "Bisaya", "Ilocano"] as const;
 
 /**
  * POST /api/documents/scan

@@ -24,7 +24,7 @@ export const analyzeScanInputSchema = z.object({
 export type AnalyzeScanInput = z.infer<typeof analyzeScanInputSchema>;
 
 export const scanUrgencySchema = z.enum(["LOW", "MODERATE", "HIGH"]);
-export const scanLanguageSchema = z.enum(["Filipino", "English"]);
+export const scanLanguageSchema = z.enum(["Filipino", "English", "Bisaya", "Ilocano"]);
 export const scanStatusSchema = z.enum(["completed", "error"]);
 
 const base64ImageSchema = z

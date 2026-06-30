@@ -56,3 +56,12 @@ export type {
   ScanGuestInput,
   ScanGuestResponse,
 } from "./scan-analysis";
+
+export {
+  LanguageCode,
+  languageSchema,
+  LANGUAGE_LABELS,
+  LANGUAGE_OPTIONS,
+  DEFAULT_LANGUAGE,
+} from "./language";
+export type { Language } from "./language";

@@ -5,6 +5,8 @@ import { z } from "zod/v4";
 
 import type { ExtractedTest } from "@klaro/validators/extraction";
 import type { ScanGuestResponse } from "@klaro/validators/scan-analysis";
+import type { Dialect } from "@klaro/validators/llm";
+import { DialectEnum } from "@klaro/validators/llm";
 import { analysis, document } from "@klaro/db/schema";
 import {
   scanGuestInputSchema,
@@ -70,7 +72,7 @@ function toRecord(value: unknown): Record<string, unknown> {
 }
 
 function buildFallbackGuestScanResult(params: {
-  language: "Filipino" | "English";
+  language: Dialect;
   reason: string;
   requestId?: string;
 }): ScanGuestResponse {
@@ -102,7 +104,7 @@ function buildFallbackGuestScanResult(params: {
 function normalizeGuestScanResponse(
   raw: unknown,
   input: {
-    language: "Filipino" | "English";
+    language: Dialect;
   },
 ): ScanGuestResponse {
   const data = toRecord(raw);
@@ -608,7 +610,7 @@ export const documentsRouter = {
     .input(
       z.object({
         documentId: z.uuid(),
-        dialect: z.enum(["Filipino", "Bisaya", "Ilocano"]).default("Filipino"),
+        dialect: DialectEnum.default("Filipino"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -671,7 +673,9 @@ export const documentsRouter = {
               ? "Itatanong Mo Sa Doktor"
               : input.dialect === "Bisaya"
                 ? "Pangutanon Para Sa Doktor"
-                : "Itatanong Mo Sa Doktor",
+                : input.dialect === "Ilocano"
+                  ? "Itatanong Mo Kadagiti Doktor"
+                  : "Questions For Your Doctor",
           questions: llmResponse.questionsForDoctor.slice(0, 5),
           severity: llmResponse.severity,
           disclaimer: llmResponse.disclaimer,

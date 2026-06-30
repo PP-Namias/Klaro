@@ -87,9 +87,11 @@ export const uploadResponseSchema = z.object({
   expiresIn: z.number().int().positive(), // seconds
 });
 
+import { DialectEnum } from "./llm";
+
 export const uploadDocumentSchema = z.object({
   file: fileSchema,
-  dialect: z.enum(["Filipino", "Bisaya", "Ilocano"]).default("Filipino"),
+  dialect: DialectEnum.default("Filipino"),
 });
 
 export const uploadDocumentResponseSchema = z.object({
