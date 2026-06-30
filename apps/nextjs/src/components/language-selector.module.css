@@ -1,0 +1,106 @@
+.container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.trigger:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.flag {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.code {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+  opacity: 0.6;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 140px;
+  background: rgba(15, 15, 20, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 4px;
+  z-index: 50;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: dropdownIn 0.15s ease;
+}
+
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.option:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.optionActive {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.optionActive:hover {
+  background: rgba(76, 175, 80, 0.25);
+}
+
+.optionLabel {
+  font-weight: 500;
+}

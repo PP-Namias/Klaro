@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
+import { LanguageSelector } from "~/components/language-selector";
 import styles from "../../app/scan/page.module.css";
 
 async function fetchSessionPrefill() {
@@ -81,6 +82,7 @@ export function ScannerNavbar() {
           <button onClick={openBooking} className={styles.navLink}>
             Book a Doctor
           </button>
+          <LanguageSelector />
         </div>
 
         {/* Mobile Hamburger Toggle */}

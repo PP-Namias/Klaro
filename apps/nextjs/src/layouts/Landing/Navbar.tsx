@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 
+import { LanguageSelector } from "~/components/language-selector";
 import styles from "../../app/page.module.css";
 
 async function fetchSessionPrefill() {
@@ -85,6 +86,7 @@ export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
           <button onClick={openBooking} className={styles.headerLink}>
             Book a doctor
           </button>
+          <LanguageSelector />
         </div>
 
         {/* Mobile Toggle */}
@@ -124,6 +126,7 @@ export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
             <button onClick={openBooking} className={styles.floatingLink}>
               Book a doctor
             </button>
+            <LanguageSelector />
           </div>
           <button 
             className="flex md:hidden" 
