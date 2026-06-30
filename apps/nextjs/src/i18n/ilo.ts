@@ -163,6 +163,7 @@ const ilo: Record<string, string> = {
   "results.section.warnings": "Mga Babala",
   "results.section.recommendations": "Mga Rekomendasyon",
   "results.section.extractedData": "Na-extract a Data",
+  "results.section.tanqmo": "Itatanong Mo Kadagiti Doktor",
 
   // Language
   "lang.en": "English",

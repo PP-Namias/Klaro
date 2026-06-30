@@ -4,6 +4,7 @@ import React, { useEffect, useCallback, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Sparkles, Globe } from "lucide-react";
 
+import { useLanguage } from "~/providers/language-provider";
 import styles from "./demo-modal.module.css";
 
 export type DemoLanguage = "en" | "tl";
@@ -29,6 +30,7 @@ export function DemoModal({
 }: DemoModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
 
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
@@ -83,7 +85,7 @@ export function DemoModal({
               <div className={styles.headerLeft}>
                 <div className={styles.badge}>
                   <Sparkles size={14} />
-                  <span>Demo</span>
+                  <span>{t("demo.badge")}</span>
                 </div>
                 <div>
                   <h2 className={styles.title}>{title}</h2>
@@ -115,8 +117,8 @@ export function DemoModal({
             <div className={styles.footer}>
               <p className={styles.footerText}>
                 {language === "tl"
-                  ? "Ito ay isang demo lamang. Mag-upload ng sarili mong document para makita ang tunay na resulta."
-                  : "This is just a demo. Upload your own document to see real results."}
+                  ? t("demo.footerTagalog")
+                  : t("demo.footerEnglish")}
               </p>
             </div>
           </motion.div>

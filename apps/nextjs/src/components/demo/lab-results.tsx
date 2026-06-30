@@ -5,6 +5,7 @@ import React from "react";
 import type { LabResultsDemo } from "~/data/demo-lab-results";
 import { labResultsEnglish } from "~/data/demo-english";
 import type { DemoLanguage } from "~/components/demo-modal";
+import { useLanguage } from "~/providers/language-provider";
 
 interface DemoLabResultsProps {
   data: LabResultsDemo;
@@ -12,6 +13,7 @@ interface DemoLabResultsProps {
 }
 
 export function DemoLabResults({ data, language = "tl" }: DemoLabResultsProps) {
+  const { t } = useLanguage();
   const d = language === "en" ? { ...data, ...labResultsEnglish } : data;
   const flaggedCount = d.tests.filter((t) => t.flagged).length;
   const totalCount = d.tests.length;
@@ -50,7 +52,7 @@ export function DemoLabResults({ data, language = "tl" }: DemoLabResultsProps) {
           {d.urgency === "HIGH"
             ? language === "tl" ? "MATAAS" : "HIGH"
             : d.urgency === "MODERATE"
-              ? language === "tl" ? "MODERATE" : "MODERATE"
+              ? "MODERATE"
               : language === "tl" ? "MABABA" : "LOW"}
         </span>
         <span style={{ fontSize: "0.8rem", opacity: 0.8 }}>
@@ -60,13 +62,13 @@ export function DemoLabResults({ data, language = "tl" }: DemoLabResultsProps) {
 
       {/* Summary */}
       <div style={summaryStyle}>
-        <h4 style={sectionTitleStyle}>{language === "tl" ? "Summary" : "Summary"}</h4>
+        <h4 style={sectionTitleStyle}>{t("results.section.summary")}</h4>
         <p style={summaryTextStyle}>{d.summary}</p>
       </div>
 
       {/* Test Results Table */}
       <div>
-        <h4 style={sectionTitleStyle}>{language === "tl" ? "Test Results" : "Test Results"}</h4>
+        <h4 style={sectionTitleStyle}>{t("results.section.extractedData")}</h4>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {d.tests.map((test, i) => (
             <div key={i} style={testCardStyle(test.flagged)}>
@@ -95,7 +97,7 @@ export function DemoLabResults({ data, language = "tl" }: DemoLabResultsProps) {
       {/* Warnings */}
       {d.warnings.length > 0 && (
         <div style={warningBoxStyle}>
-          <h4 style={{ ...sectionTitleStyle, color: "#991b1b", marginBottom: 8 }}>{language === "tl" ? "Warnings" : "Warnings"}</h4>
+          <h4 style={{ ...sectionTitleStyle, color: "#991b1b", marginBottom: 8 }}>{t("results.section.warnings")}</h4>
           {d.warnings.map((w, i) => (
             <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
               <span style={{ color: "#dc2626", flexShrink: 0 }}>&#9888;</span>
@@ -107,7 +109,7 @@ export function DemoLabResults({ data, language = "tl" }: DemoLabResultsProps) {
 
       {/* Recommendations */}
       <div style={recommendationBoxStyle}>
-        <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>{language === "tl" ? "Recommendations" : "Recommendations"}</h4>
+        <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>{t("results.section.recommendations")}</h4>
         {d.recommendations.map((r, i) => (
           <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
             <span style={{ color: "#3b82f6", flexShrink: 0, fontWeight: 600 }}>{i + 1}.</span>
@@ -119,7 +121,7 @@ export function DemoLabResults({ data, language = "tl" }: DemoLabResultsProps) {
       {/* Tanong Mo Sa Doktor */}
       <div style={tanongMoStyle}>
         <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>
-          {language === "tl" ? "Tanong Mo Sa Doktor" : "Questions For Your Doctor"}
+          {t("results.section.tanqmo")}
         </h4>
         <p style={{ fontSize: "0.8rem", color: "#666", margin: "0 0 8px" }}>
           {language === "tl" ? "Mga tanong na pwede mong itanong sa iyong doktor:" : "Questions you can ask your doctor:"}

@@ -163,6 +163,7 @@ const en = {
   "results.section.warnings": "Warnings",
   "results.section.recommendations": "Recommendations",
   "results.section.extractedData": "Extracted Data",
+  "results.section.tanqmo": "Questions For Your Doctor",
 
   // Language
   "lang.en": "English",

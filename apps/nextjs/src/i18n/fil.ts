@@ -163,6 +163,7 @@ const fil: Record<string, string> = {
   "results.section.warnings": "Mga Babala",
   "results.section.recommendations": "Mga Rekomendasyon",
   "results.section.extractedData": "Na-extract na Data",
+  "results.section.tanqmo": "Itatanong Mo Sa Doktor",
 
   // Language
   "lang.en": "English",

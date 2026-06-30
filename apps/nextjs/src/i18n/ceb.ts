@@ -163,6 +163,7 @@ const ceb: Record<string, string> = {
   "results.section.warnings": "Mga Babala",
   "results.section.recommendations": "Mga Rekomendasyon",
   "results.section.extractedData": "Na-extract nga Data",
+  "results.section.tanqmo": "Pangutanon Para Sa Doktor",
 
   // Language
   "lang.en": "English",

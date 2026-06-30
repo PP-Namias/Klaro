@@ -36,6 +36,7 @@ import {
   xrayReportDemo,
 } from "~/data/demo-index";
 import styles from "../../app/scan/page.module.css";
+import { useLanguage } from "~/providers/language-provider";
 
 interface ScannerUIProps {
   initialAnalysisId?: string;
@@ -53,6 +54,8 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const [demoModalOpen, setDemoModalOpen] = useState(false);
   const [activeDemoType, setActiveDemoType] = useState<DemoType>("lab");
   const [demoLanguage, setDemoLanguage] = useState<DemoLanguage>("tl");
+
+  const { t } = useLanguage();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -283,12 +286,12 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
           }}
         >
           <h1 className={styles.title}>
-            Scan Your Results. Understand Them Instantly.
+            {t("scan.title")}
           </h1>
           <p className={styles.subtitle}>
-            Upload your medical documents and get clear explanations
+            {t("scan.subtitle")}
             <br />
-            then ask <span className={styles.claraText}>Clara</span> anything
+            {t("scan.askClara")}
           </p>
         </motion.div>
 
@@ -306,9 +309,9 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDemo("lab"); } }}
             style={{ cursor: "pointer" }}
           >
-            <h3 className={styles.scanCardTitle}>Lab Results</h3>
+            <h3 className={styles.scanCardTitle}>{t("card.labResults")}</h3>
             <p className={styles.scanCardDesc}>
-              Blood tests, CBC, cholesterol, and more
+              {t("card.labResults.desc")}
             </p>
             <div className={styles.scanCardImageContainer}>
               <Image
@@ -318,7 +321,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
-            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>Click to see demo</span>
+            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>{t("card.demo")}</span>
           </div>
 
           <div
@@ -329,9 +332,9 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDemo("prescription"); } }}
             style={{ cursor: "pointer" }}
           >
-            <h3 className={styles.scanCardTitle}>Prescriptions</h3>
+            <h3 className={styles.scanCardTitle}>{t("card.prescriptions")}</h3>
             <p className={styles.scanCardDesc}>
-              Understand medicines and instructions clearly
+              {t("card.prescriptions.desc")}
             </p>
             <div className={styles.scanCardImageContainer}>
               <Image
@@ -341,7 +344,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
-            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>Click to see demo</span>
+            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>{t("card.demo")}</span>
           </div>
 
           <div
@@ -353,12 +356,10 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             style={{ cursor: "pointer" }}
           >
             <h3 className={styles.scanCardTitle}>
-              Discharge
-              <br />
-              Summaries
+              {t("card.discharge")}<br/>{t("card.dischargeSummaries")}
             </h3>
             <p className={styles.scanCardDesc}>
-              Break down hospital notes and next steps
+              {t("card.discharge.desc")}
             </p>
             <div className={styles.scanCardImageContainer}>
               <Image
@@ -368,7 +369,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
-            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>Click to see demo</span>
+            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>{t("card.demo")}</span>
           </div>
 
           <div
@@ -380,12 +381,10 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             style={{ cursor: "pointer" }}
           >
             <h3 className={styles.scanCardTitle}>
-              Other
-              <br />
-              Documents
+              {t("card.otherDocuments")}<br/>{t("card.otherDocumentsLabel")}
             </h3>
             <p className={styles.scanCardDesc}>
-              Upload any medical file and we'll analyze it
+              {t("card.otherDocuments.desc")}
             </p>
             <div className={styles.scanCardImageContainer}>
               <Image
@@ -395,7 +394,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
-            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>Click to see demo</span>
+            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>{t("card.demo")}</span>
           </div>
         </motion.div>
 
@@ -418,21 +417,12 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             <div className={styles.claraChatBubble}>
               {uploadComplete && uploadedRequestId ? (
                 <span>
-                  Great — your document has been scanned! Ask me anything about
-                  your results.
+                  {t("clara.greeting.scanned")}
                 </span>
               ) : capturedImage ? (
-                <span>Great — your photo is ready for the scan step.</span>
+                <span>{t("clara.greeting.ready")}</span>
               ) : (
-                <>
-                  Hi! <span className={styles.mediumText}>Start Scanning</span>{" "}
-                  or <span className={styles.mediumText}>Upload a document</span>{" "}
-                  and{" "}
-                  <span className={styles.mediumText}>
-                    ask me a health question
-                  </span>
-                  .
-                </>
+                <>{t("clara.greeting.welcome")}</>
               )}
             </div>
           </div>
@@ -599,10 +589,10 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
 
             <div className={styles.footerNotes}>
               <div className={styles.footerNoteItem}>
-                <Bot size={16} /> Analysis & Chat
+                <Bot size={16} /> {t("scan.analysisChat")}
               </div>
               <div className={styles.footerNoteItem}>
-                <Lock size={16} /> Your data is private and secure.
+                <Lock size={16} /> {t("scan.privacy")}
               </div>
             </div>
 
@@ -754,7 +744,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                           flex: 1,
                         }}
                       >
-                        Image attached
+                        {t("chat.imageAttached")}
                       </span>
                       <button
                         onClick={() => setChatAttachment(null)}
@@ -772,7 +762,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                   )}
                   <textarea
                     className={styles.chatTextArea}
-                    placeholder="Upload a medical document or ask a health question..."
+                    placeholder={t("chat.placeholder")}
                     rows={1}
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
