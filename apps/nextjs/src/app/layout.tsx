@@ -8,6 +8,7 @@ import { Toaster } from "@klaro/ui/toast";
 import { LenisProvider } from "~/components/lenis-provider";
 import { ScrollToTopButton } from "~/components/scroll-to-top-button";
 import { env } from "~/env";
+import { LanguageProvider } from "~/providers/language-provider";
 import { TRPCReactProvider } from "~/trpc/react";
 import { GlobalBookingModal } from "~/components/GlobalBookingModal";
 
@@ -79,17 +80,19 @@ export default function RootLayout(
         )}
       >
         <ThemeProvider>
-          <LenisProvider>
-            <TRPCReactProvider>
-              {props.children}
-              <GlobalBookingModal />
-            </TRPCReactProvider>
-            <div className="absolute right-4 bottom-4">
-              <ThemeToggle />
-            </div>
-            <ScrollToTopButton />
-            <Toaster />
-          </LenisProvider>
+          <LanguageProvider>
+            <LenisProvider>
+              <TRPCReactProvider>
+                {props.children}
+                <GlobalBookingModal />
+              </TRPCReactProvider>
+              <div className="absolute right-4 bottom-4">
+                <ThemeToggle />
+              </div>
+              <ScrollToTopButton />
+              <Toaster />
+            </LenisProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

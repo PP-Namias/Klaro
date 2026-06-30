@@ -1,0 +1,84 @@
+"use client";
+
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+
+import type { Language } from "@klaro/validators/language";
+import { DEFAULT_LANGUAGE } from "@klaro/validators/language";
+
+import { t as translate, type TranslationKeys } from "~/i18n";
+
+interface LanguageContextValue {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}
+
+const LanguageContext = createContext<LanguageContextValue | null>(null);
+
+const STORAGE_KEY = "klaro-language";
+
+function getStoredLanguage(): Language {
+  if (typeof window === "undefined") return DEFAULT_LANGUAGE;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored && ["en", "fil", "ceb", "ilo"].includes(stored)) {
+      return stored as Language;
+    }
+  } catch {
+    // localStorage not available
+  }
+  return DEFAULT_LANGUAGE;
+}
+
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setLanguageState(getStoredLanguage());
+    setMounted(true);
+  }, []);
+
+  const setLanguage = useCallback((lang: Language) => {
+    setLanguageState(lang);
+    try {
+      localStorage.setItem(STORAGE_KEY, lang);
+    } catch {
+      // localStorage not available
+    }
+  }, []);
+
+  const tFn = useCallback(
+    (key: string, params?: Record<string, string | number>) => {
+      return translate(language, key, params);
+    },
+    [language],
+  );
+
+  const value = useMemo(
+    () => ({
+      language: mounted ? language : DEFAULT_LANGUAGE,
+      setLanguage,
+      t: tFn,
+    }),
+    [language, mounted, setLanguage, tFn],
+  );
+
+  return (
+    <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
+  );
+}
+
+export function useLanguage(): LanguageContextValue {
+  const ctx = useContext(LanguageContext);
+  if (!ctx) {
+    return {
+      language: DEFAULT_LANGUAGE,
+      setLanguage: () => {},
+      t: (key: string) => key,
+    };
+  }
+  return ctx;
+}
+
+export type { TranslationKeys };
