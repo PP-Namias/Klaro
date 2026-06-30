@@ -131,6 +131,7 @@ const ceb: Record<string, string> = {
   "upload.processingImage": "Giproseso ang nakuha nga litrato gamit ang Gemini...",
   "upload.failedReadFile": "Napakyas sa pagbasa sa file",
   "upload.failedProcessImage": "Napakyas sa pagproseso sa nakuha nga litrato",
+  "upload.scanComplete": "Humanay na ang scan.",
   "upload.success": "Malampuson nga na-scan ang dokumento!",
   "upload.scanFailed": "Napakyas ang scan",
   "upload.scanFailedRetry": "Dili ma-scan ang dokumento. Palihog sulayi pag-usab.",

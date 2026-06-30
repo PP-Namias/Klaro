@@ -131,6 +131,7 @@ const en = {
   "upload.processingImage": "Processing captured image with Gemini...",
   "upload.failedReadFile": "Failed to read file",
   "upload.failedProcessImage": "Failed to process captured image",
+  "upload.scanComplete": "Scan complete.",
   "upload.success": "Document scanned successfully!",
   "upload.scanFailed": "Scan failed",
   "upload.scanFailedRetry": "Could not scan the document. Please try again.",

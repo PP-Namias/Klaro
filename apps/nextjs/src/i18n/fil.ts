@@ -131,6 +131,7 @@ const fil: Record<string, string> = {
   "upload.processingImage": "Pinoproseso ang nakuha na larawan gamit ang Gemini...",
   "upload.failedReadFile": "Nabigong basahin ang file",
   "upload.failedProcessImage": "Nabigong iproseso ang nakuha na larawan",
+  "upload.scanComplete": "Tapos na ang scan.",
   "upload.success": "Matagumpay na na-scan ang dokumento!",
   "upload.scanFailed": "Nabigo ang scan",
   "upload.scanFailedRetry": "Hindi na-scan ang dokumento. Mangyaring subukan ulit.",

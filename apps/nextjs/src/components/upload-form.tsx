@@ -9,6 +9,8 @@ import { toast } from "@klaro/ui/toast";
 
 import { saveScanAnalysisSession } from "~/components/scan-session";
 import { useTRPC } from "~/trpc/react";
+import { useLanguage } from "~/providers/language-provider";
+import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 
 interface SelectedFile {
   file: File;
@@ -68,6 +70,8 @@ export function UploadForm() {
   const [scanState, setScanState] = useState<ScanUIState>("idle");
   const [cameraActive, setCameraActive] = useState(false);
 
+  const { t, language } = useLanguage();
+
   const isProcessing = scanState === "uploading" || scanState === "processing";
 
   const trpc = useTRPC();
@@ -93,7 +97,7 @@ export function UploadForm() {
         }
 
         setScanState("completed");
-        setUploadStatus("Scan complete.");
+        setUploadStatus(t("upload.scanComplete"));
         saveScanAnalysisSession({
           requestId: result.requestId,
           status: "completed",
@@ -137,12 +141,12 @@ export function UploadForm() {
               ? result.analysis
               : undefined,
         });
-        toast.success("Document scanned successfully!");
+        toast.success(t("upload.success"));
         router.push(`/scan?id=${result.requestId}`);
       },
       onError: () => {
         setScanState("error");
-        const message = "Could not scan the document. Please try again.";
+        const message = t("upload.scanFailedRetry");
         setUploadStatus(message);
         toast.error(message);
       },
@@ -209,7 +213,7 @@ export function UploadForm() {
   const selectFile = (file: File) => {
     if (!acceptedTypes.has(file.type)) {
       setError(
-        "File type not supported. Please use PNG, JPG, PDF, WebP, TIFF, BMP, or GIF.",
+        t("upload.fileTypeNotSupported"),
       );
       setSelected(null);
       setScanState("error");
@@ -217,7 +221,7 @@ export function UploadForm() {
     }
 
     if (file.size > maxFileSize) {
-      setError("File size must be under 50 MB.");
+      setError(t("upload.fileSizeTooLarge"));
       setSelected(null);
       setScanState("error");
       return;
@@ -253,20 +257,20 @@ export function UploadForm() {
 
   const handleSubmit = async () => {
     if (!selected) {
-      setError("Please select a file to scan.");
+      setError(t("upload.selectFile"));
       setScanState("error");
       return;
     }
 
     const pendingRequestId = `scan-pending-${Date.now()}`;
     setScanState("uploading");
-    setUploadStatus("Uploading document...");
+    setUploadStatus(t("upload.uploadingDoc"));
     saveScanAnalysisSession({
       requestId: pendingRequestId,
       status: "pending",
-      language: "English",
+      language: LANGUAGE_TO_DIALECT[language],
       plainLanguageSummary:
-        "Your scan is uploading and will be processed shortly.",
+        t("upload.sessionUploading"),
       warnings: ["processing_in_progress"],
       timestamp: new Date().toISOString(),
     });
@@ -274,15 +278,15 @@ export function UploadForm() {
     try {
       const base64 = await fileToBase64(selected.file);
       setScanState("processing");
-      setUploadStatus("Processing with Gemini...");
+      setUploadStatus(t("upload.processingWithGemini"));
       scanGuestImage.mutate({
         base64Image: base64,
         fileName: selected.file.name,
-        language: "English",
+        language: LANGUAGE_TO_DIALECT[language] as "English" | "Filipino" | "Bisaya" | "Ilocano",
       });
     } catch (err) {
       setScanState("error");
-      const msg = err instanceof Error ? err.message : "Failed to read file";
+      const msg = err instanceof Error ? err.message : t("upload.failedReadFile");
       setError(msg);
       setUploadStatus(msg);
     }
@@ -309,29 +313,29 @@ export function UploadForm() {
 
     const pendingRequestId = `scan-pending-${Date.now()}`;
     setScanState("uploading");
-    setUploadStatus("Uploading captured image...");
+    setUploadStatus(t("upload.uploadingImage"));
     saveScanAnalysisSession({
       requestId: pendingRequestId,
       status: "pending",
-      language: "English",
+      language: LANGUAGE_TO_DIALECT[language],
       plainLanguageSummary:
-        "Your captured image is uploading and being processed.",
+        t("upload.imageUploading"),
       warnings: ["processing_in_progress"],
       timestamp: new Date().toISOString(),
     });
 
     try {
       setScanState("processing");
-      setUploadStatus("Processing captured image with Gemini...");
+      setUploadStatus(t("upload.processingImage"));
       scanGuestImage.mutate({
         base64Image: base64,
         fileName: file.name,
-        language: "English",
+        language: LANGUAGE_TO_DIALECT[language] as "English" | "Filipino" | "Bisaya" | "Ilocano",
       });
     } catch (err) {
       setScanState("error");
       const message =
-        err instanceof Error ? err.message : "Failed to process captured image";
+        err instanceof Error ? err.message : t("upload.failedProcessImage");
       setUploadStatus(message);
       toast.error(message);
     }
@@ -407,7 +411,7 @@ export function UploadForm() {
                   cursor: "pointer",
                 }}
               >
-                📸 Take a photo & Scan here
+                {t("upload.takePhoto")}
               </Button>
             </div>
           </>
@@ -425,7 +429,7 @@ export function UploadForm() {
               textAlign: "center",
             }}
           >
-            <p>Camera not available. Use the upload option below.</p>
+            <p>{t("upload.cameraNotAvailable")}</p>
           </div>
         )}
         <canvas ref={canvasRef} style={{ display: "none" }} />
@@ -473,7 +477,7 @@ export function UploadForm() {
             }}
             disabled={isProcessing}
           >
-            📎 Drag or Upload a document
+            {t("upload.dragOrUpload")}
           </Button>
         </div>
         <input
@@ -525,8 +529,7 @@ export function UploadForm() {
             borderRadius: "6px",
           }}
         >
-          The scheduler is still loading and may continue in the background. You
-          can keep waiting here or open booking in a new tab.
+          {t("upload.schedulerLoading")}
         </p>
       )}
 
@@ -608,7 +611,7 @@ export function UploadForm() {
               onClick={clearSelection}
               disabled={isProcessing}
             >
-              Remove file
+              {t("upload.removeFile")}
             </Button>
             <Button
               type="button"
@@ -616,7 +619,7 @@ export function UploadForm() {
               disabled={!selected || isProcessing}
               onClick={handleSubmit}
             >
-              {isProcessing ? "Scanning..." : "Scan with AI"}
+              {isProcessing ? t("upload.scanning") : t("upload.scanWithAI")}
             </Button>
           </div>
         </div>

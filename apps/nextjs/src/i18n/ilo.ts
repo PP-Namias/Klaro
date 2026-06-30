@@ -131,6 +131,7 @@ const ilo: Record<string, string> = {
   "upload.processingImage": "Kinakararag ti naaramid a larawan iti Gemini...",
   "upload.failedReadFile": "Napigsa a basaen ti file",
   "upload.failedProcessImage": "Napigsa a kararagén ti naaramid a larawan",
+  "upload.scanComplete": "N tapos na ti scan.",
   "upload.success": "Napigsa a na-scan ti dokumento!",
   "upload.scanFailed": "Napigsa ti scan",
   "upload.scanFailedRetry": "Saan a mascan ti dokumento. Mangngaarna ti isagmamem.",
