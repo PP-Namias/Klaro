@@ -3,6 +3,9 @@
 import { useCallback, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
+import type { Language } from "@klaro/validators/language";
+import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
+
 import { useTRPC } from "~/trpc/react";
 import {
   validateFiles,
@@ -11,6 +14,7 @@ import {
 import type { UploadStage } from "~/components/upload-progress";
 
 interface UseFileUploadOptions {
+  language?: Language;
   onSuccess?: (requestId: string) => void;
   onError?: (error: string) => void;
 }
@@ -26,6 +30,7 @@ interface UseFileUploadReturn {
 }
 
 export function useFileUpload({
+  language = "fil",
   onSuccess,
   onError,
 }: UseFileUploadOptions = {}): UseFileUploadReturn {
@@ -103,6 +108,7 @@ export function useFileUpload({
         scanGuestImage.mutate({
           base64Image: base64,
           fileName: file.name,
+          language: LANGUAGE_TO_DIALECT[language],
         });
       } catch (err) {
         setStage("error");
@@ -111,7 +117,7 @@ export function useFileUpload({
         onError?.(message);
       }
     },
-    [scanGuestImage, onError],
+    [scanGuestImage, language, onError],
   );
 
   const reset = useCallback(() => {

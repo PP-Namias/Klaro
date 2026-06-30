@@ -155,7 +155,7 @@ export const chatRouter = {
         recentMessages,
       );
 
-      const systemPrompt = `You are a helpful health assistant. Keep responses brief, supportive, and ask one follow-up question when appropriate. If safety guidance is present, include it before any other advice.`;
+      const systemPrompt = `You are a helpful health assistant. Keep responses brief, supportive, and ask one follow-up question when appropriate. If safety guidance is present, include it before any other advice. IMPORTANT: Respond in the patient's preferred language: ${input.dialect}.`;
       const safetyPrefix =
         ctx.chatSafety?.severity === "HIGH" && ctx.chatSafety.bookingSuggestion
           ? `${ctx.chatSafety.disclaimer}\n${ctx.chatSafety.bookingSuggestion}\n\n`

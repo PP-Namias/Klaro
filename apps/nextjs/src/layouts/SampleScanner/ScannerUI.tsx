@@ -37,6 +37,7 @@ import {
 } from "~/data/demo-index";
 import styles from "../../app/scan/page.module.css";
 import { useLanguage } from "~/providers/language-provider";
+import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 
 interface ScannerUIProps {
   initialAnalysisId?: string;
@@ -55,7 +56,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const [activeDemoType, setActiveDemoType] = useState<DemoType>("lab");
   const [demoLanguage, setDemoLanguage] = useState<DemoLanguage>("tl");
 
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,6 +64,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const sectionRef = useRef<HTMLElement>(null);
 
   const fileUpload = useFileUpload({
+    language,
     onSuccess: (requestId) => {
       setUploadedRequestId(requestId);
     },
@@ -70,6 +72,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
 
   const chat = useChat({
     analysisId: initialAnalysisId || uploadedRequestId || undefined,
+    dialect: LANGUAGE_TO_DIALECT[language],
   });
 
   useEffect(() => {
