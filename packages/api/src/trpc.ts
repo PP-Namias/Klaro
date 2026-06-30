@@ -13,6 +13,7 @@ import { z, ZodError } from "zod/v4";
 
 import type { Auth } from "@klaro/auth";
 import { db } from "@klaro/db/client";
+import type { Language } from "@klaro/validators/language";
 
 /**
  * 1. CONTEXT
@@ -36,11 +37,19 @@ export const createTRPCContext = async (opts: {
   const session = await authApi.getSession({
     headers: opts.headers,
   });
+
+  const rawLang = opts.headers.get("x-klaro-language");
+  const language: Language =
+    rawLang && ["en", "fil", "ceb", "ilo"].includes(rawLang)
+      ? (rawLang as Language)
+      : "fil";
+
   return {
     authApi,
     session,
     db,
     traceId,
+    language,
   };
 };
 
