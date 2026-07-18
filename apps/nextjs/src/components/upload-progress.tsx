@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Check, Loader2, AlertCircle } from "lucide-react";
+import { Check, Loader2, AlertCircle, Scan, Brain, FileText } from "lucide-react";
 
 import styles from "./upload-progress.module.css";
 
@@ -32,12 +32,25 @@ const stageIcons: Record<UploadStage, React.ReactNode> = {
   error: <AlertCircle size={14} />,
 };
 
+const pipelineStages = [
+  { key: "ocr", label: "Checking document clarity", icon: <Scan size={16} /> },
+  { key: "gemini", label: "Reading with Gemini", icon: <Brain size={16} /> },
+  { key: "simplify", label: "Simplifying for you", icon: <FileText size={16} /> },
+  { key: "done", label: "Analysis complete", icon: <Check size={16} /> },
+];
+
 export function UploadProgress({ stage, progress = 0, error, className }: UploadProgressProps) {
   if (stage === "idle") return null;
 
   const isActive = stage === "validating" || stage === "uploading" || stage === "processing";
   const isComplete = stage === "complete";
   const isError = stage === "error";
+
+  const currentPipelineStep = stage === "validating" ? -1
+    : stage === "uploading" ? 0
+    : stage === "processing" ? 1
+    : stage === "complete" ? 3
+    : -1;
 
   return (
     <div
@@ -52,6 +65,57 @@ export function UploadProgress({ stage, progress = 0, error, className }: Upload
           <span className={styles.progressPercent}>{Math.round(progress)}%</span>
         )}
       </div>
+
+      {(stage === "uploading" || stage === "processing" || stage === "complete") && (
+        <div style={{ marginTop: "1rem" }}>
+          {pipelineStages.map((ps, idx) => {
+            const isPast = currentPipelineStep > idx;
+            const isCurrent = currentPipelineStep === idx;
+            const isPending = currentPipelineStep < idx;
+
+            return (
+              <div
+                key={ps.key}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.4rem 0",
+                  opacity: isPending ? 0.4 : 1,
+                  transition: "opacity 0.3s ease",
+                }}
+              >
+                <div
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: isPast ? "#22c55e" : isCurrent ? "#3b82f6" : "#e5e7eb",
+                    color: isPast || isCurrent ? "#fff" : "#9ca3af",
+                    fontSize: "12px",
+                    transition: "all 0.3s ease",
+                  }}
+                >
+                  {isPast ? <Check size={14} /> : ps.icon}
+                </div>
+                <span
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: isCurrent ? 600 : 400,
+                    color: isPast ? "#16a34a" : isCurrent ? "#1e40af" : "#6b7280",
+                  }}
+                >
+                  {ps.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {isActive && (
         <div className={styles.progressBar}>
           <div

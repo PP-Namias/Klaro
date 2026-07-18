@@ -107,12 +107,77 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
   }
 
   if (result.status === "error") {
+    const rejectionAdvice = result.error?.includes("blurry") || result.error?.includes("clarity")
+      ? result.error
+      : null;
+
     return (
       <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
         <h1 style={{ color: "#d32f2f" }}>{t("results.scanFailed")}</h1>
-        <p>
-          {result.error || t("results.scanError")}
-        </p>
+
+        {result.confidence !== undefined && result.confidence < 0.7 && (
+          <div
+            style={{
+              marginTop: "1rem",
+              padding: "1rem",
+              backgroundColor: "#fff3e0",
+              borderRadius: "8px",
+              borderLeft: "4px solid #ff9800",
+            }}
+          >
+            <p style={{ margin: 0, fontWeight: "600" }}>
+              Document clarity: {Math.round(result.confidence * 100)}%
+            </p>
+            <div
+              style={{
+                width: "100%",
+                height: "8px",
+                backgroundColor: "#ddd",
+                borderRadius: "4px",
+                marginTop: "0.5rem",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${Math.round(result.confidence * 100)}%`,
+                  height: "100%",
+                  borderRadius: "4px",
+                  backgroundColor:
+                    result.confidence >= 0.7
+                      ? "#22c55e"
+                      : result.confidence >= 0.5
+                        ? "#eab308"
+                        : "#ef4444",
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {rejectionAdvice && (
+          <div
+            style={{
+              marginTop: "1rem",
+              padding: "1rem",
+              backgroundColor: "#fef9c3",
+              borderRadius: "8px",
+              borderLeft: "4px solid #eab308",
+            }}
+          >
+            <p style={{ margin: 0, fontSize: "0.9rem" }}>
+              {rejectionAdvice}
+            </p>
+            <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "#666" }}>
+              Tip: Place the document flat on a table in good lighting. Hold your camera steady and ensure all text is readable.
+            </p>
+          </div>
+        )}
+
+        {!rejectionAdvice && (
+          <p>{result.error || t("results.scanError")}</p>
+        )}
+
         <Button onClick={onScanAgain} style={{ marginTop: "1rem" }}>
           {t("btn.tryAgain")}
         </Button>
@@ -184,7 +249,7 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
         </div>
       )}
 
-      {/* Confidence Score */}
+      {/* Confidence Score + Source Badge */}
       {result.confidence !== undefined && (
         <div
           style={{
@@ -194,35 +259,95 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             marginBottom: "1.5rem",
           }}
         >
-          <p style={{ margin: 0, fontWeight: "500" }}>{t("results.confidence")}</p>
-          <div style={{ marginTop: "0.5rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "0.5rem",
+            }}
+          >
+            <p style={{ margin: 0, fontWeight: "500" }}>{t("results.confidence")}</p>
+
+            {result.source && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
+                  padding: "0.2rem 0.6rem",
+                  borderRadius: "999px",
+                  fontSize: "0.7rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  border: "1px solid",
+                  backgroundColor:
+                    result.source === "gemini"
+                      ? "#e8f5e9"
+                      : result.source === "llm"
+                        ? "#e3f2fd"
+                        : "#fff3e0",
+                  borderColor:
+                    result.source === "gemini"
+                      ? "#a5d6a7"
+                      : result.source === "llm"
+                        ? "#90caf9"
+                        : "#ffcc80",
+                  color:
+                    result.source === "gemini"
+                      ? "#2e7d32"
+                      : result.source === "llm"
+                        ? "#1565c0"
+                        : "#e65100",
+                }}
+              >
+                {result.source === "gemini" ? "AI" : result.source === "llm" ? "LLM" : "Fallback"}
+              </span>
+            )}
+          </div>
+
+          <div
+            style={{
+              width: "100%",
+              height: "10px",
+              backgroundColor: "#ddd",
+              borderRadius: "5px",
+              overflow: "hidden",
+            }}
+          >
             <div
               style={{
-                width: "100%",
-                height: "8px",
-                backgroundColor: "#ddd",
-                borderRadius: "4px",
-                overflow: "hidden",
+                width: `${Math.round(result.confidence * 100)}%`,
+                height: "100%",
+                borderRadius: "5px",
+                transition: "width 0.5s ease",
+                backgroundColor:
+                  result.confidence >= 0.7
+                    ? "#22c55e"
+                    : result.confidence >= 0.5
+                      ? "#eab308"
+                      : "#ef4444",
               }}
-            >
-              <div
-                style={{
-                  width: `${Math.round(result.confidence * 100)}%`,
-                  height: "100%",
-                  backgroundColor: "#4caf50",
-                }}
-              />
-            </div>
-            <p
-              style={{
-                margin: "0.5rem 0 0 0",
-                fontSize: "0.9rem",
-                color: "#666",
-              }}
-            >
-              {Math.round(result.confidence * 100)}{t("results.confident")}
-            </p>
+            />
           </div>
+          <p
+            style={{
+              margin: "0.5rem 0 0 0",
+              fontSize: "0.85rem",
+              color:
+                result.confidence >= 0.7
+                  ? "#16a34a"
+                  : result.confidence >= 0.5
+                    ? "#ca8a04"
+                    : "#dc2626",
+            }}
+          >
+            {result.confidence >= 0.7
+              ? "High confidence — results reliable"
+              : result.confidence >= 0.5
+                ? "Moderate confidence — review recommended"
+                : "Low confidence — results may be inaccurate"}
+          </p>
         </div>
       )}
 
