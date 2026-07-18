@@ -26,7 +26,7 @@ import { runOcrWithRetry } from "../ocrPipeline";
 import { executeFallbackChain } from "../geminiPipeline";
 
 function makeOcrResult(overrides: Partial<OcrPipelineResult> = {}): OcrPipelineResult {
-  return {
+  const defaults = {
     success: true,
     accepted: true,
     text: "Glucose: 95 mg/dL\nCholesterol: 180 mg/dL",
@@ -35,8 +35,14 @@ function makeOcrResult(overrides: Partial<OcrPipelineResult> = {}): OcrPipelineR
     source: "local",
     warnings: [],
     processingTimeMs: 100,
-    ...overrides,
   };
+  return {
+    ...defaults,
+    ...overrides,
+    rejectionAdvice: overrides.accepted === false && overrides.rejectionAdvice === undefined
+      ? "The document appears too blurry or unclear."
+      : overrides.rejectionAdvice,
+  } as OcrPipelineResult;
 }
 
 function makeGeminiResult(overrides: Partial<FallbackChainResult> = {}): FallbackChainResult {

@@ -136,6 +136,8 @@ export async function executeDocumentPipeline(
     };
   }
 
+  warnings.push(...ocrResult.warnings);
+
   if (ocrResult.pages.length > 1) {
     const confidences = ocrResult.pages.map((p) => p.confidence);
     const minC = Math.min(...confidences);
