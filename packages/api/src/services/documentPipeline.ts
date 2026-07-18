@@ -136,6 +136,23 @@ export async function executeDocumentPipeline(
     };
   }
 
+  if (ocrResult.pages.length > 1) {
+    const confidences = ocrResult.pages.map((p) => p.confidence);
+    const minC = Math.min(...confidences);
+    const maxC = Math.max(...confidences);
+    if (maxC - minC > 0.3) {
+      warnings.push(
+        `Confidence varies significantly across pages (low: ${Math.round(minC * 100)}%, high: ${Math.round(maxC * 100)}%)`,
+      );
+    }
+    const lowPages = ocrResult.pages
+      .filter((p) => p.confidence < 0.6)
+      .map((p) => `page ${p.pageNumber}`);
+    if (lowPages.length > 0) {
+      warnings.push(`Low clarity on ${lowPages.join(", ")} — results may be less accurate for those pages`);
+    }
+  }
+
   const geminiStart = Date.now();
   const geminiResult: FallbackChainResult = await executeFallbackChain(
     imageToProcess,
