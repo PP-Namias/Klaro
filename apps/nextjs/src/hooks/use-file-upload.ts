@@ -67,7 +67,7 @@ export function useFileUpload({
 
   const upload = useCallback(
     async (files: File[]) => {
-      const { valid, invalid } = validateFiles(files);
+      const { valid, invalid } = await validateFiles(files);
 
       if (invalid.length > 0 && invalid[0]) {
         const errorMsg = invalid[0].error ?? "Invalid file";

@@ -149,8 +149,8 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     setDemoModalOpen(true);
   }, []);
 
-  const handleFilesSelected = useCallback((files: File[]) => {
-    const { valid, invalid } = validateFiles(files);
+  const handleFilesSelected = useCallback(async (files: File[]) => {
+    const { valid, invalid } = await validateFiles(files);
 
     if (invalid.length > 0) {
       alert(invalid.map((i) => i.error).join("\n"));
