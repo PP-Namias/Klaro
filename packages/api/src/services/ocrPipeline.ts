@@ -155,12 +155,20 @@ export async function runOcrWithRetry(
   };
 }
 
-export function buildRejectionResponse(result: OcrPipelineResult) {
+export function buildRejectionResponse(
+  result: OcrPipelineResult,
+  language: string = "English",
+) {
+  const validLanguages = ["English", "Filipino", "Bisaya", "Ilocano"] as const;
+  const lang = validLanguages.includes(language as typeof validLanguages[number])
+    ? (language as typeof validLanguages[number])
+    : "English";
+
   return {
     requestId: `rejected-${Date.now()}`,
     status: "error" as const,
     source: "fallback" as const,
-    language: "English",
+    language: lang,
     confidence: result.confidence,
     extractedData: {},
     warnings: result.warnings,

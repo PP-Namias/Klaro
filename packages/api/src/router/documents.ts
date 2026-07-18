@@ -725,12 +725,21 @@ export const documentsRouter = {
   /**
    * Public guest endpoint: scan medical image with Gemini AI
    * No authentication required - guest uploads get temporary session
+   * Pipeline: OCR confidence gate → Gemini AI → plain-language result
    */
   scanGuestImage: publicProcedure
     .input(scanGuestInputSchema)
     .mutation(async ({ input }) => {
       const geminiApiUrl =
         process.env.GEMINI_SCAN_API_URL || "http://localhost:3001";
+
+      const { runOcrWithRetry, buildRejectionResponse } = await import("../services/ocrPipeline");
+
+      const ocrResult = await runOcrWithRetry(input.base64Image);
+
+      if (!ocrResult.accepted) {
+        return buildRejectionResponse(ocrResult, input.language);
+      }
 
       try {
         const response = await fetch(`${geminiApiUrl}/api/scan`, {
@@ -751,6 +760,8 @@ export const documentsRouter = {
               patientAge: input.patientAge,
               patientSex: input.patientSex,
               facilityName: input.facilityName,
+              ocrConfidence: ocrResult.confidence,
+              ocrText: ocrResult.text,
             },
           }),
         });
