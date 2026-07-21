@@ -4,7 +4,7 @@ RUN corepack enable
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY tooling/ ./tooling/
 COPY packages/ai-sidecar/package.json ./packages/ai-sidecar/
-RUN pnpm install --frozen-lockfile --filter @klaro/ai-sidecar
+RUN pnpm install --no-frozen-lockfile --filter @klaro/ai-sidecar
 COPY packages/ai-sidecar/ ./packages/ai-sidecar/
 RUN pnpm --filter @klaro/ai-sidecar run build
 
@@ -17,4 +17,4 @@ COPY --from=builder /app/node_modules ./node_modules
 USER sidecar
 ENV NODE_ENV=production
 EXPOSE 3002
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/server.js"]
