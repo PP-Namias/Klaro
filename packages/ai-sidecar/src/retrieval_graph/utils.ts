@@ -9,8 +9,7 @@ import {
 import { RunnableConfig } from '@langchain/core/runnables';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 
-import { loadChatModel } from '../shared/utils.js';
-import { isRateLimitError } from '../shared/utils.js';
+import { loadChatModel, isRateLimitError } from '../shared/utils.js';
 import { makeRetriever } from '../shared/retrieval.js';
 import {
   QA_SYSTEM_PROMPT,
@@ -66,9 +65,37 @@ export async function generateAnswer(
     | undefined;
   const modelName = c?.model ?? process.env.LLM_PROVIDER ?? 'openai';
   const temperature = c?.temperature ?? 0.3;
+  const fallbackModelSpec = process.env.CHAT_MODEL_FALLBACK;
 
-  const model = await loadChatModel(modelName, temperature);
+  const promptMessages = buildPromptMessages(question, docs, messages);
 
+  try {
+    const model = await loadChatModel(modelName, temperature);
+    const response = await invokeWithRetry(model, promptMessages, config);
+    return response.content.toString();
+  } catch (err) {
+    if (fallbackModelSpec && isRateLimitError(err)) {
+      console.warn(
+        `[ai-sidecar] Primary model "${modelName}" rate-limited, trying fallback "${fallbackModelSpec}"`,
+      );
+      try {
+        const fallbackModel = await loadChatModel(fallbackModelSpec, temperature);
+        const fallbackResponse = await invokeWithRetry(fallbackModel, promptMessages, config);
+        return fallbackResponse.content.toString();
+      } catch (fallbackErr) {
+        console.error(`[ai-sidecar] Fallback model "${fallbackModelSpec}" also failed`);
+        throw fallbackErr;
+      }
+    }
+    throw err;
+  }
+}
+
+function buildPromptMessages(
+  question: string,
+  docs: Document[],
+  messages: BaseMessage[],
+): BaseMessage[] {
   const contextStr = formatDocsAsString(docs);
   const historyStr = formatMessagesToHistory(messages);
 
@@ -77,20 +104,14 @@ export async function generateAnswer(
       ? QA_SYSTEM_PROMPT.replace('{context}', contextStr)
       : QA_SYSTEM_PROMPT_NO_CONTEXT;
 
-  const systemMessage = new SystemMessage(systemPrompt);
-
-  const promptMessages: BaseMessage[] = [systemMessage];
+  const result: BaseMessage[] = [new SystemMessage(systemPrompt)];
 
   if (historyStr.trim()) {
-    promptMessages.push(
-      new SystemMessage(`Previous conversation:\n${historyStr}`),
-    );
+    result.push(new SystemMessage(`Previous conversation:\n${historyStr}`));
   }
 
-  promptMessages.push(new HumanMessage(question));
-
-  const response = await invokeWithRetry(model, promptMessages, config);
-  return response.content.toString();
+  result.push(new HumanMessage(question));
+  return result;
 }
 
 async function invokeWithRetry(

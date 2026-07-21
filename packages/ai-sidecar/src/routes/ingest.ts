@@ -55,4 +55,17 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
   }
 });
 
+router.use((err: any, _req: Request, res: Response, _next: any) => {
+  if (err?.message?.startsWith?.('Unsupported file type')) {
+    res.status(400).json({ error: err.message });
+    return;
+  }
+  if (err?.code === 'LIMIT_FILE_SIZE' || err?.message?.includes?.('File too large')) {
+    res.status(400).json({ error: 'File too large (max 20MB)' });
+    return;
+  }
+  console.error('[ai-sidecar] Upload error:', err.message ?? err);
+  res.status(500).json({ error: err.message ?? 'Upload failed' });
+});
+
 export default router;
