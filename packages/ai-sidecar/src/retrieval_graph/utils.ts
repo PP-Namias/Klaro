@@ -1,4 +1,5 @@
 import { Document } from '@langchain/core/documents';
+import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import {
   BaseMessage,
   HumanMessage,
@@ -9,6 +10,7 @@ import { RunnableConfig } from '@langchain/core/runnables';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 
 import { loadChatModel } from '../shared/utils.js';
+import { isRateLimitError } from '../shared/utils.js';
 import { makeRetriever } from '../shared/retrieval.js';
 import {
   QA_SYSTEM_PROMPT,
@@ -44,8 +46,13 @@ export async function retrieveDocs(
   question: string,
   config?: RunnableConfig,
 ): Promise<Document[]> {
-  const retriever = await makeRetriever(config);
-  return retriever.invoke(question);
+  try {
+    const retriever = await makeRetriever(config);
+    return await retriever.invoke(question);
+  } catch (err) {
+    console.warn('[ai-sidecar] Retriever unavailable, returning empty docs:', (err as Error).message);
+    return [];
+  }
 }
 
 export async function generateAnswer(
@@ -82,8 +89,30 @@ export async function generateAnswer(
 
   promptMessages.push(new HumanMessage(question));
 
-  const response = await model.invoke(promptMessages, config);
+  const response = await invokeWithRetry(model, promptMessages, config);
   return response.content.toString();
+}
+
+async function invokeWithRetry(
+  model: BaseChatModel,
+  messages: BaseMessage[],
+  config?: RunnableConfig,
+  maxRetries = 3,
+): Promise<AIMessage> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await model.invoke(messages, config);
+    } catch (err) {
+      if (isRateLimitError(err) && attempt < maxRetries) {
+        const delay = Math.pow(2, attempt) * 1000;
+        console.warn(`[ai-sidecar] Rate limited (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms`);
+        await new Promise((r) => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw new Error('Max retries exceeded');
 }
 
 export async function generateFollowUpQuestions(

@@ -29,26 +29,49 @@ export async function loadChatModel(
   }
 }
 
+const PROVIDER_ALIASES: Record<string, string> = {
+  gemini: 'google-genai',
+  gpt: 'openai',
+  claude: 'anthropic',
+  llama: 'ollama',
+};
+
+const DEFAULT_MODELS: Record<string, string> = {
+  'google-genai': 'gemini-2.0-flash',
+  ollama: 'llama3',
+};
+
 async function initSingleModel(
   spec: string,
   temperature: number,
 ): Promise<BaseChatModel> {
   const idx = spec.indexOf('/');
-  const provider = idx === -1 ? undefined : spec.slice(0, idx);
+  const rawProvider = idx === -1 ? undefined : spec.slice(0, idx);
   const model = idx === -1 ? spec : spec.slice(idx + 1);
 
-  const ctor = await resolveModelCtor(provider);
+  const normalizedProvider = rawProvider
+    ? (PROVIDER_ALIASES[rawProvider] ?? rawProvider)
+    : PROVIDER_ALIASES[spec] ?? undefined;
+
+  const resolvedModel =
+    normalizedProvider && PROVIDER_ALIASES[spec]
+      ? (DEFAULT_MODELS[normalizedProvider] ?? model)
+      : model;
+
+  const ctor = await resolveModelCtor(normalizedProvider);
   if (ctor) {
-    return new ctor(buildArgs(provider, model, temperature));
+    return new ctor(
+      buildArgs(normalizedProvider, resolvedModel, temperature),
+    );
   }
 
   console.warn(
-    `[ai-sidecar] Provider "${provider ?? 'none'}" not available, falling back to OpenAI`,
+    `[ai-sidecar] Provider "${normalizedProvider ?? 'none'}" not available, falling back to OpenAI`,
   );
   return new ChatOpenAI({
     model: spec,
     temperature,
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.OPENAI_API_KEY || process.env.LLM_API_KEY,
   });
 }
 
@@ -67,7 +90,10 @@ function buildArgs(
       return {
         ...base,
         model: model || 'gemini-2.0-flash',
-        apiKey: process.env.GOOGLE_GENAI_API_KEY,
+        apiKey:
+          process.env.GOOGLE_API_KEY ||
+          process.env.GOOGLE_GENAI_API_KEY ||
+          process.env.GEMINI_API_KEY,
       };
     case 'groq':
       return { ...base, apiKey: process.env.GROQ_API_KEY };
@@ -144,7 +170,7 @@ async function tryImport(
   }
 }
 
-function isRateLimitError(err: unknown): boolean {
+export function isRateLimitError(err: unknown): boolean {
   if (err instanceof Error) {
     const msg = err.message.toLowerCase();
     return (

@@ -1,4 +1,5 @@
 import { VectorStoreRetriever } from '@langchain/core/vectorstores';
+import { Embeddings } from '@langchain/core/embeddings';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { Chroma } from '@langchain/community/vectorstores/chroma';
 import { SupabaseVectorStore } from '@langchain/community/vectorstores/supabase';
@@ -10,7 +11,23 @@ import {
   type BaseConfiguration,
 } from './configuration.js';
 
-function getEmbeddings(model?: string) {
+async function getEmbeddings(model?: string): Promise<Embeddings> {
+  const provider = process.env.EMBEDDING_PROVIDER ?? process.env.LLM_PROVIDER ?? 'openai';
+
+  if (provider === 'google-genai' || provider === 'gemini') {
+    try {
+      const { GoogleGenerativeAIEmbeddings } = await (Function('return import("@langchain/google-genai")') as () => Promise<Record<string, unknown>>)();
+      if (GoogleGenerativeAIEmbeddings) {
+        return new (GoogleGenerativeAIEmbeddings as new (fields: Record<string, unknown>) => Embeddings)({
+          model: model ?? process.env.EMBEDDING_MODEL ?? 'text-embedding-004',
+          apiKey: process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY,
+        });
+      }
+    } catch {
+      console.warn('[ai-sidecar] Google Generative AI embeddings not available, falling back to OpenAI');
+    }
+  }
+
   return new OpenAIEmbeddings({
     model: model ?? process.env.EMBEDDING_MODEL ?? 'text-embedding-3-small',
     apiKey: process.env.OPENAI_API_KEY,
@@ -20,7 +37,7 @@ function getEmbeddings(model?: string) {
 export async function makeChromaRetriever(
   configuration: BaseConfiguration,
 ): Promise<VectorStoreRetriever> {
-  const embeddings = getEmbeddings();
+  const embeddings = await getEmbeddings();
   const url = process.env.CHROMA_DB_URL ?? 'http://localhost:8000';
 
   const vectorStore = new Chroma(embeddings, {
@@ -46,7 +63,7 @@ export async function makeSupabaseRetriever(
     );
   }
 
-  const embeddings = getEmbeddings();
+  const embeddings = await getEmbeddings();
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
   const vectorStore = new SupabaseVectorStore(embeddings, {
