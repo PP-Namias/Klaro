@@ -1,0 +1,37 @@
+services:
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ai-sidecar:
+    build:
+      context: ../..
+      dockerfile: packages/ai-sidecar/Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - VECTOR_STORE_PROVIDER=chroma
+      - CHROMA_DB_URL=http://chromadb:8000
+      - CORS_ORIGINS=*
+    env_file:
+      - .env
+    depends_on:
+      chromadb:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  chroma-data:
