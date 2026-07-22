@@ -80,7 +80,9 @@ function buildArgs(
   model: string,
   temperature: number,
 ): Record<string, unknown> {
-  const base: Record<string, unknown> = { model, temperature };
+  const timeout = parseInt(process.env.MODEL_TIMEOUT ?? '25000', 10);
+  const maxRetries = parseInt(process.env.MODEL_MAX_RETRIES ?? '3', 10);
+  const base: Record<string, unknown> = { model, temperature, timeout, maxRetries };
   switch (provider) {
     case 'openai':
       return { ...base, apiKey: process.env.OPENAI_API_KEY };
@@ -93,7 +95,8 @@ function buildArgs(
         apiKey:
           process.env.GOOGLE_API_KEY ||
           process.env.GOOGLE_GENAI_API_KEY ||
-          process.env.GEMINI_API_KEY,
+          process.env.GEMINI_API_KEY ||
+          process.env.LLM_API_KEY,
       };
     case 'groq':
       return { ...base, apiKey: process.env.GROQ_API_KEY };
