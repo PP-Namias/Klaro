@@ -1,5 +1,6 @@
 import { VectorStoreRetriever } from '@langchain/core/vectorstores';
 import { Embeddings } from '@langchain/core/embeddings';
+import { Document } from '@langchain/core/documents';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { Chroma } from '@langchain/community/vectorstores/chroma';
 import { SupabaseVectorStore } from '@langchain/community/vectorstores/supabase';
@@ -10,6 +11,8 @@ import {
   ensureBaseConfiguration,
   type BaseConfiguration,
 } from './configuration.js';
+
+const RETRIEVER_TIMEOUT = 5000;
 
 async function getEmbeddings(model?: string): Promise<Embeddings> {
   const provider = process.env.EMBEDDING_PROVIDER ?? process.env.LLM_PROVIDER ?? 'openai';
@@ -34,16 +37,26 @@ async function getEmbeddings(model?: string): Promise<Embeddings> {
   });
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms),
+    ),
+  ]);
+}
+
 export async function makeChromaRetriever(
   configuration: BaseConfiguration,
 ): Promise<VectorStoreRetriever> {
   const embeddings = await getEmbeddings();
   const url = process.env.CHROMA_DB_URL ?? 'http://localhost:8000';
 
-  const vectorStore = new Chroma(embeddings, {
-    url,
-    collectionName: 'klaro_documents',
-  });
+  const vectorStore = await withTimeout(
+    Promise.resolve(new Chroma(embeddings, { url, collectionName: 'klaro_documents' })),
+    RETRIEVER_TIMEOUT,
+    'ChromaDB connection',
+  );
 
   return vectorStore.asRetriever({
     k: configuration.k,
@@ -64,13 +77,19 @@ export async function makeSupabaseRetriever(
   }
 
   const embeddings = await getEmbeddings();
-  const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  const vectorStore = new SupabaseVectorStore(embeddings, {
-    client: supabaseClient,
-    tableName: 'documents',
-    queryName: 'match_documents',
-  });
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+  const vectorStore = await withTimeout(
+    Promise.resolve(
+      new SupabaseVectorStore(embeddings, {
+        client: supabaseClient,
+        tableName: 'documents',
+        queryName: 'match_documents',
+      }),
+    ),
+    RETRIEVER_TIMEOUT,
+    'Supabase connection',
+  );
 
   return vectorStore.asRetriever({
     k: configuration.k,
@@ -78,10 +97,27 @@ export async function makeSupabaseRetriever(
   });
 }
 
+export function makeNoopRetriever(): VectorStoreRetriever {
+  return {
+    invoke: async (_query: string): Promise<Document[]> => [],
+    getRelevantDocuments: async (_query: string): Promise<Document[]> => [],
+    addDocuments: async (_docs: Document[]): Promise<void> => {},
+    similaritySearch: async (_query: string): Promise<Document[]> => [],
+  } as unknown as VectorStoreRetriever;
+}
+
 export async function makeRetriever(
   config?: RunnableConfig,
 ): Promise<VectorStoreRetriever> {
   const configuration = ensureBaseConfiguration(config);
+
+  const noVectorStore =
+    process.env.VECTOR_STORE_PROVIDER === 'none' ||
+    process.env.VECTOR_STORE_PROVIDER === '';
+
+  if (noVectorStore) {
+    return makeNoopRetriever();
+  }
 
   switch (configuration.retrieverProvider) {
     case 'chroma':
