@@ -47,9 +47,15 @@ export async function retrieveDocs(
 ): Promise<Document[]> {
   try {
     const retriever = await makeRetriever(config);
-    return await retriever.invoke(question);
+    const docs = await Promise.race([
+      retriever.invoke(question),
+      new Promise<Document[]>((_, reject) =>
+        setTimeout(() => reject(new Error('Retriever invoke timed out after 8s')), 8000),
+      ),
+    ]);
+    return docs;
   } catch (err) {
-    console.warn('[ai-sidecar] Retriever unavailable, returning empty docs:', (err as Error).message);
+    console.warn('[ai-sidecar] Retriever unavailable, returning empty docs:', (err as Error).message?.substring(0, 120));
     return [];
   }
 }
@@ -66,6 +72,11 @@ export async function generateAnswer(
   const modelName = c?.model ?? process.env.LLM_PROVIDER ?? 'openai';
   const temperature = c?.temperature ?? 0.3;
   const fallbackModelSpec = process.env.CHAT_MODEL_FALLBACK;
+  const mockMode = process.env.ENABLE_MOCK_MODE === 'true';
+
+  if (mockMode) {
+    return generateMockAnswer(question, docs);
+  }
 
   const promptMessages = buildPromptMessages(question, docs, messages);
 
@@ -74,9 +85,9 @@ export async function generateAnswer(
     const response = await invokeWithRetry(model, promptMessages, config);
     return response.content.toString();
   } catch (err) {
-    if (fallbackModelSpec && isRateLimitError(err)) {
+    if (fallbackModelSpec && (isRateLimitError(err) || err instanceof Error && err.message.includes('timed out'))) {
       console.warn(
-        `[ai-sidecar] Primary model "${modelName}" rate-limited, trying fallback "${fallbackModelSpec}"`,
+        `[ai-sidecar] Primary model "${modelName}" failed (${(err as Error).message}), trying fallback "${fallbackModelSpec}"`,
       );
       try {
         const fallbackModel = await loadChatModel(fallbackModelSpec, temperature);
@@ -84,11 +95,59 @@ export async function generateAnswer(
         return fallbackResponse.content.toString();
       } catch (fallbackErr) {
         console.error(`[ai-sidecar] Fallback model "${fallbackModelSpec}" also failed`);
+        if (typeof fallbackModelSpec === 'string' && fallbackModelSpec === 'mock') {
+          return generateMockAnswer(question, docs);
+        }
         throw fallbackErr;
       }
     }
+    if (err instanceof Error && (err.message.includes('timed out') || err.message.includes('429'))) {
+      console.warn('[ai-sidecar] LLM unavailable, returning mock answer');
+      return generateMockAnswer(question, docs);
+    }
     throw err;
   }
+}
+
+function generateMockAnswer(question: string, docs: Document[]): string {
+  const firstDoc = docs.length > 0 ? docs[0] : undefined;
+  const context = firstDoc ? firstDoc.pageContent.substring(0, 100) : 'No documents retrieved';
+  return `This is a simulated response for: "${question}". Based on available information (${context}...), I would provide a helpful answer here. For full AI-powered responses, please configure a valid API key.`;
+}
+
+export async function generateFollowUpQuestions(
+  messages: BaseMessage[],
+  config?: RunnableConfig,
+): Promise<string[]> {
+  const c = config?.configurable as
+    | Partial<RetrievalConfiguration>
+    | undefined;
+  const includeFollowUps = c?.includeFollowUps ?? true;
+
+  if (!includeFollowUps) return [];
+
+  if (process.env.ENABLE_MOCK_MODE === 'true') {
+    return [
+      'Tell me more about this topic',
+      'What are the related concepts?',
+      'Can you provide examples?',
+    ];
+  }
+
+  const model = await loadChatModel('openai', 0.7);
+  const historyStr = formatMessagesToHistory(messages);
+  const prompt = FOLLOW_UP_PROMPT.replace('{messages}', historyStr);
+
+  const parser = new StringOutputParser();
+  const chain = model.pipe(parser);
+
+  const raw = await chain.invoke(prompt, config);
+
+  return raw
+    .split('\n')
+    .filter((line) => line.trim().startsWith('- '))
+    .map((line) => line.trim().replace(/^- /, ''))
+    .filter(Boolean);
 }
 
 function buildPromptMessages(
@@ -114,15 +173,31 @@ function buildPromptMessages(
   return result;
 }
 
+async function invokeWithTimeout(
+  model: BaseChatModel,
+  messages: BaseMessage[],
+  config?: RunnableConfig,
+): Promise<AIMessage> {
+  const timeoutMs = parseInt(process.env.MODEL_TIMEOUT ?? '25000', 10);
+
+  const result = await Promise.race([
+    model.invoke(messages, config),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`Model invoke timed out after ${timeoutMs}ms`)), timeoutMs),
+    ),
+  ]);
+  return result;
+}
+
 async function invokeWithRetry(
   model: BaseChatModel,
   messages: BaseMessage[],
   config?: RunnableConfig,
-  maxRetries = 3,
+  maxRetries = 2,
 ): Promise<AIMessage> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      return await model.invoke(messages, config);
+      return await invokeWithTimeout(model, messages, config);
     } catch (err) {
       if (isRateLimitError(err) && attempt < maxRetries) {
         const delay = Math.pow(2, attempt) * 1000;
@@ -136,29 +211,4 @@ async function invokeWithRetry(
   throw new Error('Max retries exceeded');
 }
 
-export async function generateFollowUpQuestions(
-  messages: BaseMessage[],
-  config?: RunnableConfig,
-): Promise<string[]> {
-  const c = config?.configurable as
-    | Partial<RetrievalConfiguration>
-    | undefined;
-  const includeFollowUps = c?.includeFollowUps ?? true;
 
-  if (!includeFollowUps) return [];
-
-  const model = await loadChatModel('openai', 0.7);
-  const historyStr = formatMessagesToHistory(messages);
-  const prompt = FOLLOW_UP_PROMPT.replace('{messages}', historyStr);
-
-  const parser = new StringOutputParser();
-  const chain = model.pipe(parser);
-
-  const raw = await chain.invoke(prompt, config);
-
-  return raw
-    .split('\n')
-    .filter((line) => line.trim().startsWith('- '))
-    .map((line) => line.trim().replace(/^- /, ''))
-    .filter(Boolean);
-}
