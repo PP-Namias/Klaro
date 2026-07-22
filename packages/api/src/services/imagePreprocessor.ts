@@ -1,4 +1,29 @@
-import { createCanvas, loadImage } from "canvas";
+type CanvasModule = {
+  createCanvas: (width: number, height: number) => {
+    getContext: (type: string) => CanvasRenderingContext2D;
+    toBuffer: (type: string) => Buffer;
+  };
+  loadImage: (source: Buffer) => Promise<{ width: number; height: number }>;
+};
+
+let canvasModule: CanvasModule | null = null;
+let canvasLoadAttempted = false;
+
+async function getCanvas(): Promise<CanvasModule | null> {
+  if (canvasLoadAttempted) return canvasModule;
+  canvasLoadAttempted = true;
+  try {
+    const mod = await (Function('return import("canvas")')() as Promise<typeof import("canvas")>);
+    canvasModule = {
+      createCanvas: mod.createCanvas,
+      loadImage: mod.loadImage,
+    };
+    console.log('[imagePreprocessor] canvas native module loaded');
+  } catch {
+    console.warn('[imagePreprocessor] canvas native module not available, preprocessing disabled');
+  }
+  return canvasModule;
+}
 
 export interface PreprocessingOptions {
   grayscale?: boolean;
@@ -18,7 +43,11 @@ export interface PreprocessingResult {
 }
 
 function toGray(value: number): number {
-  return Math.round(0.299 * ((value >> 16) & 0xff) + 0.587 * ((value >> 8) & 0xff) + 0.114 * (value & 0xff));
+  return Math.round(
+    0.299 * ((value >> 16) & 0xff) +
+      0.587 * ((value >> 8) & 0xff) +
+      0.114 * (value & 0xff),
+  );
 }
 
 function clamp(value: number, min = 0, max = 255): number {
@@ -34,7 +63,11 @@ function applyGrayscale(data: Uint8ClampedArray): void {
   }
 }
 
-function applyMedianDenoise(data: Uint8ClampedArray, width: number, height: number): void {
+function applyMedianDenoise(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+): void {
   const copy = new Uint8ClampedArray(data);
   const radius = 1;
 
@@ -48,7 +81,11 @@ function applyMedianDenoise(data: Uint8ClampedArray, width: number, height: numb
           const ny = y + dy;
           if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
             const idx = (ny * width + nx) * 4;
-            neighbors.push(toGray(copy[idx]! + (copy[idx + 1]! << 8) + (copy[idx + 2]! << 16)));
+            neighbors.push(
+              toGray(
+                copy[idx]! + (copy[idx + 1]! << 8) + (copy[idx + 2]! << 16),
+              ),
+            );
           }
         }
       }
@@ -63,8 +100,15 @@ function applyMedianDenoise(data: Uint8ClampedArray, width: number, height: numb
   }
 }
 
-function applyAdaptiveBinarize(data: Uint8ClampedArray, width: number, height: number): void {
-  const blockSize = Math.max(8, Math.floor(Math.min(width, height) / 16));
+function applyAdaptiveBinarize(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+): void {
+  const blockSize = Math.max(
+    8,
+    Math.floor(Math.min(width, height) / 16),
+  );
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -112,7 +156,11 @@ function applyBrightness(data: Uint8ClampedArray, factor: number): void {
   }
 }
 
-function estimateSkew(data: Uint8ClampedArray, width: number, height: number): number {
+function estimateSkew(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+): number {
   const mids = Math.floor(height / 2);
   let leftX = -1;
   let rightX = -1;
@@ -120,11 +168,17 @@ function estimateSkew(data: Uint8ClampedArray, width: number, height: number): n
 
   for (let x = Math.floor(width * 0.1); x < Math.floor(width * 0.5); x++) {
     const idx = (scanY * width + x) * 4;
-    if ((data[idx] ?? 0) < 128) { leftX = x; break; }
+    if ((data[idx] ?? 0) < 128) {
+      leftX = x;
+      break;
+    }
   }
   for (let x = Math.floor(width * 0.9); x > Math.floor(width * 0.5); x--) {
     const idx = (mids * width + x) * 4;
-    if ((data[idx] ?? 0) < 128) { rightX = x; break; }
+    if ((data[idx] ?? 0) < 128) {
+      rightX = x;
+      break;
+    }
   }
 
   if (leftX < 0 || rightX < 0) return 0;
@@ -140,6 +194,18 @@ export async function preprocessImage(
   inputBase64: string,
   options: PreprocessingOptions = {},
 ): Promise<PreprocessingResult> {
+  const canvas = await getCanvas();
+  if (!canvas) {
+    const buffer = Buffer.from(inputBase64, "base64");
+    return {
+      buffer,
+      base64: inputBase64,
+      width: 0,
+      height: 0,
+      applied: ["canvas-not-available"],
+    };
+  }
+
   const opts = {
     grayscale: options.grayscale ?? true,
     denoise: options.denoise ?? true,
@@ -152,67 +218,111 @@ export async function preprocessImage(
   const applied: string[] = [];
   const buffer = Buffer.from(inputBase64, "base64");
 
-  const image = await loadImage(buffer);
+  const image = await canvas.loadImage(buffer);
   let width = image.width;
   let height = image.height;
 
   if (opts.deskew) {
-    const tempCanvas = createCanvas(width, height);
+    const tempCanvas = canvas.createCanvas(width, height);
     const tempCtx = tempCanvas.getContext("2d");
-    tempCtx.drawImage(image, 0, 0);
+    tempCtx.drawImage(image as unknown as CanvasImageSource, 0, 0);
     const tempData = tempCtx.getImageData(0, 0, width, height);
     const skewAngle = estimateSkew(tempData.data, width, height);
 
     if (Math.abs(skewAngle) > 0.5) {
-      const diagonal = Math.ceil(Math.sqrt(width * width + height * height));
-      const rotatedCanvas = createCanvas(diagonal, diagonal);
+      const diagonal = Math.ceil(
+        Math.sqrt(width * width + height * height),
+      );
+      const rotatedCanvas = canvas.createCanvas(diagonal, diagonal);
       const rotatedCtx = rotatedCanvas.getContext("2d");
       rotatedCtx.fillStyle = "#ffffff";
       rotatedCtx.fillRect(0, 0, diagonal, diagonal);
       rotatedCtx.translate(diagonal / 2, diagonal / 2);
       rotatedCtx.rotate((skewAngle * Math.PI) / 180);
-      rotatedCtx.drawImage(tempCanvas, -width / 2, -height / 2);
+      rotatedCtx.drawImage(tempCanvas as unknown as CanvasImageSource, -width / 2, -height / 2);
       width = diagonal;
       height = diagonal;
 
       const rotatedBuffer = rotatedCanvas.toBuffer("image/png");
-      const rotatedImage = await loadImage(rotatedBuffer);
-      const resultCanvas = createCanvas(width, height);
+      const rotatedImage = await canvas.loadImage(rotatedBuffer);
+      const resultCanvas = canvas.createCanvas(width, height);
       const resultCtx = resultCanvas.getContext("2d");
-      resultCtx.drawImage(rotatedImage, 0, 0);
+      resultCtx.drawImage(rotatedImage as unknown as CanvasImageSource, 0, 0);
 
       const resultData = resultCtx.getImageData(0, 0, width, height);
       const data = resultData.data;
 
-      if (opts.grayscale) { applyGrayscale(data); applied.push("grayscale"); }
-      if (opts.denoise) { applyMedianDenoise(data, width, height); applied.push("denoise"); }
-      if (opts.binarize) { applyAdaptiveBinarize(data, width, height); applied.push("binarize"); }
-      if (opts.contrast !== 1) { applyContrast(data, opts.contrast); applied.push("contrast"); }
-      if (opts.brightness !== 1) { applyBrightness(data, opts.brightness); applied.push("brightness"); }
+      if (opts.grayscale) {
+        applyGrayscale(data);
+        applied.push("grayscale");
+      }
+      if (opts.denoise) {
+        applyMedianDenoise(data, width, height);
+        applied.push("denoise");
+      }
+      if (opts.binarize) {
+        applyAdaptiveBinarize(data, width, height);
+        applied.push("binarize");
+      }
+      if (opts.contrast !== 1) {
+        applyContrast(data, opts.contrast);
+        applied.push("contrast");
+      }
+      if (opts.brightness !== 1) {
+        applyBrightness(data, opts.brightness);
+        applied.push("brightness");
+      }
 
       resultCtx.putImageData(resultData, 0, 0);
       const finalBuffer = resultCanvas.toBuffer("image/png");
-      return { buffer: finalBuffer, base64: finalBuffer.toString("base64"), width, height, applied };
+      return {
+        buffer: finalBuffer,
+        base64: finalBuffer.toString("base64"),
+        width,
+        height,
+        applied,
+      };
     }
     applied.push("deskew:not-needed");
   }
 
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(image, 0, 0);
+  const mainCanvas = canvas.createCanvas(width, height);
+  const ctx = mainCanvas.getContext("2d");
+  ctx.drawImage(image as unknown as CanvasImageSource, 0, 0);
 
   const imageData = ctx.getImageData(0, 0, width, height);
   const data = imageData.data;
 
-  if (opts.grayscale) { applyGrayscale(data); applied.push("grayscale"); }
-  if (opts.denoise) { applyMedianDenoise(data, width, height); applied.push("denoise"); }
-  if (opts.binarize) { applyAdaptiveBinarize(data, width, height); applied.push("binarize"); }
-  if (opts.contrast !== 1) { applyContrast(data, opts.contrast); applied.push("contrast"); }
-  if (opts.brightness !== 1) { applyBrightness(data, opts.brightness); applied.push("brightness"); }
+  if (opts.grayscale) {
+    applyGrayscale(data);
+    applied.push("grayscale");
+  }
+  if (opts.denoise) {
+    applyMedianDenoise(data, width, height);
+    applied.push("denoise");
+  }
+  if (opts.binarize) {
+    applyAdaptiveBinarize(data, width, height);
+    applied.push("binarize");
+  }
+  if (opts.contrast !== 1) {
+    applyContrast(data, opts.contrast);
+    applied.push("contrast");
+  }
+  if (opts.brightness !== 1) {
+    applyBrightness(data, opts.brightness);
+    applied.push("brightness");
+  }
 
   ctx.putImageData(imageData, 0, 0);
-  const finalBuffer = canvas.toBuffer("image/png");
-  return { buffer: finalBuffer, base64: finalBuffer.toString("base64"), width, height, applied };
+  const finalBuffer = mainCanvas.toBuffer("image/png");
+  return {
+    buffer: finalBuffer,
+    base64: finalBuffer.toString("base64"),
+    width,
+    height,
+    applied,
+  };
 }
 
 export async function preprocessBuffer(
