@@ -75,6 +75,15 @@ router.get('/stream', async (req: Request, res: Response) => {
         event.event === 'on_chain_end' &&
         (event.name === 'generate' || event.name === 'emptyAnswer')
       ) {
+        const output = event.data?.output as
+          | { answer?: string }
+          | undefined;
+        if (output?.answer) {
+          if (!finalAnswer) {
+            sendSSE(res, { event: 'token', token: output.answer });
+          }
+          finalAnswer = output.answer;
+        }
         sendSSE(res, { event: 'status', message: 'Generation complete' });
       } else if (event.event === 'on_chain_end' && event.name === 'followUp') {
         const output = event.data?.output as
