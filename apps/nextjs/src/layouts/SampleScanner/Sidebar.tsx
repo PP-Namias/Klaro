@@ -23,7 +23,7 @@ function openBooking(): void {
 }
 
 export function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
     <aside
