@@ -18,4 +18,12 @@ app.use('/api/ingest', ingestRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/chat', chatStreamRouter);
 
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const message = err instanceof Error ? err.message : 'Unknown internal error';
+  console.error('[ai-sidecar] Unhandled error:', message);
+  if (!res.headersSent) {
+    res.status(500).json({ error: message });
+  }
+});
+
 export default app;
