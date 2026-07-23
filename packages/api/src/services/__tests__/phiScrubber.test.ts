@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   scrubPhi,
@@ -8,6 +8,8 @@ import {
   scrubForExternalApi,
   buildScrubbedContext,
 } from "../phiScrubber";
+
+import * as auditLogger from "../auditLogger";
 
 describe("PHI Scrubber", () => {
   describe("SSN Detection", () => {
@@ -287,6 +289,86 @@ WBC: 5000`;
       expect(result.scrubbedText).toContain("Lab Results:");
       expect(result.scrubbedText).toContain("Hemoglobin: 12.5 g/dL");
       expect(result.scrubbedText).toContain("WBC: 5000");
+    });
+
+    it("handles partialMask option", () => {
+      const result = scrubPhi("Patient: Juan Dela Cruz", {
+        partialMask: true,
+        replacementToken: "[PHI]",
+      });
+      expect(result.scrubbedText).not.toContain("Juan Dela Cruz");
+      expect(result.matchCount).toBeGreaterThanOrEqual(1);
+    });
+
+    it("handles custom knownNames for improved detection", () => {
+      const result = scrubPhi("Dr. Reyes examined the patient.", {
+        knownNames: ["Reyes"],
+        replacementToken: "[REDACTED]",
+      });
+      expect(result.scrubbedText).not.toContain("Reyes");
+      expect(result.matchCount).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe("PRC License & Philippines-Specific IDs", () => {
+    it("detects PRC license number", () => {
+      const result = scrubPhi("PRC License: 1234567");
+      expect(result.scrubbedText).not.toContain("1234567");
+      expect(result.matchCount).toBeGreaterThanOrEqual(1);
+    });
+
+    it("detects Philippine passport number", () => {
+      const result = scrubPhi("Passport: P1234567M");
+      expect(result.scrubbedText).not.toContain("P1234567M");
+      expect(result.matchCount).toBeGreaterThanOrEqual(1);
+    });
+
+    it("detects complete Philippine address", () => {
+      const result = scrubPhi("Address: 42 P. Gomez St., Barangay San Lorenzo, Makati City 1226");
+      expect(result.scrubbedText).not.toContain("42 P. Gomez St.");
+      expect(result.matchCount).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe("Audit Log Integration", () => {
+    it("scrubbed data phiTypesDetected includes all detected types", () => {
+      const text = "Patient: Juan Dela Cruz, DOB: 01/15/1990, SSN: 123-45-6789";
+      const result = scrubPhi(text);
+      const detectedTypes = [...new Set(result.matches.map((m) => m.type))];
+      expect(detectedTypes).toContain("name");
+      expect(detectedTypes).toContain("date_of_birth");
+      expect(detectedTypes).toContain("ssn");
+    });
+
+    it("original text is never present in scrubbed output", () => {
+      const phiValues = ["Juan Dela Cruz", "123-45-6789", "09171234567", "juan@email.com"];
+      const text = `Patient: ${phiValues[0]}, SSN: ${phiValues[1]}, Phone: ${phiValues[2]}, Email: ${phiValues[3]}`;
+      const result = scrubPhi(text);
+      for (const val of phiValues) {
+        expect(result.scrubbedText).not.toContain(val);
+      }
+    });
+
+    it("logs scrub event without exposing raw PHI", () => {
+      const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const text = "Patient: Juan Dela Cruz, MRN: 12345678";
+      const result = scrubPhi(text);
+
+      console.log(JSON.stringify({
+        type: "phi_scrubbed",
+        context: "test",
+        phiCount: result.matchCount,
+        phiTypes: [...new Set(result.matches.map((m) => m.type))],
+        timestamp: new Date().toISOString(),
+      }));
+
+      const calls = spy.mock.calls.map((c) => c[0]).join(" ");
+      expect(calls).toContain("phi_scrubbed");
+      expect(calls).not.toContain("Juan Dela Cruz");
+      expect(calls).not.toContain("12345678");
+      expect(calls).toContain("phiCount");
+
+      spy.mockRestore();
     });
   });
 });

@@ -32,7 +32,9 @@ export type PhiType =
   | "address"
   | "email"
   | "insurance_id"
-  | "age";
+  | "age"
+  | "license_id"
+  | "passport";
 
 export interface ScrubResult {
   scrubbedText: string;
@@ -60,6 +62,16 @@ const DEFAULT_REPLACEMENT = "[REDACTED]";
  * SSN: XXX-XX-XXXX or XXXXXXXXX
  * Filipino PhilHealth: XXX-XXXXXXX-X (12 digits with dashes)
  */
+/**
+ * Philippine PRC License: 7 digits
+ */
+const PRC_PATTERN = /\bPRC\s*LICENSE[\s:-]*#?\s*\d{7}\b/gi;
+
+/**
+ * Philippine Passport: PXXXXXXXM (letter prefix, 7 digits, letter suffix)
+ */
+const PASSPORT_PATTERN = /\bP\d{7}[A-Za-z]\b/g;
+
 const SSN_PATTERN =
   /\b\d{3}[-.\s]?\d{2}[-.\s]?\d{4}\b/g;
 
@@ -79,7 +91,7 @@ const MRN_PATTERNS = [
 const PHONE_PATTERNS = [
   /\+63[\s.-]?\d{2,3}[\s.-]?\d{3}[\s.-]?\d{4}\b/g,
   /\b09\d{2}[\s.-]?\d{3}[\s.-]?\d{4}\b/g,
-  /\b\(0\d{1,3}\)[\s.-]?\d{3,4}[\s.-]?\d{4}\b/g,
+  /\(0\d{1,3}\)[\s.-]?\d{3,4}[\s.-]?\d{4}\b/g,
   /\b0\d{1,3}[\s.-]?\d{3}[\s.-]?\d{4}\b/g,
 ];
 
@@ -110,7 +122,7 @@ const BIRTH_YEAR_PATTERN =
  * St., Street, Brgy., Barangay, City, Province, ZIP
  */
 const ADDRESS_PATTERNS = [
-  /\b\d+\s+[A-Za-z\s]+(?:St\.|Street|Ave\.|Avenue|Blvd\.|Boulevard|Rd\.|Road|Dr\.|Drive)\b/gi,
+  /\b\d+\s+[A-Za-z\s.]+?(?:St\.|Street|Ave\.|Avenue|Blvd\.|Boulevard|Rd\.|Road|Dr\.|Drive)(?=\s|$|[.,;!?])/gi,
   /\b(?:BRGY\.|BARANGAY)\s+[A-Za-z\s]+/gi,
   /\b[A-Za-z\s]+,\s*(?:CITY|PROVINCE)\s+OF\s+[A-Za-z\s]+/gi,
 ];
@@ -132,10 +144,10 @@ const INSURANCE_PATTERNS = [
  * Context-aware name detection using common medical document labels
  */
 const NAME_CONTEXT_PATTERNS = [
-  /\b?:\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g,
   /\b(?:PATIENT|PAT\.|PATIENT\s*NAME|NAME)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/gi,
   /\b(?:DOCTOR|DR\.|PHYSICIAN|ATTENDING)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/gi,
   /\b(?:LABORATORY|CLINIC|HOSPITAL)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/gi,
+  /\b(?:PATIENT\s+IS|PATIENT\s+NAMED)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/gi,
 ];
 
 // ============================================================================
@@ -155,6 +167,12 @@ export function scrubPhi(
 
   // 1. SSN / PhilHealth
   scrubbed = redactPattern(scrubbed, SSN_PATTERN, "ssn", replacementToken, matches);
+
+  // 1a. PRC License
+  scrubbed = redactPattern(scrubbed, PRC_PATTERN, "license_id", replacementToken, matches);
+
+  // 1b. Passport
+  scrubbed = redactPattern(scrubbed, PASSPORT_PATTERN, "passport", replacementToken, matches);
 
   // 2. MRN
   for (const pattern of MRN_PATTERNS) {
@@ -221,7 +239,11 @@ export function scrubExtractedData<T extends Record<string, unknown>>(
 
   // Scrub patient name
   if (typeof scrubbed.patientName === "string" && scrubbed.patientName) {
-    const result = scrubPhi(scrubbed.patientName, config);
+    const nameConfig = {
+      ...config,
+      knownNames: [...(config.knownNames || []), scrubbed.patientName],
+    };
+    const result = scrubPhi(scrubbed.patientName, nameConfig);
     scrubbed.patientName = result.scrubbedText;
     allMatches.push(...result.matches);
   }
