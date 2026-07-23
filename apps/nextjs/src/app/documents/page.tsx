@@ -183,7 +183,7 @@ export default function DocumentsPage() {
               id={doc.id}
               fileName={doc.fileName}
               fileType={doc.mimeType ?? "application/pdf"}
-              status={(doc.status ?? "uploaded") as DocumentCardProps["status"]}
+              status={doc.status as DocumentCardProps["status"]}
               createdAt={doc.createdAt}
               onView={handleView}
               onDelete={handleDelete}
