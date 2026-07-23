@@ -192,7 +192,7 @@ async function archiveDocument(docId: string): Promise<boolean> {
     await db
       .update(document)
       .set({
-        status: "analyzed", // Keep status but clear storageUrl
+        status: "archived",
         storageUrl: null,
         updatedAt: new Date(),
       })

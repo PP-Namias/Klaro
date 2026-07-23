@@ -24,6 +24,7 @@ export const documentStatusEnum = pgEnum("document_status", [
   "processing",
   "analyzed",
   "failed",
+  "archived",
 ]);
 
 export const analysisStatusEnum = pgEnum("analysis_status", [

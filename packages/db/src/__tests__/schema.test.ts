@@ -313,6 +313,10 @@ describe("schema enums", () => {
     expect(documentStatusEnum.enumValues).toContain("failed");
   });
 
+  it("documentStatusEnum has archived", () => {
+    expect(documentStatusEnum.enumValues).toContain("archived");
+  });
+
   it("analysisStatusEnum has pending", () => {
     expect(analysisStatusEnum.enumValues).toContain("pending");
   });
