@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { ReactNode } from "react";
 import Image from "next/image";
-import { Bot, Check, Focus, Lock, Paperclip, Send, X } from "lucide-react";
+import { Bot, Check, Focus, Lock, X, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { DropZone } from "~/components/drop-zone";
@@ -18,8 +18,9 @@ import { DemoLabResults } from "~/components/demo/lab-results";
 import { DemoPrescription } from "~/components/demo/prescription";
 import { DemoDischarge } from "~/components/demo/discharge";
 import { DemoOtherDoc } from "~/components/demo/other-doc";
+import { ChatHistory, ChatInput, DialectToggle, ClearConversationDialog } from "~/components/chat";
 import { useFileUpload } from "~/hooks/use-file-upload";
-import { useChat } from "~/hooks/use-chat";
+import { useChat, type Dialect } from "~/hooks/use-chat";
 import {
   validateFiles,
   createPreviewUrl,
@@ -49,18 +50,16 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragCounter, setDragCounter] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<FilePreviewItem[]>([]);
-  const [chatAttachment, setChatAttachment] = useState<string | null>(null);
-  const [chatInput, setChatInput] = useState("");
   const [uploadedRequestId, setUploadedRequestId] = useState<string | null>(null);
   const [demoModalOpen, setDemoModalOpen] = useState(false);
   const [activeDemoType, setActiveDemoType] = useState<DemoType>("lab");
   const [demoLanguage, setDemoLanguage] = useState<DemoLanguage>("tl");
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const { t, language } = useLanguage();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const chatFileInputRef = useRef<HTMLInputElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
 
   const fileUpload = useFileUpload({
@@ -70,9 +69,13 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     },
   });
 
+  const [chatDialect, setChatDialect] = useState<Dialect>(
+    LANGUAGE_TO_DIALECT[language] as Dialect,
+  );
+
   const chat = useChat({
     analysisId: initialAnalysisId || uploadedRequestId || undefined,
-    dialect: LANGUAGE_TO_DIALECT[language],
+    dialect: chatDialect,
   });
 
   useEffect(() => {
@@ -181,26 +184,13 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     await fileUpload.upload(files);
   }, [selectedFiles, fileUpload]);
 
-  const handleChatFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file?.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setChatAttachment(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-    event.target.value = "";
+  const handleSend = (content: string, image?: string) => {
+    chat.sendMessage(content, image);
   };
 
-  const triggerChatUpload = () => {
-    chatFileInputRef.current?.click();
-  };
-
-  const handleSend = () => {
-    if (!chatInput.trim() && !chatAttachment) return;
-    chat.sendMessage(chatInput, chatAttachment ?? undefined);
-    setChatInput("");
-    setChatAttachment(null);
+  const handleClearConversation = async () => {
+    await chat.clearMessages();
+    setClearDialogOpen(false);
   };
 
   // Global drag handlers for DropOverlay
@@ -619,213 +609,74 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             </div>
 
             {/* Chat messages */}
-            {chat.messages.length > 0 && (
-              <div className={styles.chatHistory}>
-                {chat.messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={
-                      msg.sender === "user"
-                        ? styles.userChatWrapper
-                        : styles.claraChatWrapper
-                    }
-                  >
-                    {msg.sender === "clara" && (
-                      <div className={styles.claraChatAvatar}>
-                        <Image
-                          src="/clara.png"
-                          alt="Clara"
-                          fill
-                          style={{
-                            objectFit: "cover",
-                            borderRadius: "50%",
-                          }}
-                        />
-                        <div className={styles.chatClaraStatus} />
-                      </div>
-                    )}
-                    <div
-                      className={
-                        msg.sender === "user"
-                          ? styles.userMessageContentWrapper
-                          : styles.claraMessageContentWrapper
-                      }
-                    >
-                      {msg.image && (
-                        <div className={styles.chatMessageImage}>
-                          <Image
-                            src={msg.image}
-                            alt="Attached"
-                            fill
-                            style={{
-                              objectFit: "cover",
-                              borderRadius: "12px",
-                            }}
-                          />
-                        </div>
-                      )}
-                      {msg.text && (
-                        <div
-                          className={
-                            msg.sender === "user"
-                              ? styles.userChatBubble
-                              : styles.claraChatBubble
-                          }
-                        >
-                          <span>{msg.text}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {chat.isTyping && (
-                  <div className={styles.claraChatWrapper}>
-                    <div className={styles.claraChatAvatar}>
-                      <Image
-                        src="/clara.png"
-                        alt="Clara"
-                        fill
-                        style={{
-                          objectFit: "cover",
-                          borderRadius: "50%",
-                        }}
-                      />
-                      <div className={styles.chatClaraStatus} />
-                    </div>
-                    <div className={styles.claraChatBubble}>
-                      <div className={styles.typingIndicator}>
-                        <span />
-                        <span />
-                        <span />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div style={{ height: 180 }} />
-              </div>
-            )}
+            <ChatHistory
+              messages={chat.messages}
+              isTyping={chat.isTyping}
+              isLoading={chat.isLoadingHistory}
+            />
 
             <div style={{ flexGrow: 1 }} />
+
+            {/* Dialect toggle + Clear */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: 8,
+                padding: "0 4px",
+              }}
+            >
+              <DialectToggle current={chatDialect} onChange={setChatDialect} />
+              {chat.messages.length > 0 && (
+                <button
+                  onClick={() => setClearDialogOpen(true)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#999",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontSize: "0.8rem",
+                    fontFamily: "var(--font-geist)",
+                    padding: "4px 8px",
+                    borderRadius: 6,
+                  }}
+                  type="button"
+                  title="Clear conversation"
+                >
+                  <Trash2 size={14} /> Clear
+                </button>
+              )}
+            </div>
 
             {/* Chat input */}
             <div
               className={styles.bottomSectionWrapper}
-              style={{ marginTop: 16 }}
+              style={{ marginTop: 8 }}
             >
               <div className={styles.chatInputWrapper}>
-                <div className={styles.chatInputContainer}>
-                  {chatAttachment && (
-                    <div
-                      style={{
-                        padding: "8px 12px",
-                        borderBottom: "1px solid #eaeaea",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 8,
-                          overflow: "hidden",
-                          position: "relative",
-                        }}
-                      >
-                        <Image
-                          src={chatAttachment}
-                          alt="Attachment preview"
-                          fill
-                          style={{ objectFit: "cover" }}
-                        />
-                      </div>
-                      <span
-                        style={{
-                          fontSize: "0.8rem",
-                          color: "#666",
-                          flex: 1,
-                        }}
-                      >
-                        {t("chat.imageAttached")}
-                      </span>
-                      <button
-                        onClick={() => setChatAttachment(null)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          color: "#999",
-                          padding: 4,
-                        }}
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  )}
-                  <textarea
-                    className={styles.chatTextArea}
-                    placeholder={t("chat.placeholder")}
-                    rows={1}
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSend();
-                      }
-                    }}
-                    onInput={(e) => {
-                      const target = e.target as HTMLTextAreaElement;
-                      target.style.height = "auto";
-                      target.style.height = `${target.scrollHeight}px`;
-                    }}
-                    ref={(el) => {
-                      if (el) {
-                        el.style.height = "auto";
-                        el.style.height = `${el.scrollHeight}px`;
-                      }
-                    }}
-                  />
-                  <div className={styles.chatInputActions}>
-                    <div className={styles.chatInputLeftActions}>
-                      <button
-                        className={styles.chatIconBtn}
-                        onClick={triggerChatUpload}
-                        type="button"
-                      >
-                        <Paperclip size={20} />
-                      </button>
-                      <button
-                        className={styles.chatIconBtn}
-                        onClick={handleStartScan}
-                        type="button"
-                      >
-                        <Focus size={20} />
-                      </button>
-                    </div>
-                    <button
-                      className={`${styles.chatSendBtn} ${chatInput.trim() || chatAttachment ? styles.chatSendBtnActive : ""}`}
-                      onClick={handleSend}
-                      type="button"
-                    >
-                      <Send size={18} />
-                    </button>
-                  </div>
-                </div>
+                <ChatInput
+                  onSend={handleSend}
+                  disabled={chat.isTyping}
+                  placeholder={t("chat.placeholder")}
+                  onCameraClick={handleStartScan}
+                  imageAttachedLabel={t("chat.imageAttached")}
+                />
               </div>
             </div>
           </div>
         </motion.div>
 
-        <canvas ref={canvasRef} style={{ display: "none" }} />
-        <input
-          type="file"
-          ref={chatFileInputRef}
-          style={{ display: "none" }}
-          accept="image/*"
-          onChange={handleChatFileUpload}
+        <ClearConversationDialog
+          isOpen={clearDialogOpen}
+          onConfirm={handleClearConversation}
+          onCancel={() => setClearDialogOpen(false)}
         />
+
+        <canvas ref={canvasRef} style={{ display: "none" }} />
       </section>
 
       <DemoModal
