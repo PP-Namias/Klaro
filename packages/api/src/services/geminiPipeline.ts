@@ -5,6 +5,7 @@ import { simplifyWithGemini, buildSimplificationPrompt } from "./geminiSimplific
 import { extractTestsFromText } from "./extraction";
 import { scrubForExternalApi, detectPhiTypes } from "./phiScrubber";
 import { logLlmApiCall, logPhiScrubbing } from "./auditLogger";
+import { detectHallucinations, type HallucinationResult } from "./hallucinationDetection";
 
 export type ExtractionPath = "vision" | "ocr_extraction" | "rule_based" | "fallback";
 
@@ -15,6 +16,7 @@ export interface FallbackChainResult {
   simplification: SimplificationResult;
   processingTimeMs: number;
   warnings: string[];
+  hallucinationResult?: HallucinationResult;
 }
 
 export async function executeFallbackChain(
@@ -28,13 +30,28 @@ export async function executeFallbackChain(
   const path1 = await tryVisionExtraction(imageBase64, language);
   if (path1.success && path1.data && !isLowConfidence(path1.confidence ?? 0)) {
     const simplification = await simplifyWithGemini(path1.data, language);
+    const hallucinationResult = detectHallucinations(
+      ocrText,
+      {
+        tests: path1.data.tests,
+        diagnosis: path1.data.diagnosis,
+        medications: path1.data.medications,
+      },
+      path1.confidence ?? 0.9,
+    );
+
+    if (hallucinationResult.requiresReview) {
+      warnings.push("hallucination:review_required");
+    }
+
     return {
       extractedData: path1.data,
       path: "vision",
-      confidence: path1.confidence ?? 0.9,
+      confidence: hallucinationResult.adjustedConfidence,
       simplification,
       processingTimeMs: Date.now() - startTime,
       warnings,
+      hallucinationResult,
     };
   }
   if (path1.success) warnings.push("vision:low_confidence");
@@ -42,13 +59,28 @@ export async function executeFallbackChain(
   const path2 = await tryOcrExtraction(ocrText, language);
   if (path2.success && path2.data && !isLowConfidence(path2.confidence ?? 0)) {
     const simplification = await simplifyWithGemini(path2.data, language);
+    const hallucinationResult = detectHallucinations(
+      ocrText,
+      {
+        tests: path2.data.tests,
+        diagnosis: path2.data.diagnosis,
+        medications: path2.data.medications,
+      },
+      path2.confidence ?? 0.85,
+    );
+
+    if (hallucinationResult.requiresReview) {
+      warnings.push("hallucination:review_required");
+    }
+
     return {
       extractedData: path2.data,
       path: "ocr_extraction",
-      confidence: path2.confidence ?? 0.85,
+      confidence: hallucinationResult.adjustedConfidence,
       simplification,
       processingTimeMs: Date.now() - startTime,
       warnings,
+      hallucinationResult,
     };
   }
   if (path2.success) warnings.push("ocr_extraction:low_confidence");
@@ -56,16 +88,30 @@ export async function executeFallbackChain(
 
   const path3 = extractWithRules(ocrText);
   const simplification = await simplifyWithGemini(path3, language);
+  const hallucinationResult = detectHallucinations(
+    ocrText,
+    {
+      tests: path3.tests,
+      diagnosis: path3.diagnosis,
+      medications: path3.medications,
+    },
+    0.5,
+  );
+
+  if (hallucinationResult.requiresReview) {
+    warnings.push("hallucination:review_required");
+  }
 
   warnings.push("rule_based:used");
 
   return {
     extractedData: path3,
     path: "rule_based",
-    confidence: 0.5,
+    confidence: hallucinationResult.adjustedConfidence,
     simplification,
     processingTimeMs: Date.now() - startTime,
     warnings,
+    hallucinationResult,
   };
 }
 
