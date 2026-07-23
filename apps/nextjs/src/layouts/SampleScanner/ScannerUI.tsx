@@ -12,6 +12,8 @@ import {
   type FilePreviewItem,
 } from "~/components/file-preview";
 import { UploadProgress } from "~/components/upload-progress";
+import { UploadError } from "~/components/upload-error";
+import { UploadComplete } from "~/components/upload-complete";
 import { DropOverlay } from "~/components/drop-overlay";
 import { DemoModal, type DemoLanguage } from "~/components/demo-modal";
 import { DemoLabResults } from "~/components/demo/lab-results";
@@ -530,54 +532,39 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
               error={fileUpload.error ?? undefined}
             />
 
-            {/* Upload success message */}
+            {/* Upload complete */}
             {uploadComplete && uploadedRequestId && (
-              <div
-                style={{
-                  width: "100%",
-                  marginTop: 12,
-                  padding: "12px 16px",
-                  background: "#f0fdf4",
-                  border: "1px solid #bbf7d0",
-                  borderRadius: 10,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
+              <UploadComplete
+                items={[
+                  {
+                    fileName: selectedFiles[0]?.file.name ?? "Document",
+                    fileType: selectedFiles[0]?.kind === "pdf" ? "pdf" : "image",
+                    fileSize: selectedFiles[0]?.file.size ?? 0,
+                    analysisId: uploadedRequestId,
+                  },
+                ]}
+                onViewAnalysis={(id) => {
+                  window.location.href = `/scan?id=${id}`;
                 }}
-              >
-                <Check size={18} style={{ color: "#22c55e" }} />
-                <span
-                  style={{
-                    fontFamily: "var(--font-geist)",
-                    fontSize: "0.9rem",
-                    color: "#166534",
-                  }}
-                >
-                  Document scanned successfully! Ask Clara about your results.
-                </span>
-              </div>
+              />
             )}
 
-            {/* Error with retry */}
-            {fileUpload.stage === "error" && (
-              <div
-                style={{
-                  width: "100%",
-                  marginTop: 12,
-                  display: "flex",
-                  justifyContent: "center",
+            {/* Upload errors */}
+            {fileUpload.stage === "error" && fileUpload.queue.filter(f => f.stage === "error").length > 0 && (
+              <UploadError
+                errors={fileUpload.queue
+                  .filter((f) => f.stage === "error" && f.error)
+                  .map((f) => ({
+                    fileName: f.file.name,
+                    message: f.error!,
+                    type: "network" as const,
+                  }))}
+                onDismiss={() => {}}
+                onRetry={(fileName) => {
+                  const item = fileUpload.queue.find((f) => f.file.name === fileName);
+                  if (item) fileUpload.retry(item.id);
                 }}
-              >
-                <button
-                  className={styles.secondaryBtn}
-                  onClick={() => {
-                    fileUpload.reset();
-                    setSelectedFiles([]);
-                  }}
-                >
-                  Try Again
-                </button>
-              </div>
+              />
             )}
 
             <div className={styles.footerNotes}>
