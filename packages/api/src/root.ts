@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 
 import { adminRouter } from "./router/admin";
+import { auditRouter } from "./router/audit";
 import { authRouter } from "./router/auth";
 import { bookingRouter } from "./router/booking";
 import { chatRouter } from "./router/chat";
@@ -55,6 +56,7 @@ export const appRouter = createTRPCRouter({
   facilities: facilitiesRouter,
   payments: paymentsRouter,
   admin: adminRouter,
+  audit: auditRouter,
 });
 
 // export type definition of API

@@ -3,6 +3,8 @@ import { calculateExtractionConfidence, normalizeExtractionData, isLowConfidence
 import type { SimplificationResult } from "./geminiSimplification";
 import { simplifyWithGemini, buildSimplificationPrompt } from "./geminiSimplification";
 import { extractTestsFromText } from "./extraction";
+import { scrubForExternalApi, detectPhiTypes } from "./phiScrubber";
+import { logLlmApiCall, logPhiScrubbing } from "./auditLogger";
 
 export type ExtractionPath = "vision" | "ocr_extraction" | "rule_based" | "fallback";
 
@@ -103,6 +105,29 @@ async function tryOcrExtraction(
     return { success: false, error: "OCR text too short for extraction" };
   }
 
+  // PHI Scrubbing: Redact patient identifiers before sending to external LLM API
+  const scrubResult = scrubForExternalApi(ocrText);
+  const phiTypes = detectPhiTypes(ocrText);
+
+  if (scrubResult.matchCount > 0) {
+    console.log(
+      JSON.stringify({
+        type: "phi_scrubbed",
+        context: "ocr_extraction",
+        phiCount: scrubResult.matchCount,
+        phiTypes,
+        timestamp: new Date().toISOString(),
+      }),
+    );
+
+    // Audit log for PHI scrubbing
+    logPhiScrubbing({
+      originalPhiCount: scrubResult.matchCount,
+      scrubbedPhiCount: scrubResult.matchCount,
+      phiTypes,
+    }).catch(() => {});
+  }
+
   try {
     const geminiApiKey = process.env.GEMINI_API_KEY || process.env.LLM_API_KEY;
     if (!geminiApiKey) {
@@ -110,7 +135,8 @@ async function tryOcrExtraction(
     }
 
     const { buildExtractionPrompt, parseGeminiResponse } = await import("./geminiExtraction");
-    const prompt = buildExtractionPrompt(ocrText, language);
+    // Use scrubbed text for the extraction prompt sent to external API
+    const prompt = buildExtractionPrompt(scrubResult.scrubbedText, language);
     const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
     const response = await fetch(
@@ -127,6 +153,14 @@ async function tryOcrExtraction(
     );
 
     if (!response.ok) {
+      // Audit log for failed API call
+      logLlmApiCall({
+        phiScrubbed: true,
+        phiCount: scrubResult.matchCount,
+        externalProvider: "gemini",
+        success: false,
+      }).catch(() => {});
+
       return { success: false, error: `Gemini API error: ${response.status}` };
     }
 
@@ -145,6 +179,14 @@ async function tryOcrExtraction(
     const normalized = normalizeExtractionData(parsed);
     const confidence = calculateExtractionConfidence(normalized);
 
+    // Audit log for successful API call
+    logLlmApiCall({
+      phiScrubbed: true,
+      phiCount: scrubResult.matchCount,
+      externalProvider: "gemini",
+      success: true,
+    }).catch(() => {});
+
     return {
       success: true,
       data: normalized,
@@ -153,6 +195,14 @@ async function tryOcrExtraction(
       rawResponse: text,
     };
   } catch (error) {
+    // Audit log for failed API call
+    logLlmApiCall({
+      phiScrubbed: true,
+      phiCount: scrubResult.matchCount,
+      externalProvider: "gemini",
+      success: false,
+    }).catch(() => {});
+
     return {
       success: false,
       error: error instanceof Error ? error.message : "OCR extraction failed",

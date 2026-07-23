@@ -1,3 +1,5 @@
+import { scrubPhi, detectPhiTypes } from "./phiScrubber";
+
 export type ClaraMessageType = "user" | "clara" | "system";
 
 export interface ClaraMessage {
@@ -37,14 +39,33 @@ export function createClaraMessage(
   };
 }
 
+/**
+ * Build system prompt for Clara with PHI protection.
+ * Patient data is scrubbed before inclusion to prevent leakage to LLM APIs.
+ */
 export function buildClaraSystemPrompt(context: ClaraContext): string {
   const langInstruction = context.language && context.language !== "en"
     ? `Respond in ${context.language}.`
     : "";
 
-  const patientData = context.patientData
-    ? `\nPatient data:\n${JSON.stringify(context.patientData, null, 2)}`
-    : "";
+  let patientDataSection = "";
+  if (context.patientData) {
+    // Scrub PHI from patient data before including in prompt
+    const { scrubbedData, matches } = scrubExtractedDataForClara(context.patientData);
+
+    if (matches.length > 0) {
+      console.log(
+        JSON.stringify({
+          type: "phi_scrubbed",
+          context: "clara_system_prompt",
+          phiCount: matches.length,
+          timestamp: new Date().toISOString(),
+        }),
+      );
+    }
+
+    patientDataSection = `\nPatient data:\n${JSON.stringify(scrubbedData, null, 2)}`;
+  }
 
   return `You are Clara, a friendly AI health assistant for Klaro.
 Your role is to help patients understand their medical documents and health data.
@@ -53,13 +74,52 @@ Never provide medical diagnosis or treatment advice.
 Always recommend consulting a healthcare professional for medical decisions.
 
 ${langInstruction}
-${patientData}
+${patientDataSection}
 
 When answering questions about the patient data:
 - Explain medical terms in simple language
 - Highlight important values that may need attention
 - Suggest follow-up questions the patient might want to ask their doctor
 - Be reassuring but honest about what the data shows`;
+}
+
+/**
+ * Scrub PHI from patient data object for Clara's context
+ */
+function scrubExtractedDataForClara(
+  data: Record<string, unknown>,
+): { scrubbedData: Record<string, unknown>; matches: Array<{ type: string; value: string }> } {
+  const matches: Array<{ type: string; value: string }> = [];
+  const scrubbed: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value === "string") {
+      const result = scrubPhi(value);
+      if (result.matchCount > 0) {
+        matches.push(
+          ...result.matches.map((m) => ({ type: m.type, value: m.value })),
+        );
+      }
+      scrubbed[key] = result.scrubbedText;
+    } else if (Array.isArray(value)) {
+      scrubbed[key] = value.map((item) => {
+        if (typeof item === "string") {
+          const result = scrubPhi(item);
+          if (result.matchCount > 0) {
+            matches.push(
+              ...result.matches.map((m) => ({ type: m.type, value: m.value })),
+            );
+          }
+          return result.scrubbedText;
+        }
+        return item;
+      });
+    } else {
+      scrubbed[key] = value;
+    }
+  }
+
+  return { scrubbedData: scrubbed, matches };
 }
 
 export function shouldRespondToMessage(

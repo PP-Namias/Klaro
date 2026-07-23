@@ -9,6 +9,8 @@ import { DialectEnum } from "@klaro/validators/llm";
 
 import { assembleDocumentContext } from "../services/contextAssembler";
 import { callLLMAPI } from "../services/llm";
+import { scrubPhi, detectPhiTypes } from "../services/phiScrubber";
+import { logChatMessage, logLlmApiCall } from "../services/auditLogger";
 import { protectedProcedure } from "../trpc";
 
 export type ChatSeverity = "LOW" | "MODERATE" | "HIGH";
@@ -119,8 +121,20 @@ export const chatRouter = {
         plainLanguageSummary?: string | null;
       };
 
-      // Save user message
       const userId = ctx.session!.user.id;
+
+      // PHI Detection: Check user message for PHI before processing
+      const userPhiTypes = detectPhiTypes(input.content);
+      if (userPhiTypes.length > 0) {
+        logChatMessage({
+          userId,
+          analysisId: input.analysisId,
+          phiDetected: true,
+          phiTypes: userPhiTypes,
+        }).catch(() => {});
+      }
+
+      // Save user message (original, for record-keeping)
       await ctx.db.insert(chatMessage).values({
         analysisId: input.analysisId,
         userId,
@@ -155,6 +169,20 @@ export const chatRouter = {
         recentMessages,
       );
 
+      // PHI Scrubbing: Redact patient data from context before sending to LLM
+      const scrubbedContext = scrubPhi(context);
+      if (scrubbedContext.matchCount > 0) {
+        console.log(
+          JSON.stringify({
+            type: "phi_scrubbed",
+            context: "chat_message",
+            phiCount: scrubbedContext.matchCount,
+            phiTypes: detectPhiTypes(context),
+            timestamp: new Date().toISOString(),
+          }),
+        );
+      }
+
       const systemPrompt = `You are a helpful health assistant. Keep responses brief, supportive, and ask one follow-up question when appropriate. If safety guidance is present, include it before any other advice. IMPORTANT: Respond in the patient's preferred language: ${input.dialect}.`;
       const safetyPrefix =
         ctx.chatSafety?.severity === "HIGH" && ctx.chatSafety.bookingSuggestion
@@ -162,14 +190,36 @@ export const chatRouter = {
           : ctx.chatSafety?.disclaimer
             ? `${ctx.chatSafety.disclaimer}\n\n`
             : "";
-      const prompt = `Context:\n${context}\n\nSafety guidance:\n${ctx.chatSafety?.severity ?? "LOW"}\n\nUser message:\n${input.content}\n\nRespond briefly and include one follow-up question.`;
+      // Use scrubbed context for LLM prompt
+      const prompt = `Context:\n${scrubbedContext.scrubbedText}\n\nSafety guidance:\n${ctx.chatSafety?.severity ?? "LOW"}\n\nUser message:\n${input.content}\n\nRespond briefly and include one follow-up question.`;
 
       // Call LLM (falls back to empty string if API key not configured)
       let llmOutput = "";
       try {
         llmOutput = await callLLMAPI(prompt, systemPrompt);
+
+        // Audit log for successful LLM call
+        logLlmApiCall({
+          userId,
+          analysisId: input.analysisId,
+          phiScrubbed: true,
+          phiCount: scrubbedContext.matchCount,
+          externalProvider: "llm",
+          success: true,
+        }).catch(() => {});
       } catch (err) {
         console.error("LLM call failed:", err);
+
+        // Audit log for failed LLM call
+        logLlmApiCall({
+          userId,
+          analysisId: input.analysisId,
+          phiScrubbed: true,
+          phiCount: scrubbedContext.matchCount,
+          externalProvider: "llm",
+          success: false,
+        }).catch(() => {});
+
         llmOutput = "";
       }
 

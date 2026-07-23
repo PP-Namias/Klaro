@@ -856,4 +856,90 @@ export const documentsRouter = {
         };
       }
     }),
+
+  /**
+   * Execute file cleanup job
+   * Deletes uploaded files past retention window from Cloudinary
+   * Requires admin authentication
+   */
+  cleanupFiles: protectedProcedure
+    .input(
+      z.object({
+        retentionHours: z.number().min(1).max(720).optional(),
+        dryRun: z.boolean().default(false),
+      }).optional(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User must be authenticated",
+        });
+      }
+
+      const { executeCleanup, getCleanupStats } = await import("../services/fileCleanup");
+
+      const result = await executeCleanup({
+        retentionHours: input?.retentionHours,
+        dryRun: input?.dryRun ?? false,
+      });
+
+      return {
+        success: result.failed === 0,
+        summary: {
+          totalFound: result.totalFound,
+          deleted: result.deleted,
+          archived: result.archived,
+          failed: result.failed,
+          dryRun: result.dryRun,
+        },
+        errors: result.errors,
+        deletedFiles: result.deletedFiles,
+      };
+    }),
+
+  /**
+   * Get cleanup statistics for monitoring
+   */
+  cleanupStats: protectedProcedure.query(async ({ ctx }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User must be authenticated",
+      });
+    }
+
+    const { getCleanupStats } = await import("../services/fileCleanup");
+    return getCleanupStats();
+  }),
+
+  /**
+   * Manually cleanup a specific document
+   * Deletes file from Cloudinary and archives the document
+   */
+  cleanupDocument: protectedProcedure
+    .input(z.object({ documentId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User must be authenticated",
+        });
+      }
+
+      const { cleanupDocument } = await import("../services/fileCleanup");
+      const result = await cleanupDocument(
+        input.documentId,
+        ctx.session.user.id,
+      );
+
+      if (!result.success) {
+        throw new TRPCError({
+          code: result.error === "Document not found" ? "NOT_FOUND" : "INTERNAL_SERVER_ERROR",
+          message: result.error || "Failed to cleanup document",
+        });
+      }
+
+      return { success: true };
+    }),
 } satisfies TRPCRouterRecord;
