@@ -13,6 +13,7 @@ import {
   decryptJson,
   isEncrypted,
   generateEncryptionKey,
+  rotateEncryption,
 } from "../encryption";
 
 describe("Encryption Service", () => {
@@ -181,6 +182,44 @@ describe("Encryption Service", () => {
       const key1 = generateEncryptionKey();
       const key2 = generateEncryptionKey();
       expect(key1).not.toBe(key2);
+    });
+  });
+
+  describe("rotateEncryption", () => {
+    it("re-encrypts data with a new key", async () => {
+      const original = "Sensitive patient data";
+      const encrypted = await encrypt(original);
+      const encryptedStr = JSON.stringify(encrypted);
+
+      const newKey = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+      const reEncryptedStr = await rotateEncryption(encryptedStr, newKey);
+
+      expect(reEncryptedStr).not.toBe(encryptedStr);
+
+      const oldKey = process.env.ENCRYPTION_MASTER_KEY;
+      process.env.ENCRYPTION_MASTER_KEY = newKey;
+      try {
+        const parsed = JSON.parse(reEncryptedStr);
+        const decrypted = await decrypt(parsed);
+        expect(decrypted).toBe(original);
+      } finally {
+        process.env.ENCRYPTION_MASTER_KEY = oldKey;
+      }
+    });
+
+    it("old key cannot decrypt after rotation", async () => {
+      const original = "Rotate me";
+      const encrypted = await encrypt(original);
+      const encryptedStr = JSON.stringify(encrypted);
+
+      const newKey = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+      const reEncryptedStr = await rotateEncryption(encryptedStr, newKey);
+
+      // Old key should NOT be able to decrypt new ciphertext
+      await expect(async () => {
+        const parsed = JSON.parse(reEncryptedStr);
+        await decrypt(parsed);
+      }).rejects.toThrow();
     });
   });
 
