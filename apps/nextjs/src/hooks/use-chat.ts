@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 
 import { useTRPC } from "~/trpc/react";
 
-type Dialect = "English" | "Filipino" | "Bisaya" | "Ilocano";
+export type Dialect = "English" | "Filipino" | "Bisaya" | "Ilocano";
 
-interface ChatMessage {
+export interface ChatMessage {
   id: string;
   sender: "user" | "clara";
   text: string;
@@ -22,12 +21,13 @@ interface UseChatOptions {
   onError?: (error: string) => void;
 }
 
-interface UseChatReturn {
+export interface UseChatReturn {
   messages: ChatMessage[];
   sendMessage: (content: string, image?: string) => Promise<void>;
   isTyping: boolean;
   error: string | null;
-  clearMessages: () => void;
+  clearMessages: () => Promise<void>;
+  isLoadingHistory: boolean;
 }
 
 export function useChat({
@@ -39,35 +39,83 @@ export function useChat({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const trpc = useTRPC();
+  const utils = trpc.useUtils();
 
-  const sendMessageMutation = useMutation(
-    trpc.chat.sendMessage.mutationOptions({
-      onSuccess: (result) => {
-        const assistantMsg: ChatMessage = {
-          id: `clara-${Date.now()}`,
-          sender: "clara",
-          text: result.assistantMessage?.content || "I can help explain what you scanned.",
-          timestamp: Date.now(),
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
-        setIsTyping(false);
-        onSuccess?.(assistantMsg);
-      },
-      onError: (err) => {
-        setIsTyping(false);
-        const fallbackMsg: ChatMessage = {
-          id: `clara-fallback-${Date.now()}`,
-          sender: "clara",
-          text: "I can help explain what you scanned and suggest the next best step. Could you try asking again?",
-          timestamp: Date.now(),
-        };
-        setMessages((prev) => [...prev, fallbackMsg]);
-        onError?.(err.message);
-      },
-    }),
-  );
+  // Load history when analysisId changes
+  useEffect(() => {
+    if (!analysisId) {
+      setMessages([]);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingHistory(true);
+
+    const load = async () => {
+      try {
+        const history = await utils.client.chat.getHistory.query({
+          analysisId,
+          limit: 50,
+        });
+
+        if (cancelled) return;
+
+        const mapped: ChatMessage[] = history.map((m) => ({
+          id: `${m.role}-${m.id}`,
+          sender: m.role === "user" ? "user" : "clara",
+          text: m.content,
+          timestamp: new Date(m.createdAt).getTime(),
+        }));
+
+        setMessages(mapped);
+      } catch {
+        if (!cancelled) {
+          setError("Failed to load chat history");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingHistory(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [analysisId, utils]);
+
+  const sendMessageMutation = trpc.chat.sendMessage.useMutation({
+    onSuccess: (result) => {
+      const assistantMsg: ChatMessage = {
+        id: `clara-${Date.now()}`,
+        sender: "clara",
+        text:
+          result.assistantMessage?.content ||
+          "I can help explain what you scanned.",
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+      setIsTyping(false);
+      onSuccess?.(assistantMsg);
+    },
+    onError: (err) => {
+      setIsTyping(false);
+      const fallbackMsg: ChatMessage = {
+        id: `clara-fallback-${Date.now()}`,
+        sender: "clara",
+        text: "I can help explain what you scanned and suggest the next best step. Could you try asking again?",
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => [...prev, fallbackMsg]);
+      setError(err.message);
+      onError?.(err.message);
+    },
+  });
 
   const sendMessage = useCallback(
     async (content: string, image?: string) => {
@@ -86,17 +134,19 @@ export function useChat({
       setError(null);
 
       if (!analysisId) {
-        // No analysis ID - use local fallback response
-        setTimeout(() => {
-          const fallbackMsg: ChatMessage = {
-            id: `clara-${Date.now()}`,
-            sender: "clara",
-            text: "I can help explain what you scanned and suggest the next best step. Please upload a document first so I can analyze your results.",
-            timestamp: Date.now(),
-          };
-          setMessages((prev) => [...prev, fallbackMsg]);
-          setIsTyping(false);
-        }, 1200);
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            const fallbackMsg: ChatMessage = {
+              id: `clara-${Date.now()}`,
+              sender: "clara",
+              text: "I can help explain what you scanned and suggest the next best step. Please upload a document first so I can analyze your results.",
+              timestamp: Date.now(),
+            };
+            setMessages((prev) => [...prev, fallbackMsg]);
+            setIsTyping(false);
+            resolve();
+          }, 1200);
+        });
         return;
       }
 
@@ -113,10 +163,17 @@ export function useChat({
     [analysisId, dialect, sendMessageMutation],
   );
 
-  const clearMessages = useCallback(() => {
+  const clearMessages = useCallback(async () => {
+    if (analysisId) {
+      try {
+        await utils.client.chat.clearHistory.mutate({ analysisId });
+      } catch {
+        // Silently fail - local clear is sufficient
+      }
+    }
     setMessages([]);
     setError(null);
-  }, []);
+  }, [analysisId, utils]);
 
   return {
     messages,
@@ -124,7 +181,6 @@ export function useChat({
     isTyping,
     error,
     clearMessages,
+    isLoadingHistory,
   };
 }
-
-export type { ChatMessage, UseChatOptions, UseChatReturn };
