@@ -1,17 +1,22 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useCallback, useRef, useState } from "react";
 
 import type { Language } from "@klaro/validators/language";
 import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 
 import { useTRPC } from "~/trpc/react";
-import {
-  validateFiles,
-  fileToBase64,
-} from "~/lib/file-validation";
+import { validateFiles, fileToBase64 } from "~/lib/file-validation";
 import type { UploadStage } from "~/components/upload-progress";
+
+export interface UploadFileItem {
+  id: string;
+  file: File;
+  stage: "pending" | "uploading" | "processing" | "complete" | "error";
+  progress: number;
+  error?: string;
+  requestId?: string;
+}
 
 interface UseFileUploadOptions {
   language?: Language;
@@ -20,7 +25,12 @@ interface UseFileUploadOptions {
 }
 
 interface UseFileUploadReturn {
+  queue: UploadFileItem[];
   upload: (files: File[]) => Promise<void>;
+  retry: (fileId: string) => Promise<void>;
+  retryFile: (fileId: string) => Promise<void>;
+  cancelFile: (fileId: string) => void;
+  cancelAll: () => void;
   stage: UploadStage;
   progress: number;
   error: string | null;
@@ -29,111 +39,241 @@ interface UseFileUploadReturn {
   reset: () => void;
 }
 
+let fileIdCounter = 0;
+
 export function useFileUpload({
   language = "fil",
   onSuccess,
   onError,
 }: UseFileUploadOptions = {}): UseFileUploadReturn {
+  const [queue, setQueue] = useState<UploadFileItem[]>([]);
   const [stage, setStage] = useState<UploadStage>("idle");
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
+  const cancelledRef = useRef<Set<string>>(new Set());
 
   const trpc = useTRPC();
 
-  const scanGuestImage = useMutation(
-    trpc.documents.scanGuestImage.mutationOptions({
-      onSuccess: (result) => {
-        if (result.status === "error") {
-          setStage("error");
-          const message = result.error || "Scan failed. Please try again.";
-          setError(message);
-          onError?.(message);
-          return;
-        }
-        setStage("complete");
-        setProgress(100);
-        setRequestId(result.requestId);
-        onSuccess?.(result.requestId);
-      },
-      onError: (err) => {
-        setStage("error");
-        const message = err.message || "Upload failed. Please try again.";
-        setError(message);
-        onError?.(message);
-      },
-    }),
+  const processFile = useCallback(
+    async (item: UploadFileItem): Promise<void> => {
+      if (cancelledRef.current.has(item.id)) return;
+
+      try {
+        setQueue((prev) =>
+          prev.map((f) =>
+            f.id === item.id ? { ...f, stage: "uploading", progress: 10 } : f,
+          ),
+        );
+
+        const base64 = await fileToBase64(item.file);
+
+        if (cancelledRef.current.has(item.id)) return;
+
+        setQueue((prev) =>
+          prev.map((f) =>
+            f.id === item.id ? { ...f, stage: "processing", progress: 60 } : f,
+          ),
+        );
+
+        return new Promise((resolve, reject) => {
+          trpc.documents.scanGuestImage.mutate(
+            {
+              base64Image: base64,
+              fileName: item.file.name,
+              language: LANGUAGE_TO_DIALECT[language],
+            },
+            {
+              onSuccess: (result) => {
+                if (cancelledRef.current.has(item.id)) {
+                  resolve();
+                  return;
+                }
+                if (result.status === "error") {
+                  setQueue((prev) =>
+                    prev.map((f) =>
+                      f.id === item.id
+                        ? {
+                            ...f,
+                            stage: "error",
+                            progress: 0,
+                            error: result.error || "Scan failed",
+                          }
+                        : f,
+                    ),
+                  );
+                  reject(new Error(result.error || "Scan failed"));
+                  return;
+                }
+                setQueue((prev) =>
+                  prev.map((f) =>
+                    f.id === item.id
+                      ? {
+                          ...f,
+                          stage: "complete",
+                          progress: 100,
+                          requestId: result.requestId,
+                        }
+                      : f,
+                  ),
+                );
+                setRequestId(result.requestId);
+                onSuccess?.(result.requestId);
+                resolve();
+              },
+              onError: (err) => {
+                if (cancelledRef.current.has(item.id)) {
+                  resolve();
+                  return;
+                }
+                setQueue((prev) =>
+                  prev.map((f) =>
+                    f.id === item.id
+                      ? {
+                          ...f,
+                          stage: "error",
+                          progress: 0,
+                          error: err.message,
+                        }
+                      : f,
+                  ),
+                );
+                reject(err);
+              },
+            },
+          );
+        });
+      } catch (err) {
+        if (cancelledRef.current.has(item.id)) return;
+        setQueue((prev) =>
+          prev.map((f) =>
+            f.id === item.id
+              ? {
+                  ...f,
+                  stage: "error",
+                  progress: 0,
+                  error: err instanceof Error ? err.message : "Upload failed",
+                }
+              : f,
+          ),
+        );
+      }
+    },
+    [trpc, language, onSuccess],
   );
 
   const upload = useCallback(
     async (files: File[]) => {
-      const { valid, invalid } = await validateFiles(files);
-
-      if (invalid.length > 0 && invalid[0]) {
-        const errorMsg = invalid[0].error ?? "Invalid file";
-        setError(errorMsg);
-        setStage("error");
-        onError?.(errorMsg);
-        return;
-      }
+      const { valid } = await validateFiles(files);
 
       if (valid.length === 0) {
         setError("No valid files selected.");
         setStage("error");
+        onError?.("No valid files selected.");
         return;
       }
 
-      setStage("validating");
+      const newItems: UploadFileItem[] = valid.map((file) => ({
+        id: `file-${++fileIdCounter}`,
+        file,
+        stage: "pending" as const,
+        progress: 0,
+      }));
+
+      setQueue((prev) => [...prev, ...newItems]);
+      setStage("uploading");
       setProgress(10);
       setError(null);
-      setRequestId(null);
 
-      try {
-        const file = valid[0];
-        if (!file) {
-          setError("No valid files selected.");
-          setStage("error");
-          return;
-        }
+      // Process files sequentially
+      for (const item of newItems) {
+        if (cancelledRef.current.has(item.id)) continue;
+        await processFile(item);
+      }
 
-        setStage("uploading");
-        setProgress(30);
+      // Check overall status
+      const allComplete = queue
+        .concat(newItems)
+        .every((f) => f.stage === "complete" || cancelledRef.current.has(f.id));
+      const anyError = queue
+        .concat(newItems)
+        .some((f) => f.stage === "error");
 
-        const base64 = await fileToBase64(file);
-        setProgress(60);
-
-        setStage("processing");
-        setProgress(80);
-
-        scanGuestImage.mutate({
-          base64Image: base64,
-          fileName: file.name,
-          language: LANGUAGE_TO_DIALECT[language],
-        });
-      } catch (err) {
+      if (anyError) {
         setStage("error");
-        const message = err instanceof Error ? err.message : "Upload failed.";
-        setError(message);
-        onError?.(message);
+        setError("Some files failed to upload.");
+      } else if (allComplete) {
+        setStage("complete");
+        setProgress(100);
       }
     },
-    [scanGuestImage, language, onError],
+    [processFile, onError, queue],
   );
 
+  const retryFile = useCallback(
+    async (fileId: string) => {
+      const item = queue.find((f) => f.id === fileId);
+      if (!item) return;
+
+      cancelledRef.current.delete(fileId);
+
+      setQueue((prev) =>
+        prev.map((f) =>
+          f.id === fileId
+            ? { ...f, stage: "pending" as const, progress: 0, error: undefined }
+            : f,
+        ),
+      );
+
+      setStage("uploading");
+      setError(null);
+
+      await processFile(item);
+    },
+    [queue, processFile],
+  );
+
+  const cancelFile = useCallback((fileId: string) => {
+    cancelledRef.current.add(fileId);
+    setQueue((prev) =>
+      prev.map((f) =>
+        f.id === fileId ? { ...f, stage: "pending" as const, progress: 0 } : f,
+      ),
+    );
+  }, []);
+
+  const cancelAll = useCallback(() => {
+    queue.forEach((f) => cancelledRef.current.add(f.id));
+    setQueue([]);
+    setStage("idle");
+    setProgress(0);
+  }, [queue]);
+
   const reset = useCallback(() => {
+    cancelledRef.current.clear();
+    setQueue([]);
     setStage("idle");
     setProgress(0);
     setError(null);
     setRequestId(null);
   }, []);
 
+  const isUploading = queue.some(
+    (f) => f.stage === "pending" || f.stage === "uploading" || f.stage === "processing",
+  );
+
   return {
+    queue,
     upload,
+    retry: retryFile,
+    retryFile,
+    cancelFile,
+    cancelAll,
     stage,
     progress,
     error,
     requestId,
-    isUploading: stage !== "idle" && stage !== "complete" && stage !== "error",
+    isUploading,
     reset,
   };
 }
