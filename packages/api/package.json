@@ -26,6 +26,7 @@
     "@klaro/validators": "workspace:*",
     "@trpc/server": "catalog:",
     "canvas": "3.1.0",
+    "cloudinary": "catalog:",
     "drizzle-orm": "^0.44.7",
     "pdfjs-dist": "4.0.379",
     "superjson": "2.2.3",

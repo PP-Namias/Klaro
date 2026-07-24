@@ -36,6 +36,7 @@
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.1",
     "@turbo/gen": "^2.5.8",
+    "@vitest/coverage-v8": "^4.1.10",
     "cross-env": "^10.1.0",
     "dotenv-cli": "^10.0.0",
     "jiti": "^2.6.1",
