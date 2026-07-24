@@ -1,5 +1,5 @@
-import { expect } from "vitest";
 import type { ZodSchema } from "zod/v4";
+import { expect } from "vitest";
 
 export const expectValidSchema = (schema: ZodSchema, data: unknown) => {
   const result = schema.safeParse(data);
@@ -22,9 +22,7 @@ export const expectSchemaError = (
   expect(result.success).toBe(false);
   if (expectedPath && !result.success) {
     const issues = result.error.issues;
-    const hasPath = issues.some((issue) =>
-      issue.path.includes(expectedPath),
-    );
+    const hasPath = issues.some((issue) => issue.path.includes(expectedPath));
     expect(hasPath).toBe(true);
   }
 };

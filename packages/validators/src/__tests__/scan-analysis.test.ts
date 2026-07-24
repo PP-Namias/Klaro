@@ -1,13 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import {
   aiScanAnalysisSchema,
   analyzeScanInputSchema,
-  scanUrgencySchema,
+  scanGuestAnalysisSchema,
+  scanGuestInputSchema,
+  scanGuestResponseSchema,
   scanLanguageSchema,
   scanStatusSchema,
-  scanGuestInputSchema,
-  scanGuestAnalysisSchema,
-  scanGuestResponseSchema,
+  scanUrgencySchema,
 } from "../scan-analysis";
 
 describe("aiScanAnalysisSchema", () => {

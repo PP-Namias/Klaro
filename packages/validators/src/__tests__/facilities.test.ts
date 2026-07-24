@@ -1,12 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import {
+  facilityResponseSchema,
   facilityTypeEnum,
-  facilityTypeRank,
   facilityTypeOrder,
-  searchNearbySchema,
+  facilityTypeRank,
   medicalContextSchema,
   recommendByTestResultsSchema,
-  facilityResponseSchema,
+  searchNearbySchema,
 } from "../facilities";
 
 describe("facilityTypeEnum", () => {

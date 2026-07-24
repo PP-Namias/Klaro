@@ -13,7 +13,10 @@ export const languageSchema = z.enum(["en", "fil", "ceb", "ilo"]);
 
 export type Language = z.infer<typeof languageSchema>;
 
-export const LANGUAGE_LABELS: Record<Language, { name: string; nativeName: string }> = {
+export const LANGUAGE_LABELS: Record<
+  Language,
+  { name: string; nativeName: string }
+> = {
   en: { name: "English", nativeName: "English" },
   fil: { name: "Filipino", nativeName: "Filipino" },
   ceb: { name: "Bisaya", nativeName: "Binisaya" },

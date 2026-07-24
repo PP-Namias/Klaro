@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  LanguageCode,
-  languageSchema,
-  LANGUAGE_LABELS,
-  LANGUAGE_OPTIONS,
   DEFAULT_LANGUAGE,
   DIALECT_TO_LANGUAGE,
+  LANGUAGE_LABELS,
+  LANGUAGE_OPTIONS,
   LANGUAGE_TO_DIALECT,
+  LanguageCode,
+  languageSchema,
 } from "../language";
 
 describe("LanguageCode", () => {
