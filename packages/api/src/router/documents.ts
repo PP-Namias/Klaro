@@ -339,11 +339,24 @@ export const documentsRouter = {
       }
 
       const ocrText = input.ocrText ?? doc.ocrText;
-      if (!ocrText) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "OCR text is required before extraction",
-        });
+      if (!ocrText || ocrText.trim().length === 0) {
+        await ctx.db
+          .update(document)
+          .set({
+            status: "failed",
+            errorMessage: "Could not extract any text from this document. Make sure the document contains clearly printed medical text.",
+            updatedAt: new Date(),
+          })
+          .where(eq(document.id, input.documentId));
+
+        return {
+          analysisId: null,
+          extractedCount: 0,
+          flaggedCount: 0,
+          accuracy: 0,
+          method: "regex",
+          error: "Could not extract any text from this document. Make sure the document contains clearly printed medical text.",
+        };
       }
 
       const extractedFields = extractTestsFromText(ocrText);
