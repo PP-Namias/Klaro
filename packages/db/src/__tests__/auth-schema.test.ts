@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { user, session, account, verification } from "../auth-schema";
+import { describe, expect, it } from "vitest";
+
+import { account, session, user, verification } from "../auth-schema";
 
 describe("user table", () => {
   it("has id text primary key", () => {

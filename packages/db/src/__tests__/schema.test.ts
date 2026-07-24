@@ -1,23 +1,24 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import {
-  document,
   analysis,
-  chatMessage,
-  doctor,
-  facility,
-  booking,
-  payment,
-  doctorAvailability,
-  documentStatusEnum,
   analysisStatusEnum,
+  booking,
   bookingStatusEnum,
-  paymentStatusEnum,
-  sessionTypeEnum,
-  ownershipEnum,
-  CreateDocumentSchema,
+  chatMessage,
   CreateAnalysisSchema,
   CreateBookingSchema,
+  CreateDocumentSchema,
   CreatePaymentSchema,
+  doctor,
+  doctorAvailability,
+  document,
+  documentStatusEnum,
+  facility,
+  ownershipEnum,
+  payment,
+  paymentStatusEnum,
+  sessionTypeEnum,
 } from "../schema";
 
 describe("document table", () => {
