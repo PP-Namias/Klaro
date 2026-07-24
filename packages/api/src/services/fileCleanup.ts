@@ -14,15 +14,6 @@
  * 4. Logs all cleanup events for audit trail
  */
 
-declare module "cloudinary" {
-  export const v2: {
-    config: (config: Record<string, string | undefined>) => void;
-    uploader: {
-      destroy: (publicId: string) => Promise<{ result: string }>;
-    };
-  };
-}
-
 import { v2 as cloudinary } from "cloudinary";
 import { and, eq, inArray, lt } from "drizzle-orm";
 
