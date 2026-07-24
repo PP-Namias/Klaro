@@ -162,21 +162,35 @@ Klaro's intelligence runs in a dedicated **AI microservice** -- a standalone Exp
 
 The core RAG pipeline is built as a compiled [LangGraph](https://langchain-ai.github.io/langgraph/) state machine with four nodes and conditional routing:
 
-```
-User Question
-     |
-     v
- [retrieve] ---- conditional edge ----.
-     |                                  |
-     | (docs found)                (no docs)
-     v                                  v
- [generate]                       [emptyAnswer]
-     |                                  |
-     v                                  v
- [followUp] <--------------------------'
-     |
-     v
-  Final Answer + Follow-up Questions
+```mermaid
+flowchart TD
+    Q["Patient Question"]
+
+    Q --> R["[retrieve]
+    Vector Store Lookup
+    Embed & Search Chunks"]
+
+    R --> D{"[decide]
+    Documents Found?"}
+
+    D -->|"Yes - docs retrieved"| G["[generate]
+    Build LangChain Prompt
+    LLM Call (Gemini / OpenAI / Claude)
+    Stream via SSE"]
+
+    D -->|"No - empty result"| E["[emptyAnswer]
+    Graceful Degradation
+    Answer from LLM without context"]
+
+    G --> F["[followUp]
+    Generate Context-Aware
+    Follow-up Questions"]
+
+    E --> F
+
+    F --> A["Final Answer
+    +
+    Follow-up Questions"]
 ```
 
 - **`retrieve`** -- Embeds the user question and retrieves relevant document chunks from a vector store (ChromaDB, Supabase pgvector, or mock) with a 5-second timeout and noop fallback for offline stores
@@ -311,52 +325,45 @@ klaro/                                   -- pnpm monorepo (Turborepo)
 
 ### End-to-End Data Flow
 
-```
-Patient uploads document (image/PDF)
-        |
-        v
-  +-----------------------+
-  | File Validation       |  Type check, size limit, encrypted PDF detection
-  +-----------+-----------+
-              |
-              v
-  +-----------------------+
-  | PHI/PII Scrubber      |  Strip all identifiers before processing
-  +-----------+-----------+
-              |
-              v
-  +-----------------------+
-  | OCR Pipeline          |  Tesseract.js (local) + image preprocessing
-  | performOcr()          |  -> Google Cloud Vision fallback
-  +-----------+-----------+
-              |
-              v
-  +-----------------------+
-  | AI Extraction         |  Regex + Gemini AI -> 200+ test variants
-  | extractValues()       |  -> structured JSON with confidence scores
-  +-----------+-----------+
-              |
-              v
-  +-----------------------+
-  | Hallucination Check   |  Validate against medical reference ranges
-  | detectAnomalies()     |  -> reject impossible or implausible values
-  +-----------+-----------+
-              |
-              v
-  +-----------------------+
-  | ai-sidecar (RAG)      |  LangGraph: retrieve context -> generate
-  | LangChain/LLM         |  plain-language explanation -> stream via SSE
-  +-----------+-----------+
-              |
-              v
-  +-----------------------+
-  | Encrypt + Store       |  AES-256-GCM -> PostgreSQL (Drizzle ORM)
-  | Audit Log (phiAudit)  |  Every PHI access recorded
-  +-----------+-----------+
-              |
-              v
-  +-----------------------+
-  | Display Results       |  Severity badges, confidence scores,
+```mermaid
+flowchart TD
+    P["Patient uploads document
+    (image / PDF)"]
+
+    P --> V["File Validation
+    Type check, size limit,
+    encrypted PDF detection"]
+
+    V --> S["PHI / PII Scrubber
+    Strip all identifiers
+    before processing"]
+
+    S --> O["OCR Pipeline
+    Tesseract.js + preprocessing
+    (deskew, denoise, binarize)
+    -> Google Cloud Vision fallback"]
+
+    O --> E["AI Extraction
+    Regex + Gemini AI
+    -> 200+ Philippine test variants
+    -> structured JSON with confidence"]
+
+    E --> H["Hallucination Check
+    Medical reference range validation
+    -> reject impossible values"]
+
+    H --> R["ai-sidecar (RAG)
+    LangGraph: retrieve docs
+    -> generate plain-language
+    -> stream via SSE"]
+
+    R --> C["Encrypt + Store
+    AES-256-GCM -> PostgreSQL
+    phiAuditLog: every access recorded"]
+
+    C --> D["Display Results
+    Severity badges, confidence scores
+    + Clara Chat with follow-up Q&A"]
   | + Chat with Clara     |  dialect-aware conversation, follow-up Q&A
   +-----------------------+
 ```
