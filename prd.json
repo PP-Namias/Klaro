@@ -1,123 +1,47 @@
 {
-  "name": "ai-sidecar-debug-fix",
-  "version": "1.0.0",
-  "description": "Systematic debug, build, test, and deploy of the ai-sidecar LangChain/LangGraph RAG microservice",
-  "phases": [
+  "goal": "Pass all 7 failing CI checks on PR #10 for branch dev",
+  "checks": [
     {
-      "phase": 1,
-      "name": "Build",
-      "status": "completed",
-      "changes": [
-        {
-          "file": "packages/ai-sidecar/src/shared/retrieval.ts",
-          "description": "Add retriever timeout (5s), noop retriever for offline vector stores, VECTOR_STORE_PROVIDER=none support"
-        },
-        {
-          "file": "packages/ai-sidecar/src/shared/utils.ts",
-          "description": "Add timeout/maxRetries to model constructor args, add LLM_API_KEY to Google GenAI key chain"
-        },
-        {
-          "file": "packages/ai-sidecar/src/index.ts",
-          "description": "Add global Express error middleware to prevent unhandled errors from crashing the server"
-        },
-        {
-          "file": "packages/ai-sidecar/src/server.ts",
-          "description": "Add uncaughtException and unhandledRejection process handlers"
-        }
-      ]
+      "name": "CI / format",
+      "command": "pnpm format",
+      "status": "failed",
+      "errors": "Prettier formatting issues in 7 packages (ai-sidecar, api, auth, db, expo, nextjs, validators) — hundreds of files",
+      "fix": "Run pnpm format:fix (prettier --write) on all packages"
     },
     {
-      "phase": 2,
-      "name": "Env Validation",
-      "status": "completed",
-      "changes": [
-        {
-          "file": "packages/ai-sidecar/src/server.ts",
-          "description": "5-level directory walker finds root .env for LLM_PROVIDER=gemini and API keys"
-        },
-        {
-          "file": "packages/ai-sidecar/src/shared/utils.ts",
-          "description": "loadChatModel fallback cascade through PROVIDER_ALIASES"
-        }
-      ]
+      "name": "CI / lint",
+      "command": "pnpm lint",
+      "status": "failed",
+      "errors": "ai-sidecar: missing eslint.config.js; validators: 2 unused vars; other packages have more errors",
+      "fix": "Add eslint.config.js to ai-sidecar; fix unused vars in validators; fix other packages"
     },
     {
-      "phase": 3,
-      "name": "Tests",
-      "status": "completed",
-      "changes": [
-        {
-          "file": "packages/ai-sidecar/src/shared/retrieval.ts",
-          "description": "8s timeout on retriever.invoke() to prevent TCP hang on ChromaDB localhost:8000"
-        },
-        {
-          "file": "packages/ai-sidecar/src/retrieval_graph/utils.ts",
-          "description": "invokeWithTimeout wrapping model.invoke(), graceful fallback to mock answer on timeout/429"
-        }
-      ]
+      "name": "CI / typecheck",
+      "command": "pnpm typecheck",
+      "status": "failed",
+      "errors": "api/build: 20+ TypeScript errors across 6 files (contradictoryDataDetection, encryption, fileCleanup, imagePreprocessor, pdfConversion, phiScrubber)",
+      "fix": "Fix TS errors in packages/api/src"
     },
     {
-      "phase": 4,
-      "name": "Runtime",
-      "status": "completed",
-      "changes": [
-        {
-          "file": "packages/ai-sidecar/src/routes/chat-stream.ts",
-          "description": "Capture answer from on_chain_end events so SSE works in non-streaming mode"
-        },
-        {
-          "file": "packages/ai-sidecar/src/retrieval_graph/utils.ts",
-          "description": "Mock answer generation via generateMockAnswer(), mock follow-up questions"
-        },
-        {
-          "file": "packages/ai-sidecar/src/retrieval_graph/utils.ts",
-          "description": "ENABLE_MOCK_MODE env var support for offline/demo mode"
-        }
-      ]
+      "name": "CI / test",
+      "command": "pnpm test",
+      "status": "pending",
+      "errors": "Not yet run",
+      "fix": "Run and fix test failures"
     },
     {
-      "phase": 5,
-      "name": "Vercel Readiness",
-      "status": "completed",
-      "changes": [
-        {
-          "file": "packages/ai-sidecar/api/index.ts",
-          "description": "Express serverless export for Vercel"
-        },
-        {
-          "file": "packages/ai-sidecar/vercel.json",
-          "description": "@vercel/node build config with catch-all route"
-        }
-      ]
+      "name": "Coverage Gate / coverage",
+      "command": "pnpm test:coverage",
+      "status": "pending",
+      "errors": "Not yet run",
+      "fix": "Ensure 80% line coverage threshold"
     },
     {
-      "phase": 6,
-      "name": "Canvas Build Fix",
-      "status": "completed",
-      "changes": [
-        {
-          "file": "packages/api/src/services/imagePreprocessor.ts",
-          "description": "Replace static canvas import with lazy dynamic import to fix native module build error on Windows"
-        }
-      ]
-    },
-    {
-      "phase": 7,
-      "name": "UI Fixes",
-      "status": "completed",
-      "changes": [
-        {
-          "file": "apps/nextjs/src/layouts/SampleScanner/Sidebar.tsx",
-          "description": "Change sidebar default state from open to collapsed on /scan page"
-        }
-      ]
+      "name": "Vercel deployment",
+      "command": "pnpm build (apps/nextjs)",
+      "status": "pending",
+      "errors": "Depends on typecheck passing first",
+      "fix": "Fix after typecheck"
     }
-  ],
-  "notes": [
-    "Gemini free tier returns 429 (rate limited); ENABLE_MOCK_MODE=true provides demo responses",
-    "canvas@3.1.0 native binary not compiled on Windows; dynamic import prevents build failure",
-    "ChromaDB not running locally; retriever gracefully returns empty docs after 8s timeout",
-    "All 4 endpoints verified: /api/health(200), /api/chat(200), /api/chat/stream(200 SSE), /api/ingest(400)"
-  ],
-  "status": "all phases complete"
+  ]
 }
