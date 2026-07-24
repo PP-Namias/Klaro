@@ -1,4 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-empty-function */
 
 describe("Expo utility patterns", () => {
   describe("base-url patterns", () => {
@@ -74,7 +76,11 @@ describe("Expo utility patterns", () => {
       const config = {
         scheme: "expo",
         storagePrefix: "expo",
-        storage: { getItem: () => {}, setItem: () => {}, deleteItemAsync: () => {} },
+        storage: {
+          getItem: () => {},
+          setItem: () => {},
+          deleteItemAsync: () => {},
+        },
       };
       expect(config.scheme).toBe("expo");
       expect(config.storagePrefix).toBe("expo");
