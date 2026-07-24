@@ -300,12 +300,17 @@ export function scrubPhi(
 /**
  * Scrub PHI from extracted medical data (structured object)
  */
-export function scrubExtractedData<T extends Record<string, unknown>>(
+export function scrubExtractedData<
+  T extends Record<string, unknown> & {
+    patientName?: unknown;
+    diagnosis?: unknown;
+  },
+>(
   data: T,
   config: ScrubberConfig = {},
 ): { scrubbedData: T; matches: PhiMatch[] } {
   const allMatches: PhiMatch[] = [];
-  const scrubbed = { ...data };
+  const scrubbed: Record<string, unknown> = { ...data };
 
   // Scrub patient name
   if (typeof scrubbed.patientName === "string" && scrubbed.patientName) {
@@ -330,7 +335,7 @@ export function scrubExtractedData<T extends Record<string, unknown>>(
     });
   }
 
-  return { scrubbedData: scrubbed, matches: allMatches };
+  return { scrubbedData: scrubbed as T, matches: allMatches };
 }
 
 /**
@@ -394,7 +399,8 @@ function redactPattern(
 
   // Apply redactions in reverse order to preserve indices
   for (let i = foundMatches.length - 1; i >= 0; i--) {
-    const { fullMatch, index } = foundMatches[i];
+    const fm = foundMatches[i]!;
+    const { fullMatch, index } = fm;
     const endIdx = index + fullMatch.length;
 
     matches.push({

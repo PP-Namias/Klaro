@@ -1,4 +1,5 @@
-import { createCanvas } from "canvas";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type CanvasLike = any;
 
 export interface PdfPageImage {
   pageNumber: number;
@@ -20,9 +21,22 @@ const RENDER_SCALE = 1.5;
 export async function convertPdfToImages(
   pdfBuffer: Buffer,
 ): Promise<PdfConversionResult> {
+  let createCanvas: ((w: number, h: number) => CanvasLike) | undefined;
+  try {
+    const canvasMod = await (Function('return import("canvas")')() as Promise<
+      typeof import("canvas")
+    >);
+    createCanvas = canvasMod.createCanvas;
+  } catch {
+    // canvas not available
+  }
+  if (!createCanvas) {
+    return { pages: [], pageCount: 0, success: false, error: "canvas module not available" };
+  }
+
   try {
     const pdfjsLib = await import("pdfjs-dist");
-    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.buffer as ArrayBuffer }).promise;
+    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.subarray(0) }).promise;
     const totalPages = Math.min(doc.numPages, MAX_PDF_PAGES);
     const pages: PdfPageImage[] = [];
 
@@ -33,7 +47,8 @@ export async function convertPdfToImages(
       const height = Math.floor(viewport.height);
 
       const canvas = createCanvas(width, height);
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | null;
+      if (!ctx) throw new Error("Failed to get 2d context");
       const renderTask = page.render({ canvasContext: ctx, viewport });
       await renderTask.promise;
 
@@ -66,14 +81,14 @@ export async function isPdf(buffer: Buffer): Promise<boolean> {
 export async function countPdfPages(pdfBuffer: Buffer): Promise<number> {
   try {
     const pdfjsLib = await import("pdfjs-dist");
-    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.buffer }).promise;
+    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.subarray(0) }).promise;
     const count = doc.numPages;
     doc.destroy();
     return count;
   } catch {
     const text = pdfBuffer.toString("ascii");
     const match = text.match(/\/Type\s*\/Pages[^/]*\/Count\s+(\d+)/);
-    if (match) return parseInt(match[1], 10);
+    if (match) return parseInt(match[1] ?? "1", 10);
     const pages = text.match(/\/Type\s*\/Page\b/g);
     return pages ? pages.length : 1;
   }

@@ -1,12 +1,12 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type CanvasLike = any;
+
 type CanvasModule = {
   createCanvas: (
     width: number,
     height: number,
-  ) => {
-    getContext: (type: string) => CanvasRenderingContext2D;
-    toBuffer: (type: string) => Buffer;
-  };
-  loadImage: (source: Buffer) => Promise<{ width: number; height: number }>;
+  ) => CanvasLike;
+  loadImage: (source: Buffer) => Promise<CanvasLike>;
 };
 
 let canvasModule: CanvasModule | null = null;
@@ -229,7 +229,7 @@ export async function preprocessImage(
   if (opts.deskew) {
     const tempCanvas = canvas.createCanvas(width, height);
     const tempCtx = tempCanvas.getContext("2d");
-    tempCtx.drawImage(image as unknown as CanvasImageSource, 0, 0);
+    tempCtx.drawImage(image, 0, 0);
     const tempData = tempCtx.getImageData(0, 0, width, height);
     const skewAngle = estimateSkew(tempData.data, width, height);
 
@@ -242,7 +242,7 @@ export async function preprocessImage(
       rotatedCtx.translate(diagonal / 2, diagonal / 2);
       rotatedCtx.rotate((skewAngle * Math.PI) / 180);
       rotatedCtx.drawImage(
-        tempCanvas as unknown as CanvasImageSource,
+        tempCanvas,
         -width / 2,
         -height / 2,
       );
@@ -253,7 +253,7 @@ export async function preprocessImage(
       const rotatedImage = await canvas.loadImage(rotatedBuffer);
       const resultCanvas = canvas.createCanvas(width, height);
       const resultCtx = resultCanvas.getContext("2d");
-      resultCtx.drawImage(rotatedImage as unknown as CanvasImageSource, 0, 0);
+      resultCtx.drawImage(rotatedImage, 0, 0);
 
       const resultData = resultCtx.getImageData(0, 0, width, height);
       const data = resultData.data;
@@ -294,7 +294,7 @@ export async function preprocessImage(
 
   const mainCanvas = canvas.createCanvas(width, height);
   const ctx = mainCanvas.getContext("2d");
-  ctx.drawImage(image as unknown as CanvasImageSource, 0, 0);
+  ctx.drawImage(image, 0, 0);
 
   const imageData = ctx.getImageData(0, 0, width, height);
   const data = imageData.data;
