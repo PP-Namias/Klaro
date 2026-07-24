@@ -1,7 +1,6 @@
 import { Clarity } from "~/layouts/Landing/Clarity";
 import { CTA as Cta } from "~/layouts/Landing/CTA";
 import { Features } from "~/layouts/Landing/Features";
-import { LandingDemoVideo } from "~/layouts/Landing/LandingDemoVideo";
 import { Footer } from "~/layouts/Landing/Footer";
 import { Hero } from "~/layouts/Landing/Hero";
 import { MoreThanScanning } from "~/layouts/Landing/MoreThanScanning";

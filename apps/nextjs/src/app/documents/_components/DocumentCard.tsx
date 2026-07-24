@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Image as ImageIcon, Trash2, Eye } from "lucide-react";
+import { Eye, FileText, Image as ImageIcon, Trash2 } from "lucide-react";
 
 export interface DocumentCardProps {
   id: string;
@@ -30,7 +30,7 @@ export function DocumentCard({
   onView,
   onDelete,
 }: DocumentCardProps) {
-  const statusCfg = statusConfig[status] ?? statusConfig.uploaded;
+  const statusCfg = statusConfig[status];
 
   return (
     <div
@@ -83,7 +83,14 @@ export function DocumentCard({
           {fileName}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 10,
+          }}
+        >
           <span
             style={{
               padding: "2px 8px",

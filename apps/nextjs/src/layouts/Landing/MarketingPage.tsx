@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import type { MarketingPageContent } from "~/content/marketing-pages";
-
 import { Footer } from "~/layouts/Landing/Footer";
 import { Navbar } from "~/layouts/Landing/Navbar";
 
@@ -14,10 +13,10 @@ export function MarketingPage({ content }: MarketingPageProps) {
     <div className="overflow-x-hidden bg-[#f9fafb]">
       <Navbar theme="light" />
 
-      <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-20 px-6 pb-20 pt-32 md:px-8 lg:px-10">
+      <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-20 px-6 pt-32 pb-20 md:px-8 lg:px-10">
         <section className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
           <div className="space-y-6">
-            <p className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-1 text-[0.7rem] uppercase tracking-[0.28em] text-zinc-500">
+            <p className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-1 text-[0.7rem] tracking-[0.28em] text-zinc-500 uppercase">
               {content.eyebrow}
             </p>
             <h1 className="section-header max-w-4xl text-balance text-black">
@@ -65,8 +64,12 @@ export function MarketingPage({ content }: MarketingPageProps) {
         <section className="space-y-6">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="feature-small-title text-zinc-500">What this page covers</p>
-              <h2 className="section-header text-black">Useful details, not filler.</h2>
+              <p className="feature-small-title text-zinc-500">
+                What this page covers
+              </p>
+              <h2 className="section-header text-black">
+                Useful details, not filler.
+              </h2>
             </div>
           </div>
 
@@ -77,7 +80,9 @@ export function MarketingPage({ content }: MarketingPageProps) {
                 className="flex h-full flex-col gap-4 rounded-[24px] border border-zinc-200 bg-white p-6 shadow-[0_4px_16px_rgba(0,0,0,0.03)]"
               >
                 <h3 className="feature-card-title text-black">{card.title}</h3>
-                <p className="feature-card-description text-zinc-600">{card.body}</p>
+                <p className="feature-card-description text-zinc-600">
+                  {card.body}
+                </p>
               </article>
             ))}
           </div>
@@ -87,7 +92,9 @@ export function MarketingPage({ content }: MarketingPageProps) {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl space-y-3">
               <p className="feature-small-title text-white/65">Next step</p>
-              <h2 className="section-header text-white">{content.closingTitle}</h2>
+              <h2 className="section-header text-white">
+                {content.closingTitle}
+              </h2>
               <p className="feature-card-description text-white/70">
                 {content.closingBody}
               </p>

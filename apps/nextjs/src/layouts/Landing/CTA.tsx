@@ -2,15 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-import styles from "../../app/page.module.css";
+import { ArrowRight } from "lucide-react";
+
 import { useLanguage } from "~/providers/language-provider";
+import styles from "../../app/page.module.css";
 
 export function CTA() {
   const { t } = useLanguage();
   return (
-    <motion.section 
+    <motion.section
       className="relative left-1/2 flex w-screen -translate-x-1/2 flex-col items-center overflow-hidden pt-16 pb-32 text-center"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -36,9 +37,7 @@ export function CTA() {
       </div>
 
       <div className="relative z-10 flex w-full max-w-[1400px] flex-col items-center px-6">
-        <h2 className="cta-title mb-2 text-zinc-900">
-          {t("cta.heading")}
-        </h2>
+        <h2 className="cta-title mb-2 text-zinc-900">{t("cta.heading")}</h2>
 
         <div className="relative -mt-24 -mb-24 h-[650px] w-[750px]">
           <Image

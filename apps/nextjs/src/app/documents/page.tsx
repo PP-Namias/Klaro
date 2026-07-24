@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+
 "use client";
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Search, Trash2 } from "lucide-react";
+import { FileText, Search } from "lucide-react";
 
+import type { DocumentCardProps } from "./_components/DocumentCard";
 import { useTRPC } from "~/trpc/react";
 import { DocumentCard } from "./_components/DocumentCard";
-import type { DocumentCardProps } from "./_components/DocumentCard";
 
 export default function DocumentsPage() {
   const router = useRouter();
@@ -34,7 +36,9 @@ export default function DocumentsPage() {
 
   const handleDelete = useCallback(
     (id: string) => {
-      if (window.confirm("Delete this document? This action cannot be undone.")) {
+      if (
+        window.confirm("Delete this document? This action cannot be undone.")
+      ) {
         deleteMutation.mutate({ id });
       }
     },
@@ -64,7 +68,9 @@ export default function DocumentsPage() {
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700 }}>My Documents</h1>
+          <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700 }}>
+            My Documents
+          </h1>
           <p style={{ margin: "4px 0 0", color: "#666", fontSize: "0.9rem" }}>
             {data?.length ?? 0} document{(data?.length ?? 0) !== 1 ? "s" : ""}
           </p>

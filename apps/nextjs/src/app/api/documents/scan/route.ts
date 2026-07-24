@@ -1,3 +1,5 @@
+/* eslint-disable turbo/no-undeclared-env-vars, no-restricted-properties, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/require-await */
+
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";

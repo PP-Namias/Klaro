@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 
+import FacilitiesClient from "~/components/facilities/FacilitiesClient";
 import { Footer } from "~/layouts/Landing/Footer";
 import { ScannerNavbar } from "~/layouts/SampleScanner/ScannerNavbar";
-import FacilitiesClient from "~/components/facilities/FacilitiesClient";
 import styles from "./page.module.css";
 
 export const metadata = {

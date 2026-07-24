@@ -27,7 +27,7 @@ const benefits = [
   },
 ] as const;
 
-export default async function SignUpPage() {
+export default function SignUpPage() {
   return (
     <main className={styles.signup}>
       <div className={styles.signup__shell}>
@@ -38,8 +38,8 @@ export default async function SignUpPage() {
               Join Klaro and save your history.
             </h1>
             <p className={styles.signup__lede}>
-              A registered account keeps your medical documents,
-              plain-language summaries, and care context together securely.
+              A registered account keeps your medical documents, plain-language
+              summaries, and care context together securely.
             </p>
           </div>
 

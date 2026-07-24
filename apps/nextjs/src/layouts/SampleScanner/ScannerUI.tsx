@@ -1,46 +1,53 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import type { ReactNode } from "react";
-import Image from "next/image";
-import { Bot, Check, Focus, Lock, X, Trash2 } from "lucide-react";
-import { motion } from "framer-motion";
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-empty-function */
 
-import { DropZone } from "~/components/drop-zone";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { Bot, Check, Focus, Lock, Trash2, X } from "lucide-react";
+
+import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
+
+import type { DemoLanguage } from "~/components/demo-modal";
+import type { FilePreviewItem } from "~/components/file-preview";
+import type { DemoType } from "~/data/demo-index";
+import type { Dialect } from "~/hooks/use-chat";
 import {
-  FilePreview,
-  type FilePreviewItem,
-} from "~/components/file-preview";
-import { UploadProgress } from "~/components/upload-progress";
-import { UploadError } from "~/components/upload-error";
-import { UploadComplete } from "~/components/upload-complete";
-import { DropOverlay } from "~/components/drop-overlay";
-import { DemoModal, type DemoLanguage } from "~/components/demo-modal";
-import { DemoLabResults } from "~/components/demo/lab-results";
-import { DemoPrescription } from "~/components/demo/prescription";
+  ChatHistory,
+  ChatInput,
+  ClearConversationDialog,
+  DialectToggle,
+} from "~/components/chat";
+import { DemoModal } from "~/components/demo-modal";
 import { DemoDischarge } from "~/components/demo/discharge";
+import { DemoLabResults } from "~/components/demo/lab-results";
 import { DemoOtherDoc } from "~/components/demo/other-doc";
-import { ChatHistory, ChatInput, DialectToggle, ClearConversationDialog } from "~/components/chat";
-import { useFileUpload } from "~/hooks/use-file-upload";
-import { useChat, type Dialect } from "~/hooks/use-chat";
+import { DemoPrescription } from "~/components/demo/prescription";
+import { DropOverlay } from "~/components/drop-overlay";
+import { DropZone } from "~/components/drop-zone";
+import { FilePreview } from "~/components/file-preview";
+import { UploadComplete } from "~/components/upload-complete";
+import { UploadError } from "~/components/upload-error";
+import { UploadProgress } from "~/components/upload-progress";
 import {
-  validateFiles,
-  createPreviewUrl,
-  getFileKind,
-} from "~/lib/file-validation";
-import {
-  type DemoType,
-  getDemoData,
-  getDemoTitle,
+  dischargeDemo,
   getDemoDescription,
+  getDemoTitle,
   labResultsDemo,
   prescriptionDemo,
-  dischargeDemo,
   xrayReportDemo,
 } from "~/data/demo-index";
-import styles from "../../app/scan/page.module.css";
+import { useChat } from "~/hooks/use-chat";
+import { useFileUpload } from "~/hooks/use-file-upload";
+import {
+  createPreviewUrl,
+  getFileKind,
+  validateFiles,
+} from "~/lib/file-validation";
 import { useLanguage } from "~/providers/language-provider";
-import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
+import styles from "../../app/scan/page.module.css";
 
 interface ScannerUIProps {
   initialAnalysisId?: string;
@@ -50,9 +57,11 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragCounter, setDragCounter] = useState(0);
+  const [_dragCounter, setDragCounter] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<FilePreviewItem[]>([]);
-  const [uploadedRequestId, setUploadedRequestId] = useState<string | null>(null);
+  const [uploadedRequestId, setUploadedRequestId] = useState<string | null>(
+    null,
+  );
   const [demoModalOpen, setDemoModalOpen] = useState(false);
   const [activeDemoType, setActiveDemoType] = useState<DemoType>("lab");
   const [demoLanguage, setDemoLanguage] = useState<DemoLanguage>("tl");
@@ -187,7 +196,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   }, [selectedFiles, fileUpload]);
 
   const handleSend = (content: string, image?: string) => {
-    chat.sendMessage(content, image);
+    void chat.sendMessage(content, image);
   };
 
   const handleClearConversation = async () => {
@@ -219,7 +228,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
       setDragCounter(0);
       const files = Array.from(e.dataTransfer?.files ?? []);
       if (files.length > 0) {
-        handleFilesSelected(files);
+        void handleFilesSelected(files);
       }
     };
 
@@ -262,13 +271,17 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
 
   const hasUploadQueue = selectedFiles.length > 0;
   const uploadComplete = fileUpload.stage === "complete";
-  const hasAnalysisId = !!initialAnalysisId || !!uploadedRequestId;
+  const _hasAnalysisId = !!initialAnalysisId || !!uploadedRequestId;
 
   return (
     <>
       <DropOverlay isVisible={isDragging} />
 
-      <section ref={sectionRef} className={styles.scannerContainer} aria-label="Scan document workspace">
+      <section
+        ref={sectionRef}
+        className={styles.scannerContainer}
+        aria-label="Scan document workspace"
+      >
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -280,9 +293,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             alignItems: "center",
           }}
         >
-          <h1 className={styles.title}>
-            {t("scan.title")}
-          </h1>
+          <h1 className={styles.title}>{t("scan.title")}</h1>
           <p className={styles.subtitle}>
             {t("scan.subtitle")}
             <br />
@@ -301,13 +312,16 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             onClick={() => openDemo("lab")}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDemo("lab"); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openDemo("lab");
+              }
+            }}
             style={{ cursor: "pointer" }}
           >
             <h3 className={styles.scanCardTitle}>{t("card.labResults")}</h3>
-            <p className={styles.scanCardDesc}>
-              {t("card.labResults.desc")}
-            </p>
+            <p className={styles.scanCardDesc}>{t("card.labResults.desc")}</p>
             <div className={styles.scanCardImageContainer}>
               <Image
                 src="/scan/1.png"
@@ -316,7 +330,16 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
-            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>{t("card.demo")}</span>
+            <span
+              style={{
+                fontSize: "0.7rem",
+                color: "#6366f1",
+                fontWeight: 500,
+                marginTop: 4,
+              }}
+            >
+              {t("card.demo")}
+            </span>
           </div>
 
           <div
@@ -324,7 +347,12 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             onClick={() => openDemo("prescription")}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDemo("prescription"); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openDemo("prescription");
+              }
+            }}
             style={{ cursor: "pointer" }}
           >
             <h3 className={styles.scanCardTitle}>{t("card.prescriptions")}</h3>
@@ -339,7 +367,16 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
-            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>{t("card.demo")}</span>
+            <span
+              style={{
+                fontSize: "0.7rem",
+                color: "#6366f1",
+                fontWeight: 500,
+                marginTop: 4,
+              }}
+            >
+              {t("card.demo")}
+            </span>
           </div>
 
           <div
@@ -347,15 +384,20 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             onClick={() => openDemo("discharge")}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDemo("discharge"); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openDemo("discharge");
+              }
+            }}
             style={{ cursor: "pointer" }}
           >
             <h3 className={styles.scanCardTitle}>
-              {t("card.discharge")}<br/>{t("card.dischargeSummaries")}
+              {t("card.discharge")}
+              <br />
+              {t("card.dischargeSummaries")}
             </h3>
-            <p className={styles.scanCardDesc}>
-              {t("card.discharge.desc")}
-            </p>
+            <p className={styles.scanCardDesc}>{t("card.discharge.desc")}</p>
             <div className={styles.scanCardImageContainer}>
               <Image
                 src="/scan/3.png"
@@ -364,7 +406,16 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
-            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>{t("card.demo")}</span>
+            <span
+              style={{
+                fontSize: "0.7rem",
+                color: "#6366f1",
+                fontWeight: 500,
+                marginTop: 4,
+              }}
+            >
+              {t("card.demo")}
+            </span>
           </div>
 
           <div
@@ -372,11 +423,18 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             onClick={() => openDemo("other")}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDemo("other"); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openDemo("other");
+              }
+            }}
             style={{ cursor: "pointer" }}
           >
             <h3 className={styles.scanCardTitle}>
-              {t("card.otherDocuments")}<br/>{t("card.otherDocumentsLabel")}
+              {t("card.otherDocuments")}
+              <br />
+              {t("card.otherDocumentsLabel")}
             </h3>
             <p className={styles.scanCardDesc}>
               {t("card.otherDocuments.desc")}
@@ -389,7 +447,16 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 style={{ objectFit: "contain", objectPosition: "bottom" }}
               />
             </div>
-            <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 500, marginTop: 4 }}>{t("card.demo")}</span>
+            <span
+              style={{
+                fontSize: "0.7rem",
+                color: "#6366f1",
+                fontWeight: 500,
+                marginTop: 4,
+              }}
+            >
+              {t("card.demo")}
+            </span>
           </div>
         </motion.div>
 
@@ -411,9 +478,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             </div>
             <div className={styles.claraChatBubble}>
               {uploadComplete && uploadedRequestId ? (
-                <span>
-                  {t("clara.greeting.scanned")}
-                </span>
+                <span>{t("clara.greeting.scanned")}</span>
               ) : capturedImage ? (
                 <span>{t("clara.greeting.ready")}</span>
               ) : (
@@ -476,10 +541,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
               {scannerPreview}
 
               {!isScanning && !capturedImage && (
-                <button
-                  className={styles.primaryBtn}
-                  onClick={handleStartScan}
-                >
+                <button className={styles.primaryBtn} onClick={handleStartScan}>
                   <Focus size={18} color="#ffffff" /> Take a photo & Scan here
                 </button>
               )}
@@ -538,7 +600,8 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 items={[
                   {
                     fileName: selectedFiles[0]?.file.name ?? "Document",
-                    fileType: selectedFiles[0]?.kind === "pdf" ? "pdf" : "image",
+                    fileType:
+                      selectedFiles[0]?.kind === "pdf" ? "pdf" : "image",
                     fileSize: selectedFiles[0]?.file.size ?? 0,
                     analysisId: uploadedRequestId,
                   },
@@ -550,22 +613,26 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             )}
 
             {/* Upload errors */}
-            {fileUpload.stage === "error" && fileUpload.queue.filter(f => f.stage === "error").length > 0 && (
-              <UploadError
-                errors={fileUpload.queue
-                  .filter((f) => f.stage === "error" && f.error)
-                  .map((f) => ({
-                    fileName: f.file.name,
-                    message: f.error!,
-                    type: "network" as const,
-                  }))}
-                onDismiss={() => {}}
-                onRetry={(fileName) => {
-                  const item = fileUpload.queue.find((f) => f.file.name === fileName);
-                  if (item) fileUpload.retry(item.id);
-                }}
-              />
-            )}
+            {fileUpload.stage === "error" &&
+              fileUpload.queue.filter((f) => f.stage === "error").length >
+                0 && (
+                <UploadError
+                  errors={fileUpload.queue
+                    .filter((f) => f.stage === "error" && f.error)
+                    .map((f) => ({
+                      fileName: f.file.name,
+                      message: f.error!,
+                      type: "network" as const,
+                    }))}
+                  onDismiss={() => {}}
+                  onRetry={(fileName) => {
+                    const item = fileUpload.queue.find(
+                      (f) => f.file.name === fileName,
+                    );
+                    if (item) void fileUpload.retry(item.id);
+                  }}
+                />
+              )}
 
             <div className={styles.footerNotes}>
               <div className={styles.footerNoteItem}>
@@ -585,10 +652,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                   >
                     <X size={18} /> Cancel
                   </button>
-                  <button
-                    className={styles.primaryBtn}
-                    onClick={handleCapture}
-                  >
+                  <button className={styles.primaryBtn} onClick={handleCapture}>
                     <Check size={18} /> Scan image
                   </button>
                 </>
@@ -674,10 +738,18 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
         language={demoLanguage}
         onLanguageChange={setDemoLanguage}
       >
-        {activeDemoType === "lab" && <DemoLabResults data={labResultsDemo} language={demoLanguage} />}
-        {activeDemoType === "prescription" && <DemoPrescription data={prescriptionDemo} language={demoLanguage} />}
-        {activeDemoType === "discharge" && <DemoDischarge data={dischargeDemo} language={demoLanguage} />}
-        {activeDemoType === "other" && <DemoOtherDoc data={xrayReportDemo} language={demoLanguage} />}
+        {activeDemoType === "lab" && (
+          <DemoLabResults data={labResultsDemo} language={demoLanguage} />
+        )}
+        {activeDemoType === "prescription" && (
+          <DemoPrescription data={prescriptionDemo} language={demoLanguage} />
+        )}
+        {activeDemoType === "discharge" && (
+          <DemoDischarge data={dischargeDemo} language={demoLanguage} />
+        )}
+        {activeDemoType === "other" && (
+          <DemoOtherDoc data={xrayReportDemo} language={demoLanguage} />
+        )}
       </DemoModal>
     </>
   );

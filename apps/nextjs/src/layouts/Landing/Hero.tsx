@@ -2,13 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
+import { useLanguage } from "~/providers/language-provider";
 import styles from "../../app/page.module.css";
 import { HeroBg } from "../../components/HeroBg";
-import { useLanguage } from "~/providers/language-provider";
-
 
 export function Hero() {
   const { t } = useLanguage();
@@ -25,7 +24,7 @@ export function Hero() {
           priority
         />
       </div>
-      <motion.div 
+      <motion.div
         className={styles.heroContent}
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -37,12 +36,15 @@ export function Hero() {
         </h1>
         <h2 className={styles.heroSubheading}>{t("hero.subtitle1")}</h2>
         <p className={styles.heroSubtitle}>
-          {t("hero.subtitle2")}{" "}
-          <br className="hidden md:block" />
+          {t("hero.subtitle2")} <br className="hidden md:block" />
           {t("hero.subtitle3")}
         </p>
         <div className={styles.heroButtons}>
-          <Link href="/scan" className={styles.btnBlack} aria-label={t("btn.startAScan")}>
+          <Link
+            href="/scan"
+            className={styles.btnBlack}
+            aria-label={t("btn.startAScan")}
+          >
             {t("btn.startAScan")} <ArrowRight size={16} className="ml-2" />
           </Link>
           <Link href="/scan" className={styles.btnOutline}>
@@ -51,7 +53,7 @@ export function Hero() {
         </div>
       </motion.div>
 
-      <motion.div 
+      <motion.div
         className="relative z-10 mx-auto w-full max-w-[1400px] -translate-y-6 px-0 md:px-8"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("parseNearbyInput", () => {
   it("parses latitude and longitude from numbers", () => {
@@ -106,7 +106,9 @@ describe("CORS headers", () => {
     headers.set("Access-Control-Allow-Methods", "OPTIONS, GET, POST");
     headers.set("Access-Control-Allow-Headers", "*");
     expect(headers.get("Access-Control-Allow-Origin")).toBe("*");
-    expect(headers.get("Access-Control-Allow-Methods")).toBe("OPTIONS, GET, POST");
+    expect(headers.get("Access-Control-Allow-Methods")).toBe(
+      "OPTIONS, GET, POST",
+    );
     expect(headers.get("Access-Control-Allow-Headers")).toBe("*");
   });
 });

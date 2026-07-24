@@ -5,12 +5,12 @@ import { cn } from "@klaro/ui";
 import { ThemeProvider, ThemeToggle } from "@klaro/ui/theme";
 import { Toaster } from "@klaro/ui/toast";
 
+import { GlobalBookingModal } from "~/components/GlobalBookingModal";
 import { LenisProvider } from "~/components/lenis-provider";
 import { ScrollToTopButton } from "~/components/scroll-to-top-button";
 import { env } from "~/env";
 import { LanguageProvider } from "~/providers/language-provider";
 import { TRPCReactProvider } from "~/trpc/react";
-import { GlobalBookingModal } from "~/components/GlobalBookingModal";
 
 import "~/styles/globals.css";
 
@@ -74,7 +74,7 @@ export default function RootLayout(
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "bg-background text-foreground min-h-screen antialiased overflow-x-hidden w-full max-w-[100vw]",
+          "bg-background text-foreground min-h-screen w-full max-w-[100vw] overflow-x-hidden antialiased",
           geist.className,
           cormorant.variable,
         )}

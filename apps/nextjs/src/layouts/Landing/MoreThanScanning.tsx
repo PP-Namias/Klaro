@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+
 import { useLanguage } from "~/providers/language-provider";
 
 export function MoreThanScanning() {
   const { t } = useLanguage();
   return (
-    <motion.section 
+    <motion.section
       className="-mx-4 rounded-[40px] bg-[#fafafa] px-4 py-24 md:-mx-16 md:px-16"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}

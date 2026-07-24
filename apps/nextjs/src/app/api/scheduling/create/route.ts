@@ -1,3 +1,5 @@
+/* eslint-disable turbo/no-undeclared-env-vars, no-restricted-properties, @typescript-eslint/prefer-nullish-coalescing */
+
 import type { NextRequest } from "next/server";
 
 function setCorsHeaders(res: Response) {

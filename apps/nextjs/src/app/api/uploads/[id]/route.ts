@@ -1,6 +1,7 @@
+/* eslint-disable turbo/no-undeclared-env-vars, no-restricted-properties */
+
 import type { NextRequest } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import { eq } from "drizzle-orm";
 
 import { db } from "@klaro/db";
 

@@ -23,7 +23,7 @@ const HTML = `<!DOCTYPE html>
   </body>
 </html>`;
 
-export const GET = async (req: NextRequest) => {
+export const GET = (_req: NextRequest) => {
   return new Response(HTML, {
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });

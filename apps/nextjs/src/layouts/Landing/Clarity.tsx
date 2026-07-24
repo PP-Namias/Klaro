@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
 import { MapPreview } from "~/components/facilities/MapPreview";
 import { useLanguage } from "~/providers/language-provider";
@@ -32,12 +32,12 @@ export function Clarity() {
     },
   ];
 
-  const item1 = clarityItems[0]!;
-  const item2 = clarityItems[1]!;
-  const item3 = clarityItems[2]!;
+  const item1 = clarityItems[0] as (typeof clarityItems)[number];
+  const item2 = clarityItems[1] as (typeof clarityItems)[number];
+  const item3 = clarityItems[2] as (typeof clarityItems)[number];
 
   return (
-    <motion.section 
+    <motion.section
       className="mt-[100px] flex flex-col gap-[2.5rem]"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}

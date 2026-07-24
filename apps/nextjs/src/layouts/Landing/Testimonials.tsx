@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
 export function Testimonials() {
   return (
-    <motion.section 
+    <motion.section
       className="mt-[100px] flex flex-col gap-[2rem]"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}

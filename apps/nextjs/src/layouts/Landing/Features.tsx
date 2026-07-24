@@ -2,14 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+
 import { useLanguage } from "~/providers/language-provider";
 
 export function Features() {
   const { t } = useLanguage();
   return (
-    <motion.section 
+    <motion.section
       className="mt-[100px] flex flex-col gap-[2.5rem]"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -47,7 +48,9 @@ export function Features() {
           <div className="group relative flex min-h-[400px] flex-col overflow-hidden rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)] transition-all hover:shadow-[0_8px_16px_0_rgba(0,0,0,0.05)] md:flex-row md:gap-[1.5rem]">
             <div className="z-10 flex flex-1 flex-col justify-between py-[0.5rem]">
               <div className="max-w-xl">
-                <h3 className="feature-card-title mb-4 text-black">{t("features.learn")}</h3>
+                <h3 className="feature-card-title mb-4 text-black">
+                  {t("features.learn")}
+                </h3>
                 <p className="feature-card-description max-w-[400px] text-[#8C8C8C]">
                   {t("features.learn.desc")}
                 </p>
@@ -80,7 +83,9 @@ export function Features() {
         {/* Secondary Feature Card 1 */}
         <div className="group flex flex-col gap-[1.5rem] overflow-hidden rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)] transition-all hover:shadow-[0_8px_16px_0_rgba(0,0,0,0.05)]">
           <div>
-            <h3 className="feature-card-title mb-4 text-black">{t("features.analyze")}</h3>
+            <h3 className="feature-card-title mb-4 text-black">
+              {t("features.analyze")}
+            </h3>
             <p className="feature-card-description text-[#8C8C8C]">
               {t("features.analyze.desc")}
             </p>
@@ -99,7 +104,9 @@ export function Features() {
         {/* Secondary Feature Card 2 */}
         <div className="group flex flex-col gap-[1.5rem] overflow-hidden rounded-[24px] border border-[#eeeeee] bg-white p-[1.5rem] shadow-[0_4px_8px_0_rgba(0,0,0,0.03)] transition-all hover:shadow-[0_8px_16px_0_rgba(0,0,0,0.05)]">
           <div>
-            <h3 className="feature-card-title mb-4 text-black">{t("features.track")}</h3>
+            <h3 className="feature-card-title mb-4 text-black">
+              {t("features.track")}
+            </h3>
             <p className="feature-card-description text-[#8C8C8C]">
               {t("features.track.desc")}
             </p>
