@@ -10,7 +10,7 @@ interface FacilityCardProps {
   urgency?: "LOW" | "MODERATE" | "HIGH";
   onSelect?: (facility: Facility) => void;
   onBook?: (facility: Facility) => void;
-};
+}
 
 export function FacilityCard({
   facility,

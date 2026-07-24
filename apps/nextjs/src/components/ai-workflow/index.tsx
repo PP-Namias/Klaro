@@ -1,7 +1,6 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-floating-promises */
-
 import { useCallback, useState } from "react";
 
 import { Button } from "@klaro/ui/button";

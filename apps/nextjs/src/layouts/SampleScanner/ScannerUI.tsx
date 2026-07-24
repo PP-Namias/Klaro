@@ -1,7 +1,6 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-empty-function */
-
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";

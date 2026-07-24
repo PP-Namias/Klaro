@@ -5,7 +5,7 @@ import Lenis from "lenis";
 
 interface LenisProviderProps {
   children: React.ReactNode;
-};
+}
 
 export function LenisProvider({ children }: LenisProviderProps) {
   const lenisRef = useRef<Lenis | null>(null);

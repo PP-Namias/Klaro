@@ -292,7 +292,9 @@ export async function encryptAnalysisFields(analysis: {
 }> {
   return {
     extractedFields: await encryptJson(analysis.extractedFields ?? null),
-    plainLanguageSummary: await encryptField(analysis.plainLanguageSummary ?? null),
+    plainLanguageSummary: await encryptField(
+      analysis.plainLanguageSummary ?? null,
+    ),
     tanqmoCard: await encryptJson(analysis.tanqmoCard ?? null),
   };
 }

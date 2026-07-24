@@ -1,7 +1,6 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/array-type, react-hooks/set-state-in-effect, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/require-await, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unnecessary-condition */
-
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 

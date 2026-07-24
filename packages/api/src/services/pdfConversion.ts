@@ -31,12 +31,18 @@ export async function convertPdfToImages(
     // canvas not available
   }
   if (!createCanvas) {
-    return { pages: [], pageCount: 0, success: false, error: "canvas module not available" };
+    return {
+      pages: [],
+      pageCount: 0,
+      success: false,
+      error: "canvas module not available",
+    };
   }
 
   try {
     const pdfjsLib = await import("pdfjs-dist");
-    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.subarray(0) }).promise;
+    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.subarray(0) })
+      .promise;
     const totalPages = Math.min(doc.numPages, MAX_PDF_PAGES);
     const pages: PdfPageImage[] = [];
 
@@ -81,7 +87,8 @@ export async function isPdf(buffer: Buffer): Promise<boolean> {
 export async function countPdfPages(pdfBuffer: Buffer): Promise<number> {
   try {
     const pdfjsLib = await import("pdfjs-dist");
-    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.subarray(0) }).promise;
+    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.subarray(0) })
+      .promise;
     const count = doc.numPages;
     doc.destroy();
     return count;

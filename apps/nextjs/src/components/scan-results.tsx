@@ -1,7 +1,6 @@
 "use client";
 
 /* eslint-disable react-hooks/set-state-in-effect, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-base-to-string */
-
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";

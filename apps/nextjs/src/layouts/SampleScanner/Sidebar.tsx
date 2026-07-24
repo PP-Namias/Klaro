@@ -1,7 +1,6 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, no-empty */
-
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";

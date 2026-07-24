@@ -83,7 +83,9 @@ export function useLanguage(): LanguageContextValue {
   if (!ctx) {
     return {
       language: DEFAULT_LANGUAGE,
-      setLanguage: () => { void 0; },
+      setLanguage: () => {
+        void 0;
+      },
       t: (key: string) => key,
     };
   }

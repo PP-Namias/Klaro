@@ -11,17 +11,29 @@ function mockResponse(status: number, body?: unknown) {
 
 describe("/api/documents/scan", () => {
   beforeEach(() => {
-    vi.spyOn(globalThis, "fetch").mockImplementation((url: string | URL | Request) => {
-      const urlStr = typeof url === "string" ? url : url instanceof URL ? url.href : url.url;
-      if (urlStr === "/api/documents/scan" || urlStr.endsWith("/api/documents/scan")) {
-        return Promise.resolve(mockResponse(200, {
-          endpoint: "/api/documents/scan",
-          method: "POST",
-          description: "Upload and scan a medical document",
-        }));
-      }
-      return Promise.resolve(mockResponse(404, { error: "Not found" }));
-    });
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      (url: string | URL | Request) => {
+        const urlStr =
+          typeof url === "string"
+            ? url
+            : url instanceof URL
+              ? url.href
+              : url.url;
+        if (
+          urlStr === "/api/documents/scan" ||
+          urlStr.endsWith("/api/documents/scan")
+        ) {
+          return Promise.resolve(
+            mockResponse(200, {
+              endpoint: "/api/documents/scan",
+              method: "POST",
+              description: "Upload and scan a medical document",
+            }),
+          );
+        }
+        return Promise.resolve(mockResponse(404, { error: "Not found" }));
+      },
+    );
   });
 
   afterEach(() => {
@@ -86,7 +98,9 @@ describe("/api/documents/scan", () => {
       formData.append("file", blob, "test.json");
 
       vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
-        Promise.resolve(mockResponse(400, { error: "File type not supported" })),
+        Promise.resolve(
+          mockResponse(400, { error: "File type not supported" }),
+        ),
       );
 
       const response = await fetch("/api/documents/scan", {
@@ -132,11 +146,13 @@ describe("/api/documents/scan", () => {
       formData.append("file", blob, "scan.jpg");
 
       vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
-        Promise.resolve(mockResponse(201, {
-          id: "doc-123",
-          analysisId: "analysis-123",
-          status: "uploaded",
-        })),
+        Promise.resolve(
+          mockResponse(201, {
+            id: "doc-123",
+            analysisId: "analysis-123",
+            status: "uploaded",
+          }),
+        ),
       );
 
       const response = await fetch("/api/documents/scan", {
@@ -205,11 +221,13 @@ describe("/api/documents/scan", () => {
       formData.append("file", blob, "my_scan.jpg");
 
       vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
-        Promise.resolve(mockResponse(201, {
-          id: "doc-abc",
-          fileName: "my_scan.jpg",
-          fileSize: 9,
-        })),
+        Promise.resolve(
+          mockResponse(201, {
+            id: "doc-abc",
+            fileName: "my_scan.jpg",
+            fileSize: 9,
+          }),
+        ),
       );
 
       const response = await fetch("/api/documents/scan", {
@@ -233,10 +251,12 @@ describe("/api/documents/scan", () => {
       formData.append("file", blob, "document.jpg");
 
       vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
-        Promise.resolve(mockResponse(201, {
-          id: "doc-final",
-          message: "Processing will begin shortly",
-        })),
+        Promise.resolve(
+          mockResponse(201, {
+            id: "doc-final",
+            message: "Processing will begin shortly",
+          }),
+        ),
       );
 
       const response = await fetch("/api/documents/scan", {

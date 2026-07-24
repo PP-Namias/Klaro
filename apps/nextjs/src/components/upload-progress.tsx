@@ -87,7 +87,7 @@ export function UploadProgress({
       <div className={styles.progressHeader}>
         <span className={styles.progressIcon}>{stageIcons[stage]}</span>
         <span className={styles.progressLabel}>
-          {isError ? error ?? stageLabels[stage] : stageLabels[stage]}
+          {isError ? (error ?? stageLabels[stage]) : stageLabels[stage]}
         </span>
         {isActive && (
           <span className={styles.progressPercent}>

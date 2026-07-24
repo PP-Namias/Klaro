@@ -2,10 +2,7 @@
 type CanvasLike = any;
 
 type CanvasModule = {
-  createCanvas: (
-    width: number,
-    height: number,
-  ) => CanvasLike;
+  createCanvas: (width: number, height: number) => CanvasLike;
   loadImage: (source: Buffer) => Promise<CanvasLike>;
 };
 
@@ -241,11 +238,7 @@ export async function preprocessImage(
       rotatedCtx.fillRect(0, 0, diagonal, diagonal);
       rotatedCtx.translate(diagonal / 2, diagonal / 2);
       rotatedCtx.rotate((skewAngle * Math.PI) / 180);
-      rotatedCtx.drawImage(
-        tempCanvas,
-        -width / 2,
-        -height / 2,
-      );
+      rotatedCtx.drawImage(tempCanvas, -width / 2, -height / 2);
       width = diagonal;
       height = diagonal;
 

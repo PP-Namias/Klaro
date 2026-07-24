@@ -37,7 +37,7 @@ export interface RawScanPayload {
   timestamp?: string;
   error?: string;
   analysis?: ScanAnalysisSession["analysis"];
-};
+}
 
 function normalizeUrgency(value: unknown): "LOW" | "MODERATE" | "HIGH" {
   if (value === "LOW" || value === "MODERATE" || value === "HIGH") {

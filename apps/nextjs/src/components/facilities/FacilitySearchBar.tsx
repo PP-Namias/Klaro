@@ -7,13 +7,13 @@ export interface FacilityFilters {
   specialty: string;
   emergencyOnly: boolean;
   ownership: "all" | "public" | "private";
-};
+}
 
 interface FacilitySearchBarProps {
   specialties: string[];
   filters: FacilityFilters;
   onChange: (filters: FacilityFilters) => void;
-};
+}
 
 export function FacilitySearchBar({
   specialties,

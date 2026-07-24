@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
 
+import type { SuspiciousActivity } from "./router/audit";
 import { adminRouter } from "./router/admin";
 import { auditRouter } from "./router/audit";
-import type { SuspiciousActivity } from "./router/audit";
 import { authRouter } from "./router/auth";
 import { bookingRouter } from "./router/booking";
 import { chatRouter } from "./router/chat";

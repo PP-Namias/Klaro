@@ -1,7 +1,6 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { useRef, useState } from "react";
 import { FileImage, Upload } from "lucide-react";
 

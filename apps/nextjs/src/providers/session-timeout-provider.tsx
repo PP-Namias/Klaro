@@ -140,8 +140,12 @@ export function useSessionTimeout(): SessionTimeoutContextValue {
       formattedRemaining: "15:00",
       isWarning: false,
       isExpired: false,
-      extendSession: () => { void 0; },
-      forceLogout: () => { void 0; },
+      extendSession: () => {
+        void 0;
+      },
+      forceLogout: () => {
+        void 0;
+      },
     };
   }
   return ctx;

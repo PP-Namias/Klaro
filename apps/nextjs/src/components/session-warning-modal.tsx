@@ -19,12 +19,8 @@ export function SessionWarningModal({
   onExtend,
   onLogout,
 }: SessionWarningModalProps) {
-  const {
-    isWarning,
-    formattedRemaining,
-    extendSession,
-    forceLogout,
-  } = useSessionTimeout();
+  const { isWarning, formattedRemaining, extendSession, forceLogout } =
+    useSessionTimeout();
 
   if (!isWarning) return null;
 

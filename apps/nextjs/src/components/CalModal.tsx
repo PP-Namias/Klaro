@@ -1,7 +1,6 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, no-empty */
-
 import type React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, X } from "lucide-react";
@@ -16,7 +15,7 @@ interface CalModalProps {
   iframeTitle?: string;
   prefill?: Record<string, string>;
   onBooked?: () => void;
-};
+}
 
 const DEFAULT_URL =
   "https://cal.com/pp-namias/1-hour-session-with-clara?embed=1&theme=light";
