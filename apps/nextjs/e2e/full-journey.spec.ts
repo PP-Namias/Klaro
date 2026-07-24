@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Full Patient Journey", () => {
   test("patient views the homepage", async ({ page }) => {
@@ -16,7 +16,9 @@ test.describe("Full Patient Journey", () => {
   test("patient views facilities", async ({ page }) => {
     await page.goto("/facilities");
     await page.waitForLoadState("networkidle");
-    await page.screenshot({ path: "e2e-screenshots/18-journey-facilities.png" });
+    await page.screenshot({
+      path: "e2e-screenshots/18-journey-facilities.png",
+    });
   });
 
   test("patient accesses API documentation", async ({ page }) => {

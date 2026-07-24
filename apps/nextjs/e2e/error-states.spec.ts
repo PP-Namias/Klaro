@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Error States", () => {
   test("shows error for unsupported file type", async ({ page }) => {
@@ -12,7 +12,10 @@ test.describe("Error States", () => {
       buffer: Buffer.from("not an image"),
     });
 
-    const errorMsg = page.locator("text=unsupported").or(page.locator("text=not supported")).or(page.locator("text=invalid file"));
+    const errorMsg = page
+      .locator("text=unsupported")
+      .or(page.locator("text=not supported"))
+      .or(page.locator("text=invalid file"));
     await expect(errorMsg).toBeHidden();
   });
 
@@ -20,7 +23,9 @@ test.describe("Error States", () => {
     await page.goto("/scan");
     await page.waitForLoadState("networkidle");
 
-    const errorDisplay = page.locator("[data-testid=upload-error]").or(page.locator("text=Error uploading"));
+    const errorDisplay = page
+      .locator("[data-testid=upload-error]")
+      .or(page.locator("text=Error uploading"));
     await expect(errorDisplay).toBeHidden();
   });
 
@@ -28,7 +33,10 @@ test.describe("Error States", () => {
     await page.goto("/scan");
     await page.waitForLoadState("networkidle");
 
-    const networkError = page.locator("text=offline").or(page.locator("text=network")).or(page.locator("text=connection"));
+    const networkError = page
+      .locator("text=offline")
+      .or(page.locator("text=network"))
+      .or(page.locator("text=connection"));
     await expect(networkError).toBeHidden();
   });
 
@@ -36,7 +44,10 @@ test.describe("Error States", () => {
     await page.goto("/documents");
     await page.waitForLoadState("networkidle");
 
-    const emptyState = page.locator("text=No documents").or(page.locator("text=no results")).or(page.locator("text=empty"));
+    const emptyState = page
+      .locator("text=No documents")
+      .or(page.locator("text=no results"))
+      .or(page.locator("text=empty"));
     await expect(emptyState).toBeHidden();
   });
 
@@ -44,7 +55,10 @@ test.describe("Error States", () => {
     await page.goto("/scan");
     await page.waitForLoadState("networkidle");
 
-    const loadingIndicator = page.locator("[role=progressbar]").or(page.locator("text=Loading")).or(page.locator("text=Processing"));
+    const loadingIndicator = page
+      .locator("[role=progressbar]")
+      .or(page.locator("text=Loading"))
+      .or(page.locator("text=Processing"));
     await expect(loadingIndicator).toBeHidden();
   });
 
@@ -52,7 +66,9 @@ test.describe("Error States", () => {
     await page.goto("/scan");
     await page.waitForLoadState("networkidle");
 
-    const chatSection = page.locator("text=Chat").or(page.locator("text=Ask Clara"));
+    const chatSection = page
+      .locator("text=Chat")
+      .or(page.locator("text=Ask Clara"));
     await expect(chatSection).toBeHidden();
   });
 
@@ -60,7 +76,9 @@ test.describe("Error States", () => {
     await page.goto("/scan");
     await page.waitForLoadState("networkidle");
 
-    const retryButton = page.locator("button:has-text('Retry')").or(page.locator("button:has-text('Try Again')"));
+    const retryButton = page
+      .locator("button:has-text('Retry')")
+      .or(page.locator("button:has-text('Try Again')"));
     await expect(retryButton).toBeHidden();
   });
 
@@ -72,7 +90,10 @@ test.describe("Error States", () => {
     const accept = await fileInput.getAttribute("accept");
     expect(accept).toBeTruthy();
 
-    const sizeLimit = page.locator("text=MB limit").or(page.locator("text=too large")).or(page.locator("text=maximum size"));
+    const sizeLimit = page
+      .locator("text=MB limit")
+      .or(page.locator("text=too large"))
+      .or(page.locator("text=maximum size"));
     await expect(sizeLimit).toBeHidden();
   });
 });

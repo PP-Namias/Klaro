@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Clara Chat Interaction", () => {
   test("patient can access the chat interface", async ({ page }) => {

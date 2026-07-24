@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Scan Page - File Upload Flow", () => {
   test.beforeEach(async ({ page }) => {
@@ -10,9 +10,7 @@ test.describe("Scan Page - File Upload Flow", () => {
     await expect(
       page.getByText("Scan Your Results. Understand Them Instantly."),
     ).toBeVisible();
-    await expect(
-      page.getByText("Upload your medical documents"),
-    ).toBeVisible();
+    await expect(page.getByText("Upload your medical documents")).toBeVisible();
   });
 
   test("shows four document category cards", async ({ page }) => {
@@ -38,9 +36,7 @@ test.describe("Scan Page - File Upload Flow", () => {
   });
 
   test("shows camera scan button", async ({ page }) => {
-    await expect(
-      page.getByText("Take a photo & Scan here"),
-    ).toBeVisible();
+    await expect(page.getByText("Take a photo & Scan here")).toBeVisible();
   });
 
   test("shows footer notes", async ({ page }) => {
@@ -98,7 +94,10 @@ test.describe("Scan Page - Chat Input", () => {
     );
     await chatInput.fill("Hello Clara");
     // Send button should be visible
-    const sendBtn = page.locator("button").filter({ has: page.locator("svg") }).last();
+    const sendBtn = page
+      .locator("button")
+      .filter({ has: page.locator("svg") })
+      .last();
     await expect(sendBtn).toBeVisible();
   });
 });

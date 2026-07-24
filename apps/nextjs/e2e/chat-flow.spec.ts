@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Chat Flow", () => {
   test("chat input is visible on scan page", async ({ page }) => {
@@ -14,7 +14,10 @@ test.describe("Chat Flow", () => {
     await page.goto("/scan");
     await page.waitForLoadState("networkidle");
 
-    const sendBtn = page.locator("button").filter({ has: page.locator("svg") }).last();
+    const sendBtn = page
+      .locator("button")
+      .filter({ has: page.locator("svg") })
+      .last();
     await expect(sendBtn).toBeVisible();
   });
 
@@ -31,7 +34,10 @@ test.describe("Chat Flow", () => {
     await page.goto("/scan");
     await page.waitForLoadState("networkidle");
 
-    const dialectBtn = page.locator("button").filter({ hasText: /EN|FIL|BIS|ILO/ }).first();
+    const dialectBtn = page
+      .locator("button")
+      .filter({ hasText: /EN|FIL|BIS|ILO/ })
+      .first();
     await expect(dialectBtn).toBeVisible();
   });
 

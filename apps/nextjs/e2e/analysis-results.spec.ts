@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Analysis Results Display", () => {
   test("scan page loads with analysis section", async ({ page }) => {
@@ -13,7 +13,9 @@ test.describe("Analysis Results Display", () => {
     await page.goto("/scan");
     await page.waitForLoadState("networkidle");
 
-    const demoCard = page.locator("text=Lab Results").or(page.locator("text=Prescriptions"));
+    const demoCard = page
+      .locator("text=Lab Results")
+      .or(page.locator("text=Prescriptions"));
     await expect(demoCard.first()).toBeVisible();
   });
 
