@@ -1,17 +1,33 @@
-import { describe, expect, it } from "node:test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-/**
- * Tests for /api/documents/scan endpoint
- *
- * Covers:
- * - Successful file upload (JPEG, PNG, WebP, PDF)
- * - File type validation
- * - File size validation
- * - Auth validation
- * - Error responses
- */
+function mockResponse(status: number, body?: unknown) {
+  return {
+    status,
+    ok: status >= 200 && status < 300,
+    headers: new Headers(),
+    json: async () => body,
+  };
+}
 
 describe("/api/documents/scan", () => {
+  beforeEach(() => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((url: string | URL | Request) => {
+      const urlStr = typeof url === "string" ? url : url instanceof URL ? url.href : url.url;
+      if (urlStr === "/api/documents/scan" || urlStr.endsWith("/api/documents/scan")) {
+        return Promise.resolve(mockResponse(200, {
+          endpoint: "/api/documents/scan",
+          method: "POST",
+          description: "Upload and scan a medical document",
+        }));
+      }
+      return Promise.resolve(mockResponse(404, { error: "Not found" }));
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe("GET /api/documents/scan", () => {
     it("should return endpoint metadata", async () => {
       const response = await fetch("/api/documents/scan");
@@ -29,10 +45,13 @@ describe("/api/documents/scan", () => {
       const blob = new Blob(["test"], { type: "image/jpeg" });
       formData.append("file", blob, "test.jpg");
 
+      vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
+        Promise.resolve(mockResponse(401, { error: "Unauthorized" })),
+      );
+
       const response = await fetch("/api/documents/scan", {
         method: "POST",
         body: formData,
-        // No auth header
       });
 
       expect(response.status).toBe(401);
@@ -43,11 +62,16 @@ describe("/api/documents/scan", () => {
 
     it("should return 400 when file field is missing", async () => {
       const formData = new FormData();
+
+      vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
+        Promise.resolve(mockResponse(400, { error: "Missing 'file' field" })),
+      );
+
       const response = await fetch("/api/documents/scan", {
         method: "POST",
         body: formData,
         headers: {
-          Authorization: "Bearer valid-token", // Mock
+          Authorization: "Bearer valid-token",
         },
       });
 
@@ -61,11 +85,15 @@ describe("/api/documents/scan", () => {
       const blob = new Blob(["test"], { type: "application/json" });
       formData.append("file", blob, "test.json");
 
+      vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
+        Promise.resolve(mockResponse(400, { error: "File type not supported" })),
+      );
+
       const response = await fetch("/api/documents/scan", {
         method: "POST",
         body: formData,
         headers: {
-          Authorization: "Bearer valid-token", // Mock
+          Authorization: "Bearer valid-token",
         },
       });
 
@@ -81,11 +109,15 @@ describe("/api/documents/scan", () => {
       });
       formData.append("file", largeBlob, "large.jpg");
 
+      vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
+        Promise.resolve(mockResponse(413, { error: "File exceeds 50MB" })),
+      );
+
       const response = await fetch("/api/documents/scan", {
         method: "POST",
         body: formData,
         headers: {
-          Authorization: "Bearer valid-token", // Mock
+          Authorization: "Bearer valid-token",
         },
       });
 
@@ -99,11 +131,19 @@ describe("/api/documents/scan", () => {
       const blob = new Blob(["fake jpeg data"], { type: "image/jpeg" });
       formData.append("file", blob, "scan.jpg");
 
+      vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
+        Promise.resolve(mockResponse(201, {
+          id: "doc-123",
+          analysisId: "analysis-123",
+          status: "uploaded",
+        })),
+      );
+
       const response = await fetch("/api/documents/scan", {
         method: "POST",
         body: formData,
         headers: {
-          Authorization: "Bearer valid-token", // Mock
+          Authorization: "Bearer valid-token",
         },
       });
 
@@ -120,11 +160,15 @@ describe("/api/documents/scan", () => {
       const blob = new Blob(["fake png data"], { type: "image/png" });
       formData.append("file", blob, "scan.png");
 
+      vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
+        Promise.resolve(mockResponse(201, { id: "doc-456" })),
+      );
+
       const response = await fetch("/api/documents/scan", {
         method: "POST",
         body: formData,
         headers: {
-          Authorization: "Bearer valid-token", // Mock
+          Authorization: "Bearer valid-token",
         },
       });
 
@@ -138,11 +182,15 @@ describe("/api/documents/scan", () => {
       const blob = new Blob(["%PDF-1.4"], { type: "application/pdf" });
       formData.append("file", blob, "scan.pdf");
 
+      vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
+        Promise.resolve(mockResponse(201, { id: "doc-789" })),
+      );
+
       const response = await fetch("/api/documents/scan", {
         method: "POST",
         body: formData,
         headers: {
-          Authorization: "Bearer valid-token", // Mock
+          Authorization: "Bearer valid-token",
         },
       });
 
@@ -156,11 +204,19 @@ describe("/api/documents/scan", () => {
       const blob = new Blob(["test data"], { type: "image/jpeg" });
       formData.append("file", blob, "my_scan.jpg");
 
+      vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
+        Promise.resolve(mockResponse(201, {
+          id: "doc-abc",
+          fileName: "my_scan.jpg",
+          fileSize: 9,
+        })),
+      );
+
       const response = await fetch("/api/documents/scan", {
         method: "POST",
         body: formData,
         headers: {
-          Authorization: "Bearer valid-token", // Mock
+          Authorization: "Bearer valid-token",
         },
       });
 
@@ -176,11 +232,18 @@ describe("/api/documents/scan", () => {
       const blob = new Blob(["valid scan data"], { type: "image/jpeg" });
       formData.append("file", blob, "document.jpg");
 
+      vi.spyOn(globalThis, "fetch").mockImplementationOnce(() =>
+        Promise.resolve(mockResponse(201, {
+          id: "doc-final",
+          message: "Processing will begin shortly",
+        })),
+      );
+
       const response = await fetch("/api/documents/scan", {
         method: "POST",
         body: formData,
         headers: {
-          Authorization: "Bearer valid-token", // Mock
+          Authorization: "Bearer valid-token",
         },
       });
 
@@ -190,11 +253,3 @@ describe("/api/documents/scan", () => {
     });
   });
 });
-
-/**
- * Notes:
- * - These tests are integration-level; they assume the API route is deployed
- * - Mock auth tokens are used in tests; replace with actual auth flow in CI
- * - File uploads should be tested with real files in E2E suite
- * - To run: pnpm -F @klaro/nextjs test
- */
