@@ -124,17 +124,12 @@ Speak in your language -- Klaro responds in **Filipino**, **Bisaya** (Cebuano), 
 
 Upload a lab result, prescription, or discharge summary. Klaro's multi-stage pipeline extracts text, validates it against medical reference ranges, and delivers a clear summary.
 
-![OCR Pipeline Interface](./apps/nextjs/public/sections/scanning/1.png)
 
 - **Multi-format Upload** -- Drag-and-drop PDFs, images (JPG, PNG), or camera photos with multi-file queue support
 - **Smart OCR Pipeline** -- Tesseract.js local OCR with image preprocessing (deskew, denoise, binarize, grayscale) and Google Cloud Vision fallback when local confidence is low
 - **200+ Philippine Tests** -- Regex-based extraction engine recognizes 200+ local medical test variants (CBC, lipid profile, urinalysis, blood chemistry, etc.)
 - **Hallucination Detection** -- Every extracted value checked against medical reference ranges; impossible combinations are flagged and rejected
 - **Progress Tracking** -- Upload progress bars, cancellation, retry, and error recovery for every file
-
-![Analysis Results](./apps/nextjs/public/sections/scanning/2.png) | ![Plain Language Summary](./apps/nextjs/public/sections/scanning/3.png)
-
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -148,15 +143,11 @@ Once OCR extracts raw text, the AI layer translates clinical jargon into readabl
 - **Reference Range Validation** -- Extracted values cross-referenced against a comprehensive medical reference database
 - **Audit Trail** -- All AI processing steps logged for compliance and debugging
 
-[![][back-to-top]](#readme-top)
-
 ---
 
 ### AI Sidecar Architecture (LangChain / LangGraph RAG)
 
 Klaro's intelligence runs in a dedicated **AI microservice** -- a standalone Express server that encapsulates all LangChain, LangGraph, and vector store logic. This sidecar architecture demonstrates production-grade separation of concerns: the main Next.js application communicates with the AI layer exclusively via HTTP, keeping the AI pipeline independently deployable, testable, and scalable.
-
-![AI Sidecar Flow](./apps/nextjs/public/sections/clarity/1.png)
 
 **LangGraph Retrieval Graph** (`packages/ai-sidecar/src/retrieval_graph/graph.ts`):
 
@@ -193,10 +184,10 @@ flowchart TD
     Follow-up Questions"]
 ```
 
-- **`retrieve`** -- Embeds the user question and retrieves relevant document chunks from a vector store (ChromaDB, Supabase pgvector, or mock) with a 5-second timeout and noop fallback for offline stores
-- **`decide`** -- Conditional edge that routes to `generate` when documents are found, or `emptyAnswer` when the store returns no results (graceful degradation)
-- **`generate`** -- Constructs a LangChain prompt chain using the retrieved documents as context, calls the configured LLM (Gemini, OpenAI, or Claude), and streams the response via SSE
-- **`followUp`** -- Generates context-aware follow-up questions to guide the conversation, maintaining multi-turn dialogue coherence
+- **`retrieve`** - Embeds the user question and retrieves relevant document chunks from a vector store (ChromaDB, Supabase pgvector, or mock) with a 5-second timeout and noop fallback for offline stores
+- **`decide`** - Conditional edge that routes to `generate` when documents are found, or `emptyAnswer` when the store returns no results (graceful degradation)
+- **`generate`** - Constructs a LangChain prompt chain using the retrieved documents as context, calls the configured LLM (Gemini, OpenAI, or Claude), and streams the response via SSE
+- **`followUp`** - Generates context-aware follow-up questions to guide the conversation, maintaining multi-turn dialogue coherence
 
 **Key engineering details:**
 
@@ -215,15 +206,11 @@ flowchart TD
 | `/api/chat` | POST | Synchronous chat -- returns complete answer with follow-up questions |
 | `/api/chat/stream` | GET | Streaming chat -- SSE-based real-time token response |
 
-[![][back-to-top]](#readme-top)
-
 ---
 
 ### Clara AI Chatbot
 
 Meet Clara -- a conversational health assistant who remembers your documents, speaks your language, and answers follow-up questions with full context.
-
-![Clara Chat Interface](./apps/nextjs/public/sections/clarity/2.png)
 
 - **Context-Aware** -- Clara reads your scanned documents and understands your health history within a session, maintaining multi-turn conversation state
 - **Multilingual** -- Responds naturally in Filipino, Bisaya (Cebuano), Ilocano, or English, with dialect-specific medical terminology
@@ -231,10 +218,6 @@ Meet Clara -- a conversational health assistant who remembers your documents, sp
 - **Safety Guardrails** -- Input filtering, output validation, automatic medical disclaimers, and hallucination detection on every response
 - **Graceful Fallback** -- Mock mode activates when the LLM is rate-limited or unavailable
 - **PHI-Scrubbed** -- All prompts are stripped of personally identifiable information before reaching the LLM
-
-![Clara Explaining Lab Results](./apps/nextjs/public/sections/clarity/3.png)
-
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -247,8 +230,6 @@ Understanding your results is step one. Klaro connects you with licensed healthc
 - **Booking Types** -- Chat consultation, video call, or asynchronous document review
 - **Cal.com Integration** -- Schedule appointments via Cal.com with automated reminders
 - **Stripe Payments** -- Secure, production-ready payment processing with sandbox mode for testing
-
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -268,13 +249,6 @@ Medical data demands the highest security standards. Klaro was built from day on
 | Corrupt File Handling | Graceful error messages for unreadable or corrupt files |
 | Hallucination Detection | AI output validated against medical reference ranges before display |
 
-![Security Overview](./apps/nextjs/public/sections/security/1.png)
-
-[![][back-to-top]](#readme-top)
-
-<div align="right">
-
-[![][back-to-top]](#readme-top)
 
 </div>
 
@@ -364,11 +338,8 @@ flowchart TD
     C --> D["Display Results
     Severity badges, confidence scores
     + Clara Chat with follow-up Q&A"]
-  | + Chat with Clara     |  dialect-aware conversation, follow-up Q&A
-  +-----------------------+
 ```
 
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -455,9 +426,9 @@ This starts:
 | **Database** | PostgreSQL via Neon (serverless) |
 | **ORM** | Drizzle ORM |
 | **Validation** | Zod v4 |
-| **AI -- Extraction** | Google Gemini (`gemini-2.0-flash`) + Tesseract.js OCR |
-| **AI -- RAG/Chat** | LangChain + LangGraph (standalone Express microservice) |
-| **AI -- Vision** | Google Cloud Vision API (OCR fallback) |
+| **AI - Extraction** | Google Gemini (`gemini-2.0-flash`) + Tesseract.js OCR |
+| **AI - RAG/Chat** | LangChain + LangGraph (standalone Express microservice) |
+| **AI - Vision** | Google Cloud Vision API (OCR fallback) |
 | **Vector Store** | ChromaDB / Supabase pgvector / mock (configurable) |
 | **Embeddings** | Provider-agnostic embedding model via LangChain |
 | **Styling** | Tailwind CSS 4, NativeWind, CSS Modules |
