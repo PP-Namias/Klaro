@@ -22,50 +22,50 @@ pnpm --filter @klaro/ai-sidecar test
 
 ### Google Gemini (primary LLM)
 
-| Variable | Precedence | Description |
-|---|---|---|
-| `GOOGLE_API_KEY` | 1st | Standard Google AI key |
-| `GOOGLE_GENAI_API_KEY` | 2nd | LangChain-specific key name |
-| `GEMINI_API_KEY` | 3rd | Klaro root `.env` uses this |
+| Variable               | Precedence | Description                 |
+| ---------------------- | ---------- | --------------------------- |
+| `GOOGLE_API_KEY`       | 1st        | Standard Google AI key      |
+| `GOOGLE_GENAI_API_KEY` | 2nd        | LangChain-specific key name |
+| `GEMINI_API_KEY`       | 3rd        | Klaro root `.env` uses this |
 
 The provider is set via `LLM_PROVIDER=gemini` (alias for `google-genai`).  
 Default model: `gemini-2.0-flash`.
 
 ### Embeddings
 
-| Variable | Description |
-|---|---|
-| `EMBEDDING_PROVIDER` | `google-genai` or `openai` (default: same as `LLM_PROVIDER`) |
-| `EMBEDDING_MODEL` | Model name (default: `text-embedding-004` for Google, `text-embedding-3-small` for OpenAI) |
+| Variable             | Description                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| `EMBEDDING_PROVIDER` | `google-genai` or `openai` (default: same as `LLM_PROVIDER`)                               |
+| `EMBEDDING_MODEL`    | Model name (default: `text-embedding-004` for Google, `text-embedding-3-small` for OpenAI) |
 
 ### Vector Store
 
-| Variable | Default | Description |
-|---|---|---|
-| `VECTOR_STORE_PROVIDER` | `chroma` | `chroma` or `supabase` |
-| `CHROMA_DB_URL` | `http://localhost:8000` | ChromaDB endpoint |
-| `SUPABASE_URL` | — | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | — | Supabase service key |
+| Variable                    | Default                 | Description            |
+| --------------------------- | ----------------------- | ---------------------- |
+| `VECTOR_STORE_PROVIDER`     | `chroma`                | `chroma` or `supabase` |
+| `CHROMA_DB_URL`             | `http://localhost:8000` | ChromaDB endpoint      |
+| `SUPABASE_URL`              | —                       | Supabase project URL   |
+| `SUPABASE_SERVICE_ROLE_KEY` | —                       | Supabase service key   |
 
 ### Chunking
 
-| Variable | Default | Description |
-|---|---|---|
-| `CHUNK_SIZE` | `1000` | Characters per chunk |
-| `CHUNK_OVERLAP` | `200` | Overlap between chunks |
+| Variable        | Default | Description            |
+| --------------- | ------- | ---------------------- |
+| `CHUNK_SIZE`    | `1000`  | Characters per chunk   |
+| `CHUNK_OVERLAP` | `200`   | Overlap between chunks |
 
 ### Rate Limit Fallback
 
-| Variable | Description |
-|---|---|
+| Variable              | Description                                                                     |
+| --------------------- | ------------------------------------------------------------------------------- |
 | `CHAT_MODEL_FALLBACK` | Alternative model spec when primary is rate-limited (e.g. `openai/gpt-4o-mini`) |
 
 ### Server
 
-| Variable | Default | Description |
-|---|---|---|
-| `PORT` | `3002` | Express listen port |
-| `CORS_ORIGINS` | `*` | CORS allowed origins |
+| Variable       | Default | Description          |
+| -------------- | ------- | -------------------- |
+| `PORT`         | `3002`  | Express listen port  |
+| `CORS_ORIGINS` | `*`     | CORS allowed origins |
 
 ## API Reference
 
@@ -82,6 +82,7 @@ Health check.
 Synchronous chat with document-aware RAG.
 
 **Request:**
+
 ```json
 {
   "question": "What does this lab result mean?",
@@ -93,6 +94,7 @@ Synchronous chat with document-aware RAG.
 ```
 
 **Response:**
+
 ```json
 {
   "answer": "Your blood sugar level is...",
@@ -111,6 +113,7 @@ Server-Sent Events (SSE) streaming endpoint.
 | `messages` | `string` | No | JSON-encoded array of `{role, content}` |
 
 **Events:**
+
 ```
 data: {"event":"status","message":"Starting retrieval..."}
 data: {"event":"token","token":"Your"}
@@ -121,6 +124,7 @@ data: {"event":"complete","answer":"Your blood sugar level is...","followUpQuest
 ```
 
 **Error events:**
+
 ```
 data: {"error":"Quota or rate limit exceeded","code":429}
 ```

@@ -1,22 +1,22 @@
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-import { existsSync } from 'fs';
-import dotenv from 'dotenv';
+import { existsSync } from "fs";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+
+import app from "./index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 let searchDir = dirname(__filename);
 for (let i = 0; i < 5; i++) {
-  const candidate = resolve(searchDir, '.env');
+  const candidate = resolve(searchDir, ".env");
   if (existsSync(candidate)) {
     dotenv.config({ path: candidate });
     break;
   }
-  searchDir = resolve(searchDir, '..');
+  searchDir = resolve(searchDir, "..");
 }
 
-import app from './index.js';
-
-const PORT = parseInt(process.env.PORT ?? '3002', 10);
+const PORT = parseInt(process.env.PORT ?? "3002", 10);
 
 const server = app.listen(PORT, () => {
   console.log(`[ai-sidecar] Listening on http://localhost:${PORT}`);
@@ -25,19 +25,19 @@ const server = app.listen(PORT, () => {
 const shutdown = (signal: string) => {
   console.log(`[ai-sidecar] Received ${signal}, shutting down...`);
   server.close(() => {
-    console.log('[ai-sidecar] Server closed');
+    console.log("[ai-sidecar] Server closed");
     process.exit(0);
   });
 };
 
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
-process.on('uncaughtException', (err) => {
-  console.error('[ai-sidecar] Uncaught exception:', err.message);
+process.on("uncaughtException", (err) => {
+  console.error("[ai-sidecar] Uncaught exception:", err.message);
   console.error(err.stack);
 });
 
-process.on('unhandledRejection', (reason) => {
-  console.error('[ai-sidecar] Unhandled rejection:', reason);
+process.on("unhandledRejection", (reason) => {
+  console.error("[ai-sidecar] Unhandled rejection:", reason);
 });

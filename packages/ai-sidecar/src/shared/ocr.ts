@@ -1,4 +1,4 @@
-import sharp from 'sharp';
+import sharp from "sharp";
 
 export interface OcrBlock {
   text: string;
@@ -10,7 +10,7 @@ export interface OcrResult {
   text: string;
   confidence: number;
   blocks: OcrBlock[];
-  source: 'ocr' | 'embedded';
+  source: "ocr" | "embedded";
   warning?: string;
 }
 
@@ -21,9 +21,9 @@ export interface OcrOptions {
 
 export function getOcrOptions(): Required<OcrOptions> {
   return {
-    enabled: process.env.OCR_ENABLED !== 'false',
+    enabled: process.env.OCR_ENABLED !== "false",
     confidenceThreshold: parseFloat(
-      process.env.OCR_CONFIDENCE_THRESHOLD ?? '0.7',
+      process.env.OCR_CONFIDENCE_THRESHOLD ?? "0.7",
     ),
   };
 }
@@ -31,27 +31,19 @@ export function getOcrOptions(): Required<OcrOptions> {
 export function shouldRunOcr(extractedText: string): boolean {
   const opts = getOcrOptions();
   if (!opts.enabled) return false;
-  const textLength = extractedText.replace(/\s+/g, '').length;
+  const textLength = extractedText.replace(/\s+/g, "").length;
   return textLength < 100;
 }
 
-async function preprocessImage(
-  buffer: Buffer,
-): Promise<Buffer> {
-  return sharp(buffer)
-    .grayscale()
-    .normalise()
-    .sharpen()
-    .toBuffer();
+async function preprocessImage(buffer: Buffer): Promise<Buffer> {
+  return sharp(buffer).grayscale().normalise().sharpen().toBuffer();
 }
 
-export async function runOcr(
-  imageBuffer: Buffer,
-): Promise<OcrResult> {
+export async function runOcr(imageBuffer: Buffer): Promise<OcrResult> {
   const preprocessed = await preprocessImage(imageBuffer);
 
-  const { createWorker } = await import('tesseract.js');
-  const worker = await createWorker('eng');
+  const { createWorker } = await import("tesseract.js");
+  const worker = await createWorker("eng");
 
   const { data } = await worker.recognize(preprocessed);
   await worker.terminate();
@@ -75,7 +67,7 @@ export async function runOcr(
     text: data.text,
     confidence: overallConfidence,
     blocks,
-    source: 'ocr',
+    source: "ocr",
   };
 
   if (overallConfidence < getOcrOptions().confidenceThreshold) {
@@ -94,7 +86,7 @@ export async function processDocument(
       text: embeddedText,
       confidence: 1,
       blocks: [],
-      source: 'embedded',
+      source: "embedded",
     };
   }
 

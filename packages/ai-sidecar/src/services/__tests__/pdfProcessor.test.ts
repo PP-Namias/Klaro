@@ -1,11 +1,11 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import pdfParse from "pdf-parse";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { parsePdf } from "../pdfProcessor";
 
 vi.mock("pdf-parse", () => ({
   default: vi.fn(),
 }));
-
-import { parsePdf } from "../pdfProcessor";
-import pdfParse from "pdf-parse";
 
 function makeValidBuffer(extra = ""): Buffer {
   const header = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n" + extra;
@@ -35,7 +35,9 @@ describe("pdfProcessor", () => {
     });
 
     it("throws on empty buffer", async () => {
-      await expect(parsePdf(Buffer.from([]))).rejects.toThrow("PDF buffer is empty");
+      await expect(parsePdf(Buffer.from([]))).rejects.toThrow(
+        "PDF buffer is empty",
+      );
     });
 
     it("throws on oversized buffer", async () => {
@@ -50,28 +52,36 @@ describe("pdfProcessor", () => {
 
     it("throws on missing PDF header", async () => {
       const buf = Buffer.from("not a pdf");
-      await expect(parsePdf(buf)).rejects.toThrow("PDF header is missing or invalid");
+      await expect(parsePdf(buf)).rejects.toThrow(
+        "PDF header is missing or invalid",
+      );
     });
 
     it("throws when pdf-parse reports encrypted", async () => {
       (pdfParse as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error("File is encrypted"),
       );
-      await expect(parsePdf(makeValidBuffer())).rejects.toThrow("PDF is encrypted");
+      await expect(parsePdf(makeValidBuffer())).rejects.toThrow(
+        "PDF is encrypted",
+      );
     });
 
     it("throws when pdf-parse reports corrupt", async () => {
       (pdfParse as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error("Corrupt PDF format"),
       );
-      await expect(parsePdf(makeValidBuffer())).rejects.toThrow("PDF is corrupted");
+      await expect(parsePdf(makeValidBuffer())).rejects.toThrow(
+        "PDF is corrupted",
+      );
     });
 
     it("throws generic error for unknown parsing failures", async () => {
       (pdfParse as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error("Something went wrong"),
       );
-      await expect(parsePdf(makeValidBuffer())).rejects.toThrow("PDF parsing failed");
+      await expect(parsePdf(makeValidBuffer())).rejects.toThrow(
+        "PDF parsing failed",
+      );
     });
 
     it("returns empty pages array when text is empty", async () => {

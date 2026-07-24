@@ -1,7 +1,8 @@
-import { Annotation } from '@langchain/langgraph';
-import { Document } from '@langchain/core/documents';
-import { BaseMessage } from '@langchain/core/messages';
-import { reduceDocs } from '../shared/state.js';
+import { Document } from "@langchain/core/documents";
+import { BaseMessage } from "@langchain/core/messages";
+import { Annotation } from "@langchain/langgraph";
+
+import { reduceDocs } from "../shared/state.js";
 
 export const RetrievalStateAnnotation = Annotation.Root({
   question: Annotation<string>,
@@ -13,11 +14,7 @@ export const RetrievalStateAnnotation = Annotation.Root({
   }),
   docs: Annotation<
     Document[],
-    | Document[]
-    | Record<string, unknown>[]
-    | string[]
-    | string
-    | 'delete'
+    Document[] | Record<string, unknown>[] | string[] | string | "delete"
   >({
     default: () => [],
     reducer: reduceDocs,

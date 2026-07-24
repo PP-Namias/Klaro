@@ -1,5 +1,5 @@
-import { Document } from '@langchain/core/documents';
-import { v4 as uuidv4 } from 'uuid';
+import { Document } from "@langchain/core/documents";
+import { v4 as uuidv4 } from "uuid";
 
 export function reduceDocs(
   existing?: Document[],
@@ -8,9 +8,9 @@ export function reduceDocs(
     | Record<string, unknown>[]
     | string[]
     | string
-    | 'delete',
+    | "delete",
 ): Document[] {
-  if (newDocs === 'delete') {
+  if (newDocs === "delete") {
     return [];
   }
 
@@ -19,7 +19,7 @@ export function reduceDocs(
     existingList.map((doc) => doc.metadata?.uuid as string | undefined),
   );
 
-  if (typeof newDocs === 'string') {
+  if (typeof newDocs === "string") {
     const docId = uuidv4();
     return [
       ...existingList,
@@ -30,23 +30,24 @@ export function reduceDocs(
   const newList: Document[] = [];
   if (Array.isArray(newDocs)) {
     for (const item of newDocs) {
-      if (typeof item === 'string') {
+      if (typeof item === "string") {
         const itemId = uuidv4();
         newList.push({ pageContent: item, metadata: { uuid: itemId } });
         existingIds.add(itemId);
-      } else if (typeof item === 'object' && item !== null) {
+      } else if (typeof item === "object" && item !== null) {
         const metadata = (item as Document).metadata ?? {};
-        const itemId: string = (metadata as Record<string, unknown>)?.uuid as string ?? uuidv4();
+        const itemId: string =
+          ((metadata as Record<string, unknown>)?.uuid as string) ?? uuidv4();
 
         if (!existingIds.has(itemId)) {
-          if ('pageContent' in item) {
+          if ("pageContent" in item) {
             newList.push({
               ...(item as Document),
               metadata: { ...metadata, uuid: itemId },
             });
           } else {
             newList.push({
-              pageContent: '',
+              pageContent: "",
               metadata: { ...item, uuid: itemId } as Record<string, unknown>,
             });
           }

@@ -1,22 +1,22 @@
-import { RunnableConfig } from '@langchain/core/runnables';
-import { StateGraph, START, END } from '@langchain/langgraph';
-import { Document } from '@langchain/core/documents';
+import { Document } from "@langchain/core/documents";
+import { RunnableConfig } from "@langchain/core/runnables";
+import { END, START, StateGraph } from "@langchain/langgraph";
 
-import { IndexStateAnnotation } from './state.js';
+import { parsePdf } from "../services/pdfProcessor.js";
+import { chunkPages, chunkText } from "../shared/chunker.js";
+import { processDocument } from "../shared/ocr.js";
+import { makeRetriever } from "../shared/retrieval.js";
 import {
-  IndexConfigurationAnnotation,
   ensureIndexConfiguration,
-} from './configuration.js';
-import { makeRetriever } from '../shared/retrieval.js';
-import { parsePdf } from '../services/pdfProcessor.js';
-import { chunkPages, chunkText } from '../shared/chunker.js';
-import { processDocument } from '../shared/ocr.js';
+  IndexConfigurationAnnotation,
+} from "./configuration.js";
+import { IndexStateAnnotation } from "./state.js";
 
 async function validateDocument(
   state: typeof IndexStateAnnotation.State,
 ): Promise<{ docs: Document[] }> {
   if (!state.docs || state.docs.length === 0) {
-    throw new Error('No documents provided for ingestion');
+    throw new Error("No documents provided for ingestion");
   }
 
   const validated = state.docs.filter((doc) => {
@@ -25,7 +25,7 @@ async function validateDocument(
   });
 
   if (validated.length === 0) {
-    throw new Error('All documents are empty — nothing to ingest');
+    throw new Error("All documents are empty — nothing to ingest");
   }
 
   return { docs: validated };
@@ -57,12 +57,9 @@ async function parsePdfNode(
       }
     } else {
       const text = doc.pageContent;
-      const ocrCheck = await processDocument(
-        Buffer.from(''),
-        text,
-      );
+      const ocrCheck = await processDocument(Buffer.from(""), text);
 
-      if (ocrCheck.source === 'embedded' || text.length > 100) {
+      if (ocrCheck.source === "embedded" || text.length > 100) {
         parsed.push(doc);
       } else {
         throw new Error(
@@ -82,7 +79,7 @@ async function chunkDocumentNode(
 
   for (const doc of state.docs) {
     const text = doc.pageContent;
-    if (text.length > parseInt(process.env.CHUNK_SIZE ?? '1000', 10)) {
+    if (text.length > parseInt(process.env.CHUNK_SIZE ?? "1000", 10)) {
       const chunks = await chunkText(text);
       chunked.push(...chunks);
     } else {
@@ -96,7 +93,7 @@ async function chunkDocumentNode(
 async function embedAndStore(
   state: typeof IndexStateAnnotation.State,
   config?: RunnableConfig,
-): Promise<{ docs: 'delete' }> {
+): Promise<{ docs: "delete" }> {
   const retriever = await makeRetriever(config);
   await retriever.addDocuments(state.docs);
 
@@ -105,23 +102,23 @@ async function embedAndStore(
     `[ai-sidecar] Indexed ${docCount} document chunk(s) successfully`,
   );
 
-  return { docs: 'delete' };
+  return { docs: "delete" };
 }
 
 const builder = new StateGraph(
   IndexStateAnnotation,
   IndexConfigurationAnnotation,
 )
-  .addNode('validateDocument', validateDocument)
-  .addNode('parsePdf', parsePdfNode)
-  .addNode('chunkDocument', chunkDocumentNode)
-  .addNode('embedAndStore', embedAndStore)
-  .addEdge(START, 'validateDocument')
-  .addEdge('validateDocument', 'parsePdf')
-  .addEdge('parsePdf', 'chunkDocument')
-  .addEdge('chunkDocument', 'embedAndStore')
-  .addEdge('embedAndStore', END);
+  .addNode("validateDocument", validateDocument)
+  .addNode("parsePdf", parsePdfNode)
+  .addNode("chunkDocument", chunkDocumentNode)
+  .addNode("embedAndStore", embedAndStore)
+  .addEdge(START, "validateDocument")
+  .addEdge("validateDocument", "parsePdf")
+  .addEdge("parsePdf", "chunkDocument")
+  .addEdge("chunkDocument", "embedAndStore")
+  .addEdge("embedAndStore", END);
 
 export const graph = builder
   .compile()
-  .withConfig({ runName: 'IngestionGraph' });
+  .withConfig({ runName: "IngestionGraph" });

@@ -1,47 +1,67 @@
-import { VectorStoreRetriever } from '@langchain/core/vectorstores';
-import { Embeddings } from '@langchain/core/embeddings';
-import { Document } from '@langchain/core/documents';
-import { OpenAIEmbeddings } from '@langchain/openai';
-import { Chroma } from '@langchain/community/vectorstores/chroma';
-import { SupabaseVectorStore } from '@langchain/community/vectorstores/supabase';
-import { createClient } from '@supabase/supabase-js';
-import { RunnableConfig } from '@langchain/core/runnables';
+import { Chroma } from "@langchain/community/vectorstores/chroma";
+import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
+import { Document } from "@langchain/core/documents";
+import { Embeddings } from "@langchain/core/embeddings";
+import { RunnableConfig } from "@langchain/core/runnables";
+import { VectorStoreRetriever } from "@langchain/core/vectorstores";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { createClient } from "@supabase/supabase-js";
+
+import type { BaseConfiguration } from "./configuration.js";
 import {
   BaseConfigurationAnnotation,
   ensureBaseConfiguration,
-  type BaseConfiguration,
-} from './configuration.js';
+} from "./configuration.js";
 
 const RETRIEVER_TIMEOUT = 5000;
 
 async function getEmbeddings(model?: string): Promise<Embeddings> {
-  const provider = process.env.EMBEDDING_PROVIDER ?? process.env.LLM_PROVIDER ?? 'openai';
+  const provider =
+    process.env.EMBEDDING_PROVIDER ?? process.env.LLM_PROVIDER ?? "openai";
 
-  if (provider === 'google-genai' || provider === 'gemini') {
+  if (provider === "google-genai" || provider === "gemini") {
     try {
-      const { GoogleGenerativeAIEmbeddings } = await (Function('return import("@langchain/google-genai")') as () => Promise<Record<string, unknown>>)();
+      const { GoogleGenerativeAIEmbeddings } = await (
+        Function('return import("@langchain/google-genai")') as () => Promise<
+          Record<string, unknown>
+        >
+      )();
       if (GoogleGenerativeAIEmbeddings) {
-        return new (GoogleGenerativeAIEmbeddings as new (fields: Record<string, unknown>) => Embeddings)({
-          model: model ?? process.env.EMBEDDING_MODEL ?? 'text-embedding-004',
-          apiKey: process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY,
+        return new (GoogleGenerativeAIEmbeddings as new (
+          fields: Record<string, unknown>,
+        ) => Embeddings)({
+          model: model ?? process.env.EMBEDDING_MODEL ?? "text-embedding-004",
+          apiKey:
+            process.env.GOOGLE_API_KEY ||
+            process.env.GOOGLE_GENAI_API_KEY ||
+            process.env.GEMINI_API_KEY,
         });
       }
     } catch {
-      console.warn('[ai-sidecar] Google Generative AI embeddings not available, falling back to OpenAI');
+      console.warn(
+        "[ai-sidecar] Google Generative AI embeddings not available, falling back to OpenAI",
+      );
     }
   }
 
   return new OpenAIEmbeddings({
-    model: model ?? process.env.EMBEDDING_MODEL ?? 'text-embedding-3-small',
+    model: model ?? process.env.EMBEDDING_MODEL ?? "text-embedding-3-small",
     apiKey: process.env.OPENAI_API_KEY,
   });
 }
 
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms),
+      setTimeout(
+        () => reject(new Error(`${label} timed out after ${ms}ms`)),
+        ms,
+      ),
     ),
   ]);
 }
@@ -50,12 +70,14 @@ export async function makeChromaRetriever(
   configuration: BaseConfiguration,
 ): Promise<VectorStoreRetriever> {
   const embeddings = await getEmbeddings();
-  const url = process.env.CHROMA_DB_URL ?? 'http://localhost:8000';
+  const url = process.env.CHROMA_DB_URL ?? "http://localhost:8000";
 
   const vectorStore = await withTimeout(
-    Promise.resolve(new Chroma(embeddings, { url, collectionName: 'klaro_documents' })),
+    Promise.resolve(
+      new Chroma(embeddings, { url, collectionName: "klaro_documents" }),
+    ),
     RETRIEVER_TIMEOUT,
-    'ChromaDB connection',
+    "ChromaDB connection",
   );
 
   return vectorStore.asRetriever({
@@ -72,7 +94,7 @@ export async function makeSupabaseRetriever(
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables must be set',
+      "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables must be set",
     );
   }
 
@@ -83,12 +105,12 @@ export async function makeSupabaseRetriever(
     Promise.resolve(
       new SupabaseVectorStore(embeddings, {
         client: supabaseClient,
-        tableName: 'documents',
-        queryName: 'match_documents',
+        tableName: "documents",
+        queryName: "match_documents",
       }),
     ),
     RETRIEVER_TIMEOUT,
-    'Supabase connection',
+    "Supabase connection",
   );
 
   return vectorStore.asRetriever({
@@ -112,17 +134,17 @@ export async function makeRetriever(
   const configuration = ensureBaseConfiguration(config);
 
   const noVectorStore =
-    process.env.VECTOR_STORE_PROVIDER === 'none' ||
-    process.env.VECTOR_STORE_PROVIDER === '';
+    process.env.VECTOR_STORE_PROVIDER === "none" ||
+    process.env.VECTOR_STORE_PROVIDER === "";
 
   if (noVectorStore) {
     return makeNoopRetriever();
   }
 
   switch (configuration.retrieverProvider) {
-    case 'chroma':
+    case "chroma":
       return makeChromaRetriever(configuration);
-    case 'supabase':
+    case "supabase":
       return makeSupabaseRetriever(configuration);
     default:
       throw new Error(

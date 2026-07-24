@@ -1,5 +1,5 @@
-import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
-import { Document } from '@langchain/core/documents';
+import { Document } from "@langchain/core/documents";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 export interface ChunkOptions {
   chunkSize?: number;
@@ -9,9 +9,9 @@ export interface ChunkOptions {
 
 export function getChunkOptions(): Required<ChunkOptions> {
   return {
-    chunkSize: parseInt(process.env.CHUNK_SIZE ?? '1000', 10),
-    chunkOverlap: parseInt(process.env.CHUNK_OVERLAP ?? '200', 10),
-    separators: ['\n\n', '\n', '.', ' ', ''],
+    chunkSize: parseInt(process.env.CHUNK_SIZE ?? "1000", 10),
+    chunkOverlap: parseInt(process.env.CHUNK_OVERLAP ?? "200", 10),
+    separators: ["\n\n", "\n", ".", " ", ""],
   };
 }
 

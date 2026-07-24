@@ -1,9 +1,10 @@
-import { Annotation } from '@langchain/langgraph';
-import { RunnableConfig } from '@langchain/core/runnables';
+import { RunnableConfig } from "@langchain/core/runnables";
+import { Annotation } from "@langchain/langgraph";
+
 import {
   BaseConfigurationAnnotation,
   ensureBaseConfiguration,
-} from '../shared/configuration.js';
+} from "../shared/configuration.js";
 
 export const IndexConfigurationAnnotation = Annotation.Root({
   ...BaseConfigurationAnnotation.spec,
@@ -16,12 +17,13 @@ export type IndexConfiguration = typeof IndexConfigurationAnnotation.State;
 export function ensureIndexConfiguration(
   config: RunnableConfig,
 ): IndexConfiguration {
-  const configurable = (config?.configurable ?? {}) as Partial<IndexConfiguration>;
+  const configurable = (config?.configurable ??
+    {}) as Partial<IndexConfiguration>;
   const baseConfig = ensureBaseConfiguration(config);
 
   return {
     ...baseConfig,
-    docsFile: configurable.docsFile ?? './src/sample_docs.json',
+    docsFile: configurable.docsFile ?? "./src/sample_docs.json",
     useSampleDocs: configurable.useSampleDocs ?? false,
   };
 }
