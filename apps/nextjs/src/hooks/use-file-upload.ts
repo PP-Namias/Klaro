@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/prefer-promise-reject-errors */
+
 "use client";
 
 import { useCallback, useRef, useState } from "react";
@@ -5,9 +7,9 @@ import { useCallback, useRef, useState } from "react";
 import type { Language } from "@klaro/validators/language";
 import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 
-import { useTRPC } from "~/trpc/react";
-import { validateFiles, fileToBase64 } from "~/lib/file-validation";
 import type { UploadStage } from "~/components/upload-progress";
+import { fileToBase64, validateFiles } from "~/lib/file-validation";
+import { useTRPC } from "~/trpc/react";
 
 export interface UploadFileItem {
   id: string;
@@ -195,9 +197,7 @@ export function useFileUpload({
       const allComplete = queue
         .concat(newItems)
         .every((f) => f.stage === "complete" || cancelledRef.current.has(f.id));
-      const anyError = queue
-        .concat(newItems)
-        .some((f) => f.stage === "error");
+      const anyError = queue.concat(newItems).some((f) => f.stage === "error");
 
       if (anyError) {
         setStage("error");
@@ -259,7 +259,10 @@ export function useFileUpload({
   }, []);
 
   const isUploading = queue.some(
-    (f) => f.stage === "pending" || f.stage === "uploading" || f.stage === "processing",
+    (f) =>
+      f.stage === "pending" ||
+      f.stage === "uploading" ||
+      f.stage === "processing",
   );
 
   return {

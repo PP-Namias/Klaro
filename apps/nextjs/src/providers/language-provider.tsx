@@ -1,11 +1,19 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import type { Language } from "@klaro/validators/language";
 import { DEFAULT_LANGUAGE } from "@klaro/validators/language";
 
-import { t as translate, type TranslationKeys } from "~/i18n";
+import type { TranslationKeys } from "~/i18n";
+import { t as translate } from "~/i18n";
 
 interface LanguageContextValue {
   language: Language;
@@ -31,11 +39,10 @@ function getStoredLanguage(): Language {
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE);
+  const [language, setLanguageState] = useState<Language>(getStoredLanguage);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setLanguageState(getStoredLanguage());
     setMounted(true);
   }, []);
 
@@ -65,7 +72,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
+    <LanguageContext.Provider value={value}>
+      {children}
+    </LanguageContext.Provider>
   );
 }
 
@@ -74,7 +83,7 @@ export function useLanguage(): LanguageContextValue {
   if (!ctx) {
     return {
       language: DEFAULT_LANGUAGE,
-      setLanguage: () => {},
+      setLanguage: () => { void 0; },
       t: (key: string) => key,
     };
   }

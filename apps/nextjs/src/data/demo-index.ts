@@ -1,14 +1,11 @@
-import { labResultsDemo, type LabResultsDemo } from "./demo-lab-results";
-import {
-  prescriptionDemo,
-  type PrescriptionDemo,
-} from "./demo-prescriptions";
-import { dischargeDemo, type DischargeDemo } from "./demo-discharge";
-import {
-  xrayReportDemo,
-  ecgReportDemo,
-  type OtherDocDemo,
-} from "./demo-other-docs";
+import type { DischargeDemo } from "./demo-discharge";
+import type { LabResultsDemo } from "./demo-lab-results";
+import type { OtherDocDemo } from "./demo-other-docs";
+import type { PrescriptionDemo } from "./demo-prescriptions";
+import { dischargeDemo } from "./demo-discharge";
+import { labResultsDemo } from "./demo-lab-results";
+import { ecgReportDemo, xrayReportDemo } from "./demo-other-docs";
+import { prescriptionDemo } from "./demo-prescriptions";
 
 export { labResultsDemo } from "./demo-lab-results";
 export { prescriptionDemo } from "./demo-prescriptions";
@@ -53,16 +50,14 @@ export function getDemoTitle(type: DemoType): string {
 export function getDemoDescription(type: DemoType): string {
   const descriptions: Record<DemoType, string> = {
     lab: "Ito ay isang halimbawa ng lab results na na-scan at na-analyze ni Clara. Makikita mo kung paano namin nililinaw ang mga resulta at ibinibigay ang mga rekomendasyon.",
-    prescription: "Ito ay isang halimbawa ng reseta na na-scan at na-interpret ni Clara. Makikita mo kung paano namin inilalarawan ang mga gamot at instruksyon.",
-    discharge: "Ito ay isang halimbawa ng discharge summary na na-scan at na-summarize ni Clara. Makikita mo kung paano namin binibreak down ang mga hospital notes.",
-    other: "Ito ay isang halimbawa ng medical document (X-Ray, ECG, atbp.) na na-scan at na-extract ni Clara. Makikita mo kung paano namin binabasa ang mga resulta.",
+    prescription:
+      "Ito ay isang halimbawa ng reseta na na-scan at na-interpret ni Clara. Makikita mo kung paano namin inilalarawan ang mga gamot at instruksyon.",
+    discharge:
+      "Ito ay isang halimbawa ng discharge summary na na-scan at na-summarize ni Clara. Makikita mo kung paano namin binibreak down ang mga hospital notes.",
+    other:
+      "Ito ay isang halimbawa ng medical document (X-Ray, ECG, atbp.) na na-scan at na-extract ni Clara. Makikita mo kung paano namin binabasa ang mga resulta.",
   };
   return descriptions[type];
 }
 
-export type {
-  LabResultsDemo,
-  PrescriptionDemo,
-  DischargeDemo,
-  OtherDocDemo,
-};
+export type { LabResultsDemo, PrescriptionDemo, DischargeDemo, OtherDocDemo };

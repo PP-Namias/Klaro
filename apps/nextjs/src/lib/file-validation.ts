@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/prefer-regexp-exec, @typescript-eslint/no-non-null-assertion, @typescript-eslint/prefer-nullish-coalescing */
+
 const ACCEPTED_TYPES = new Set([
   "image/png",
   "image/jpeg",

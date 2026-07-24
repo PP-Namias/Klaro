@@ -1,8 +1,8 @@
 import type { Language } from "@klaro/validators/language";
 
+import ceb from "./ceb";
 import en from "./en";
 import fil from "./fil";
-import ceb from "./ceb";
 import ilo from "./ilo";
 
 const dictionaries: Record<Language, Record<string, string>> = {
@@ -13,7 +13,7 @@ const dictionaries: Record<Language, Record<string, string>> = {
 };
 
 export function getTranslation(language: Language): Record<string, string> {
-  return dictionaries[language] ?? dictionaries.en;
+  return dictionaries[language];
 }
 
 export function t(
@@ -21,12 +21,15 @@ export function t(
   key: string,
   params?: Record<string, string | number>,
 ): string {
-  const dict = dictionaries[language] ?? dictionaries.en;
+  const dict = dictionaries[language];
   let value = dict[key] ?? dictionaries.en[key] ?? key;
 
   if (params) {
     for (const [paramKey, paramValue] of Object.entries(params)) {
-      value = value.replace(new RegExp(`\\{${paramKey}\\}`, "g"), String(paramValue));
+      value = value.replace(
+        new RegExp(`\\{${paramKey}\\}`, "g"),
+        String(paramValue),
+      );
     }
   }
 

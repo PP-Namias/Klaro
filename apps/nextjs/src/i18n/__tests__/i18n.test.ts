@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import ceb from "../ceb";
 import en from "../en";
 import fil from "../fil";
-import ceb from "../ceb";
 import ilo from "../ilo";
-import { t, getTranslation } from "../index";
+import { getTranslation, t } from "../index";
 
 describe("Translation dictionaries", () => {
   it("English dictionary has all keys", () => {

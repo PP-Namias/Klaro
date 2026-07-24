@@ -76,7 +76,10 @@ export const ecgReportDemo: OtherDocDemo = {
     { key: "ST Segments", value: "Mild depression in leads V4-V6" },
     { key: "T Waves", value: "Flat in lateral leads" },
     { key: "Axis", value: "Normal" },
-    { key: "Impression", value: "Sinus rhythm with ST changes — consider ischemia" },
+    {
+      key: "Impression",
+      value: "Sinus rhythm with ST changes — consider ischemia",
+    },
   ],
   warnings: [
     "May ST-segment changes sa lateral leads (V4-V6) — maaaring senyales ng heart muscle ischemia.",

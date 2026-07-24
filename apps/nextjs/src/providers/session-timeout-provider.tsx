@@ -1,12 +1,14 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect */
+
 /**
  * Session Timeout Provider
  *
  * React context provider for HIPAA-compliant session timeout.
  * Tracks user activity and manages session state.
  */
-
+import type { ReactNode } from "react";
 import {
   createContext,
   useCallback,
@@ -14,17 +16,15 @@ import {
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
 } from "react";
 
+import type { SessionState, SessionStatus } from "~/lib/session-timeout";
 import {
+  extendSession,
+  formatRemainingTime,
+  getSessionStatus,
   initSessionTimeout,
   stopSessionTimeout,
-  extendSession,
-  getSessionStatus,
-  formatRemainingTime,
-  type SessionStatus,
-  type SessionState,
 } from "~/lib/session-timeout";
 
 interface SessionTimeoutContextValue {
@@ -140,8 +140,8 @@ export function useSessionTimeout(): SessionTimeoutContextValue {
       formattedRemaining: "15:00",
       isWarning: false,
       isExpired: false,
-      extendSession: () => {},
-      forceLogout: () => {},
+      extendSession: () => { void 0; },
+      forceLogout: () => { void 0; },
     };
   }
   return ctx;

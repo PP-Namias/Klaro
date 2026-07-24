@@ -94,8 +94,7 @@ export const labResultsDemo: LabResultsDemo = {
       unit: "mg/dL",
       referenceRange: "Below 130",
       flagged: true,
-      interpretation:
-        "Mataas — bad cholesterol ay nasa mapanganib na antas.",
+      interpretation: "Mataas — bad cholesterol ay nasa mapanganib na antas.",
     },
     {
       name: "Triglycerides",
@@ -103,8 +102,7 @@ export const labResultsDemo: LabResultsDemo = {
       unit: "mg/dL",
       referenceRange: "Below 150",
       flagged: true,
-      interpretation:
-        "Mataas — bawasan ang pagkain ng matataba at matatamis.",
+      interpretation: "Mataas — bawasan ang pagkain ng matataba at matatamis.",
     },
   ],
   warnings: [

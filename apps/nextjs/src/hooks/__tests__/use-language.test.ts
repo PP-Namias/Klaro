@@ -1,6 +1,6 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { t, getTranslation } from "~/i18n";
+import { getTranslation, t } from "~/i18n";
 
 describe("useLanguage hook (unit tests)", () => {
   beforeEach(() => {

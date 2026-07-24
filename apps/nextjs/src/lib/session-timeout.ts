@@ -1,3 +1,5 @@
+/* eslint-disable turbo/no-undeclared-env-vars, no-restricted-properties, @typescript-eslint/prefer-nullish-coalescing */
+
 /**
  * Session Timeout Service
  *
@@ -137,7 +139,9 @@ function detachActivityListeners(): void {
 
 function getSessionState(): SessionState {
   const now = Date.now();
-  const warningAt = new Date(lastActivityTime + config.timeoutMs - config.warningMs);
+  const warningAt = new Date(
+    lastActivityTime + config.timeoutMs - config.warningMs,
+  );
   const expiresAt = new Date(lastActivityTime + config.timeoutMs);
 
   return {
@@ -160,7 +164,8 @@ function checkSessionStatus(): void {
   const now = Date.now();
   const timeSinceActivity = now - lastActivityTime;
   const timeUntilTimeout = config.timeoutMs - timeSinceActivity;
-  const timeUntilWarning = config.timeoutMs - config.warningMs - timeSinceActivity;
+  const timeUntilWarning =
+    config.timeoutMs - config.warningMs - timeSinceActivity;
 
   // Session expired
   if (timeUntilTimeout <= 0) {

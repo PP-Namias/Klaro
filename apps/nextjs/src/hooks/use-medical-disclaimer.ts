@@ -6,12 +6,11 @@
  * Manages the state of the medical disclaimer overlay.
  * Tracks whether the user has accepted the disclaimer.
  */
-
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useState } from "react";
 
 import {
-  hasAcceptedDisclaimer,
   clearDisclaimerAcceptance,
+  hasAcceptedDisclaimer,
 } from "~/components/medical-disclaimer-overlay";
 
 interface UseMedicalDisclaimerReturn {
@@ -33,12 +32,9 @@ interface UseMedicalDisclaimerReturn {
 
 export function useMedicalDisclaimer(): UseMedicalDisclaimerReturn {
   const [isShowing, setIsShowing] = useState(false);
-  const [hasAccepted, setHasAccepted] = useState(false);
+  const [hasAccepted, setHasAccepted] = useState(() => hasAcceptedDisclaimer());
 
   // Check localStorage on mount
-  useEffect(() => {
-    setHasAccepted(hasAcceptedDisclaimer());
-  }, []);
 
   const showDisclaimer = useCallback(() => {
     setIsShowing(true);

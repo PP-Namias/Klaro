@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("rate-limit", () => {
   beforeEach(async () => {
@@ -147,9 +147,7 @@ describe("supabase config", () => {
   });
 
   it("exports supabasePublishableKey", async () => {
-    const { supabasePublishableKey } = await import(
-      "~/lib/supabase/config",
-    );
+    const { supabasePublishableKey } = await import("~/lib/supabase/config");
     expect(typeof supabasePublishableKey).toBe("string");
   });
 

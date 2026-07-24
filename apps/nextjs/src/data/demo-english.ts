@@ -1,7 +1,7 @@
-import type { LabResultsDemo } from "./demo-lab-results";
-import type { PrescriptionDemo } from "./demo-prescriptions";
 import type { DischargeDemo } from "./demo-discharge";
+import type { LabResultsDemo } from "./demo-lab-results";
 import type { OtherDocDemo } from "./demo-other-docs";
+import type { PrescriptionDemo } from "./demo-prescriptions";
 
 export const labResultsEnglish: Partial<LabResultsDemo> = {
   summary:
@@ -64,8 +64,7 @@ export const labResultsEnglish: Partial<LabResultsDemo> = {
       unit: "mg/dL",
       referenceRange: "Below 130",
       flagged: true,
-      interpretation:
-        "High — bad cholesterol is at a dangerous level.",
+      interpretation: "High — bad cholesterol is at a dangerous level.",
     },
     {
       name: "Triglycerides",
@@ -73,8 +72,7 @@ export const labResultsEnglish: Partial<LabResultsDemo> = {
       unit: "mg/dL",
       referenceRange: "Below 150",
       flagged: true,
-      interpretation:
-        "High — reduce intake of fatty and sugary foods.",
+      interpretation: "High — reduce intake of fatty and sugary foods.",
     },
   ],
   warnings: [

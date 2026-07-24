@@ -1,23 +1,29 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  createPreviewUrl,
+  fileToBase64,
+  formatBytes,
+  getFileKind,
+  getFileMetadata,
   validateFile,
   validateFiles,
-  formatBytes,
-  fileToBase64,
-  getFileKind,
-  createPreviewUrl,
-  getFileMetadata,
 } from "../file-validation";
 
-function createFile(name: string, type: string, size: number, content?: string): File {
+function createFile(
+  name: string,
+  type: string,
+  size: number,
+  content?: string,
+): File {
   const buffer = content ? new Blob([content]) : new ArrayBuffer(size);
   return new File([buffer], name, { type });
 }
 
 function createPdfFile(name: string, pageCount: number): File {
-  const pages = Array.from({ length: pageCount }, (_, i) =>
-    `<</Type /Page /Parent 2 0 R>>`
+  const pages = Array.from(
+    { length: pageCount },
+    (_, i) => `<</Type /Page /Parent 2 0 R>>`,
   ).join("\n");
   const body = `%PDF-1.4\n1 0 obj\n<</Type /Catalog /Pages 2 0 R>>\nendobj\n2 0 obj\n<</Type /Pages /Kids [${pages}] /Count ${pageCount}>>\nendobj\n`;
   return new File([body], name, { type: "application/pdf" });
@@ -26,27 +32,42 @@ function createPdfFile(name: string, pageCount: number): File {
 describe("validateFile", () => {
   it("accepts PNG files", async () => {
     const file = createFile("test.png", "image/png", 1024);
-    await expect(validateFile(file)).resolves.toMatchObject({ valid: true, kind: "image" });
+    await expect(validateFile(file)).resolves.toMatchObject({
+      valid: true,
+      kind: "image",
+    });
   });
 
   it("accepts JPEG files", async () => {
     const file = createFile("test.jpg", "image/jpeg", 1024);
-    await expect(validateFile(file)).resolves.toMatchObject({ valid: true, kind: "image" });
+    await expect(validateFile(file)).resolves.toMatchObject({
+      valid: true,
+      kind: "image",
+    });
   });
 
   it("accepts WebP files", async () => {
     const file = createFile("test.webp", "image/webp", 1024);
-    await expect(validateFile(file)).resolves.toMatchObject({ valid: true, kind: "image" });
+    await expect(validateFile(file)).resolves.toMatchObject({
+      valid: true,
+      kind: "image",
+    });
   });
 
   it("accepts PDF files", async () => {
     const file = createPdfFile("report.pdf", 1);
-    await expect(validateFile(file)).resolves.toMatchObject({ valid: true, kind: "pdf" });
+    await expect(validateFile(file)).resolves.toMatchObject({
+      valid: true,
+      kind: "pdf",
+    });
   });
 
   it("accepts TIFF files", async () => {
     const file = createFile("scan.tiff", "image/tiff", 1024);
-    await expect(validateFile(file)).resolves.toMatchObject({ valid: true, kind: "image" });
+    await expect(validateFile(file)).resolves.toMatchObject({
+      valid: true,
+      kind: "image",
+    });
   });
 
   it("rejects EXE files", async () => {
@@ -97,7 +118,10 @@ describe("validateFile", () => {
 
   it("accepts PDFs with 10 pages", async () => {
     const file = createPdfFile("ok.pdf", 10);
-    await expect(validateFile(file)).resolves.toMatchObject({ valid: true, kind: "pdf" });
+    await expect(validateFile(file)).resolves.toMatchObject({
+      valid: true,
+      kind: "pdf",
+    });
   });
 
   it("returns pageCount for PDFs", async () => {

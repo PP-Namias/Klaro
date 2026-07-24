@@ -1,15 +1,15 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { labResultsDemo } from "../demo-lab-results";
-import { prescriptionDemo } from "../demo-prescriptions";
 import { dischargeDemo } from "../demo-discharge";
-import { xrayReportDemo, ecgReportDemo } from "../demo-other-docs";
 import {
-  getDemoData,
-  getDemoTitle,
-  getDemoDescription,
   demoData,
+  getDemoData,
+  getDemoDescription,
+  getDemoTitle,
 } from "../demo-index";
+import { labResultsDemo } from "../demo-lab-results";
+import { ecgReportDemo, xrayReportDemo } from "../demo-other-docs";
+import { prescriptionDemo } from "../demo-prescriptions";
 
 describe("Lab Results Demo Data", () => {
   it("has patient name", () => {
@@ -102,7 +102,9 @@ describe("Prescriptions Demo Data", () => {
   });
 
   it("has Amoxicillin", () => {
-    const amox = prescriptionDemo.medicines.find((m) => m.name === "Amoxicillin");
+    const amox = prescriptionDemo.medicines.find(
+      (m) => m.name === "Amoxicillin",
+    );
     expect(amox).toBeTruthy();
     expect(amox?.dosage).toBe("500mg");
   });
