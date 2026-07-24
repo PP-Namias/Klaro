@@ -24,8 +24,8 @@ describe("Expo utility patterns", () => {
     });
 
     it("throws when hostUri is undefined", () => {
-      const hostUri = undefined;
-      const localhost = hostUri?.split(":")[0];
+      const hostUri: string | undefined = undefined;
+      const localhost = hostUri?.split(":")?.[0];
       expect(localhost).toBeUndefined();
       expect(!localhost).toBe(true);
     });

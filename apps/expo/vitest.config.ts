@@ -1,8 +1,18 @@
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
+const dirname = fileURLToPath(new URL(".", import.meta.url));
+
 export default defineConfig({
+  resolve: {
+    alias: {
+      "~": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
   test: {
     globals: true,
+    setupFiles: [resolve(dirname, "../../vitest.setup.ts")],
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     coverage: {

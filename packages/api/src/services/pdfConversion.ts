@@ -41,7 +41,7 @@ export async function convertPdfToImages(
 
   try {
     const pdfjsLib = await import("pdfjs-dist");
-    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.subarray(0) })
+    const doc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfBuffer) })
       .promise;
     const totalPages = Math.min(doc.numPages, MAX_PDF_PAGES);
     const pages: PdfPageImage[] = [];
@@ -53,8 +53,7 @@ export async function convertPdfToImages(
       const height = Math.floor(viewport.height);
 
       const canvas = createCanvas(width, height);
-      const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | null;
-      if (!ctx) throw new Error("Failed to get 2d context");
+      const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
       const renderTask = page.render({ canvasContext: ctx, viewport });
       await renderTask.promise;
 
@@ -87,7 +86,7 @@ export async function isPdf(buffer: Buffer): Promise<boolean> {
 export async function countPdfPages(pdfBuffer: Buffer): Promise<number> {
   try {
     const pdfjsLib = await import("pdfjs-dist");
-    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.subarray(0) })
+    const doc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfBuffer) })
       .promise;
     const count = doc.numPages;
     doc.destroy();

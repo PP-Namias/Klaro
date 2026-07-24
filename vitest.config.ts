@@ -6,6 +6,7 @@ const dirname = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   test: {
+    globals: true,
     setupFiles: [resolve(dirname, "vitest.setup.ts")],
     coverage: {
       provider: "v8",

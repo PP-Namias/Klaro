@@ -225,7 +225,7 @@ export async function preprocessImage(
 
   if (opts.deskew) {
     const tempCanvas = canvas.createCanvas(width, height);
-    const tempCtx = tempCanvas.getContext("2d");
+    const tempCtx = tempCanvas.getContext("2d") as unknown as CanvasRenderingContext2D;
     tempCtx.drawImage(image, 0, 0);
     const tempData = tempCtx.getImageData(0, 0, width, height);
     const skewAngle = estimateSkew(tempData.data, width, height);
@@ -233,7 +233,7 @@ export async function preprocessImage(
     if (Math.abs(skewAngle) > 0.5) {
       const diagonal = Math.ceil(Math.sqrt(width * width + height * height));
       const rotatedCanvas = canvas.createCanvas(diagonal, diagonal);
-      const rotatedCtx = rotatedCanvas.getContext("2d");
+      const rotatedCtx = rotatedCanvas.getContext("2d") as unknown as CanvasRenderingContext2D;
       rotatedCtx.fillStyle = "#ffffff";
       rotatedCtx.fillRect(0, 0, diagonal, diagonal);
       rotatedCtx.translate(diagonal / 2, diagonal / 2);
@@ -286,7 +286,7 @@ export async function preprocessImage(
   }
 
   const mainCanvas = canvas.createCanvas(width, height);
-  const ctx = mainCanvas.getContext("2d");
+  const ctx = mainCanvas.getContext("2d") as unknown as CanvasRenderingContext2D;
   ctx.drawImage(image, 0, 0);
 
   const imageData = ctx.getImageData(0, 0, width, height);

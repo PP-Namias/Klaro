@@ -54,6 +54,11 @@ export interface ScrubberConfig {
 
 const DEFAULT_REPLACEMENT = "[REDACTED]";
 
+type ScrubbableData = Record<string, unknown> & {
+  patientName?: unknown;
+  diagnosis?: unknown;
+};
+
 // ============================================================================
 // PHI Detection Patterns
 // ============================================================================
@@ -77,7 +82,7 @@ const SSN_PATTERN = /\b\d{3}[-.\s]?\d{2}[-.\s]?\d{4}\b/g;
 /**
  * Medical Record Numbers: MRN, MEDICAL RECORD, or pattern like MRN-XXXXX
  */
-const MRN_PATTERNS = [
+const MRN_PATTERNS: RegExp[] = [
   /\bMRN[\s:-]*#?\s*\d{4,12}\b/gi,
   /\bMEDICAL\s*RECORD[\s:-]*#?\s*\d{4,12}\b/gi,
   /\bMED\s*RECORD[\s:-]*#?\s*\d{4,12}\b/gi,
@@ -87,7 +92,7 @@ const MRN_PATTERNS = [
  * Phone numbers: various Philippine and international formats
  * +63XXXXXXXXXX, 09XX-XXX-XXXX, (02) XXXX-XXXX
  */
-const PHONE_PATTERNS = [
+const PHONE_PATTERNS: RegExp[] = [
   /\+63[\s.-]?\d{2,3}[\s.-]?\d{3}[\s.-]?\d{4}\b/g,
   /\b09\d{2}[\s.-]?\d{3}[\s.-]?\d{4}\b/g,
   /\(0\d{1,3}\)[\s.-]?\d{3,4}[\s.-]?\d{4}\b/g,
@@ -103,7 +108,7 @@ const EMAIL_PATTERN = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
  * Dates of birth: MM/DD/YYYY, DD-MM-YYYY, Month DD, YYYY, YYYY-MM-DD
  * Filtered by context clues (DOB, birth, born, date of birth)
  */
-const DOB_CONTEXT_PATTERNS = [
+const DOB_CONTEXT_PATTERNS: RegExp[] = [
   /\b(?:DOB|D\.O\.B\.|DATE\s*OF\s*BIRTH|BIRTHDATE|BORN|BIRTH\s*DATE)[:\s]*(\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})\b/gi,
   /\b(?:DOB|D\.O\.B\.|DATE\s*OF\s*BIRTH|BIRTHDATE|BORN|BIRTH\s*DATE)[:\s]*(\w+\s+\d{1,2},?\s+\d{4})\b/gi,
   /\b(?:DOB|D\.O\.B\.|DATE\s*OF\s*BIRTH|BIRTHDATE|BORN|BIRTH\s*DATE)[:\s]*(\d{4}-\d{2}-\d{2})\b/gi,
@@ -119,7 +124,7 @@ const BIRTH_YEAR_PATTERN =
  * Addresses: Philippine address patterns
  * St., Street, Brgy., Barangay, City, Province, ZIP
  */
-const ADDRESS_PATTERNS = [
+const ADDRESS_PATTERNS: RegExp[] = [
   /\b\d+\s+[A-Za-z\s.]+?(?:St\.|Street|Ave\.|Avenue|Blvd\.|Boulevard|Rd\.|Road|Dr\.|Drive)(?=\s|$|[.,;!?])/gi,
   /\b(?:BRGY\.|BARANGAY)\s+[A-Za-z\s]+/gi,
   /\b[A-Za-z\s]+,\s*(?:CITY|PROVINCE)\s+OF\s+[A-Za-z\s]+/gi,
@@ -128,7 +133,7 @@ const ADDRESS_PATTERNS = [
 /**
  * Insurance ID patterns: PhilHealth, HMO, insurance numbers
  */
-const INSURANCE_PATTERNS = [
+const INSURANCE_PATTERNS: RegExp[] = [
   /\bPHILHEALTH[\s:-]*#?\s*\d{2}[-]?\d{7}[-]?\d/gi,
   /\bHMO[\s:-]*#?\s*\d{6,12}\b/gi,
   /\bINSURANCE[\s:-]*#?\s*\d{6,12}\b/gi,
@@ -141,7 +146,7 @@ const INSURANCE_PATTERNS = [
 /**
  * Context-aware name detection using common medical document labels
  */
-const NAME_CONTEXT_PATTERNS = [
+const NAME_CONTEXT_PATTERNS: RegExp[] = [
   /\b(?:PATIENT|PAT\.|PATIENT\s*NAME|NAME)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/gi,
   /\b(?:DOCTOR|DR\.|PHYSICIAN|ATTENDING)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/gi,
   /\b(?:LABORATORY|CLINIC|HOSPITAL)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/gi,
@@ -301,16 +306,13 @@ export function scrubPhi(
  * Scrub PHI from extracted medical data (structured object)
  */
 export function scrubExtractedData<
-  T extends Record<string, unknown> & {
-    patientName?: unknown;
-    diagnosis?: unknown;
-  },
+  T extends ScrubbableData,
 >(
   data: T,
   config: ScrubberConfig = {},
 ): { scrubbedData: T; matches: PhiMatch[] } {
   const allMatches: PhiMatch[] = [];
-  const scrubbed: Record<string, unknown> = { ...data };
+  const scrubbed = { ...data } as ScrubbableData;
 
   // Scrub patient name
   if (typeof scrubbed.patientName === "string" && scrubbed.patientName) {
@@ -379,12 +381,14 @@ function redactPattern(
   let result = text;
   let match: RegExpExecArray | null;
 
-  // Collect all matches first
-  const foundMatches: {
+  interface RedactionMatch {
     match: RegExpExecArray;
     fullMatch: string;
     index: number;
-  }[] = [];
+  }
+
+  // Collect all matches first
+  const foundMatches: RedactionMatch[] = [];
 
   while ((match = globalPattern.exec(text)) !== null) {
     // For patterns with capturing groups, prefer the captured group
