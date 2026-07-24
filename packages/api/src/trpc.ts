@@ -45,12 +45,17 @@ export const createTRPCContext = async (opts: {
       ? (rawLang as Language)
       : "fil";
 
+  const ipAddress = opts.headers.get("x-forwarded-for") || opts.headers.get("x-real-ip") || null;
+  const userAgent = opts.headers.get("user-agent") || null;
+
   return {
     authApi,
     session,
     db,
     traceId,
     language,
+    ipAddress,
+    userAgent,
   };
 };
 
