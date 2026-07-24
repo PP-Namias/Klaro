@@ -72,8 +72,7 @@ const PRC_PATTERN = /\bPRC\s*LICENSE[\s:-]*#?\s*\d{7}\b/gi;
  */
 const PASSPORT_PATTERN = /\bP\d{7}[A-Za-z]\b/g;
 
-const SSN_PATTERN =
-  /\b\d{3}[-.\s]?\d{2}[-.\s]?\d{4}\b/g;
+const SSN_PATTERN = /\b\d{3}[-.\s]?\d{2}[-.\s]?\d{4}\b/g;
 
 /**
  * Medical Record Numbers: MRN, MEDICAL RECORD, or pattern like MRN-XXXXX
@@ -98,8 +97,7 @@ const PHONE_PATTERNS = [
 /**
  * Email addresses
  */
-const EMAIL_PATTERN =
-  /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+const EMAIL_PATTERN = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
 
 /**
  * Dates of birth: MM/DD/YYYY, DD-MM-YYYY, Month DD, YYYY, YYYY-MM-DD
@@ -166,48 +164,114 @@ export function scrubPhi(
   let scrubbed = text;
 
   // 1. SSN / PhilHealth
-  scrubbed = redactPattern(scrubbed, SSN_PATTERN, "ssn", replacementToken, matches);
+  scrubbed = redactPattern(
+    scrubbed,
+    SSN_PATTERN,
+    "ssn",
+    replacementToken,
+    matches,
+  );
 
   // 1a. PRC License
-  scrubbed = redactPattern(scrubbed, PRC_PATTERN, "license_id", replacementToken, matches);
+  scrubbed = redactPattern(
+    scrubbed,
+    PRC_PATTERN,
+    "license_id",
+    replacementToken,
+    matches,
+  );
 
   // 1b. Passport
-  scrubbed = redactPattern(scrubbed, PASSPORT_PATTERN, "passport", replacementToken, matches);
+  scrubbed = redactPattern(
+    scrubbed,
+    PASSPORT_PATTERN,
+    "passport",
+    replacementToken,
+    matches,
+  );
 
   // 2. MRN
   for (const pattern of MRN_PATTERNS) {
-    scrubbed = redactPattern(scrubbed, pattern, "mrn", replacementToken, matches);
+    scrubbed = redactPattern(
+      scrubbed,
+      pattern,
+      "mrn",
+      replacementToken,
+      matches,
+    );
   }
 
   // 3. Insurance IDs
   for (const pattern of INSURANCE_PATTERNS) {
-    scrubbed = redactPattern(scrubbed, pattern, "insurance_id", replacementToken, matches);
+    scrubbed = redactPattern(
+      scrubbed,
+      pattern,
+      "insurance_id",
+      replacementToken,
+      matches,
+    );
   }
 
   // 4. Email
-  scrubbed = redactPattern(scrubbed, EMAIL_PATTERN, "email", replacementToken, matches);
+  scrubbed = redactPattern(
+    scrubbed,
+    EMAIL_PATTERN,
+    "email",
+    replacementToken,
+    matches,
+  );
 
   // 5. Phone numbers
   for (const pattern of PHONE_PATTERNS) {
-    scrubbed = redactPattern(scrubbed, pattern, "phone", replacementToken, matches);
+    scrubbed = redactPattern(
+      scrubbed,
+      pattern,
+      "phone",
+      replacementToken,
+      matches,
+    );
   }
 
   // 6. DOB (context-aware)
   for (const pattern of DOB_CONTEXT_PATTERNS) {
-    scrubbed = redactPattern(scrubbed, pattern, "date_of_birth", replacementToken, matches);
+    scrubbed = redactPattern(
+      scrubbed,
+      pattern,
+      "date_of_birth",
+      replacementToken,
+      matches,
+    );
   }
 
   // 7. Birth dates (MM/DD/YYYY without context)
-  scrubbed = redactPattern(scrubbed, BIRTH_YEAR_PATTERN, "date_of_birth", replacementToken, matches);
+  scrubbed = redactPattern(
+    scrubbed,
+    BIRTH_YEAR_PATTERN,
+    "date_of_birth",
+    replacementToken,
+    matches,
+  );
 
   // 8. Addresses
   for (const pattern of ADDRESS_PATTERNS) {
-    scrubbed = redactPattern(scrubbed, pattern, "address", replacementToken, matches);
+    scrubbed = redactPattern(
+      scrubbed,
+      pattern,
+      "address",
+      replacementToken,
+      matches,
+    );
   }
 
   // 9. Names (last, to avoid over-matching)
   for (const pattern of NAME_CONTEXT_PATTERNS) {
-    scrubbed = redactPattern(scrubbed, pattern, "name", replacementToken, matches);
+    scrubbed = redactPattern(
+      scrubbed,
+      pattern,
+      "name",
+      replacementToken,
+      matches,
+    );
   }
 
   // 10. Custom known names
@@ -215,7 +279,13 @@ export function scrubPhi(
     for (const name of config.knownNames) {
       const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const namePattern = new RegExp(`\\b${escaped}\\b`, "gi");
-      scrubbed = redactPattern(scrubbed, namePattern, "name", replacementToken, matches);
+      scrubbed = redactPattern(
+        scrubbed,
+        namePattern,
+        "name",
+        replacementToken,
+        matches,
+      );
     }
   }
 
@@ -296,18 +366,25 @@ function redactPattern(
 ): string {
   // Reset regex lastIndex
   const flags = pattern.flags;
-  const globalPattern = new RegExp(pattern.source, flags.includes("g") ? flags : flags + "g");
+  const globalPattern = new RegExp(
+    pattern.source,
+    flags.includes("g") ? flags : flags + "g",
+  );
 
   let result = text;
   let match: RegExpExecArray | null;
 
   // Collect all matches first
-  const foundMatches: { match: RegExpExecArray; fullMatch: string; index: number }[] = [];
+  const foundMatches: {
+    match: RegExpExecArray;
+    fullMatch: string;
+    index: number;
+  }[] = [];
 
   while ((match = globalPattern.exec(text)) !== null) {
     // For patterns with capturing groups, prefer the captured group
     const captured = match[1] || match[0];
-    const startIdx = match.index + (match[0].indexOf(captured));
+    const startIdx = match.index + match[0].indexOf(captured);
     foundMatches.push({
       match,
       fullMatch: captured.trim(),
@@ -372,7 +449,8 @@ export function buildScrubbedContext(
   scrubbedSummary: string;
   phiCount: number;
 } {
-  const { scrubbedData, matches: fieldMatches } = scrubExtractedData(extractedFields);
+  const { scrubbedData, matches: fieldMatches } =
+    scrubExtractedData(extractedFields);
 
   let scrubbedSummary = plainLanguageSummary || "";
   let summaryMatches: PhiMatch[] = [];

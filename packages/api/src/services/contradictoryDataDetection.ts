@@ -114,19 +114,27 @@ function detectPatientNameConflicts(
   const names = Array.from(nameMap.keys());
   for (let i = 0; i < names.length; i++) {
     for (let j = i + 1; j < names.length; j++) {
-      const similarity = calculateStringSimilarity(names[i], names[j]);
+      const similarity = calculateStringSimilarity(names[i]!, names[j]!);
       if (similarity > 0.8 && similarity < 1) {
         // Similar but not identical - potential conflict
-        const docs1 = nameMap.get(names[i]) || [];
-        const docs2 = nameMap.get(names[j]) || [];
+        const docs1 = nameMap.get(names[i]!) || [];
+        const docs2 = nameMap.get(names[j]!) || [];
         contradictions.push({
           id: generateContradictionId(),
           type: "patient_name_variant",
           severity: "warning",
-          description: `Similar patient names detected: "${docs1[0].patientName}" and "${docs2[0].patientName}"`,
+          description: `Similar patient names detected: "${docs1[0]!.patientName}" and "${docs2[0]!.patientName}"`,
           conflictingValues: [
-            { value: docs1[0].patientName!, source: docs1[0].id, field: "patientName" },
-            { value: docs2[0].patientName!, source: docs2[0].id, field: "patientName" },
+            {
+              value: docs1[0]!.patientName!,
+              source: docs1[0]!.id,
+              field: "patientName",
+            },
+            {
+              value: docs2[0]!.patientName!,
+              source: docs2[0]!.id,
+              field: "patientName",
+            },
           ],
           resolution: "Verify if these documents belong to the same patient",
         });
@@ -140,9 +148,7 @@ function detectPatientNameConflicts(
 /**
  * Detect date inconsistencies
  */
-function detectDateConflicts(
-  documents: MedicalDocument[],
-): Contradiction[] {
+function detectDateConflicts(documents: MedicalDocument[]): Contradiction[] {
   const contradictions: Contradiction[] = [];
 
   // Check for dates that are too far apart for related documents
@@ -190,9 +196,7 @@ function detectDateConflicts(
 /**
  * Detect conflicting test results across documents
  */
-function detectTestConflicts(
-  documents: MedicalDocument[],
-): Contradiction[] {
+function detectTestConflicts(documents: MedicalDocument[]): Contradiction[] {
   const contradictions: Contradiction[] = [];
 
   // Group tests by name across documents
@@ -239,7 +243,8 @@ function detectTestConflicts(
             source: e.source,
             field: testName,
           })),
-          resolution: "Verify test values are from different dates or check for errors",
+          resolution:
+            "Verify test values are from different dates or check for errors",
         });
       }
     }
@@ -271,10 +276,10 @@ function detectDiagnosisConflicts(
 
   for (const [term1, term2] of contradictoryPairs) {
     const matches1 = allDiagnoses.filter((d) =>
-      d.diagnosis.toLowerCase().includes(term1),
+      d.diagnosis.toLowerCase().includes(term1!),
     );
     const matches2 = allDiagnoses.filter((d) =>
-      d.diagnosis.toLowerCase().includes(term2),
+      d.diagnosis.toLowerCase().includes(term2!),
     );
 
     if (matches1.length > 0 && matches2.length > 0) {
@@ -287,7 +292,8 @@ function detectDiagnosisConflicts(
           ...matches1.map((m) => ({ value: m.diagnosis, source: m.source })),
           ...matches2.map((m) => ({ value: m.diagnosis, source: m.source })),
         ],
-        resolution: "Verify diagnoses are from different time periods or resolve conflict",
+        resolution:
+          "Verify diagnoses are from different time periods or resolve conflict",
       });
     }
   }
@@ -304,7 +310,10 @@ function detectMedicationConflicts(
   const contradictions: Contradiction[] = [];
 
   // Group medications by name
-  const medMap = new Map<string, Array<{ dosage?: string; frequency?: string; source: string }>>();
+  const medMap = new Map<
+    string,
+    Array<{ dosage?: string; frequency?: string; source: string }>
+  >();
 
   for (const doc of documents) {
     for (const med of doc.medications) {
@@ -421,7 +430,8 @@ export function detectContradictions(
   // Determine if review is required
   const hasErrors = bySeverity.error > 0 || bySeverity.critical > 0;
   const hasMultipleWarnings = bySeverity.warning >= 2;
-  const requiresReview = hasErrors || hasMultipleWarnings || consistencyScore < 0.7;
+  const requiresReview =
+    hasErrors || hasMultipleWarnings || consistencyScore < 0.7;
 
   // Generate summary
   let summary: string;

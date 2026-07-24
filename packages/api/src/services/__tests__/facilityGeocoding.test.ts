@@ -1,5 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
-import { buildNominatimSearchUrl, geocodeFacilityAddress } from "../facilityGeocoding";
+import { describe, expect, it, vi } from "vitest";
+
+import {
+  buildNominatimSearchUrl,
+  geocodeFacilityAddress,
+} from "../facilityGeocoding";
 
 describe("buildNominatimSearchUrl", () => {
   it("creates correct URL with query", () => {

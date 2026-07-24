@@ -17,10 +17,12 @@ export interface PdfConversionResult {
 const MAX_PDF_PAGES = 10;
 const RENDER_SCALE = 1.5;
 
-export async function convertPdfToImages(pdfBuffer: Buffer): Promise<PdfConversionResult> {
+export async function convertPdfToImages(
+  pdfBuffer: Buffer,
+): Promise<PdfConversionResult> {
   try {
     const pdfjsLib = await import("pdfjs-dist");
-    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.buffer }).promise;
+    const doc = await pdfjsLib.getDocument({ data: pdfBuffer.buffer as ArrayBuffer }).promise;
     const totalPages = Math.min(doc.numPages, MAX_PDF_PAGES);
     const pages: PdfPageImage[] = [];
 
@@ -46,7 +48,8 @@ export async function convertPdfToImages(pdfBuffer: Buffer): Promise<PdfConversi
 
     return { pages, pageCount: pages.length, success: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "PDF conversion failed";
+    const message =
+      error instanceof Error ? error.message : "PDF conversion failed";
     return { pages: [], pageCount: 0, success: false, error: message };
   }
 }

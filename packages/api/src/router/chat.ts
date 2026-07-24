@@ -4,14 +4,17 @@ import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import { analysis, chatMessage } from "@klaro/db/schema";
-
 import { DialectEnum } from "@klaro/validators/llm";
 
+import { logChatMessage, logLlmApiCall } from "../services/auditLogger";
 import { assembleDocumentContext } from "../services/contextAssembler";
 import { callLLMAPI } from "../services/llm";
-import { scrubPhi, detectPhiTypes } from "../services/phiScrubber";
-import { logChatMessage, logLlmApiCall } from "../services/auditLogger";
-import { checkInputGuardrails, filterOutput, buildBlockedResponse } from "../services/medicalGuardrails";
+import {
+  buildBlockedResponse,
+  checkInputGuardrails,
+  filterOutput,
+} from "../services/medicalGuardrails";
+import { detectPhiTypes, scrubPhi } from "../services/phiScrubber";
 import { chatProcedure as protectedProcedure } from "../trpc";
 
 export type ChatSeverity = "LOW" | "MODERATE" | "HIGH";

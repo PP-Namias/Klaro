@@ -1,13 +1,13 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  computeConfidence,
-  buildOcrResult,
-  shouldUseCloudFallback,
-  getOcrConfidenceThreshold,
-  buildOcrAudit,
-} from "../ocr";
 import type { OcrBlock, OcrResult } from "../ocr";
+import {
+  buildOcrAudit,
+  buildOcrResult,
+  computeConfidence,
+  getOcrConfidenceThreshold,
+  shouldUseCloudFallback,
+} from "../ocr";
 
 describe("OCR Service", () => {
   describe("computeConfidence", () => {

@@ -1,8 +1,7 @@
-const AI_SIDECAR_URL =
-  process.env.AI_SIDECAR_URL ?? 'http://localhost:3002';
+const AI_SIDECAR_URL = process.env.AI_SIDECAR_URL ?? "http://localhost:3002";
 
 export interface ChatMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
@@ -23,7 +22,7 @@ export class AiSidecarClientError extends Error {
     public statusCode: number,
   ) {
     super(message);
-    this.name = 'AiSidecarClientError';
+    this.name = "AiSidecarClientError";
   }
 }
 
@@ -36,7 +35,7 @@ async function request<T>(
   const headers: Record<string, string> = {};
 
   if (body) {
-    headers['Content-Type'] = 'application/json';
+    headers["Content-Type"] = "application/json";
   }
 
   const res = await fetch(url, {
@@ -46,7 +45,7 @@ async function request<T>(
   });
 
   if (!res.ok) {
-    const errorBody = await res.text().catch(() => '');
+    const errorBody = await res.text().catch(() => "");
     throw new AiSidecarClientError(
       errorBody || `Sidecar returned ${res.status}`,
       res.status,
@@ -60,10 +59,10 @@ export async function chat(
   question: string,
   messages: ChatMessage[] = [],
 ): Promise<ChatResponse> {
-  if (!question || typeof question !== 'string') {
-    throw new AiSidecarClientError('question is required', 400);
+  if (!question || typeof question !== "string") {
+    throw new AiSidecarClientError("question is required", 400);
   }
-  return request<ChatResponse>('POST', '/api/chat', { question, messages });
+  return request<ChatResponse>("POST", "/api/chat", { question, messages });
 }
 
 export async function chatStreamURL(
@@ -72,7 +71,7 @@ export async function chatStreamURL(
 ): Promise<string> {
   const params = new URLSearchParams({ question });
   if (messages.length > 0) {
-    params.set('messages', JSON.stringify(messages));
+    params.set("messages", JSON.stringify(messages));
   }
   return `${AI_SIDECAR_URL}/api/chat/stream?${params.toString()}`;
 }
@@ -82,13 +81,13 @@ export async function ingest(
   fileName: string,
 ): Promise<IngestResponse> {
   const formData = new FormData();
-  formData.append('file', file, fileName);
+  formData.append("file", file, fileName);
 
   const url = `${AI_SIDECAR_URL}/api/ingest`;
-  const res = await fetch(url, { method: 'POST', body: formData });
+  const res = await fetch(url, { method: "POST", body: formData });
 
   if (!res.ok) {
-    const errorBody = await res.text().catch(() => '');
+    const errorBody = await res.text().catch(() => "");
     throw new AiSidecarClientError(
       errorBody || `Sidecar ingest returned ${res.status}`,
       res.status,
@@ -99,5 +98,5 @@ export async function ingest(
 }
 
 export async function healthCheck(): Promise<{ status: string }> {
-  return request<{ status: string }>('GET', '/api/health');
+  return request<{ status: string }>("GET", "/api/health");
 }

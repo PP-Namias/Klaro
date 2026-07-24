@@ -14,7 +14,7 @@
  * - Tag verification for integrity
  */
 
-import { randomBytes, createCipheriv, createDecipheriv, scrypt } from "crypto";
+import { createCipheriv, createDecipheriv, randomBytes, scrypt } from "crypto";
 import { promisify } from "util";
 
 // ============================================================================
@@ -77,10 +77,7 @@ function hexToBuffer(hex: string): Buffer {
 /**
  * Derive an encryption key from the master key using scrypt
  */
-async function deriveKey(
-  masterKey: Buffer,
-  salt: Buffer,
-): Promise<Buffer> {
+async function deriveKey(masterKey: Buffer, salt: Buffer): Promise<Buffer> {
   return scryptAsync(masterKey, salt, KEY_LENGTH) as Promise<Buffer>;
 }
 
@@ -160,7 +157,9 @@ export async function decrypt(encryptedData: EncryptedData): Promise<string> {
 /**
  * Encrypt a string field (convenience wrapper)
  */
-export async function encryptField(value: string | null): Promise<string | null> {
+export async function encryptField(
+  value: string | null,
+): Promise<string | null> {
   if (value === null || value === undefined || value === "") {
     return value;
   }
@@ -172,8 +171,14 @@ export async function encryptField(value: string | null): Promise<string | null>
 /**
  * Decrypt a string field (convenience wrapper)
  */
-export async function decryptField(encryptedValue: string | null): Promise<string | null> {
-  if (encryptedValue === null || encryptedValue === undefined || encryptedValue === "") {
+export async function decryptField(
+  encryptedValue: string | null,
+): Promise<string | null> {
+  if (
+    encryptedValue === null ||
+    encryptedValue === undefined ||
+    encryptedValue === ""
+  ) {
     return encryptedValue;
   }
 
@@ -182,7 +187,9 @@ export async function decryptField(encryptedValue: string | null): Promise<strin
     return await decrypt(parsed);
   } catch {
     // If decryption fails, return original value (may be unencrypted legacy data)
-    console.warn("[Encryption] Failed to decrypt field, returning original value");
+    console.warn(
+      "[Encryption] Failed to decrypt field, returning original value",
+    );
     return encryptedValue;
   }
 }
@@ -190,7 +197,9 @@ export async function decryptField(encryptedValue: string | null): Promise<strin
 /**
  * Encrypt a JSON object (for jsonb fields)
  */
-export async function encryptJson(value: Record<string, unknown> | null): Promise<string | null> {
+export async function encryptJson(
+  value: Record<string, unknown> | null,
+): Promise<string | null> {
   if (value === null || value === undefined) {
     return value as null;
   }
@@ -206,7 +215,11 @@ export async function encryptJson(value: Record<string, unknown> | null): Promis
 export async function decryptJson<T = Record<string, unknown>>(
   encryptedValue: string | null,
 ): Promise<T | null> {
-  if (encryptedValue === null || encryptedValue === undefined || encryptedValue === "") {
+  if (
+    encryptedValue === null ||
+    encryptedValue === undefined ||
+    encryptedValue === ""
+  ) {
     return encryptedValue as null;
   }
 
@@ -215,7 +228,9 @@ export async function decryptJson<T = Record<string, unknown>>(
     const decrypted = await decrypt(parsed);
     return JSON.parse(decrypted) as T;
   } catch {
-    console.warn("[Encryption] Failed to decrypt JSON field, returning original");
+    console.warn(
+      "[Encryption] Failed to decrypt JSON field, returning original",
+    );
     try {
       return JSON.parse(encryptedValue) as T;
     } catch {
@@ -246,7 +261,7 @@ export async function encryptDocumentFields(doc: {
   ocrText?: string | null;
 }> {
   return {
-    ocrText: await encryptField(doc.ocrText),
+    ocrText: await encryptField(doc.ocrText ?? null),
   };
 }
 
@@ -259,7 +274,7 @@ export async function decryptDocumentFields(doc: {
   ocrText?: string | null;
 }> {
   return {
-    ocrText: await decryptField(doc.ocrText),
+    ocrText: await decryptField(doc.ocrText ?? null),
   };
 }
 
@@ -276,24 +291,30 @@ export async function encryptAnalysisFields(analysis: {
   tanqmoCard?: string | null;
 }> {
   return {
-    extractedFields: await encryptJson(analysis.extractedFields),
-    plainLanguageSummary: await encryptField(analysis.plainLanguageSummary),
-    tanqmoCard: await encryptJson(analysis.tanqmoCard),
+    extractedFields: await encryptJson(analysis.extractedFields ?? null),
+    plainLanguageSummary: await encryptField(analysis.plainLanguageSummary ?? null),
+    tanqmoCard: await encryptJson(analysis.tanqmoCard ?? null),
   };
 }
 
 /**
  * Decrypt analysis fields after retrieval
  */
-export async function decryptAnalysisFields<T extends {
-  extractedFields?: unknown;
-  plainLanguageSummary?: unknown;
-  tanqmoCard?: unknown;
-}>(analysis: T): Promise<T> {
+export async function decryptAnalysisFields<
+  T extends {
+    extractedFields?: unknown;
+    plainLanguageSummary?: unknown;
+    tanqmoCard?: unknown;
+  },
+>(analysis: T): Promise<T> {
   return {
     ...analysis,
-    extractedFields: await decryptJson(analysis.extractedFields as string | null),
-    plainLanguageSummary: await decryptField(analysis.plainLanguageSummary as string | null),
+    extractedFields: await decryptJson(
+      analysis.extractedFields as string | null,
+    ),
+    plainLanguageSummary: await decryptField(
+      analysis.plainLanguageSummary as string | null,
+    ),
     tanqmoCard: await decryptJson(analysis.tanqmoCard as string | null),
   };
 }

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   detectHallucinations,
-  getSeverityColor,
   formatHallucinationCheck,
+  getSeverityColor,
 } from "../hallucinationDetection";
 
 describe("Hallucination Detection", () => {

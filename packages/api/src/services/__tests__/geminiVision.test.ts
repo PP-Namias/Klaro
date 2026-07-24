@@ -1,13 +1,13 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  getGeminiApiKey,
   buildGeminiApiUrl,
   buildGeminiVisionPrompt,
   buildGeminiVisionRequest,
-  parseGeminiVisionResponse,
-  isGeminiRetryableError,
   callGeminiVision,
+  getGeminiApiKey,
+  isGeminiRetryableError,
+  parseGeminiVisionResponse,
 } from "../geminiVision";
 
 describe("Gemini Vision API Client", () => {
@@ -189,7 +189,9 @@ describe("Gemini Vision API Client", () => {
           ok: true,
           json: () =>
             Promise.resolve({
-              candidates: [{ content: { parts: [{ text: '{"data": "ok"}' }] } }],
+              candidates: [
+                { content: { parts: [{ text: '{"data": "ok"}' }] } },
+              ],
             }),
         });
       });

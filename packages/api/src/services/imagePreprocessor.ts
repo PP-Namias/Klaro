@@ -1,5 +1,8 @@
 type CanvasModule = {
-  createCanvas: (width: number, height: number) => {
+  createCanvas: (
+    width: number,
+    height: number,
+  ) => {
     getContext: (type: string) => CanvasRenderingContext2D;
     toBuffer: (type: string) => Buffer;
   };
@@ -13,14 +16,18 @@ async function getCanvas(): Promise<CanvasModule | null> {
   if (canvasLoadAttempted) return canvasModule;
   canvasLoadAttempted = true;
   try {
-    const mod = await (Function('return import("canvas")')() as Promise<typeof import("canvas")>);
+    const mod = await (Function('return import("canvas")')() as Promise<
+      typeof import("canvas")
+    >);
     canvasModule = {
-      createCanvas: mod.createCanvas,
+      createCanvas: mod.createCanvas as CanvasModule["createCanvas"],
       loadImage: mod.loadImage,
     };
-    console.log('[imagePreprocessor] canvas native module loaded');
+    console.log("[imagePreprocessor] canvas native module loaded");
   } catch {
-    console.warn('[imagePreprocessor] canvas native module not available, preprocessing disabled');
+    console.warn(
+      "[imagePreprocessor] canvas native module not available, preprocessing disabled",
+    );
   }
   return canvasModule;
 }
@@ -105,10 +112,7 @@ function applyAdaptiveBinarize(
   width: number,
   height: number,
 ): void {
-  const blockSize = Math.max(
-    8,
-    Math.floor(Math.min(width, height) / 16),
-  );
+  const blockSize = Math.max(8, Math.floor(Math.min(width, height) / 16));
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -230,16 +234,18 @@ export async function preprocessImage(
     const skewAngle = estimateSkew(tempData.data, width, height);
 
     if (Math.abs(skewAngle) > 0.5) {
-      const diagonal = Math.ceil(
-        Math.sqrt(width * width + height * height),
-      );
+      const diagonal = Math.ceil(Math.sqrt(width * width + height * height));
       const rotatedCanvas = canvas.createCanvas(diagonal, diagonal);
       const rotatedCtx = rotatedCanvas.getContext("2d");
       rotatedCtx.fillStyle = "#ffffff";
       rotatedCtx.fillRect(0, 0, diagonal, diagonal);
       rotatedCtx.translate(diagonal / 2, diagonal / 2);
       rotatedCtx.rotate((skewAngle * Math.PI) / 180);
-      rotatedCtx.drawImage(tempCanvas as unknown as CanvasImageSource, -width / 2, -height / 2);
+      rotatedCtx.drawImage(
+        tempCanvas as unknown as CanvasImageSource,
+        -width / 2,
+        -height / 2,
+      );
       width = diagonal;
       height = diagonal;
 

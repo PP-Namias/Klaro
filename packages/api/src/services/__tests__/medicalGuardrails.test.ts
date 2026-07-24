@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  checkInputGuardrails,
-  filterOutput,
   buildBlockedResponse,
   buildEducationalResponse,
-  validateResponse,
+  checkInputGuardrails,
+  filterOutput,
   getDisclaimer,
   getDisclaimers,
+  validateResponse,
 } from "../medicalGuardrails";
 
 describe("Medical Guardrails", () => {
@@ -24,7 +24,9 @@ describe("Medical Guardrails", () => {
     });
 
     it("blocks treatment requests", () => {
-      const result = checkInputGuardrails("Should I stop taking my medication?");
+      const result = checkInputGuardrails(
+        "Should I stop taking my medication?",
+      );
       expect(result.level).toBe("blocked");
     });
 
@@ -44,7 +46,9 @@ describe("Medical Guardrails", () => {
     });
 
     it("allows normal range queries", () => {
-      const result = checkInputGuardrails("What are normal values for hemoglobin?");
+      const result = checkInputGuardrails(
+        "What are normal values for hemoglobin?",
+      );
       expect(result.level).toBe("safe");
     });
   });
@@ -72,7 +76,8 @@ describe("Medical Guardrails", () => {
     });
 
     it("adds disclaimers to substantive responses", () => {
-      const output = "This is a detailed explanation of your lab results that contains more than 100 characters to trigger the disclaimer addition logic.";
+      const output =
+        "This is a detailed explanation of your lab results that contains more than 100 characters to trigger the disclaimer addition logic.";
       const result = filterOutput(output);
       expect(result.filteredContent).toContain("educational purposes");
     });

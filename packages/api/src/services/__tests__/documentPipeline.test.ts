@@ -1,8 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { OcrPipelineResult } from "../ocrPipeline";
-import type { FallbackChainResult } from "../geminiPipeline";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { MedicalExtractionData } from "../geminiExtraction";
+import type { FallbackChainResult } from "../geminiPipeline";
 import type { SimplificationResult } from "../geminiSimplification";
+import type { OcrPipelineResult } from "../ocrPipeline";
+import { executeDocumentPipeline } from "../documentPipeline";
+import { executeFallbackChain } from "../geminiPipeline";
+import { runOcrWithRetry } from "../ocrPipeline";
 
 vi.mock("../ocrPipeline", () => ({
   runOcrWithRetry: vi.fn(),
@@ -21,17 +25,23 @@ vi.mock("../pipelineTelemetry", () => ({
   emitPipelineTelemetry: vi.fn(),
 }));
 
-import { executeDocumentPipeline } from "../documentPipeline";
-import { runOcrWithRetry } from "../ocrPipeline";
-import { executeFallbackChain } from "../geminiPipeline";
-
-function makeOcrResult(overrides: Partial<OcrPipelineResult> = {}): OcrPipelineResult {
+function makeOcrResult(
+  overrides: Partial<OcrPipelineResult> = {},
+): OcrPipelineResult {
   const defaults = {
     success: true,
     accepted: true,
     text: "Glucose: 95 mg/dL\nCholesterol: 180 mg/dL",
     confidence: 0.85,
-    pages: [{ pageNumber: 1, text: "test", confidence: 0.85, source: "local", warnings: [] }],
+    pages: [
+      {
+        pageNumber: 1,
+        text: "test",
+        confidence: 0.85,
+        source: "local",
+        warnings: [],
+      },
+    ],
     source: "local",
     warnings: [],
     processingTimeMs: 100,
@@ -39,20 +49,35 @@ function makeOcrResult(overrides: Partial<OcrPipelineResult> = {}): OcrPipelineR
   return {
     ...defaults,
     ...overrides,
-    rejectionAdvice: overrides.accepted === false && overrides.rejectionAdvice === undefined
-      ? "The document appears too blurry or unclear."
-      : overrides.rejectionAdvice,
+    rejectionAdvice:
+      overrides.accepted === false && overrides.rejectionAdvice === undefined
+        ? "The document appears too blurry or unclear."
+        : overrides.rejectionAdvice,
   } as OcrPipelineResult;
 }
 
-function makeGeminiResult(overrides: Partial<FallbackChainResult> = {}): FallbackChainResult {
+function makeGeminiResult(
+  overrides: Partial<FallbackChainResult> = {},
+): FallbackChainResult {
   return {
     extractedData: {
       patientName: "Juan Dela Cruz",
       date: "2025-01-15",
       tests: [
-        { name: "Glucose", value: "95", unit: "mg/dL", referenceRange: "70-110", flagged: false },
-        { name: "Cholesterol", value: "180", unit: "mg/dL", referenceRange: "120-200", flagged: false },
+        {
+          name: "Glucose",
+          value: "95",
+          unit: "mg/dL",
+          referenceRange: "70-110",
+          flagged: false,
+        },
+        {
+          name: "Cholesterol",
+          value: "180",
+          unit: "mg/dL",
+          referenceRange: "120-200",
+          flagged: false,
+        },
       ],
       diagnosis: [],
       medications: [],
@@ -90,14 +115,20 @@ describe("executeDocumentPipeline", () => {
     expect(result.ocrConfidence).toBe(0.85);
     expect(result.geminiConfidence).toBe(0.85);
     expect(result.path).toBe("ocr_extraction");
-    expect(result.plainLanguageSummary).toBe("Your test results appear normal.");
+    expect(result.plainLanguageSummary).toBe(
+      "Your test results appear normal.",
+    );
     expect(result.warnings).toHaveLength(0);
     expect(result.timing.total).toBeGreaterThan(0);
   });
 
   it("rejects a blurry document with advice", async () => {
     vi.mocked(runOcrWithRetry).mockResolvedValue(
-      makeOcrResult({ accepted: false, confidence: 0.3, rejectionReason: "low_confidence" }),
+      makeOcrResult({
+        accepted: false,
+        confidence: 0.3,
+        rejectionReason: "low_confidence",
+      }),
     );
 
     const result = await executeDocumentPipeline({
@@ -116,7 +147,9 @@ describe("executeDocumentPipeline", () => {
 
   it("handles OCR with warnings (mixed confidence)", async () => {
     vi.mocked(runOcrWithRetry).mockResolvedValue(
-      makeOcrResult({ warnings: ["Retry 1/2: confidence 0.55 below threshold 0.7"] }),
+      makeOcrResult({
+        warnings: ["Retry 1/2: confidence 0.55 below threshold 0.7"],
+      }),
     );
     vi.mocked(executeFallbackChain).mockResolvedValue(makeGeminiResult());
 
@@ -153,7 +186,12 @@ describe("executeDocumentPipeline", () => {
 
   it("rejects empty or bad input gracefully", async () => {
     vi.mocked(runOcrWithRetry).mockResolvedValue(
-      makeOcrResult({ success: false, accepted: false, text: "", confidence: 0 }),
+      makeOcrResult({
+        success: false,
+        accepted: false,
+        text: "",
+        confidence: 0,
+      }),
     );
 
     const result = await executeDocumentPipeline({
@@ -171,9 +209,27 @@ describe("executeDocumentPipeline", () => {
       makeGeminiResult({
         extractedData: {
           tests: [
-            { name: "WBC", value: "15", unit: "x10^3/uL", referenceRange: "4-10", flagged: true },
-            { name: "Glucose", value: "200", unit: "mg/dL", referenceRange: "70-110", flagged: true },
-            { name: "ALT", value: "80", unit: "U/L", referenceRange: "10-40", flagged: true },
+            {
+              name: "WBC",
+              value: "15",
+              unit: "x10^3/uL",
+              referenceRange: "4-10",
+              flagged: true,
+            },
+            {
+              name: "Glucose",
+              value: "200",
+              unit: "mg/dL",
+              referenceRange: "70-110",
+              flagged: true,
+            },
+            {
+              name: "ALT",
+              value: "80",
+              unit: "U/L",
+              referenceRange: "10-40",
+              flagged: true,
+            },
           ],
         },
       }),

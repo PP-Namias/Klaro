@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import type { TRPCContext } from "../trpc";
 
 export interface SessionSecurityInfo {
-  user: NonNullable<TRPCContext["session"]["user"]>;
+  user: NonNullable<NonNullable<TRPCContext["session"]>>["user"];
   ipAddress: string | null;
   userAgent: string | null;
 }

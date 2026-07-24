@@ -1,5 +1,8 @@
 import { getPipelineConfig } from "../config/pipeline";
-import { preprocessImage, getDefaultPreprocessingOptions } from "./imagePreprocessor";
+import {
+  getDefaultPreprocessingOptions,
+  preprocessImage,
+} from "./imagePreprocessor";
 
 export interface OcrPageResult {
   pageNumber: number;
@@ -40,7 +43,9 @@ export async function runOcrOnImage(
       warnings,
     };
   } catch (error) {
-    warnings.push(`Page ${pageNumber} OCR failed: ${error instanceof Error ? error.message : "unknown error"}`);
+    warnings.push(
+      `Page ${pageNumber} OCR failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
     return {
       pageNumber,
       text: "",
@@ -62,9 +67,7 @@ function computeWeightedConfidence(pages: OcrPageResult[]): number {
   return Math.round(weighted * 100) / 100;
 }
 
-export async function runOcr(
-  imageBase64: string,
-): Promise<OcrPipelineResult> {
+export async function runOcr(imageBase64: string): Promise<OcrPipelineResult> {
   const startTime = Date.now();
   const page = await runOcrOnImage(imageBase64);
   const confidence = computeWeightedConfidence([page]);
@@ -107,7 +110,9 @@ export async function runOcrWithRetry(
   }
 
   for (let attempt = 1; attempt <= ocr.maxRetries; attempt++) {
-    warnings.push(`Retry ${attempt}/${ocr.maxRetries}: confidence ${bestResult.confidence.toFixed(2)} below threshold ${ocr.confidenceThreshold}`);
+    warnings.push(
+      `Retry ${attempt}/${ocr.maxRetries}: confidence ${bestResult.confidence.toFixed(2)} below threshold ${ocr.confidenceThreshold}`,
+    );
 
     try {
       const preprocessed = await preprocessImage(imageBase64, {
@@ -136,7 +141,9 @@ export async function runOcrWithRetry(
         };
       }
     } catch (error) {
-      warnings.push(`Retry ${attempt} failed: ${error instanceof Error ? error.message : "unknown"}`);
+      warnings.push(
+        `Retry ${attempt} failed: ${error instanceof Error ? error.message : "unknown"}`,
+      );
     }
   }
 
@@ -150,7 +157,8 @@ export async function runOcrWithRetry(
     source: bestResult.source,
     warnings,
     rejectionReason: "low_confidence",
-    rejectionAdvice: "The document appears too blurry or unclear. Please take a photo in good lighting with the document flat on a table. Ensure all text is readable before capturing.",
+    rejectionAdvice:
+      "The document appears too blurry or unclear. Please take a photo in good lighting with the document flat on a table. Ensure all text is readable before capturing.",
     processingTimeMs: Date.now() - startTime,
   };
 }
@@ -160,8 +168,10 @@ export function buildRejectionResponse(
   language: string = "English",
 ) {
   const validLanguages = ["English", "Filipino", "Bisaya", "Ilocano"] as const;
-  const lang = validLanguages.includes(language as typeof validLanguages[number])
-    ? (language as typeof validLanguages[number])
+  const lang = validLanguages.includes(
+    language as (typeof validLanguages)[number],
+  )
+    ? (language as (typeof validLanguages)[number])
     : "English";
 
   return {
@@ -172,7 +182,9 @@ export function buildRejectionResponse(
     confidence: result.confidence,
     extractedData: {},
     warnings: result.warnings,
-    error: result.rejectionAdvice || "Document could not be processed. Please try again with a clearer image.",
+    error:
+      result.rejectionAdvice ||
+      "Document could not be processed. Please try again with a clearer image.",
     timestamp: new Date().toISOString(),
   };
 }

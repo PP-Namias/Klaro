@@ -4,10 +4,10 @@ import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import type { ExtractedTest } from "@klaro/validators/extraction";
-import type { ScanGuestResponse } from "@klaro/validators/scan-analysis";
 import type { Dialect } from "@klaro/validators/llm";
-import { DialectEnum } from "@klaro/validators/llm";
+import type { ScanGuestResponse } from "@klaro/validators/scan-analysis";
 import { analysis, document } from "@klaro/db/schema";
+import { DialectEnum } from "@klaro/validators/llm";
 import {
   scanGuestInputSchema,
   scanGuestResponseSchema,
@@ -344,7 +344,6 @@ export const documentsRouter = {
           .update(document)
           .set({
             status: "failed",
-            errorMessage: "Could not extract any text from this document. Make sure the document contains clearly printed medical text.",
             updatedAt: new Date(),
           })
           .where(eq(document.id, input.documentId));
@@ -355,7 +354,8 @@ export const documentsRouter = {
           flaggedCount: 0,
           accuracy: 0,
           method: "regex",
-          error: "Could not extract any text from this document. Make sure the document contains clearly printed medical text.",
+          error:
+            "Could not extract any text from this document. Make sure the document contains clearly printed medical text.",
         };
       }
 
@@ -557,7 +557,6 @@ export const documentsRouter = {
       }),
     )
     .mutation(async ({ ctx, input }) => {
-
       const [doc] = await ctx.db
         .select()
         .from(document)
@@ -621,7 +620,6 @@ export const documentsRouter = {
       }),
     )
     .mutation(async ({ ctx, input }) => {
-
       // Fetch document and verify ownership
       const [doc] = await ctx.db
         .select()
@@ -734,7 +732,9 @@ export const documentsRouter = {
       const geminiApiUrl =
         process.env.GEMINI_SCAN_API_URL || "http://localhost:3001";
 
-      const { runOcrWithRetry, buildRejectionResponse } = await import("../services/ocrPipeline");
+      const { runOcrWithRetry, buildRejectionResponse } = await import(
+        "../services/ocrPipeline"
+      );
 
       const ocrResult = await runOcrWithRetry(input.base64Image);
 
@@ -865,10 +865,12 @@ export const documentsRouter = {
    */
   cleanupFiles: protectedProcedure
     .input(
-      z.object({
-        retentionHours: z.number().min(1).max(720).optional(),
-        dryRun: z.boolean().default(false),
-      }).optional(),
+      z
+        .object({
+          retentionHours: z.number().min(1).max(720).optional(),
+          dryRun: z.boolean().default(false),
+        })
+        .optional(),
     )
     .mutation(async ({ ctx, input }) => {
       if (!ctx.session?.user?.id) {
@@ -878,7 +880,9 @@ export const documentsRouter = {
         });
       }
 
-      const { executeCleanup, getCleanupStats } = await import("../services/fileCleanup");
+      const { executeCleanup, getCleanupStats } = await import(
+        "../services/fileCleanup"
+      );
 
       const result = await executeCleanup({
         retentionHours: input?.retentionHours,
@@ -936,7 +940,10 @@ export const documentsRouter = {
 
       if (!result.success) {
         throw new TRPCError({
-          code: result.error === "Document not found" ? "NOT_FOUND" : "INTERNAL_SERVER_ERROR",
+          code:
+            result.error === "Document not found"
+              ? "NOT_FOUND"
+              : "INTERNAL_SERVER_ERROR",
           message: result.error || "Failed to cleanup document",
         });
       }

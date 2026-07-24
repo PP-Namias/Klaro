@@ -21,15 +21,37 @@ const ALLOWED_TYPES = new Map([
 ]);
 
 const BLOCKED_EXTENSIONS = new Set([
-  "exe", "bat", "cmd", "sh", "ps1", "vbs", "js", "msi", "com", "pif",
-  "scr", "hta", "cpl", "lnk", "inf", "reg", "rgs", "sct", "shb", "ws",
-  "wsc", "wsf", "wsh",
+  "exe",
+  "bat",
+  "cmd",
+  "sh",
+  "ps1",
+  "vbs",
+  "js",
+  "msi",
+  "com",
+  "pif",
+  "scr",
+  "hta",
+  "cpl",
+  "lnk",
+  "inf",
+  "reg",
+  "rgs",
+  "sct",
+  "shb",
+  "ws",
+  "wsc",
+  "wsf",
+  "wsh",
 ]);
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const MIN_FILE_SIZE = 100; // 100 bytes
 
-export function validateFileType(file: File | { type: string; name: string }): boolean {
+export function validateFileType(
+  file: File | { type: string; name: string },
+): boolean {
   const mimeType = file.type.toLowerCase();
   const extension = file.name.split(".").pop()?.toLowerCase() || "";
 
@@ -51,7 +73,10 @@ export function validateFileSize(
   maxSize: number = MAX_FILE_SIZE,
 ): { valid: boolean; error?: string } {
   if (size < MIN_FILE_SIZE) {
-    return { valid: false, error: `File too small. Minimum size is ${MIN_FILE_SIZE} bytes.` };
+    return {
+      valid: false,
+      error: `File too small. Minimum size is ${MIN_FILE_SIZE} bytes.`,
+    };
   }
   if (size > maxSize) {
     return {
@@ -62,7 +87,11 @@ export function validateFileSize(
   return { valid: true };
 }
 
-export function validateFileName(fileName: string): { valid: boolean; sanitized: string; error?: string } {
+export function validateFileName(fileName: string): {
+  valid: boolean;
+  sanitized: string;
+  error?: string;
+} {
   if (!fileName || fileName.trim().length === 0) {
     return { valid: false, sanitized: "", error: "File name cannot be empty." };
   }

@@ -1,13 +1,13 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  initUploadProgress,
-  updateUploadProgress,
-  getUploadProgress,
+  clearAllProgress,
   completeUploadProgress,
   errorUploadProgress,
+  getUploadProgress,
+  initUploadProgress,
   removeUploadProgress,
-  clearAllProgress,
+  updateUploadProgress,
 } from "../uploadProgress";
 
 describe("Upload Progress Tracking", () => {
@@ -76,7 +76,9 @@ describe("Upload Progress Tracking", () => {
       const before = new Date();
       await new Promise((r) => setTimeout(r, 10));
       const updated = updateUploadProgress("doc-1", { progress: 10 });
-      expect(updated.updatedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(updated.updatedAt.getTime()).toBeGreaterThanOrEqual(
+        before.getTime(),
+      );
     });
   });
 

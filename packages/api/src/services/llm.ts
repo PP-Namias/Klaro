@@ -197,8 +197,7 @@ export async function generatePlainLanguageExplanation(
 
   // Get dialect-specific greeting
   const greetings: Record<Dialect, string> = {
-    English:
-      "Your results show your current health status.",
+    English: "Your results show your current health status.",
     Filipino:
       "Ang iyong mga resulta ay nagpapakita ng iyong kasalukuyang kalusugan.",
     Bisaya:

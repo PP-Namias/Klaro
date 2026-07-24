@@ -1,6 +1,9 @@
-import { expect, vi, type Mock } from "vitest";
+import type { Mock } from "vitest";
+import { expect, vi } from "vitest";
 
-export const createMockContext = (overrides?: Record<string, unknown>): Record<string, unknown> => ({
+export const createMockContext = (
+  overrides?: Record<string, unknown>,
+): Record<string, unknown> => ({
   db: {
     select: vi.fn().mockReturnThis(),
     from: vi.fn().mockReturnThis(),

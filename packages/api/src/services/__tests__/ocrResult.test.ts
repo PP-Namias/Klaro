@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  normalizeText,
+  compareOcrResults,
   detectLanguage,
+  formatOcrResultForStorage,
   normalizeBlock,
   normalizeOcrResult,
-  compareOcrResults,
-  formatOcrResultForStorage,
+  normalizeText,
 } from "../ocrResult";
 
 describe("OCR Result Normalization", () => {
@@ -120,8 +120,12 @@ describe("OCR Result Normalization", () => {
 
   describe("compareOcrResults", () => {
     it("detects matching results", () => {
-      const r1 = normalizeOcrResult("text", [{ text: "line1", confidence: 0.9 }]);
-      const r2 = normalizeOcrResult("text", [{ text: "line1", confidence: 0.9 }]);
+      const r1 = normalizeOcrResult("text", [
+        { text: "line1", confidence: 0.9 },
+      ]);
+      const r2 = normalizeOcrResult("text", [
+        { text: "line1", confidence: 0.9 },
+      ]);
 
       const diff = compareOcrResults(r1, r2);
       expect(diff.textMatch).toBe(true);
@@ -139,8 +143,12 @@ describe("OCR Result Normalization", () => {
     });
 
     it("detects confidence difference", () => {
-      const r1 = normalizeOcrResult("text", [{ text: "line1", confidence: 0.9 }]);
-      const r2 = normalizeOcrResult("text", [{ text: "line1", confidence: 0.6 }]);
+      const r1 = normalizeOcrResult("text", [
+        { text: "line1", confidence: 0.9 },
+      ]);
+      const r2 = normalizeOcrResult("text", [
+        { text: "line1", confidence: 0.6 },
+      ]);
 
       const diff = compareOcrResults(r1, r2);
       expect(diff.confidenceDelta).toBeCloseTo(0.3);

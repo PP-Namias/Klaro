@@ -1,14 +1,15 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
 import {
+  buildMedicalContext,
   calculateDistanceKm,
-  parseSpecialties,
+  facilityTypeRank,
+  isEmergencyCapable,
   matchesSpecialty,
   matchesTextSearch,
-  isEmergencyCapable,
-  buildMedicalContext,
+  parseSpecialties,
   rankFacilitiesForContext,
   summarizeMedicalContext,
-  facilityTypeRank,
 } from "../facilities";
 
 vi.mock("../llm", () => ({
@@ -107,10 +108,7 @@ describe("matchesTextSearch", () => {
 
   it("returns false when no match", () => {
     expect(
-      matchesTextSearch(
-        { name: "Hospital", address: "123 St" },
-        "quezon",
-      ),
+      matchesTextSearch({ name: "Hospital", address: "123 St" }, "quezon"),
     ).toBe(false);
   });
 });
@@ -125,9 +123,7 @@ describe("isEmergencyCapable", () => {
   });
 
   it("returns true when name contains emergency", () => {
-    expect(
-      isEmergencyCapable({ name: "Emergency Clinic" }),
-    ).toBe(true);
+    expect(isEmergencyCapable({ name: "Emergency Clinic" })).toBe(true);
   });
 
   it("returns true for 24/7 opening hours", () => {

@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   DEFAULT_WORKFLOW_CONFIG,
-  validateWorkflowInput,
   executeDocumentWorkflow,
   executeGuestWorkflow,
   getWorkflowStatus,
+  validateWorkflowInput,
 } from "../ai-workflow";
 
 vi.mock("../llm", () => ({
@@ -80,9 +81,7 @@ describe("validateWorkflowInput", () => {
     }));
     const result = validateWorkflowInput(images);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain(
-      "Maximum 20 images allowed per workflow",
-    );
+    expect(result.errors).toContain("Maximum 20 images allowed per workflow");
   });
 
   it("returns error for missing filename", () => {
@@ -137,42 +136,38 @@ describe("validateWorkflowInput", () => {
 describe("executeDocumentWorkflow", () => {
   it("returns completed status on success", async () => {
     const images = [
-      { buffer: Buffer.from("test"), filename: "lab.png", mimeType: "image/png" },
+      {
+        buffer: Buffer.from("test"),
+        filename: "lab.png",
+        mimeType: "image/png",
+      },
     ];
     const result = await executeDocumentWorkflow(images);
     expect(result.status).toBe("completed");
   });
 
   it("returns requestId", async () => {
-    const images = [
-      { buffer: Buffer.from("test"), filename: "lab.png" },
-    ];
+    const images = [{ buffer: Buffer.from("test"), filename: "lab.png" }];
     const result = await executeDocumentWorkflow(images);
     expect(result.requestId).toMatch(/^workflow-\d+-[a-z0-9]+$/);
   });
 
   it("populates extracted tests from OCR text", async () => {
-    const images = [
-      { buffer: Buffer.from("test"), filename: "lab.png" },
-    ];
+    const images = [{ buffer: Buffer.from("test"), filename: "lab.png" }];
     const result = await executeDocumentWorkflow(images);
     expect(result.extractedTests).toBeDefined();
     expect(Array.isArray(result.extractedTests)).toBe(true);
   });
 
   it("populates flagged tests", async () => {
-    const images = [
-      { buffer: Buffer.from("test"), filename: "lab.png" },
-    ];
+    const images = [{ buffer: Buffer.from("test"), filename: "lab.png" }];
     const result = await executeDocumentWorkflow(images);
     expect(result.flaggedTests).toBeDefined();
     expect(Array.isArray(result.flaggedTests)).toBe(true);
   });
 
   it("populates plainLanguage", async () => {
-    const images = [
-      { buffer: Buffer.from("test"), filename: "lab.png" },
-    ];
+    const images = [{ buffer: Buffer.from("test"), filename: "lab.png" }];
     const result = await executeDocumentWorkflow(images);
     expect(result.plainLanguage).toBeDefined();
     expect(result.plainLanguage.summary).toBeTruthy();
@@ -180,9 +175,7 @@ describe("executeDocumentWorkflow", () => {
   });
 
   it("populates tanqmoCard", async () => {
-    const images = [
-      { buffer: Buffer.from("test"), filename: "lab.png" },
-    ];
+    const images = [{ buffer: Buffer.from("test"), filename: "lab.png" }];
     const result = await executeDocumentWorkflow(images);
     expect(result.tanqmoCard).toBeDefined();
     expect(result.tanqmoCard.title).toBeTruthy();
@@ -190,9 +183,7 @@ describe("executeDocumentWorkflow", () => {
   });
 
   it("populates metadata", async () => {
-    const images = [
-      { buffer: Buffer.from("test"), filename: "lab.png" },
-    ];
+    const images = [{ buffer: Buffer.from("test"), filename: "lab.png" }];
     const result = await executeDocumentWorkflow(images);
     expect(result.metadata).toBeDefined();
     expect(result.metadata.processingTimeMs).toBeGreaterThanOrEqual(0);
@@ -200,9 +191,7 @@ describe("executeDocumentWorkflow", () => {
   });
 
   it("accepts custom config", async () => {
-    const images = [
-      { buffer: Buffer.from("test"), filename: "lab.png" },
-    ];
+    const images = [{ buffer: Buffer.from("test"), filename: "lab.png" }];
     const result = await executeDocumentWorkflow(images, {
       dialect: "English",
       ocrThreshold: 0.9,
@@ -220,9 +209,7 @@ describe("executeDocumentWorkflow", () => {
   });
 
   it("catches OCR errors and returns warnings", async () => {
-    const images = [
-      { buffer: Buffer.from("test"), filename: "lab.png" },
-    ];
+    const images = [{ buffer: Buffer.from("test"), filename: "lab.png" }];
     const result = await executeDocumentWorkflow(images);
     expect(result.warnings).toBeDefined();
   });
@@ -231,7 +218,10 @@ describe("executeDocumentWorkflow", () => {
 describe("executeGuestWorkflow", () => {
   it("returns completed status", async () => {
     const base64Images = [
-      { bytesBase64: Buffer.from("test").toString("base64"), filename: "lab.png" },
+      {
+        bytesBase64: Buffer.from("test").toString("base64"),
+        filename: "lab.png",
+      },
     ];
     const result = await executeGuestWorkflow(base64Images);
     expect(result.status).toBe("completed");
@@ -239,7 +229,10 @@ describe("executeGuestWorkflow", () => {
 
   it("accepts language option", async () => {
     const base64Images = [
-      { bytesBase64: Buffer.from("test").toString("base64"), filename: "lab.png" },
+      {
+        bytesBase64: Buffer.from("test").toString("base64"),
+        filename: "lab.png",
+      },
     ];
     const result = await executeGuestWorkflow(base64Images, {
       language: "Filipino",
@@ -249,7 +242,10 @@ describe("executeGuestWorkflow", () => {
 
   it("accepts patient info", async () => {
     const base64Images = [
-      { bytesBase64: Buffer.from("test").toString("base64"), filename: "lab.png" },
+      {
+        bytesBase64: Buffer.from("test").toString("base64"),
+        filename: "lab.png",
+      },
     ];
     const result = await executeGuestWorkflow(base64Images, {
       patientAge: 30,

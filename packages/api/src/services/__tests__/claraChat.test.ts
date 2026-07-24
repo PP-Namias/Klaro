@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  createClaraMessage,
   buildClaraSystemPrompt,
-  shouldRespondToMessage,
-  formatClaraResponse,
   buildPatientDataSummary,
+  createClaraMessage,
+  formatClaraResponse,
+  shouldRespondToMessage,
   validateClaraMessage,
 } from "../claraChat";
 
@@ -151,7 +151,9 @@ describe("Clara Chat Service", () => {
     });
 
     it("returns error for invalid characters", () => {
-      const errors = validateClaraMessage("Hello <script>alert('xss')</script>");
+      const errors = validateClaraMessage(
+        "Hello <script>alert('xss')</script>",
+      );
       expect(errors.some((e) => e.includes("invalid characters"))).toBe(true);
     });
   });

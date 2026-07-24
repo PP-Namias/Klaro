@@ -102,10 +102,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
   },
 };
 
-export function getTranslation(
-  language: LanguageCode,
-  key: string,
-): string {
+export function getTranslation(language: LanguageCode, key: string): string {
   return translations[language]?.[key] || translations.en[key] || key;
 }
 
@@ -119,7 +116,9 @@ export function formatPatientInfoSection(
     items.push(`${getTranslation(language, "name")}: ${data.patientName}`);
   }
   if (data.dateOfBirth) {
-    items.push(`${getTranslation(language, "dateOfBirth")}: ${data.dateOfBirth}`);
+    items.push(
+      `${getTranslation(language, "dateOfBirth")}: ${data.dateOfBirth}`,
+    );
   }
   if (data.gender) {
     items.push(`${getTranslation(language, "gender")}: ${data.gender}`);
@@ -157,8 +156,7 @@ export function formatMedicationsSection(
   language: LanguageCode,
 ): PlainLanguageSection {
   const items = medications.map(
-    (m) =>
-      `${m.name} - ${m.dosage} (${m.frequency})`,
+    (m) => `${m.name} - ${m.dosage} (${m.frequency})`,
   );
 
   return {
@@ -204,7 +202,11 @@ export function generatePlainLanguageSummary(
   if (Array.isArray(data.medications) && data.medications.length > 0) {
     sections.push(
       formatMedicationsSection(
-        data.medications as Array<{ name: string; dosage: string; frequency: string }>,
+        data.medications as Array<{
+          name: string;
+          dosage: string;
+          frequency: string;
+        }>,
         language,
       ),
     );
@@ -224,7 +226,9 @@ export function generatePlainLanguageSummary(
     );
   }
 
-  const plainText = sections.map((s) => `${s.title}:\n${s.content}`).join("\n\n");
+  const plainText = sections
+    .map((s) => `${s.title}:\n${s.content}`)
+    .join("\n\n");
 
   return {
     plainText,

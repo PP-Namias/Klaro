@@ -5,17 +5,18 @@
  * Provides helper functions for secure data access patterns.
  */
 
-import { db } from "@klaro/db/client";
-import { document, analysis, chatMessage } from "@klaro/db/schema";
 import { eq } from "drizzle-orm";
 
+import { db } from "@klaro/db/client";
+import { analysis, chatMessage, document } from "@klaro/db/schema";
+
 import {
-  encryptDocumentFields,
+  decryptAnalysisFields,
+  decryptChatMessage,
   decryptDocumentFields,
   encryptAnalysisFields,
-  decryptAnalysisFields,
   encryptChatMessage,
-  decryptChatMessage,
+  encryptDocumentFields,
   isEncrypted,
 } from "./encryption";
 
@@ -39,26 +40,26 @@ export async function insertEncryptedDocument(data: {
     ocrText: data.ocrText,
   });
 
-  return db.insert(document).values({
-    userId: data.userId,
-    fileName: data.fileName,
-    mimeType: data.mimeType,
-    fileSize: data.fileSize,
-    storageUrl: data.storageUrl,
-    ocrText: encryptedFields.ocrText,
-    confidence: data.confidence,
-    status: "uploaded",
-  }).returning();
+  return db
+    .insert(document)
+    .values({
+      userId: data.userId,
+      fileName: data.fileName,
+      mimeType: data.mimeType,
+      fileSize: data.fileSize,
+      storageUrl: data.storageUrl,
+      ocrText: encryptedFields.ocrText,
+      confidence: data.confidence,
+      status: "uploaded",
+    })
+    .returning();
 }
 
 /**
  * Get document with decrypted fields
  */
 export async function getDecryptedDocument(docId: string) {
-  const [doc] = await db
-    .select()
-    .from(document)
-    .where(eq(document.id, docId));
+  const [doc] = await db.select().from(document).where(eq(document.id, docId));
 
   if (!doc) return null;
 
@@ -115,15 +116,18 @@ export async function insertEncryptedAnalysis(data: {
     tanqmoCard: data.tanqmoCard,
   });
 
-  return db.insert(analysis).values({
-    documentId: data.documentId,
-    userId: data.userId,
-    extractedFields: encryptedFields.extractedFields as any,
-    flaggedValues: data.flaggedValues as any,
-    plainLanguageSummary: encryptedFields.plainLanguageSummary,
-    tanqmoCard: encryptedFields.tanqmoCard as any,
-    status: "pending",
-  }).returning();
+  return db
+    .insert(analysis)
+    .values({
+      documentId: data.documentId,
+      userId: data.userId,
+      extractedFields: encryptedFields.extractedFields as any,
+      flaggedValues: data.flaggedValues as any,
+      plainLanguageSummary: encryptedFields.plainLanguageSummary,
+      tanqmoCard: encryptedFields.tanqmoCard as any,
+      status: "pending",
+    })
+    .returning();
 }
 
 /**
@@ -203,13 +207,16 @@ export async function insertEncryptedChatMessage(data: {
 }) {
   const encryptedContent = await encryptChatMessage(data.content);
 
-  return db.insert(chatMessage).values({
-    analysisId: data.analysisId,
-    userId: data.userId,
-    role: data.role,
-    content: encryptedContent,
-    dialect: data.dialect,
-  }).returning();
+  return db
+    .insert(chatMessage)
+    .values({
+      analysisId: data.analysisId,
+      userId: data.userId,
+      role: data.role,
+      content: encryptedContent,
+      dialect: data.dialect,
+    })
+    .returning();
 }
 
 /**

@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  getPreprocessDefaults,
-  validatePreprocessOptions,
-  mergePreprocessOptions,
-  estimateProcessingTime,
-  shouldPreprocess,
   buildPreprocessDescription,
   calculateOcrConfidence,
+  estimateProcessingTime,
   formatOcrOutput,
+  getPreprocessDefaults,
+  mergePreprocessOptions,
+  shouldPreprocess,
+  validatePreprocessOptions,
 } from "../enhancedOcr";
 
 describe("Enhanced OCR Service", () => {
@@ -27,7 +27,10 @@ describe("Enhanced OCR Service", () => {
 
   describe("validatePreprocessOptions", () => {
     it("returns no errors for valid options", () => {
-      const errors = validatePreprocessOptions({ contrast: 1.5, brightness: 1.2 });
+      const errors = validatePreprocessOptions({
+        contrast: 1.5,
+        brightness: 1.2,
+      });
       expect(errors).toHaveLength(0);
     });
 
@@ -62,7 +65,10 @@ describe("Enhanced OCR Service", () => {
   describe("mergePreprocessOptions", () => {
     it("merges base and override", () => {
       const base = getPreprocessDefaults();
-      const merged = mergePreprocessOptions(base, { contrast: 2.0, denoise: false });
+      const merged = mergePreprocessOptions(base, {
+        contrast: 2.0,
+        denoise: false,
+      });
       expect(merged.contrast).toBe(2.0);
       expect(merged.denoise).toBe(false);
       expect(merged.grayscale).toBe(true);
@@ -84,13 +90,18 @@ describe("Enhanced OCR Service", () => {
 
     it("scales with file size", () => {
       const small = estimateProcessingTime(100 * 1024, getPreprocessDefaults());
-      const large = estimateProcessingTime(10 * 1024 * 1024, getPreprocessDefaults());
+      const large = estimateProcessingTime(
+        10 * 1024 * 1024,
+        getPreprocessDefaults(),
+      );
       expect(large).toBeGreaterThan(small);
     });
 
     it("accounts for denoise overhead", () => {
       const noDenoise = estimateProcessingTime(1024 * 1024, { denoise: false });
-      const withDenoise = estimateProcessingTime(1024 * 1024, { denoise: true });
+      const withDenoise = estimateProcessingTime(1024 * 1024, {
+        denoise: true,
+      });
       expect(withDenoise).toBeGreaterThan(noDenoise);
     });
   });

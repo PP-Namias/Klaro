@@ -1,13 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
 describe("Validator to DB Schema Integration", () => {
   it("document statuses are consistent between packages", () => {
-    const dbStatuses = [
-      "uploaded",
-      "processing",
-      "analyzed",
-      "failed",
-    ];
+    const dbStatuses = ["uploaded", "processing", "analyzed", "failed"];
     const validatorStatuses = ["uploaded", "processing", "analyzed", "failed"];
     expect(dbStatuses).toEqual(validatorStatuses);
   });

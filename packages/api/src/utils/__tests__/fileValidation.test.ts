@@ -1,60 +1,86 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  validateFileType,
-  validateFileSize,
-  validateFileName,
   getFileExtension,
   getMimeTypeFromFile,
   validateFile,
+  validateFileName,
+  validateFileSize,
+  validateFileType,
 } from "../fileValidation";
 
 describe("validateFileType", () => {
   it("accepts PNG files", () => {
-    expect(validateFileType({ type: "image/png", name: "test.png" })).toBe(true);
+    expect(validateFileType({ type: "image/png", name: "test.png" })).toBe(
+      true,
+    );
   });
 
   it("accepts JPEG files", () => {
-    expect(validateFileType({ type: "image/jpeg", name: "test.jpg" })).toBe(true);
-    expect(validateFileType({ type: "image/jpeg", name: "test.jpeg" })).toBe(true);
+    expect(validateFileType({ type: "image/jpeg", name: "test.jpg" })).toBe(
+      true,
+    );
+    expect(validateFileType({ type: "image/jpeg", name: "test.jpeg" })).toBe(
+      true,
+    );
   });
 
   it("accepts PDF files", () => {
-    expect(validateFileType({ type: "application/pdf", name: "test.pdf" })).toBe(true);
+    expect(
+      validateFileType({ type: "application/pdf", name: "test.pdf" }),
+    ).toBe(true);
   });
 
   it("accepts WebP files", () => {
-    expect(validateFileType({ type: "image/webp", name: "test.webp" })).toBe(true);
+    expect(validateFileType({ type: "image/webp", name: "test.webp" })).toBe(
+      true,
+    );
   });
 
   it("accepts TIFF files", () => {
-    expect(validateFileType({ type: "image/tiff", name: "test.tiff" })).toBe(true);
-    expect(validateFileType({ type: "image/tiff", name: "test.tif" })).toBe(true);
+    expect(validateFileType({ type: "image/tiff", name: "test.tiff" })).toBe(
+      true,
+    );
+    expect(validateFileType({ type: "image/tiff", name: "test.tif" })).toBe(
+      true,
+    );
   });
 
   it("accepts BMP files", () => {
-    expect(validateFileType({ type: "image/bmp", name: "test.bmp" })).toBe(true);
+    expect(validateFileType({ type: "image/bmp", name: "test.bmp" })).toBe(
+      true,
+    );
   });
 
   it("accepts GIF files", () => {
-    expect(validateFileType({ type: "image/gif", name: "test.gif" })).toBe(true);
+    expect(validateFileType({ type: "image/gif", name: "test.gif" })).toBe(
+      true,
+    );
   });
 
   it("rejects EXE files", () => {
-    expect(validateFileType({ type: "application/x-msdownload", name: "test.exe" })).toBe(false);
+    expect(
+      validateFileType({ type: "application/x-msdownload", name: "test.exe" }),
+    ).toBe(false);
   });
 
   it("rejects BAT files", () => {
-    expect(validateFileType({ type: "application/x-bat", name: "test.bat" })).toBe(false);
+    expect(
+      validateFileType({ type: "application/x-bat", name: "test.bat" }),
+    ).toBe(false);
   });
 
   it("rejects unknown types", () => {
-    expect(validateFileType({ type: "application/octet-stream", name: "test.xyz" })).toBe(false);
+    expect(
+      validateFileType({ type: "application/octet-stream", name: "test.xyz" }),
+    ).toBe(false);
   });
 
   it("accepts by extension when mime type is generic", () => {
     expect(validateFileType({ type: "", name: "test.png" })).toBe(true);
-    expect(validateFileType({ type: "application/octet-stream", name: "test.pdf" })).toBe(true);
+    expect(
+      validateFileType({ type: "application/octet-stream", name: "test.pdf" }),
+    ).toBe(true);
   });
 });
 
@@ -140,7 +166,11 @@ describe("getMimeTypeFromFile", () => {
 
 describe("validateFile", () => {
   it("returns valid for correct file", () => {
-    const result = validateFile({ type: "image/png", name: "test.png", size: 1024 });
+    const result = validateFile({
+      type: "image/png",
+      name: "test.png",
+      size: 1024,
+    });
     expect(result.valid).toBe(true);
     expect(result.errors.length).toBe(0);
     expect(result.metadata.type).toBe("image/png");
@@ -149,19 +179,31 @@ describe("validateFile", () => {
   });
 
   it("returns errors for invalid file type", () => {
-    const result = validateFile({ type: "application/x-msdownload", name: "test.exe", size: 1024 });
+    const result = validateFile({
+      type: "application/x-msdownload",
+      name: "test.exe",
+      size: 1024,
+    });
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
   });
 
   it("returns errors for oversized file", () => {
-    const result = validateFile({ type: "image/png", name: "test.png", size: 60 * 1024 * 1024 });
+    const result = validateFile({
+      type: "image/png",
+      name: "test.png",
+      size: 60 * 1024 * 1024,
+    });
     expect(result.valid).toBe(false);
     expect(result.errors.some((e) => e.includes("too large"))).toBe(true);
   });
 
   it("returns warnings for large files", () => {
-    const result = validateFile({ type: "image/png", name: "test.png", size: 15 * 1024 * 1024 });
+    const result = validateFile({
+      type: "image/png",
+      name: "test.png",
+      size: 15 * 1024 * 1024,
+    });
     expect(result.valid).toBe(true);
     expect(result.warnings.some((w) => w.includes("Large file"))).toBe(true);
   });

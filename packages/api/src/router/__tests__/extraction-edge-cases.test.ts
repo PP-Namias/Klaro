@@ -36,7 +36,8 @@ describe("Extraction Edge Cases", () => {
         flaggedCount: 0,
         accuracy: 0,
         method: "regex",
-        error: "Could not extract any text from this document. Make sure the document contains clearly printed medical text.",
+        error:
+          "Could not extract any text from this document. Make sure the document contains clearly printed medical text.",
       });
 
       if (!ocrText || ocrText.trim().length === 0) {

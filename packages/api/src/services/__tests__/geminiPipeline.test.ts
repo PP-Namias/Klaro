@@ -1,8 +1,8 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  getPipelineConfig,
   executePlainLanguageStage,
+  getPipelineConfig,
 } from "../geminiPipeline";
 
 describe("Gemini Pipeline", () => {

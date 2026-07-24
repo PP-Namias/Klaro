@@ -1,10 +1,10 @@
+import type { FallbackChainResult } from "./geminiPipeline";
+import type { OcrPipelineResult } from "./ocrPipeline";
 import { getPipelineConfig } from "../config/pipeline";
-import { runOcrWithRetry } from "./ocrPipeline";
 import { executeFallbackChain } from "./geminiPipeline";
+import { runOcrWithRetry } from "./ocrPipeline";
 import { convertPdfToImages, isPdf } from "./pdfConversion";
 import { emitPipelineTelemetry } from "./pipelineTelemetry";
-import type { OcrPipelineResult } from "./ocrPipeline";
-import type { FallbackChainResult } from "./geminiPipeline";
 
 export interface PipelineStageTiming {
   preprocessing?: number;
@@ -100,7 +100,8 @@ export async function executeDocumentPipeline(
         warnings: [pdfResult.error || "PDF conversion failed"],
         path: "pdf_conversion_failed",
         rejectionReason: "pdf_conversion_failed",
-        rejectionAdvice: "The PDF could not be processed. Please try uploading the document as an image (PNG or JPG).",
+        rejectionAdvice:
+          "The PDF could not be processed. Please try uploading the document as an image (PNG or JPG).",
         timing: { ...timing, total: Date.now() - startTime },
         pages: 0,
       };
@@ -127,7 +128,9 @@ export async function executeDocumentPipeline(
       extractedData: {},
       plainLanguageSummary: "",
       urgency: "MODERATE",
-      recommendations: ["Please retake the photo with better lighting and ensure the document is flat"],
+      recommendations: [
+        "Please retake the photo with better lighting and ensure the document is flat",
+      ],
       warnings: ocrResult.warnings,
       path: "ocr_rejected",
       rejectionReason: ocrResult.rejectionReason,
@@ -151,7 +154,9 @@ export async function executeDocumentPipeline(
       .filter((p) => p.confidence < 0.6)
       .map((p) => `page ${p.pageNumber}`);
     if (lowPages.length > 0) {
-      warnings.push(`Low clarity on ${lowPages.join(", ")} — results may be less accurate for those pages`);
+      warnings.push(
+        `Low clarity on ${lowPages.join(", ")} — results may be less accurate for those pages`,
+      );
     }
   }
 
@@ -187,7 +192,10 @@ export async function executeDocumentPipeline(
     accepted: true,
     ocrConfidence: ocrResult.confidence,
     geminiConfidence: geminiResult.confidence,
-    extractedData: geminiResult.extractedData as unknown as Record<string, unknown>,
+    extractedData: geminiResult.extractedData as unknown as Record<
+      string,
+      unknown
+    >,
     plainLanguageSummary: geminiResult.simplification.summary,
     urgency,
     recommendations,

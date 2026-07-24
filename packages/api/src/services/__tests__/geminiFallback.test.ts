@@ -1,12 +1,12 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  formatFallbackResponse,
+  geminiFallback,
+  generateMockLabResults,
+  generateMockPatientData,
   getFallbackConfig,
   shouldUseFallback,
-  generateMockPatientData,
-  generateMockLabResults,
-  geminiFallback,
-  formatFallbackResponse,
 } from "../geminiFallback";
 
 describe("Gemini Fallback", () => {
@@ -43,7 +43,9 @@ describe("Gemini Fallback", () => {
   describe("shouldUseFallback", () => {
     it("returns true for API key error", () => {
       const config = { enabled: true };
-      expect(shouldUseFallback(new Error("API key not configured"), config)).toBe(true);
+      expect(
+        shouldUseFallback(new Error("API key not configured"), config),
+      ).toBe(true);
     });
 
     it("returns true for rate limit", () => {
@@ -124,7 +126,9 @@ describe("Gemini Fallback", () => {
     it("throws when disabled", async () => {
       process.env.GEMINI_FALLBACK_ENABLED = "false";
 
-      await expect(geminiFallback("base64data")).rejects.toThrow("Fallback is disabled");
+      await expect(geminiFallback("base64data")).rejects.toThrow(
+        "Fallback is disabled",
+      );
     });
 
     it("logs fallback when configured", async () => {

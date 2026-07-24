@@ -66,14 +66,16 @@ export function calculateSeverity(
     message = "Within normal range";
   } else if (value < range.low * 0.8 || value > range.high * 1.2) {
     severity = "critical";
-    message = value < range.low
-      ? `Critically low (normal: ${range.low}-${range.high} ${range.unit})`
-      : `Critically high (normal: ${range.low}-${range.high} ${range.unit})`;
+    message =
+      value < range.low
+        ? `Critically low (normal: ${range.low}-${range.high} ${range.unit})`
+        : `Critically high (normal: ${range.low}-${range.high} ${range.unit})`;
   } else if (value < range.low || value > range.high) {
     severity = "high";
-    message = value < range.low
-      ? `Below normal (normal: ${range.low}-${range.high} ${range.unit})`
-      : `Above normal (normal: ${range.low}-${range.high} ${range.unit})`;
+    message =
+      value < range.low
+        ? `Below normal (normal: ${range.low}-${range.high} ${range.unit})`
+        : `Above normal (normal: ${range.low}-${range.high} ${range.unit})`;
   } else {
     severity = "borderline";
     message = `Borderline (normal: ${range.low}-${range.high} ${range.unit})`;
@@ -121,7 +123,9 @@ export function hasCriticalValues(results: SeverityResult[]): boolean {
 }
 
 export function hasHighValues(results: SeverityResult[]): boolean {
-  return results.some((r) => r.severity === "high" || r.severity === "critical");
+  return results.some(
+    (r) => r.severity === "high" || r.severity === "critical",
+  );
 }
 
 export function getOverallSeverity(results: SeverityResult[]): SeverityLevel {

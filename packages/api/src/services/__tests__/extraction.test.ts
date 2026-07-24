@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { extractTestsFromText } from "../extraction";
 
 describe("extractTestsFromText", () => {
@@ -76,9 +77,7 @@ describe("extractTestsFromText", () => {
   });
 
   it("parses 'Triglycerides: 180 mg/dL (0-150)' flagged", () => {
-    const result = extractTestsFromText(
-      "Triglycerides: 180 mg/dL (0-150)",
-    );
+    const result = extractTestsFromText("Triglycerides: 180 mg/dL (0-150)");
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe("Triglycerides");
     expect(result[0].flagged).toBe(true);

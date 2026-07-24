@@ -1,6 +1,10 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import { checkRateLimit, resetRateLimitStore, getRateLimitStoreSize } from "../rateLimiter";
+import {
+  checkRateLimit,
+  getRateLimitStoreSize,
+  resetRateLimitStore,
+} from "../rateLimiter";
 
 describe("Rate Limiter", () => {
   beforeEach(() => {

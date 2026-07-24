@@ -1,6 +1,20 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-process.env.ENCRYPTION_MASTER_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+import {
+  getDecryptedAnalysis,
+  getDecryptedAnalysisByDocument,
+  getDecryptedChatMessages,
+  getDecryptedDocument,
+  insertEncryptedAnalysis,
+  insertEncryptedChatMessage,
+  insertEncryptedDocument,
+  updateChatMessageContent,
+  updateDocumentOcr,
+  updateEncryptedAnalysis,
+} from "../encryptedFields";
+
+process.env.ENCRYPTION_MASTER_KEY =
+  "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 process.env.ENCRYPTION_KEY_VERSION = "1";
 
 const mockInsert = vi.fn();
@@ -25,9 +39,15 @@ function buildQuery(result: unknown[]) {
 
 vi.mock("@klaro/db/client", () => ({
   db: {
-    get insert() { return mockInsert; },
-    get select() { return mockSelect; },
-    get update() { return mockUpdate; },
+    get insert() {
+      return mockInsert;
+    },
+    get select() {
+      return mockSelect;
+    },
+    get update() {
+      return mockUpdate;
+    },
   },
 }));
 
@@ -41,19 +61,6 @@ vi.mock("drizzle-orm", () => ({
   eq: (a: unknown, b: unknown) => ({ field: a as string, value: b }),
   sql: (() => ({})) as unknown,
 }));
-
-import {
-  insertEncryptedDocument,
-  getDecryptedDocument,
-  updateDocumentOcr,
-  insertEncryptedAnalysis,
-  getDecryptedAnalysis,
-  getDecryptedAnalysisByDocument,
-  updateEncryptedAnalysis,
-  insertEncryptedChatMessage,
-  getDecryptedChatMessages,
-  updateChatMessageContent,
-} from "../encryptedFields";
 
 describe("Encrypted Fields Service", () => {
   let mockValues: ReturnType<typeof vi.fn>;
@@ -151,7 +158,9 @@ describe("Encrypted Fields Service", () => {
     });
 
     it("updateChatMessageContent encrypts new content", async () => {
-      mockUpdateReturning.mockResolvedValue([{ id: "msg-1", content: "encrypted" }]);
+      mockUpdateReturning.mockResolvedValue([
+        { id: "msg-1", content: "encrypted" },
+      ]);
       const result = await updateChatMessageContent("msg-1", "Updated message");
       expect(result).toBeDefined();
     });

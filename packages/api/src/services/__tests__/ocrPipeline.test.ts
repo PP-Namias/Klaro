@@ -1,4 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { preprocessImage } from "../imagePreprocessor";
+import { performOcr } from "../ocr";
+import { buildRejectionResponse, runOcrWithRetry } from "../ocrPipeline";
 
 vi.mock("../ocr", () => ({
   performOcr: vi.fn(),
@@ -8,10 +12,6 @@ vi.mock("../imagePreprocessor", () => ({
   preprocessImage: vi.fn(),
   getDefaultPreprocessingOptions: vi.fn(() => ({})),
 }));
-
-import { runOcrWithRetry, buildRejectionResponse } from "../ocrPipeline";
-import { performOcr } from "../ocr";
-import { preprocessImage } from "../imagePreprocessor";
 
 describe("runOcrWithRetry — threshold gate", () => {
   beforeEach(() => {
@@ -46,9 +46,21 @@ describe("runOcrWithRetry — threshold gate", () => {
     vi.mocked(performOcr).mockImplementation(async () => {
       callCount++;
       if (callCount === 1) {
-        return { text: "Glucose: 95", confidence: 0.55, source: "local", processingTimeMs: 50, warnings: [] };
+        return {
+          text: "Glucose: 95",
+          confidence: 0.55,
+          source: "local",
+          processingTimeMs: 50,
+          warnings: [],
+        };
       }
-      return { text: "Glucose: 95 mg/dL", confidence: 0.72, source: "local", processingTimeMs: 50, warnings: [] };
+      return {
+        text: "Glucose: 95 mg/dL",
+        confidence: 0.72,
+        source: "local",
+        processingTimeMs: 50,
+        warnings: [],
+      };
     });
 
     const result = await runOcrWithRetry("dGVzdA==");
@@ -82,9 +94,21 @@ describe("runOcrWithRetry — threshold gate", () => {
     vi.mocked(performOcr).mockImplementation(async () => {
       callCount++;
       if (callCount === 1) {
-        return { text: "Glucose: 95", confidence: 0.5, source: "local", processingTimeMs: 50, warnings: [] };
+        return {
+          text: "Glucose: 95",
+          confidence: 0.5,
+          source: "local",
+          processingTimeMs: 50,
+          warnings: [],
+        };
       }
-      return { text: "Glucose: 95 mg/dL", confidence: 0.7, source: "local", processingTimeMs: 50, warnings: [] };
+      return {
+        text: "Glucose: 95 mg/dL",
+        confidence: 0.7,
+        source: "local",
+        processingTimeMs: 50,
+        warnings: [],
+      };
     });
 
     const result = await runOcrWithRetry("dGVzdA==");
@@ -98,9 +122,21 @@ describe("runOcrWithRetry — threshold gate", () => {
     vi.mocked(performOcr).mockImplementation(async () => {
       callCount++;
       if (callCount === 1) {
-        return { text: "Good text here", confidence: 0.65, source: "local", processingTimeMs: 50, warnings: [] };
+        return {
+          text: "Good text here",
+          confidence: 0.65,
+          source: "local",
+          processingTimeMs: 50,
+          warnings: [],
+        };
       }
-      return { text: "Bad text", confidence: 0.4, source: "local", processingTimeMs: 50, warnings: [] };
+      return {
+        text: "Bad text",
+        confidence: 0.4,
+        source: "local",
+        processingTimeMs: 50,
+        warnings: [],
+      };
     });
 
     const result = await runOcrWithRetry("dGVzdA==");

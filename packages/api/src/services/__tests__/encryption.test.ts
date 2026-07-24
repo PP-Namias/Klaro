@@ -1,20 +1,21 @@
-import { describe, expect, it, beforeEach } from "vitest";
-
-// Set encryption key for testing
-process.env.ENCRYPTION_MASTER_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-process.env.ENCRYPTION_KEY_VERSION = "1";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
-  encrypt,
   decrypt,
-  encryptField,
   decryptField,
-  encryptJson,
   decryptJson,
-  isEncrypted,
+  encrypt,
+  encryptField,
+  encryptJson,
   generateEncryptionKey,
+  isEncrypted,
   rotateEncryption,
 } from "../encryption";
+
+// Set encryption key for testing
+process.env.ENCRYPTION_MASTER_KEY =
+  "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+process.env.ENCRYPTION_KEY_VERSION = "1";
 
 describe("Encryption Service", () => {
   describe("encrypt/decrypt", () => {
@@ -69,7 +70,8 @@ describe("Encryption Service", () => {
     });
 
     it("handles medical data with PHI", async () => {
-      const medicalData = "Patient: Juan Dela Cruz, DOB: 01/15/1990, MRN: 12345678";
+      const medicalData =
+        "Patient: Juan Dela Cruz, DOB: 01/15/1990, MRN: 12345678";
       const encrypted = await encrypt(medicalData);
       const decrypted = await decrypt(encrypted);
       expect(decrypted).toBe(medicalData);
@@ -191,7 +193,8 @@ describe("Encryption Service", () => {
       const encrypted = await encrypt(original);
       const encryptedStr = JSON.stringify(encrypted);
 
-      const newKey = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+      const newKey =
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
       const reEncryptedStr = await rotateEncryption(encryptedStr, newKey);
 
       expect(reEncryptedStr).not.toBe(encryptedStr);
@@ -212,7 +215,8 @@ describe("Encryption Service", () => {
       const encrypted = await encrypt(original);
       const encryptedStr = JSON.stringify(encrypted);
 
-      const newKey = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+      const newKey =
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
       const reEncryptedStr = await rotateEncryption(encryptedStr, newKey);
 
       // Old key should NOT be able to decrypt new ciphertext

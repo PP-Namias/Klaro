@@ -1,4 +1,5 @@
-import { calculateSeverity, type SeverityLevel } from "./severityScoring";
+import type { SeverityLevel } from "./severityScoring";
+import { calculateSeverity } from "./severityScoring";
 
 export interface TanongMoCard {
   id: string;
@@ -20,8 +21,10 @@ export interface TanongMoConfig {
 const DISCLAIMERS: Record<string, string> = {
   en: "This information is for educational purposes only. Always consult your doctor for medical advice.",
   fil: "Ang impormasyong ito ay para sa layuning pang-edukasyon lamang. Laging kumonsulta sa iyong doktor para sa medikal na payo.",
-  bisaya: "Kining impormasyona para ra sa edukasyon. Konsulta gyud sa imong doktor alang sa medikal nga tambag.",
-  ilocano: "Daytoy a impormasyon para iti edukasyon laeng. Konsultam lagep ti doktor mo para iti medikal a tulung.",
+  bisaya:
+    "Kining impormasyona para ra sa edukasyon. Konsulta gyud sa imong doktor alang sa medikal nga tambag.",
+  ilocano:
+    "Daytoy a impormasyon para iti edukasyon laeng. Konsultam lagep ti doktor mo para iti medikal a tulung.",
 };
 
 function generateQuestions(
@@ -65,20 +68,32 @@ function generateQuestions(
 
 function translateToFilipino(english: string): string {
   const translations: Record<string, string> = {
-    "What does this result mean for my health?": "Ano ang ibig sabihin ng resultang ito para sa aking kalusugan?",
-    "How often should I get this test done?": "Gaano kadalas dapat gawin ang test na ito?",
-    "Are there lifestyle changes I should make?": "May mga pagbabago ba sa pamumuhay na dapat kong gawin?",
-    "What lifestyle changes can help improve this result?": "Anong mga pagbabago sa pamumuhay ang makakatulong para mapabuti ang resultang ito?",
+    "What does this result mean for my health?":
+      "Ano ang ibig sabihin ng resultang ito para sa aking kalusugan?",
+    "How often should I get this test done?":
+      "Gaano kadalas dapat gawin ang test na ito?",
+    "Are there lifestyle changes I should make?":
+      "May mga pagbabago ba sa pamumuhay na dapat kong gawin?",
+    "What lifestyle changes can help improve this result?":
+      "Anong mga pagbabago sa pamumuhay ang makakatulong para mapabuti ang resultang ito?",
     "How soon should I retest this?": "Gaano katagal bago ako magpa-test ulit?",
-    "Should I be concerned about this result?": "Dapat ba akong mag-alala sa resultang ito?",
-    "What treatment options are available?": "Anong mga opsyon sa paggamot ang available?",
-    "What symptoms should I watch for?": "Anong mga sintomas ang dapat kong bantayan?",
-    "How urgent is follow-up needed?": "Gaano ka-urgent ang kailanganang follow-up?",
-    "What medications might be prescribed?": "Anong mga gamot ang maaaring resitahan?",
-    "What immediate actions should I take?": "Anong mga agarang aksyon ang dapat kong gawin?",
+    "Should I be concerned about this result?":
+      "Dapat ba akong mag-alala sa resultang ito?",
+    "What treatment options are available?":
+      "Anong mga opsyon sa paggamot ang available?",
+    "What symptoms should I watch for?":
+      "Anong mga sintomas ang dapat kong bantayan?",
+    "How urgent is follow-up needed?":
+      "Gaano ka-urgent ang kailanganang follow-up?",
+    "What medications might be prescribed?":
+      "Anong mga gamot ang maaaring resitahan?",
+    "What immediate actions should I take?":
+      "Anong mga agarang aksyon ang dapat kong gawin?",
     "Should I go to the hospital?": "Dapat ba akong pumunta sa ospital?",
-    "What complications could arise?": "Anong mga komplikasyon ang maaaring mangyari?",
-    "What specialist should I see?": "Anong specialist ang dapat kong konsultahin?",
+    "What complications could arise?":
+      "Anong mga komplikasyon ang maaaring mangyari?",
+    "What specialist should I see?":
+      "Anong specialist ang dapat kong konsultahin?",
   };
 
   return translations[english] || english;
@@ -118,7 +133,11 @@ export function generateTanongMoCard(
   value: number,
   config: TanongMoConfig = {},
 ): TanongMoCard {
-  const { language = "en", includeBookingCta = true, maxQuestions = 3 } = config;
+  const {
+    language = "en",
+    includeBookingCta = true,
+    maxQuestions = 3,
+  } = config;
 
   const severityResult = calculateSeverity(testCode, value);
   const severity = severityResult.severity;
@@ -136,13 +155,17 @@ export function generateTanongMoCard(
     severity,
     questions,
     recommendations,
-    bookingCta: includeBookingCta && (severity === "high" || severity === "critical"),
-    disclaimer: DISCLAIMERS[language] ?? DISCLAIMERS.en ?? "Consult your doctor.",
+    bookingCta:
+      includeBookingCta && (severity === "high" || severity === "critical"),
+    disclaimer:
+      DISCLAIMERS[language] ?? DISCLAIMERS.en ?? "Consult your doctor.",
     generatedAt: new Date(),
   };
 }
 
-export function formatTanongMoCard(card: TanongMoCard): Record<string, unknown> {
+export function formatTanongMoCard(
+  card: TanongMoCard,
+): Record<string, unknown> {
   return {
     id: card.id,
     title: card.title,

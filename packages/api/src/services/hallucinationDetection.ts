@@ -16,7 +16,12 @@
 // Types
 // ============================================================================
 
-export type HallucinationSeverity = "none" | "low" | "medium" | "high" | "critical";
+export type HallucinationSeverity =
+  | "none"
+  | "low"
+  | "medium"
+  | "high"
+  | "critical";
 
 export interface HallucinationCheck {
   /** Type of check performed */
@@ -69,50 +74,242 @@ export interface MedicalPlausibilityRule {
  */
 const PLAUSIBILITY_RULES: MedicalPlausibilityRule[] = [
   // Hematology
-  { testName: "Hemoglobin", min: 2, max: 25, units: ["g/dL", "g/L"], referenceRange: { low: 12, high: 17.5 } },
-  { testName: "Hemoglobin A1C", min: 3, max: 20, units: ["%"], referenceRange: { low: 4, high: 5.7 } },
-  { testName: "Red Blood Cell Count", min: 0.5, max: 10, units: ["M/µL", "10^6/µL"], referenceRange: { low: 4.5, high: 5.5 } },
-  { testName: "White Blood Cell Count", min: 0.1, max: 100, units: ["K/µL", "10^3/µL"], referenceRange: { low: 4.5, high: 11 } },
-  { testName: "Platelet Count", min: 10, max: 1000, units: ["K/µL", "10^3/µL"], referenceRange: { low: 150, high: 400 } },
-  { testName: "Hematocrit", min: 5, max: 70, units: ["%"], referenceRange: { low: 36, high: 48 } },
-  { testName: "MCV", min: 50, max: 120, units: ["fL"], referenceRange: { low: 80, high: 100 } },
-  { testName: "MCH", min: 20, max: 45, units: ["pg"], referenceRange: { low: 27, high: 33 } },
-  { testName: "MCHC", min: 25, max: 40, units: ["g/dL"], referenceRange: { low: 32, high: 36 } },
-  { testName: "RDW", min: 5, max: 30, units: ["%"], referenceRange: { low: 11.5, high: 14.5 } },
+  {
+    testName: "Hemoglobin",
+    min: 2,
+    max: 25,
+    units: ["g/dL", "g/L"],
+    referenceRange: { low: 12, high: 17.5 },
+  },
+  {
+    testName: "Hemoglobin A1C",
+    min: 3,
+    max: 20,
+    units: ["%"],
+    referenceRange: { low: 4, high: 5.7 },
+  },
+  {
+    testName: "Red Blood Cell Count",
+    min: 0.5,
+    max: 10,
+    units: ["M/µL", "10^6/µL"],
+    referenceRange: { low: 4.5, high: 5.5 },
+  },
+  {
+    testName: "White Blood Cell Count",
+    min: 0.1,
+    max: 100,
+    units: ["K/µL", "10^3/µL"],
+    referenceRange: { low: 4.5, high: 11 },
+  },
+  {
+    testName: "Platelet Count",
+    min: 10,
+    max: 1000,
+    units: ["K/µL", "10^3/µL"],
+    referenceRange: { low: 150, high: 400 },
+  },
+  {
+    testName: "Hematocrit",
+    min: 5,
+    max: 70,
+    units: ["%"],
+    referenceRange: { low: 36, high: 48 },
+  },
+  {
+    testName: "MCV",
+    min: 50,
+    max: 120,
+    units: ["fL"],
+    referenceRange: { low: 80, high: 100 },
+  },
+  {
+    testName: "MCH",
+    min: 20,
+    max: 45,
+    units: ["pg"],
+    referenceRange: { low: 27, high: 33 },
+  },
+  {
+    testName: "MCHC",
+    min: 25,
+    max: 40,
+    units: ["g/dL"],
+    referenceRange: { low: 32, high: 36 },
+  },
+  {
+    testName: "RDW",
+    min: 5,
+    max: 30,
+    units: ["%"],
+    referenceRange: { low: 11.5, high: 14.5 },
+  },
 
   // Blood Chemistry
-  { testName: "Fasting Blood Glucose", min: 20, max: 800, units: ["mg/dL"], referenceRange: { low: 70, high: 100 } },
-  { testName: "Total Cholesterol", min: 50, max: 600, units: ["mg/dL"], referenceRange: { low: 0, high: 200 } },
-  { testName: "LDL Cholesterol", min: 20, max: 400, units: ["mg/dL"], referenceRange: { low: 0, high: 100 } },
-  { testName: "HDL Cholesterol", min: 10, max: 150, units: ["mg/dL"], referenceRange: { low: 40, high: 60 } },
-  { testName: "Triglycerides", min: 20, max: 2000, units: ["mg/dL"], referenceRange: { low: 0, high: 150 } },
+  {
+    testName: "Fasting Blood Glucose",
+    min: 20,
+    max: 800,
+    units: ["mg/dL"],
+    referenceRange: { low: 70, high: 100 },
+  },
+  {
+    testName: "Total Cholesterol",
+    min: 50,
+    max: 600,
+    units: ["mg/dL"],
+    referenceRange: { low: 0, high: 200 },
+  },
+  {
+    testName: "LDL Cholesterol",
+    min: 20,
+    max: 400,
+    units: ["mg/dL"],
+    referenceRange: { low: 0, high: 100 },
+  },
+  {
+    testName: "HDL Cholesterol",
+    min: 10,
+    max: 150,
+    units: ["mg/dL"],
+    referenceRange: { low: 40, high: 60 },
+  },
+  {
+    testName: "Triglycerides",
+    min: 20,
+    max: 2000,
+    units: ["mg/dL"],
+    referenceRange: { low: 0, high: 150 },
+  },
 
   // Kidney Function
-  { testName: "Creatinine", min: 0.1, max: 20, units: ["mg/dL"], referenceRange: { low: 0.7, high: 1.3 } },
-  { testName: "Blood Urea Nitrogen", min: 1, max: 150, units: ["mg/dL"], referenceRange: { low: 7, high: 20 } },
-  { testName: "eGFR", min: 0, max: 200, units: ["mL/min/1.73m²"], referenceRange: { low: 60, high: 120 } },
+  {
+    testName: "Creatinine",
+    min: 0.1,
+    max: 20,
+    units: ["mg/dL"],
+    referenceRange: { low: 0.7, high: 1.3 },
+  },
+  {
+    testName: "Blood Urea Nitrogen",
+    min: 1,
+    max: 150,
+    units: ["mg/dL"],
+    referenceRange: { low: 7, high: 20 },
+  },
+  {
+    testName: "eGFR",
+    min: 0,
+    max: 200,
+    units: ["mL/min/1.73m²"],
+    referenceRange: { low: 60, high: 120 },
+  },
 
   // Electrolytes
-  { testName: "Sodium", min: 100, max: 200, units: ["mEq/L", "mmol/L"], referenceRange: { low: 136, high: 145 } },
-  { testName: "Potassium", min: 1, max: 10, units: ["mEq/L", "mmol/L"], referenceRange: { low: 3.5, high: 5 } },
-  { testName: "Chloride", min: 80, max: 150, units: ["mEq/L", "mmol/L"], referenceRange: { low: 98, high: 106 } },
-  { testName: "Calcium", min: 4, max: 20, units: ["mg/dL", "mmol/L"], referenceRange: { low: 8.5, high: 10.5 } },
+  {
+    testName: "Sodium",
+    min: 100,
+    max: 200,
+    units: ["mEq/L", "mmol/L"],
+    referenceRange: { low: 136, high: 145 },
+  },
+  {
+    testName: "Potassium",
+    min: 1,
+    max: 10,
+    units: ["mEq/L", "mmol/L"],
+    referenceRange: { low: 3.5, high: 5 },
+  },
+  {
+    testName: "Chloride",
+    min: 80,
+    max: 150,
+    units: ["mEq/L", "mmol/L"],
+    referenceRange: { low: 98, high: 106 },
+  },
+  {
+    testName: "Calcium",
+    min: 4,
+    max: 20,
+    units: ["mg/dL", "mmol/L"],
+    referenceRange: { low: 8.5, high: 10.5 },
+  },
 
   // Liver Function
-  { testName: "AST", min: 0, max: 5000, units: ["U/L"], referenceRange: { low: 10, high: 40 } },
-  { testName: "ALT", min: 0, max: 5000, units: ["U/L"], referenceRange: { low: 7, high: 56 } },
-  { testName: "Alkaline Phosphatase", min: 0, max: 1000, units: ["U/L"], referenceRange: { low: 44, high: 147 } },
-  { testName: "Total Bilirubin", min: 0, max: 50, units: ["mg/dL"], referenceRange: { low: 0.1, high: 1.2 } },
-  { testName: "Albumin", min: 0.5, max: 8, units: ["g/dL"], referenceRange: { low: 3.5, high: 5.0 } },
+  {
+    testName: "AST",
+    min: 0,
+    max: 5000,
+    units: ["U/L"],
+    referenceRange: { low: 10, high: 40 },
+  },
+  {
+    testName: "ALT",
+    min: 0,
+    max: 5000,
+    units: ["U/L"],
+    referenceRange: { low: 7, high: 56 },
+  },
+  {
+    testName: "Alkaline Phosphatase",
+    min: 0,
+    max: 1000,
+    units: ["U/L"],
+    referenceRange: { low: 44, high: 147 },
+  },
+  {
+    testName: "Total Bilirubin",
+    min: 0,
+    max: 50,
+    units: ["mg/dL"],
+    referenceRange: { low: 0.1, high: 1.2 },
+  },
+  {
+    testName: "Albumin",
+    min: 0.5,
+    max: 8,
+    units: ["g/dL"],
+    referenceRange: { low: 3.5, high: 5.0 },
+  },
 
   // Thyroid
-  { testName: "TSH", min: 0.01, max: 100, units: ["mIU/L"], referenceRange: { low: 0.4, high: 4.0 } },
-  { testName: "Free T4", min: 0.1, max: 10, units: ["ng/dL"], referenceRange: { low: 0.8, high: 1.8 } },
+  {
+    testName: "TSH",
+    min: 0.01,
+    max: 100,
+    units: ["mIU/L"],
+    referenceRange: { low: 0.4, high: 4.0 },
+  },
+  {
+    testName: "Free T4",
+    min: 0.1,
+    max: 10,
+    units: ["ng/dL"],
+    referenceRange: { low: 0.8, high: 1.8 },
+  },
 
   // Cardiac
-  { testName: "Troponin I", min: 0, max: 100, units: ["ng/mL"], referenceRange: { low: 0, high: 0.04 } },
-  { testName: "BNP", min: 0, max: 5000, units: ["pg/mL"], referenceRange: { low: 0, high: 100 } },
-  { testName: "CRP", min: 0, max: 500, units: ["mg/L"], referenceRange: { low: 0, high: 3 } },
+  {
+    testName: "Troponin I",
+    min: 0,
+    max: 100,
+    units: ["ng/mL"],
+    referenceRange: { low: 0, high: 0.04 },
+  },
+  {
+    testName: "BNP",
+    min: 0,
+    max: 5000,
+    units: ["pg/mL"],
+    referenceRange: { low: 0, high: 100 },
+  },
+  {
+    testName: "CRP",
+    min: 0,
+    max: 500,
+    units: ["mg/L"],
+    referenceRange: { low: 0, high: 3 },
+  },
 ];
 
 // ============================================================================
@@ -178,7 +375,9 @@ function checkImpossibleCombinations(
   tests: Array<{ name: string; value: string; unit?: string }>,
 ): HallucinationCheck[] {
   const hallucinations: HallucinationCheck[] = [];
-  const testMap = new Map(tests.map((t) => [t.name.toLowerCase(), parseFloat(t.value)]));
+  const testMap = new Map(
+    tests.map((t) => [t.name.toLowerCase(), parseFloat(t.value)]),
+  );
 
   // Check: High hemoglobin + Low hematocrit (physiologically inconsistent)
   const hgb = testMap.get("hemoglobin");
@@ -335,11 +534,17 @@ export function detectHallucinations(
   allChecks.push(...duplicateChecks);
 
   // Calculate overall hallucination score
-  const totalPenalty = allChecks.reduce((sum, c) => sum + c.confidencePenalty, 0);
+  const totalPenalty = allChecks.reduce(
+    (sum, c) => sum + c.confidencePenalty,
+    0,
+  );
   const hallucinationScore = Math.min(1, totalPenalty);
 
   // Adjust confidence
-  const adjustedConfidence = Math.max(0, originalConfidence * (1 - hallucinationScore));
+  const adjustedConfidence = Math.max(
+    0,
+    originalConfidence * (1 - hallucinationScore),
+  );
 
   // Determine if manual review is required
   const highSeverityCount = allChecks.filter(

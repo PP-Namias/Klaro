@@ -24,25 +24,35 @@ export function buildSimplificationPrompt(
   language: string = "en",
 ): string {
   const dialect = getDialectLabel(language);
-  const langInstruction = language !== "en"
-    ? `Respond in ${dialect}. Use simple words that a grade 5 student would understand.`
-    : "Use simple words that a grade 5 student would understand. No medical jargon.";
+  const langInstruction =
+    language !== "en"
+      ? `Respond in ${dialect}. Use simple words that a grade 5 student would understand.`
+      : "Use simple words that a grade 5 student would understand. No medical jargon.";
 
-  const testsSection = data.tests.length > 0
-    ? `\nLab Results:\n${data.tests.map((t) =>
-        `- ${t.name}: ${t.value || "N/A"} ${t.unit || ""}${t.flagged ? " (FLAGGED - outside normal range)" : ""}${t.referenceRange ? ` [normal: ${t.referenceRange}]` : ""}`
-      ).join("\n")}`
-    : "";
+  const testsSection =
+    data.tests.length > 0
+      ? `\nLab Results:\n${data.tests
+          .map(
+            (t) =>
+              `- ${t.name}: ${t.value || "N/A"} ${t.unit || ""}${t.flagged ? " (FLAGGED - outside normal range)" : ""}${t.referenceRange ? ` [normal: ${t.referenceRange}]` : ""}`,
+          )
+          .join("\n")}`
+      : "";
 
-  const diagnosisSection = data.diagnosis.length > 0
-    ? `\nDiagnoses: ${data.diagnosis.join(", ")}`
-    : "";
+  const diagnosisSection =
+    data.diagnosis.length > 0
+      ? `\nDiagnoses: ${data.diagnosis.join(", ")}`
+      : "";
 
-  const medicationsSection = data.medications.length > 0
-    ? `\nMedications:\n${data.medications.map((m) =>
-        `- ${m.name}${m.dosage ? ` ${m.dosage}` : ""}${m.frequency ? `, ${m.frequency}` : ""}`
-      ).join("\n")}`
-    : "";
+  const medicationsSection =
+    data.medications.length > 0
+      ? `\nMedications:\n${data.medications
+          .map(
+            (m) =>
+              `- ${m.name}${m.dosage ? ` ${m.dosage}` : ""}${m.frequency ? `, ${m.frequency}` : ""}`,
+          )
+          .join("\n")}`
+      : "";
 
   return `You are a helpful medical assistant explaining lab results to a patient.
 
@@ -65,7 +75,9 @@ Return your response as JSON:
 }`;
 }
 
-export function parseSimplificationResponse(response: string): { summary: string; readingLevel: string } | null {
+export function parseSimplificationResponse(
+  response: string,
+): { summary: string; readingLevel: string } | null {
   const jsonMatch = response.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;
 
@@ -104,9 +116,11 @@ export async function simplifyWithGemini(
       headers: { "Content-Type": "application/json" },
       signal: AbortSignal.timeout(30_000),
       body: JSON.stringify({
-        contents: [{
-          parts: [{ text: prompt }],
-        }],
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
         generationConfig: {
           temperature: 0.3,
           maxOutputTokens: 1024,
@@ -118,7 +132,7 @@ export async function simplifyWithGemini(
       return buildFallbackSimplification(data, dialect);
     }
 
-    const result = await response.json() as any;
+    const result = (await response.json()) as any;
     const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     const parsed = parseSimplificationResponse(text);
@@ -147,11 +161,15 @@ function buildFallbackSimplification(
 
   if (flaggedTests.length > 0) {
     const flaggedNames = flaggedTests.map((t) => t.name).join(", ");
-    parts.push(`Some of your results need attention: ${flaggedNames}. Please share these results with your doctor.`);
+    parts.push(
+      `Some of your results need attention: ${flaggedNames}. Please share these results with your doctor.`,
+    );
   }
 
   if (data.tests.length > 0 && flaggedTests.length === 0) {
-    parts.push("Your test results appear to be within normal ranges based on the information provided.");
+    parts.push(
+      "Your test results appear to be within normal ranges based on the information provided.",
+    );
   }
 
   if (data.diagnosis.length > 0) {
@@ -159,14 +177,16 @@ function buildFallbackSimplification(
   }
 
   if (data.medications.length > 0) {
-    const medList = data.medications.map((m) =>
-      `${m.name}${m.dosage ? ` (${m.dosage})` : ""}`
-    ).join(", ");
+    const medList = data.medications
+      .map((m) => `${m.name}${m.dosage ? ` (${m.dosage})` : ""}`)
+      .join(", ");
     parts.push(`Medications: ${medList}.`);
   }
 
   if (parts.length === 0) {
-    parts.push("Your medical document has been scanned. Please consult your healthcare provider for a full explanation.");
+    parts.push(
+      "Your medical document has been scanned. Please consult your healthcare provider for a full explanation.",
+    );
   }
 
   return {

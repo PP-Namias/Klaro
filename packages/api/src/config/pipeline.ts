@@ -43,7 +43,8 @@ export function getPipelineConfig(): PipelineConfig {
     },
     gemini: {
       apiKey: process.env.GEMINI_API_KEY || process.env.LLM_API_KEY || null,
-      model: process.env.GEMINI_MODEL || process.env.LLM_MODEL || "gemini-2.0-flash",
+      model:
+        process.env.GEMINI_MODEL || process.env.LLM_MODEL || "gemini-2.0-flash",
       visionEnabled: envBool("GEMINI_ENABLE_VISION", true),
       confidenceThreshold: envNumber("GEMINI_CONFIDENCE_THRESHOLD", 0.6),
       maxRetries: envNumber("GEMINI_MAX_RETRIES", 3),
@@ -58,15 +59,27 @@ export function validatePipelineConfig(): string[] {
   const warnings: string[] = [];
 
   if (!config.gemini.apiKey) {
-    warnings.push("GEMINI_API_KEY not set — Gemini extraction will fall back to rule-based");
+    warnings.push(
+      "GEMINI_API_KEY not set — Gemini extraction will fall back to rule-based",
+    );
   }
 
-  if (config.ocr.confidenceThreshold < 0 || config.ocr.confidenceThreshold > 1) {
-    warnings.push("OCR_CONFIDENCE_THRESHOLD must be between 0 and 1, using default");
+  if (
+    config.ocr.confidenceThreshold < 0 ||
+    config.ocr.confidenceThreshold > 1
+  ) {
+    warnings.push(
+      "OCR_CONFIDENCE_THRESHOLD must be between 0 and 1, using default",
+    );
   }
 
-  if (config.gemini.confidenceThreshold < 0 || config.gemini.confidenceThreshold > 1) {
-    warnings.push("GEMINI_CONFIDENCE_THRESHOLD must be between 0 and 1, using default");
+  if (
+    config.gemini.confidenceThreshold < 0 ||
+    config.gemini.confidenceThreshold > 1
+  ) {
+    warnings.push(
+      "GEMINI_CONFIDENCE_THRESHOLD must be between 0 and 1, using default",
+    );
   }
 
   return warnings;

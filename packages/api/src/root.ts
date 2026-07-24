@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 
 import { adminRouter } from "./router/admin";
 import { auditRouter } from "./router/audit";
+import type { SuspiciousActivity } from "./router/audit";
 import { authRouter } from "./router/auth";
 import { bookingRouter } from "./router/booking";
 import { chatRouter } from "./router/chat";
@@ -61,3 +62,5 @@ export const appRouter = createTRPCRouter({
 
 // export type definition of API
 export type AppRouter = typeof appRouter;
+
+export type { SuspiciousActivity };

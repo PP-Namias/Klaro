@@ -51,9 +51,8 @@ export function buildExtractionPrompt(
   language?: string,
   documentType?: string,
 ): string {
-  const langInstruction = language && language !== "en"
-    ? `Respond in ${language}.`
-    : "";
+  const langInstruction =
+    language && language !== "en" ? `Respond in ${language}.` : "";
 
   const typeHint = documentType
     ? `This document appears to be a: ${documentType}.`
@@ -94,7 +93,9 @@ Return ONLY valid JSON with this exact structure:
 If a field has no data, use null or empty array. Return ONLY the JSON object, no other text.`;
 }
 
-export function parseGeminiResponse(response: string): Record<string, unknown> | null {
+export function parseGeminiResponse(
+  response: string,
+): Record<string, unknown> | null {
   const jsonMatch = response.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;
 
@@ -109,17 +110,26 @@ export function normalizeExtractionData(
   raw: Record<string, unknown>,
 ): MedicalExtractionData {
   const tests = (raw.tests as unknown[])?.filter(Array.isArray) ?? [];
-  const medications = (raw.medications as unknown[])?.filter(Array.isArray) ?? [];
+  const medications =
+    (raw.medications as unknown[])?.filter(Array.isArray) ?? [];
 
   return {
-    patientName: typeof raw.patientName === "string" ? raw.patientName : undefined,
+    patientName:
+      typeof raw.patientName === "string" ? raw.patientName : undefined,
     date: typeof raw.date === "string" ? raw.date : undefined,
-    documentType: typeof raw.documentType === "string" ? raw.documentType : undefined,
-    tests: (raw.tests as ExtractedTest[])?.filter((t) => t && typeof t.name === "string") ?? [],
+    documentType:
+      typeof raw.documentType === "string" ? raw.documentType : undefined,
+    tests:
+      (raw.tests as ExtractedTest[])?.filter(
+        (t) => t && typeof t.name === "string",
+      ) ?? [],
     diagnosis: Array.isArray(raw.diagnosis)
       ? raw.diagnosis.filter((d): d is string => typeof d === "string")
       : [],
-    medications: (raw.medications as ExtractedMedication[])?.filter((m) => m && typeof m.name === "string") ?? [],
+    medications:
+      (raw.medications as ExtractedMedication[])?.filter(
+        (m) => m && typeof m.name === "string",
+      ) ?? [],
   };
 }
 
@@ -146,9 +156,7 @@ export function calculateExtractionConfidence(
   return total > 0 ? Math.min(1, Math.round((score / total) * 100) / 100) : 0;
 }
 
-export function validateExtractionData(
-  data: MedicalExtractionData,
-): string[] {
+export function validateExtractionData(data: MedicalExtractionData): string[] {
   const errors: string[] = [];
 
   if (data.tests && !Array.isArray(data.tests)) {
@@ -172,9 +180,7 @@ export function validateExtractionData(
   return errors;
 }
 
-export function formatExtractionResult(
-  result: GeminiExtractionResult,
-): string {
+export function formatExtractionResult(result: GeminiExtractionResult): string {
   if (!result.success) {
     return `Extraction failed: ${result.error}`;
   }

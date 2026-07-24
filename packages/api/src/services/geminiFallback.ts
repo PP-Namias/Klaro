@@ -110,9 +110,7 @@ export function generateMockLabResults(): Record<string, unknown> {
         referenceRange: "150000-400000",
       },
     ],
-    vitalSigns: [
-      { type: "Blood Pressure", value: "120/80", unit: "mmHg" },
-    ],
+    vitalSigns: [{ type: "Blood Pressure", value: "120/80", unit: "mmHg" }],
     medicalHistory: [],
     notes: "All values within normal range.",
   };
@@ -132,12 +130,16 @@ export async function geminiFallback(
     await new Promise((resolve) => setTimeout(resolve, config.mockDelay));
   }
 
-  const data = documentType === "lab_result"
-    ? generateMockLabResults()
-    : generateMockPatientData();
+  const data =
+    documentType === "lab_result"
+      ? generateMockLabResults()
+      : generateMockPatientData();
 
   if (config.logFallback) {
-    console.log("[GeminiFallback] Using mock data for document type:", documentType || "unknown");
+    console.log(
+      "[GeminiFallback] Using mock data for document type:",
+      documentType || "unknown",
+    );
   }
 
   return {

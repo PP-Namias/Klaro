@@ -1,6 +1,5 @@
 import type { FacilityResponse } from "@klaro/validators";
 import type { ExtractedTest } from "@klaro/validators/extraction";
-
 import {
   facilityTypeOrder,
   facilityTypeRank as sharedFacilityTypeRank,

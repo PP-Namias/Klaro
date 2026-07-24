@@ -1,22 +1,26 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  getTranslation,
-  formatPatientInfoSection,
   formatDiagnosisSection,
-  formatMedicationsSection,
   formatLabResultsSection,
+  formatMedicationsSection,
+  formatPatientInfoSection,
   generatePlainLanguageSummary,
+  getTranslation,
 } from "../plainLanguage";
 
 describe("Plain Language Generation", () => {
   describe("getTranslation", () => {
     it("returns English translation", () => {
-      expect(getTranslation("en", "patientInformation")).toBe("Patient Information");
+      expect(getTranslation("en", "patientInformation")).toBe(
+        "Patient Information",
+      );
     });
 
     it("returns Filipino translation", () => {
-      expect(getTranslation("fil", "patientInformation")).toBe("Impormasyon ng Pasyente");
+      expect(getTranslation("fil", "patientInformation")).toBe(
+        "Impormasyon ng Pasyente",
+      );
     });
 
     it("returns Tagalog translation", () => {
@@ -48,10 +52,7 @@ describe("Plain Language Generation", () => {
     });
 
     it("formats patient info in Filipino", () => {
-      const section = formatPatientInfoSection(
-        { patientName: "Juan" },
-        "fil",
-      );
+      const section = formatPatientInfoSection({ patientName: "Juan" }, "fil");
 
       expect(section.title).toBe("Impormasyon ng Pasyente");
       expect(section.items[0]).toContain("Juan");
@@ -125,7 +126,9 @@ describe("Plain Language Generation", () => {
         dateOfBirth: "1990-01-01",
         gender: "Male",
         diagnosis: ["Hypertension"],
-        medications: [{ name: "Amlodipine", dosage: "5mg", frequency: "Daily" }],
+        medications: [
+          { name: "Amlodipine", dosage: "5mg", frequency: "Daily" },
+        ],
         labResults: [
           {
             testName: "BP",

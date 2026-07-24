@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  detectDialect,
   adaptResponseToDialect,
-  simplifyLanguage,
+  detectDialect,
   getMessageLanguage,
+  simplifyLanguage,
 } from "../dialectDetection";
 
 describe("Dialect Detection", () => {
@@ -42,17 +42,26 @@ describe("Dialect Detection", () => {
 
   describe("adaptResponseToDialect", () => {
     it("adapts to Filipino", () => {
-      const result = adaptResponseToDialect("Your results show high sugar", "fil");
+      const result = adaptResponseToDialect(
+        "Your results show high sugar",
+        "fil",
+      );
       expect(result).toContain("Ang iyong mga resulta");
     });
 
     it("adapts to Bisaya", () => {
-      const result = adaptResponseToDialect("Your results show high sugar", "bisaya");
+      const result = adaptResponseToDialect(
+        "Your results show high sugar",
+        "bisaya",
+      );
       expect(result).toContain("Ang imong mga resulta");
     });
 
     it("adapts to Ilocano", () => {
-      const result = adaptResponseToDialect("Your results show high sugar", "ilocano");
+      const result = adaptResponseToDialect(
+        "Your results show high sugar",
+        "ilocano",
+      );
       expect(result).toContain("Dagiti resultam");
     });
 
@@ -65,7 +74,9 @@ describe("Dialect Detection", () => {
   describe("simplifyLanguage", () => {
     it("simplifies complex words", () => {
       expect(simplifyLanguage("however, the results")).toBe("but, the results");
-      expect(simplifyLanguage("therefore, we recommend")).toBe("so, we recommend");
+      expect(simplifyLanguage("therefore, we recommend")).toBe(
+        "so, we recommend",
+      );
     });
 
     it("preserves simple text", () => {

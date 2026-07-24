@@ -66,11 +66,14 @@ export function parseVisionResponse(response: any): CloudOcrResult {
     for (const page of annotation.pages) {
       if (page.blocks) {
         for (const block of page.blocks) {
-          const blockText = block.paragraphs
-            ?.map((p: any) =>
-              p.words?.map((w: any) => w.symbols?.map((s: any) => s.text).join("")).join(" ")
-            )
-            .join(" ") || "";
+          const blockText =
+            block.paragraphs
+              ?.map((p: any) =>
+                p.words
+                  ?.map((w: any) => w.symbols?.map((s: any) => s.text).join(""))
+                  .join(" "),
+              )
+              .join(" ") || "";
 
           const confidence = block.confidence || 0;
 
@@ -98,7 +101,10 @@ export function isRetryableError(error: any): boolean {
   return false;
 }
 
-export function calculateRetryDelay(attempt: number, baseDelay: number = 1000): number {
+export function calculateRetryDelay(
+  attempt: number,
+  baseDelay: number = 1000,
+): number {
   const maxDelay = 30000;
   const delay = baseDelay * Math.pow(2, attempt);
   return Math.min(delay, maxDelay);

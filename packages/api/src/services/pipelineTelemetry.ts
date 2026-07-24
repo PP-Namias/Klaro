@@ -21,7 +21,10 @@ export function emitTelemetry(
     ...data,
   };
 
-  if (typeof process !== "undefined" && process.env?.NODE_ENV === "production") {
+  if (
+    typeof process !== "undefined" &&
+    process.env?.NODE_ENV === "production"
+  ) {
     try {
       console.log(JSON.stringify(entry));
     } catch {

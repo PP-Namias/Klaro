@@ -335,10 +335,7 @@ export async function getAuditSummary(params: {
   criticalEvents: number;
   eventsByAction: Record<string, number>;
 }> {
-  const allLogs = await db
-    .select()
-    .from(phiAuditLog)
-    .limit(10000);
+  const allLogs = await db.select().from(phiAuditLog).limit(10000);
 
   let phiDetections = 0;
   let externalApiCalls = 0;
@@ -348,7 +345,11 @@ export async function getAuditSummary(params: {
   for (const log of allLogs) {
     eventsByAction[log.action] = (eventsByAction[log.action] || 0) + 1;
 
-    if (log.phiTypesDetected && Array.isArray(log.phiTypesDetected) && log.phiTypesDetected.length > 0) {
+    if (
+      log.phiTypesDetected &&
+      Array.isArray(log.phiTypesDetected) &&
+      log.phiTypesDetected.length > 0
+    ) {
       phiDetections++;
     }
     if (log.externalApiCalled) {

@@ -20,13 +20,10 @@ describe("Context Assembler", () => {
   });
 
   it("assembles conversation history", () => {
-    const context = assembleDocumentContext(
-      {},
-      [
-        { role: "user", content: "What is my diagnosis?" },
-        { role: "assistant", content: "You have hypertension" },
-      ],
-    );
+    const context = assembleDocumentContext({}, [
+      { role: "user", content: "What is my diagnosis?" },
+      { role: "assistant", content: "You have hypertension" },
+    ]);
     expect(context).toContain("Recent conversation");
     expect(context).toContain("user: What is my diagnosis?");
   });

@@ -1,4 +1,14 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  logAuditEvent,
+  logChatMessage,
+  logDocumentUpload,
+  logLlmApiCall,
+  logPhiScrubbing,
+  startAuditFlushTimer,
+  stopAuditFlushTimer,
+} from "../auditLogger";
 
 // Mock the database client
 vi.mock("@klaro/db/client", () => ({
@@ -38,16 +48,6 @@ vi.mock("@klaro/db/schema", () => ({
     createdAt: "created_at",
   },
 }));
-
-import {
-  logAuditEvent,
-  logDocumentUpload,
-  logLlmApiCall,
-  logPhiScrubbing,
-  logChatMessage,
-  startAuditFlushTimer,
-  stopAuditFlushTimer,
-} from "../auditLogger";
 
 describe("Audit Logger", () => {
   let consoleSpy: ReturnType<typeof vi.spyOn>;

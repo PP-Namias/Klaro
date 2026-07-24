@@ -28,9 +28,7 @@ export function buildGeminiApiUrl(apiKey: string, model: string): string {
 }
 
 export function buildGeminiVisionPrompt(documentType?: string): string {
-  const typeInstruction = documentType
-    ? `This is a ${documentType}. `
-    : "";
+  const typeInstruction = documentType ? `This is a ${documentType}. ` : "";
 
   return `${typeInstruction}Extract all medical data from this image and return as JSON with these fields:
 - patientName: string

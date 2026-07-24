@@ -44,7 +44,9 @@ export function getAnalysis(id: string): AnalysisRecord | null {
   return analysisStore.get(id) || null;
 }
 
-export function getAnalysisByDocumentId(documentId: string): AnalysisRecord | null {
+export function getAnalysisByDocumentId(
+  documentId: string,
+): AnalysisRecord | null {
   for (const record of analysisStore.values()) {
     if (record.documentId === documentId) {
       return record;

@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  getExtractionPromptDefaults,
-  buildExtractionPrompt,
-  parseGeminiResponse,
-  calculateExtractionConfidence,
-  validateExtractionData,
-  formatExtractionResult,
-} from "../geminiExtraction";
 import type { GeminiExtractionResult } from "../geminiExtraction";
+import {
+  buildExtractionPrompt,
+  calculateExtractionConfidence,
+  formatExtractionResult,
+  getExtractionPromptDefaults,
+  parseGeminiResponse,
+  validateExtractionData,
+} from "../geminiExtraction";
 
 describe("Gemini Extraction Service", () => {
   describe("getExtractionPromptDefaults", () => {
@@ -77,11 +77,24 @@ describe("Gemini Extraction Service", () => {
         policyNumber: "PH123",
         phoneNumber: "09171234567",
         email: "john@test.com",
-        emergencyContact: { name: "Jane", relationship: "Wife", phone: "09181234567" },
+        emergencyContact: {
+          name: "Jane",
+          relationship: "Wife",
+          phone: "09181234567",
+        },
         diagnosis: ["Hypertension"],
-        medications: [{ name: "Amlodipine", dosage: "5mg", frequency: "Daily" }],
+        medications: [
+          { name: "Amlodipine", dosage: "5mg", frequency: "Daily" },
+        ],
         allergies: ["Penicillin"],
-        labResults: [{ testName: "CBC", value: "120", unit: "g/L", referenceRange: "120-160" }],
+        labResults: [
+          {
+            testName: "CBC",
+            value: "120",
+            unit: "g/L",
+            referenceRange: "120-160",
+          },
+        ],
         vitalSigns: [{ type: "BP", value: "130/85", unit: "mmHg" }],
         medicalHistory: ["None"],
         notes: "Routine checkup",
@@ -114,9 +127,18 @@ describe("Gemini Extraction Service", () => {
         phoneNumber: "09171234567",
         email: "john@test.com",
         diagnosis: ["Hypertension"],
-        medications: [{ name: "Amlodipine", dosage: "5mg", frequency: "Daily" }],
+        medications: [
+          { name: "Amlodipine", dosage: "5mg", frequency: "Daily" },
+        ],
         allergies: ["Penicillin"],
-        labResults: [{ testName: "CBC", value: "120", unit: "g/L", referenceRange: "120-160" }],
+        labResults: [
+          {
+            testName: "CBC",
+            value: "120",
+            unit: "g/L",
+            referenceRange: "120-160",
+          },
+        ],
       });
 
       expect(requiredOnly).toBeGreaterThan(optionalOnly);

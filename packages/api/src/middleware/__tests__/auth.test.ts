@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { TRPCContext } from "../../trpc";
+import { requireAuth } from "../auth";
+
 vi.mock("@trpc/server", () => ({
   TRPCError: class TRPCError extends Error {
     constructor(opts: { code: string; message: string }) {
@@ -9,9 +12,6 @@ vi.mock("@trpc/server", () => ({
     }
   },
 }));
-
-import { requireAuth } from "../auth";
-import type { TRPCContext } from "../../trpc";
 
 const makeCtx = (overrides: Partial<TRPCContext> = {}): TRPCContext =>
   ({
@@ -35,7 +35,7 @@ const makeCtx = (overrides: Partial<TRPCContext> = {}): TRPCContext =>
     ipAddress: "127.0.0.1",
     userAgent: "vitest",
     ...overrides,
-  } as unknown as TRPCContext);
+  }) as unknown as TRPCContext;
 
 describe("requireAuth", () => {
   it("returns user info when authenticated", () => {
@@ -46,14 +46,14 @@ describe("requireAuth", () => {
   });
 
   it("throws when no session exists", () => {
-    expect(() => requireAuth(makeCtx({ session: null as never }))).toThrow("You must be authenticated");
+    expect(() => requireAuth(makeCtx({ session: null as never }))).toThrow(
+      "You must be authenticated",
+    );
   });
 
   it("throws when no user in session", () => {
     expect(() =>
-      requireAuth(
-        makeCtx({ session: { user: null, session: null } as never }),
-      ),
+      requireAuth(makeCtx({ session: { user: null, session: null } as never })),
     ).toThrow("You must be authenticated");
   });
 
@@ -77,7 +77,9 @@ describe("requireAuth", () => {
   });
 
   it("returns null ip/ua when not available", () => {
-    const result = requireAuth(makeCtx({ ipAddress: null as never, userAgent: null as never }));
+    const result = requireAuth(
+      makeCtx({ ipAddress: null as never, userAgent: null as never }),
+    );
     expect(result.ipAddress).toBeNull();
     expect(result.userAgent).toBeNull();
   });

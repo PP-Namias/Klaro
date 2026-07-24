@@ -1,15 +1,15 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  buildBookingSuggestion,
+  buildSafetyDisclaimer,
   filterContent,
   getChatSafetyLevel,
-  buildSafetyDisclaimer,
-  shouldSuggestBooking,
-  buildBookingSuggestion,
-  validateMessageLength,
-  sanitizeInput,
-  isMedicalAdviceRequest,
   isHealthInformationQuery,
+  isMedicalAdviceRequest,
+  sanitizeInput,
+  shouldSuggestBooking,
+  validateMessageLength,
 } from "../chatSafety";
 
 describe("Chat Safety", () => {
@@ -104,7 +104,9 @@ describe("Chat Safety", () => {
   describe("sanitizeInput", () => {
     it("escapes HTML characters", () => {
       expect(sanitizeInput('<script>alert("xss")</script>')).toContain("&lt;");
-      expect(sanitizeInput('<script>alert("xss")</script>')).not.toContain("<script>");
+      expect(sanitizeInput('<script>alert("xss")</script>')).not.toContain(
+        "<script>",
+      );
     });
 
     it("trims whitespace", () => {
@@ -114,7 +116,9 @@ describe("Chat Safety", () => {
 
   describe("isMedicalAdviceRequest", () => {
     it("identifies medication questions", () => {
-      expect(isMedicalAdviceRequest("What medication should I take?")).toBe(true);
+      expect(isMedicalAdviceRequest("What medication should I take?")).toBe(
+        true,
+      );
     });
 
     it("identifies dosage questions", () => {

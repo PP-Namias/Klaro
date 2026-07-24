@@ -1,10 +1,16 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  cleanupDocument,
+  executeCleanup,
+  getCleanupStats,
+} from "../fileCleanup";
 
 // Mock dependencies
 const mockSelect = vi.fn();
 const mockFrom = vi.fn();
 const mockWhere = vi.fn(() => Promise.resolve([]));
-const mockLimit = vi.fn(function(this: unknown) {
+const mockLimit = vi.fn(function (this: unknown) {
   return this;
 });
 const mockUpdate = vi.fn();
@@ -43,7 +49,11 @@ vi.mock("drizzle-orm", () => ({
   and: (...args: unknown[]) => args,
   eq: (a: unknown, b: unknown) => ({ field: a as string, value: b }),
   lt: (a: unknown, b: unknown) => ({ field: a as string, op: "lt", value: b }),
-  inArray: (a: unknown, b: unknown) => ({ field: a as string, op: "in", value: b }),
+  inArray: (a: unknown, b: unknown) => ({
+    field: a as string,
+    op: "in",
+    value: b,
+  }),
   sql: (() => {}) as unknown,
 }));
 
@@ -68,12 +78,17 @@ vi.mock("cloudinary", () => ({
   },
 }));
 
-import { executeCleanup, getCleanupStats, cleanupDocument } from "../fileCleanup";
-
-const makeDoc = (overrides: Partial<{
-  id: string; userId: string; fileName: string; storageUrl: string | null;
-  status: string; createdAt: Date; updatedAt: Date;
-}> = {}) => ({
+const makeDoc = (
+  overrides: Partial<{
+    id: string;
+    userId: string;
+    fileName: string;
+    storageUrl: string | null;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }> = {},
+) => ({
   id: "doc-1",
   userId: "user-123",
   fileName: "test-report.pdf",
@@ -128,7 +143,9 @@ describe("File Cleanup Service", () => {
       setupDbMock([doc]);
 
       const { v2: cloudinary } = await import("cloudinary");
-      (cloudinary.uploader.destroy as ReturnType<typeof vi.fn>).mockResolvedValue({ result: "fail" });
+      (
+        cloudinary.uploader.destroy as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({ result: "fail" });
 
       const result = await executeCleanup({ dryRun: false });
       expect(result.failed).toBeGreaterThanOrEqual(1);

@@ -1,15 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
+import * as auditLogger from "../auditLogger";
 import {
-  scrubPhi,
-  scrubExtractedData,
+  buildScrubbedContext,
   containsPhi,
   detectPhiTypes,
+  scrubExtractedData,
   scrubForExternalApi,
-  buildScrubbedContext,
+  scrubPhi,
 } from "../phiScrubber";
-
-import * as auditLogger from "../auditLogger";
 
 describe("PHI Scrubber", () => {
   describe("SSN Detection", () => {
@@ -82,7 +81,9 @@ describe("PHI Scrubber", () => {
 
     it("detects complex email formats", () => {
       const result = scrubPhi("Contact: john.doe+medical@hospital.org");
-      expect(result.scrubbedText).not.toContain("john.doe+medical@hospital.org");
+      expect(result.scrubbedText).not.toContain(
+        "john.doe+medical@hospital.org",
+      );
       expect(result.matchCount).toBeGreaterThanOrEqual(1);
     });
   });
@@ -228,7 +229,9 @@ describe("PHI Scrubber", () => {
 
   describe("scrubForExternalApi", () => {
     it("scrubs PHI with custom replacement token", () => {
-      const result = scrubForExternalApi("Patient: Juan Dela Cruz, MRN: 12345678");
+      const result = scrubForExternalApi(
+        "Patient: Juan Dela Cruz, MRN: 12345678",
+      );
       expect(result.scrubbedText).toContain("[PHI_REDACTED]");
       expect(result.scrubbedText).not.toContain("Juan Dela Cruz");
       expect(result.scrubbedText).not.toContain("12345678");
@@ -324,7 +327,9 @@ WBC: 5000`;
     });
 
     it("detects complete Philippine address", () => {
-      const result = scrubPhi("Address: 42 P. Gomez St., Barangay San Lorenzo, Makati City 1226");
+      const result = scrubPhi(
+        "Address: 42 P. Gomez St., Barangay San Lorenzo, Makati City 1226",
+      );
       expect(result.scrubbedText).not.toContain("42 P. Gomez St.");
       expect(result.matchCount).toBeGreaterThanOrEqual(1);
     });
@@ -341,7 +346,12 @@ WBC: 5000`;
     });
 
     it("original text is never present in scrubbed output", () => {
-      const phiValues = ["Juan Dela Cruz", "123-45-6789", "09171234567", "juan@email.com"];
+      const phiValues = [
+        "Juan Dela Cruz",
+        "123-45-6789",
+        "09171234567",
+        "juan@email.com",
+      ];
       const text = `Patient: ${phiValues[0]}, SSN: ${phiValues[1]}, Phone: ${phiValues[2]}, Email: ${phiValues[3]}`;
       const result = scrubPhi(text);
       for (const val of phiValues) {
@@ -354,13 +364,15 @@ WBC: 5000`;
       const text = "Patient: Juan Dela Cruz, MRN: 12345678";
       const result = scrubPhi(text);
 
-      console.log(JSON.stringify({
-        type: "phi_scrubbed",
-        context: "test",
-        phiCount: result.matchCount,
-        phiTypes: [...new Set(result.matches.map((m) => m.type))],
-        timestamp: new Date().toISOString(),
-      }));
+      console.log(
+        JSON.stringify({
+          type: "phi_scrubbed",
+          context: "test",
+          phiCount: result.matchCount,
+          phiTypes: [...new Set(result.matches.map((m) => m.type))],
+          timestamp: new Date().toISOString(),
+        }),
+      );
 
       const calls = spy.mock.calls.map((c) => c[0]).join(" ");
       expect(calls).toContain("phi_scrubbed");

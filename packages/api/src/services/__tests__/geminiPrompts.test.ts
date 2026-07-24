@@ -1,39 +1,53 @@
 import { describe, expect, it } from "vitest";
 
+import type { MedicalPromptConfig } from "../geminiPrompts";
 import {
-  detectDocumentType,
-  buildSystemPrompt,
   buildExtractionPrompt,
+  buildSystemPrompt,
   buildUserPrompt,
+  detectDocumentType,
   validatePromptConfig,
 } from "../geminiPrompts";
-import type { MedicalPromptConfig } from "../geminiPrompts";
 
 describe("Gemini Prompts", () => {
   describe("detectDocumentType", () => {
     it("detects lab results", () => {
-      expect(detectDocumentType("Laboratory Result - Blood Chemistry")).toBe("lab_result");
+      expect(detectDocumentType("Laboratory Result - Blood Chemistry")).toBe(
+        "lab_result",
+      );
       expect(detectDocumentType("Hemoglobin: 12.5 g/dL")).toBe("lab_result");
       expect(detectDocumentType("Specimen: Urine")).toBe("lab_result");
     });
 
     it("detects prescriptions", () => {
-      expect(detectDocumentType("Prescription - Amoxicillin 500mg")).toBe("prescription");
-      expect(detectDocumentType("Sig: Take 1 tablet daily")).toBe("prescription");
+      expect(detectDocumentType("Prescription - Amoxicillin 500mg")).toBe(
+        "prescription",
+      );
+      expect(detectDocumentType("Sig: Take 1 tablet daily")).toBe(
+        "prescription",
+      );
     });
 
     it("detects discharge summaries", () => {
       expect(detectDocumentType("Discharge Summary")).toBe("discharge_summary");
-      expect(detectDocumentType("Attending Physician: Dr. Santos")).toBe("discharge_summary");
+      expect(detectDocumentType("Attending Physician: Dr. Santos")).toBe(
+        "discharge_summary",
+      );
     });
 
     it("detects medical certificates", () => {
-      expect(detectDocumentType("Medical Certificate")).toBe("medical_certificate");
-      expect(detectDocumentType("Fit to Work Certificate")).toBe("medical_certificate");
+      expect(detectDocumentType("Medical Certificate")).toBe(
+        "medical_certificate",
+      );
+      expect(detectDocumentType("Fit to Work Certificate")).toBe(
+        "medical_certificate",
+      );
     });
 
     it("detects imaging reports", () => {
-      expect(detectDocumentType("X-Ray Report - Chest PA View")).toBe("imaging_report");
+      expect(detectDocumentType("X-Ray Report - Chest PA View")).toBe(
+        "imaging_report",
+      );
       expect(detectDocumentType("CT Scan Abdomen")).toBe("imaging_report");
     });
 
@@ -50,12 +64,18 @@ describe("Gemini Prompts", () => {
     });
 
     it("includes language instruction", () => {
-      const prompt = buildSystemPrompt({ documentType: "prescription", language: "fil" });
+      const prompt = buildSystemPrompt({
+        documentType: "prescription",
+        language: "fil",
+      });
       expect(prompt).toContain("Filipino");
     });
 
     it("omits language for English", () => {
-      const prompt = buildSystemPrompt({ documentType: "lab_result", language: "en" });
+      const prompt = buildSystemPrompt({
+        documentType: "lab_result",
+        language: "en",
+      });
       expect(prompt).not.toContain("Respond in");
     });
 
@@ -123,7 +143,10 @@ describe("Gemini Prompts", () => {
     });
 
     it("returns error for unsupported language", () => {
-      const config: MedicalPromptConfig = { documentType: "lab_result", language: "chinese" };
+      const config: MedicalPromptConfig = {
+        documentType: "lab_result",
+        language: "chinese",
+      };
       const errors = validatePromptConfig(config);
       expect(errors.some((e) => e.includes("Unsupported language"))).toBe(true);
     });
@@ -131,7 +154,10 @@ describe("Gemini Prompts", () => {
     it("accepts valid languages", () => {
       const languages = ["en", "fil", "bisaya", "ilocano"];
       for (const lang of languages) {
-        const config: MedicalPromptConfig = { documentType: "lab_result", language: lang };
+        const config: MedicalPromptConfig = {
+          documentType: "lab_result",
+          language: lang,
+        };
         expect(validatePromptConfig(config)).toHaveLength(0);
       }
     });

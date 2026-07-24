@@ -10,13 +10,14 @@
 
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { z } from "zod/v4";
+
 import { db } from "@klaro/db/client";
 import { phiAuditLog } from "@klaro/db/schema";
-import { eq, and, gte, lte, desc, sql } from "drizzle-orm";
 
-import { protectedProcedure } from "../trpc";
 import type { AuditAction, AuditSeverity } from "../services/auditLogger";
+import { protectedProcedure } from "../trpc";
 
 // ============================================================================
 // Validation Schemas
@@ -25,22 +26,24 @@ import type { AuditAction, AuditSeverity } from "../services/auditLogger";
 const auditQuerySchema = z.object({
   userId: z.string().optional(),
   documentId: z.string().uuid().optional(),
-  action: z.enum([
-    "document_upload",
-    "document_view",
-    "document_delete",
-    "document_export",
-    "ocr_processing",
-    "llm_api_call",
-    "phi_scrubbed",
-    "chat_message",
-    "analysis_generated",
-    "analysis_viewed",
-    "phi_detected_in_upload",
-    "session_timeout",
-    "auth_failure",
-    "bulk_export",
-  ]).optional(),
+  action: z
+    .enum([
+      "document_upload",
+      "document_view",
+      "document_delete",
+      "document_export",
+      "ocr_processing",
+      "llm_api_call",
+      "phi_scrubbed",
+      "chat_message",
+      "analysis_generated",
+      "analysis_viewed",
+      "phi_detected_in_upload",
+      "session_timeout",
+      "auth_failure",
+      "bulk_export",
+    ])
+    .optional(),
   severity: z.enum(["info", "warning", "critical"]).optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
@@ -58,7 +61,7 @@ const complianceReportSchema = z.object({
 // Suspicious Activity Detection
 // ============================================================================
 
-interface SuspiciousActivity {
+export interface SuspiciousActivity {
   type: string;
   severity: AuditSeverity;
   userId?: string;
@@ -108,9 +111,7 @@ async function detectSuspiciousActivity(
 
   // Detect: Multiple failed auth attempts
   for (const [userId, userLogsList] of userLogs) {
-    const failedAuths = userLogsList.filter(
-      (l) => l.action === "auth_failure",
-    );
+    const failedAuths = userLogsList.filter((l) => l.action === "auth_failure");
     if (failedAuths.length >= 5) {
       activities.push({
         type: "multiple_failed_auth",
@@ -125,9 +126,7 @@ async function detectSuspiciousActivity(
 
   // Detect: Excessive LLM API calls (potential abuse)
   for (const [userId, userLogsList] of userLogs) {
-    const llmCalls = userLogsList.filter(
-      (l) => l.action === "llm_api_call",
-    );
+    const llmCalls = userLogsList.filter((l) => l.action === "llm_api_call");
     if (llmCalls.length >= 100) {
       activities.push({
         type: "excessive_api_usage",
@@ -162,9 +161,7 @@ async function detectSuspiciousActivity(
 
   // Detect: Bulk document exports
   for (const [userId, userLogsList] of userLogs) {
-    const exports = userLogsList.filter(
-      (l) => l.action === "document_export",
-    );
+    const exports = userLogsList.filter((l) => l.action === "document_export");
     if (exports.length >= 10) {
       activities.push({
         type: "bulk_export",
@@ -179,7 +176,9 @@ async function detectSuspiciousActivity(
 
   // Detect: Unusual IP access patterns
   for (const [ip, ipLogsList] of ipLogs) {
-    const uniqueUsers = new Set(ipLogsList.map((l) => l.userId).filter(Boolean));
+    const uniqueUsers = new Set(
+      ipLogsList.map((l) => l.userId).filter(Boolean),
+    );
     if (uniqueUsers.size >= 3) {
       activities.push({
         type: "multi_user_ip_access",
@@ -234,7 +233,8 @@ export const auditRouter = {
         conditions.push(lte(phiAuditLog.timestamp, new Date(input.endDate)));
       }
 
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+      const whereClause =
+        conditions.length > 0 ? and(...conditions) : undefined;
 
       const logs = await db
         .select()
@@ -298,7 +298,8 @@ export const auditRouter = {
         criticalEvents: logs.filter((l) => l.severity === "critical").length,
         warningEvents: logs.filter((l) => l.severity === "warning").length,
         uniqueUsers: new Set(logs.map((l) => l.userId).filter(Boolean)).size,
-        uniqueDocuments: new Set(logs.map((l) => l.documentId).filter(Boolean)).size,
+        uniqueDocuments: new Set(logs.map((l) => l.documentId).filter(Boolean))
+          .size,
       };
 
       // Group by action type
@@ -314,7 +315,10 @@ export const auditRouter = {
       }
 
       // Detect suspicious activity
-      const suspiciousActivity = await detectSuspiciousActivity(startDate, endDate);
+      const suspiciousActivity = await detectSuspiciousActivity(
+        startDate,
+        endDate,
+      );
 
       const report = {
         reportId: `compliance-${Date.now()}`,
@@ -374,7 +378,10 @@ export const auditRouter = {
       const startDate = new Date(input.startDate);
       const endDate = new Date(input.endDate);
 
-      const suspiciousActivity = await detectSuspiciousActivity(startDate, endDate);
+      const suspiciousActivity = await detectSuspiciousActivity(
+        startDate,
+        endDate,
+      );
 
       return {
         detected: suspiciousActivity.length > 0,
@@ -472,7 +479,9 @@ function generateRecommendations(
   }
 
   if (recommendations.length === 0) {
-    recommendations.push("No immediate action required - system operating normally");
+    recommendations.push(
+      "No immediate action required - system operating normally",
+    );
   }
 
   return recommendations;

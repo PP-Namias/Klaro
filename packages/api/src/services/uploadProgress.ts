@@ -1,4 +1,5 @@
-import { eq, desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
+
 import { document } from "@klaro/db/schema";
 
 export type UploadStage =
@@ -44,7 +45,9 @@ export function initUploadProgress(documentId: string): UploadProgress {
 
 export function updateUploadProgress(
   documentId: string,
-  update: Partial<Pick<UploadProgress, "stage" | "progress" | "message" | "error">>,
+  update: Partial<
+    Pick<UploadProgress, "stage" | "progress" | "message" | "error">
+  >,
 ): UploadProgress {
   let progress = progressMap.get(documentId);
   if (!progress) {
@@ -66,7 +69,9 @@ export function getUploadProgress(documentId: string): UploadProgress | null {
   return progressMap.get(documentId) || null;
 }
 
-export function completeUploadProgress(documentId: string): UploadProgress | null {
+export function completeUploadProgress(
+  documentId: string,
+): UploadProgress | null {
   const progress = progressMap.get(documentId);
   if (!progress) return null;
 

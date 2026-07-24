@@ -1,12 +1,12 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createDocument,
+  deleteDocument,
   getDocumentById,
   getDocumentsByUserId,
-  updateDocumentStatus,
-  deleteDocument,
   getDocumentStats,
+  updateDocumentStatus,
 } from "../documentService";
 
 const createMockDb = () => {
@@ -176,16 +176,25 @@ describe("Document Service", () => {
 
   describe("updateDocumentStatus", () => {
     it("updates status field", async () => {
-      const updated = await updateDocumentStatus(mockDb as any, "doc-1", "processing");
+      const updated = await updateDocumentStatus(
+        mockDb as any,
+        "doc-1",
+        "processing",
+      );
       expect(updated).toBeDefined();
       expect(updated?.status).toBe("processing");
     });
 
     it("updates OCR fields when provided", async () => {
-      const updated = await updateDocumentStatus(mockDb as any, "doc-1", "analyzed", {
-        ocrText: "extracted text",
-        confidence: 0.95,
-      });
+      const updated = await updateDocumentStatus(
+        mockDb as any,
+        "doc-1",
+        "analyzed",
+        {
+          ocrText: "extracted text",
+          confidence: 0.95,
+        },
+      );
       expect(updated).toBeDefined();
     });
   });
@@ -209,7 +218,8 @@ describe("Document Service", () => {
   describe("getDocumentStats", () => {
     it("returns counts by status", async () => {
       const mockStatsDb = {
-        select: vi.fn()
+        select: vi
+          .fn()
           .mockReturnValueOnce({
             from: vi.fn().mockReturnValue({
               where: vi.fn().mockResolvedValue([{ total: 5 }]),
@@ -217,12 +227,14 @@ describe("Document Service", () => {
           })
           .mockReturnValueOnce({
             from: vi.fn().mockReturnValue({
-              where: vi.fn().mockResolvedValue([{
-                uploaded: 2,
-                processing: 1,
-                analyzed: 1,
-                failed: 1,
-              }]),
+              where: vi.fn().mockResolvedValue([
+                {
+                  uploaded: 2,
+                  processing: 1,
+                  analyzed: 1,
+                  failed: 1,
+                },
+              ]),
             }),
           }),
       };

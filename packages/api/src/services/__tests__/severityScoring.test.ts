@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  batchCalculateSeverity,
   calculateSeverity,
+  getOverallSeverity,
   getSeverityColor,
   getSeverityIcon,
-  batchCalculateSeverity,
   hasCriticalValues,
   hasHighValues,
-  getOverallSeverity,
   REFERENCE_RANGES,
 } from "../severityScoring";
 
@@ -78,32 +78,24 @@ describe("Severity Scoring", () => {
 
   describe("hasCriticalValues", () => {
     it("returns true when critical values exist", () => {
-      const results = batchCalculateSeverity([
-        { code: "GLU", value: 300 },
-      ]);
+      const results = batchCalculateSeverity([{ code: "GLU", value: 300 }]);
       expect(hasCriticalValues(results)).toBe(true);
     });
 
     it("returns false when no critical values", () => {
-      const results = batchCalculateSeverity([
-        { code: "HGB", value: 14 },
-      ]);
+      const results = batchCalculateSeverity([{ code: "HGB", value: 14 }]);
       expect(hasCriticalValues(results)).toBe(false);
     });
   });
 
   describe("hasHighValues", () => {
     it("returns true when high values exist", () => {
-      const results = batchCalculateSeverity([
-        { code: "GLU", value: 120 },
-      ]);
+      const results = batchCalculateSeverity([{ code: "GLU", value: 120 }]);
       expect(hasHighValues(results)).toBe(true);
     });
 
     it("returns false when all normal", () => {
-      const results = batchCalculateSeverity([
-        { code: "HGB", value: 14 },
-      ]);
+      const results = batchCalculateSeverity([{ code: "HGB", value: 14 }]);
       expect(hasHighValues(results)).toBe(false);
     });
   });

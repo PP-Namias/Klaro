@@ -104,9 +104,7 @@ export function normalizeOcrResult(
     0,
   );
   const averageConfidence =
-    normalizedBlocks.length > 0
-      ? totalConfidence / normalizedBlocks.length
-      : 0;
+    normalizedBlocks.length > 0 ? totalConfidence / normalizedBlocks.length : 0;
 
   return {
     text: rawText,
@@ -136,9 +134,7 @@ export function compareOcrResults(
     textMatch: result1.normalizedText === result2.normalizedText,
     confidenceDelta: Math.abs(result1.confidence - result2.confidence),
     languageMatch: result1.language === result2.language,
-    blockCountDelta: Math.abs(
-      result1.blocks.length - result2.blocks.length,
-    ),
+    blockCountDelta: Math.abs(result1.blocks.length - result2.blocks.length),
   };
 }
 

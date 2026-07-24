@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  getTerminology,
-  convertToPlainLanguage,
-  getFilipinoTerm,
-  getBisayaTerm,
-  getIlocanoTerm,
   batchConvert,
-  searchTerminology,
+  convertToPlainLanguage,
   getAllTerminology,
+  getBisayaTerm,
+  getFilipinoTerm,
+  getIlocanoTerm,
+  getTerminology,
+  searchTerminology,
   TERMINOLOGY_DB,
 } from "../medicalTerminology";
 

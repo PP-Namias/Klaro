@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  generateTanongMoCard,
   formatTanongMoCard,
+  generateTanongMoCard,
   validateTanongMoCard,
 } from "../tanongMoCard";
 

@@ -12,8 +12,9 @@ import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
 
 import type { Auth } from "@klaro/auth";
-import { db } from "@klaro/db/client";
 import type { Language } from "@klaro/validators/language";
+import { db } from "@klaro/db/client";
+
 import { checkRateLimit } from "./middleware/rateLimiter";
 
 /**
@@ -45,7 +46,10 @@ export const createTRPCContext = async (opts: {
       ? (rawLang as Language)
       : "fil";
 
-  const ipAddress = opts.headers.get("x-forwarded-for") || opts.headers.get("x-real-ip") || null;
+  const ipAddress =
+    opts.headers.get("x-forwarded-for") ||
+    opts.headers.get("x-real-ip") ||
+    null;
   const userAgent = opts.headers.get("user-agent") || null;
 
   return {

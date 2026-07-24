@@ -14,10 +14,20 @@
  * 4. Logs all cleanup events for audit trail
  */
 
+declare module "cloudinary" {
+  export const v2: {
+    config: (config: Record<string, string | undefined>) => void;
+    uploader: {
+      destroy: (publicId: string) => Promise<{ result: string }>;
+    };
+  };
+}
+
 import { v2 as cloudinary } from "cloudinary";
+import { and, eq, inArray, lt } from "drizzle-orm";
+
 import { db } from "@klaro/db/client";
 import { document } from "@klaro/db/schema";
-import { and, eq, lt, inArray } from "drizzle-orm";
 
 // ============================================================================
 // Configuration
@@ -36,7 +46,10 @@ export interface CleanupConfig {
 
 const DEFAULT_CONFIG: CleanupConfig = {
   retentionHours: parseInt(process.env.FILE_RETENTION_HOURS || "24", 10),
-  maxRetentionHours: parseInt(process.env.FILE_MAX_RETENTION_HOURS || "168", 10),
+  maxRetentionHours: parseInt(
+    process.env.FILE_MAX_RETENTION_HOURS || "168",
+    10,
+  ),
   batchSize: parseInt(process.env.CLEANUP_BATCH_SIZE || "50", 10),
   dryRun: process.env.CLEANUP_DRY_RUN === "true",
 };
@@ -94,7 +107,7 @@ function extractCloudinaryPublicId(url: string): string | null {
 
     // Get everything after upload/ (excluding file extension)
     const publicIdParts = pathParts.slice(startIndex);
-    const lastPart = publicIdParts[publicIdParts.length - 1];
+    const lastPart = publicIdParts[publicIdParts.length - 1]!;
     const ext = lastPart.split(".").pop();
 
     if (ext && ["jpg", "jpeg", "png", "gif", "webp", "pdf"].includes(ext)) {
@@ -121,7 +134,10 @@ async function deleteFromCloudinary(url: string): Promise<boolean> {
     const result = await cloudinary.uploader.destroy(publicId);
     return result.result === "ok";
   } catch (error) {
-    console.error(`[FileCleanup] Cloudinary deletion failed for ${publicId}:`, error);
+    console.error(
+      `[FileCleanup] Cloudinary deletion failed for ${publicId}:`,
+      error,
+    );
     return false;
   }
 }
@@ -129,7 +145,9 @@ async function deleteFromCloudinary(url: string): Promise<boolean> {
 /**
  * Find documents that need cleanup based on retention policy
  */
-async function findDocumentsForCleanup(config: CleanupConfig): Promise<DocumentToDelete[]> {
+async function findDocumentsForCleanup(
+  config: CleanupConfig,
+): Promise<DocumentToDelete[]> {
   const retentionMs = config.retentionHours * 60 * 60 * 1000;
   const maxRetentionMs = config.maxRetentionHours * 60 * 60 * 1000;
   const now = new Date();
@@ -247,7 +265,9 @@ export async function executeCleanup(
       return result;
     }
 
-    console.log(`[FileCleanup] Found ${docsToDelete.length} documents for cleanup`);
+    console.log(
+      `[FileCleanup] Found ${docsToDelete.length} documents for cleanup`,
+    );
 
     for (const doc of docsToDelete) {
       try {
@@ -260,7 +280,9 @@ export async function executeCleanup(
               result.deletedFiles.push(doc.fileName);
             } else {
               result.failed++;
-              result.errors.push(`Failed to delete ${doc.fileName} from Cloudinary`);
+              result.errors.push(
+                `Failed to delete ${doc.fileName} from Cloudinary`,
+              );
             }
           } else {
             result.deleted++;
@@ -333,17 +355,16 @@ export async function getCleanupStats(): Promise<{
 
   const retentionMs = DEFAULT_CONFIG.retentionHours * 60 * 60 * 1000;
   const cutoff = new Date(Date.now() - retentionMs);
-  const docsPastRetention = docsWithFiles.filter(
-    (d) => d.updatedAt < cutoff,
-  );
+  const docsPastRetention = docsWithFiles.filter((d) => d.updatedAt < cutoff);
 
   return {
     totalDocuments: allDocs.length,
     documentsWithFiles: docsWithFiles.length,
     documentsPastRetention: docsPastRetention.length,
-    oldestDocument: docsWithFiles.length > 0
-      ? new Date(Math.min(...docsWithFiles.map((d) => d.createdAt.getTime())))
-      : null,
+    oldestDocument:
+      docsWithFiles.length > 0
+        ? new Date(Math.min(...docsWithFiles.map((d) => d.createdAt.getTime())))
+        : null,
     largestFileUrl: null, // Would need file size comparison
   };
 }
@@ -351,7 +372,10 @@ export async function getCleanupStats(): Promise<{
 /**
  * Manual cleanup for specific document (user-initiated deletion)
  */
-export async function cleanupDocument(docId: string, userId: string): Promise<{
+export async function cleanupDocument(
+  docId: string,
+  userId: string,
+): Promise<{
   success: boolean;
   error?: string;
 }> {

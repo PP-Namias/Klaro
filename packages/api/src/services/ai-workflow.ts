@@ -105,13 +105,15 @@ export async function executeDocumentWorkflow(
 
     // Stage 2: Extract test data
     const rawExtractedTests = extractTestsFromText(ocrResults.combinedText);
-    const extractedTests: ExtractedTestResult[] = rawExtractedTests.map((t) => ({
-      name: t.name,
-      value: t.value,
-      unit: t.unit,
-      referenceRange: t.referenceRange,
-      flagged: t.flagged === true,
-    }));
+    const extractedTests: ExtractedTestResult[] = rawExtractedTests.map(
+      (t) => ({
+        name: t.name,
+        value: t.value,
+        unit: t.unit,
+        referenceRange: t.referenceRange,
+        flagged: t.flagged === true,
+      }),
+    );
     const flaggedTests = extractedTests.filter((t) => t.flagged);
 
     // Stage 3: Generate plain language explanation
@@ -182,7 +184,8 @@ export async function executeDocumentWorkflow(
         summary: "Failed to process document. Please try again.",
         tests: [],
         severity: "MODERATE",
-        disclaimer: "Unable to process document. Please consult a healthcare provider.",
+        disclaimer:
+          "Unable to process document. Please consult a healthcare provider.",
       },
       tanqmoCard: {
         title: "Itatanong Mo Sa Doktor",

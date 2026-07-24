@@ -1,4 +1,5 @@
-import { eq, desc, count, sql } from "drizzle-orm";
+import { count, desc, eq, sql } from "drizzle-orm";
+
 import { document } from "@klaro/db/schema";
 
 export interface CreateDocumentInput {
@@ -105,13 +106,8 @@ export async function updateDocumentStatus(
   return (updated as DocumentRecord) || null;
 }
 
-export async function deleteDocument(
-  db: any,
-  id: string,
-): Promise<boolean> {
-  const result = await db
-    .delete(document)
-    .where(eq(document.id, id));
+export async function deleteDocument(db: any, id: string): Promise<boolean> {
+  const result = await db.delete(document).where(eq(document.id, id));
 
   return result.rowCount > 0;
 }

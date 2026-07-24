@@ -148,7 +148,8 @@ export function checkInputGuardrails(
     if (pattern.test(input)) {
       return {
         level: "blocked",
-        reason: "This request asks for medical diagnosis or treatment advice, which I cannot provide. Please consult a healthcare professional.",
+        reason:
+          "This request asks for medical diagnosis or treatment advice, which I cannot provide. Please consult a healthcare professional.",
         originalContent: input,
         modifications: ["diagnosis_request_blocked"],
       };
@@ -179,7 +180,8 @@ export function checkInputGuardrails(
       if (pattern.test(input)) {
         return {
           level: "caution",
-          reason: "This question may require personalized medical advice. Please consult your doctor for specific guidance.",
+          reason:
+            "This question may require personalized medical advice. Please consult your doctor for specific guidance.",
           originalContent: input,
           modifications: ["strict_mode_caution"],
         };

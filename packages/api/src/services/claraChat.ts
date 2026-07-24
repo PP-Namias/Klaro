@@ -1,4 +1,4 @@
-import { scrubPhi, detectPhiTypes } from "./phiScrubber";
+import { detectPhiTypes, scrubPhi } from "./phiScrubber";
 
 export type ClaraMessageType = "user" | "clara" | "system";
 
@@ -44,14 +44,17 @@ export function createClaraMessage(
  * Patient data is scrubbed before inclusion to prevent leakage to LLM APIs.
  */
 export function buildClaraSystemPrompt(context: ClaraContext): string {
-  const langInstruction = context.language && context.language !== "en"
-    ? `Respond in ${context.language}.`
-    : "";
+  const langInstruction =
+    context.language && context.language !== "en"
+      ? `Respond in ${context.language}.`
+      : "";
 
   let patientDataSection = "";
   if (context.patientData) {
     // Scrub PHI from patient data before including in prompt
-    const { scrubbedData, matches } = scrubExtractedDataForClara(context.patientData);
+    const { scrubbedData, matches } = scrubExtractedDataForClara(
+      context.patientData,
+    );
 
     if (matches.length > 0) {
       console.log(
@@ -86,9 +89,10 @@ When answering questions about the patient data:
 /**
  * Scrub PHI from patient data object for Clara's context
  */
-function scrubExtractedDataForClara(
-  data: Record<string, unknown>,
-): { scrubbedData: Record<string, unknown>; matches: Array<{ type: string; value: string }> } {
+function scrubExtractedDataForClara(data: Record<string, unknown>): {
+  scrubbedData: Record<string, unknown>;
+  matches: Array<{ type: string; value: string }>;
+} {
   const matches: Array<{ type: string; value: string }> = [];
   const scrubbed: Record<string, unknown> = {};
 
@@ -122,13 +126,14 @@ function scrubExtractedDataForClara(
   return { scrubbedData: scrubbed, matches };
 }
 
-export function shouldRespondToMessage(
-  message: string,
-): boolean {
+export function shouldRespondToMessage(message: string): boolean {
   const trimmed = message.trim().toLowerCase();
 
   if (trimmed.length < 2) return false;
-  if (/^(hi|hello|hey|good morning|good afternoon|good evening)$/i.test(trimmed)) return true;
+  if (
+    /^(hi|hello|hey|good morning|good afternoon|good evening)$/i.test(trimmed)
+  )
+    return true;
   if (/\?/.test(trimmed)) return true;
 
   const healthKeywords = [
@@ -175,9 +180,7 @@ export function formatClaraResponse(
   };
 }
 
-export function buildPatientDataSummary(
-  data: Record<string, unknown>,
-): string {
+export function buildPatientDataSummary(data: Record<string, unknown>): string {
   const parts: string[] = [];
 
   if (data.patientName) {

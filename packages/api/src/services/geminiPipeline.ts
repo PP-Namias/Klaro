@@ -1,13 +1,29 @@
-import type { MedicalExtractionData, GeminiExtractionResult, ExtractedTest } from "./geminiExtraction";
-import { calculateExtractionConfidence, normalizeExtractionData, isLowConfidence } from "./geminiExtraction";
+import type {
+  ExtractedTest,
+  GeminiExtractionResult,
+  MedicalExtractionData,
+} from "./geminiExtraction";
 import type { SimplificationResult } from "./geminiSimplification";
-import { simplifyWithGemini, buildSimplificationPrompt } from "./geminiSimplification";
-import { extractTestsFromText } from "./extraction";
-import { scrubForExternalApi, detectPhiTypes } from "./phiScrubber";
+import type { HallucinationResult } from "./hallucinationDetection";
 import { logLlmApiCall, logPhiScrubbing } from "./auditLogger";
-import { detectHallucinations, type HallucinationResult } from "./hallucinationDetection";
+import { extractTestsFromText } from "./extraction";
+import {
+  calculateExtractionConfidence,
+  isLowConfidence,
+  normalizeExtractionData,
+} from "./geminiExtraction";
+import {
+  buildSimplificationPrompt,
+  simplifyWithGemini,
+} from "./geminiSimplification";
+import { detectHallucinations } from "./hallucinationDetection";
+import { detectPhiTypes, scrubForExternalApi } from "./phiScrubber";
 
-export type ExtractionPath = "vision" | "ocr_extraction" | "rule_based" | "fallback";
+export type ExtractionPath =
+  | "vision"
+  | "ocr_extraction"
+  | "rule_based"
+  | "fallback";
 
 export interface FallbackChainResult {
   extractedData: MedicalExtractionData;
@@ -123,7 +139,10 @@ async function tryVisionExtraction(
     const { callGeminiVision } = await import("./geminiVision");
     const result = await callGeminiVision(imageBase64);
 
-    if (result.structuredData && Object.keys(result.structuredData).length > 0) {
+    if (
+      result.structuredData &&
+      Object.keys(result.structuredData).length > 0
+    ) {
       const normalized = normalizeExtractionData(result.structuredData);
       return {
         success: true,
@@ -138,7 +157,8 @@ async function tryVisionExtraction(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Vision extraction failed",
+      error:
+        error instanceof Error ? error.message : "Vision extraction failed",
     };
   }
 }
@@ -180,7 +200,9 @@ async function tryOcrExtraction(
       return { success: false, error: "No Gemini API key" };
     }
 
-    const { buildExtractionPrompt, parseGeminiResponse } = await import("./geminiExtraction");
+    const { buildExtractionPrompt, parseGeminiResponse } = await import(
+      "./geminiExtraction"
+    );
     // Use scrubbed text for the extraction prompt sent to external API
     const prompt = buildExtractionPrompt(scrubResult.scrubbedText, language);
     const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
@@ -210,7 +232,7 @@ async function tryOcrExtraction(
       return { success: false, error: `Gemini API error: ${response.status}` };
     }
 
-    const result = await response.json() as any;
+    const result = (await response.json()) as any;
     const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     if (!text) {

@@ -1,4 +1,10 @@
-export type DocumentType = "lab_result" | "prescription" | "discharge_summary" | "medical_certificate" | "imaging_report" | "unknown";
+export type DocumentType =
+  | "lab_result"
+  | "prescription"
+  | "discharge_summary"
+  | "medical_certificate"
+  | "imaging_report"
+  | "unknown";
 
 export interface MedicalPromptConfig {
   documentType: DocumentType;
@@ -65,9 +71,10 @@ export function detectDocumentType(text: string): DocumentType {
 }
 
 export function buildSystemPrompt(config: MedicalPromptConfig): string {
-  const langInstruction = config.language && config.language !== "en"
-    ? `Respond in ${config.language}.`
-    : "";
+  const langInstruction =
+    config.language && config.language !== "en"
+      ? `Respond in ${config.language}.`
+      : "";
 
   return `You are a medical document analysis AI for Klaro, a Filipino health tech application.
 Your task is to extract structured medical data from document images.
@@ -181,7 +188,8 @@ export function buildUserPrompt(
   imageDescription?: string,
   additionalContext?: string,
 ): string {
-  let prompt = "Analyze this medical document image and extract all visible data.";
+  let prompt =
+    "Analyze this medical document image and extract all visible data.";
 
   if (imageDescription) {
     prompt += `\n\nImage description: ${imageDescription}`;
@@ -212,7 +220,10 @@ export function validatePromptConfig(config: MedicalPromptConfig): string[] {
     errors.push(`Invalid document type: ${config.documentType}`);
   }
 
-  if (config.language && !["en", "fil", "bisaya", "ilocano"].includes(config.language)) {
+  if (
+    config.language &&
+    !["en", "fil", "bisaya", "ilocano"].includes(config.language)
+  ) {
     errors.push(`Unsupported language: ${config.language}`);
   }
 

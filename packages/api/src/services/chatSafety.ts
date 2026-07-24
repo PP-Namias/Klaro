@@ -23,14 +23,16 @@ const CAUTION_PATTERNS = [
   /should\s+i\s+(worry|be\s+scared)/i,
 ];
 
-const SAFETY_DISCLAIMER = "This information is for educational purposes only. Please consult your healthcare provider for medical advice.";
+const SAFETY_DISCLAIMER =
+  "This information is for educational purposes only. Please consult your healthcare provider for medical advice.";
 
 export function filterContent(content: string): SafetyResult {
   for (const pattern of BLOCKED_PATTERNS) {
     if (pattern.test(content)) {
       return {
         level: "blocked",
-        reason: "This question requires professional medical advice. Please consult your doctor.",
+        reason:
+          "This question requires professional medical advice. Please consult your doctor.",
       };
     }
   }
@@ -39,7 +41,8 @@ export function filterContent(content: string): SafetyResult {
     if (pattern.test(content)) {
       return {
         level: "caution",
-        reason: "I understand your concern. Let me explain what I can share, but please consult your doctor for personalized advice.",
+        reason:
+          "I understand your concern. Let me explain what I can share, but please consult your doctor for personalized advice.",
       };
     }
   }

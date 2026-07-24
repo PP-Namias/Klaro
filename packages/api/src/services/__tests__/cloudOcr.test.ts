@@ -1,13 +1,13 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  getCloudOcrApiKey,
   buildVisionApiUrl,
   buildVisionRequest,
-  parseVisionResponse,
-  isRetryableError,
   calculateRetryDelay,
   callGoogleVision,
+  getCloudOcrApiKey,
+  isRetryableError,
+  parseVisionResponse,
 } from "../cloudOcr";
 
 describe("Cloud OCR Service", () => {
@@ -210,7 +210,9 @@ describe("Cloud OCR Service", () => {
           ok: true,
           json: () =>
             Promise.resolve({
-              responses: [{ fullTextAnnotation: { text: "Success", confidence: 0.9 } }],
+              responses: [
+                { fullTextAnnotation: { text: "Success", confidence: 0.9 } },
+              ],
             }),
         });
       });

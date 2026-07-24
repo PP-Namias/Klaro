@@ -33,15 +33,24 @@ export function validatePreprocessOptions(
 ): string[] {
   const errors: string[] = [];
 
-  if (options.contrast !== undefined && (options.contrast < 0.1 || options.contrast > 5.0)) {
+  if (
+    options.contrast !== undefined &&
+    (options.contrast < 0.1 || options.contrast > 5.0)
+  ) {
     errors.push("contrast must be between 0.1 and 5.0");
   }
 
-  if (options.brightness !== undefined && (options.brightness < 0.1 || options.brightness > 5.0)) {
+  if (
+    options.brightness !== undefined &&
+    (options.brightness < 0.1 || options.brightness > 5.0)
+  ) {
     errors.push("brightness must be between 0.1 and 5.0");
   }
 
-  if (options.binarizeThreshold !== undefined && (options.binarizeThreshold < 0 || options.binarizeThreshold > 255)) {
+  if (
+    options.binarizeThreshold !== undefined &&
+    (options.binarizeThreshold < 0 || options.binarizeThreshold > 255)
+  ) {
     errors.push("binarizeThreshold must be between 0 and 255");
   }
 
@@ -70,9 +79,7 @@ export function estimateProcessingTime(
   return Math.round(factor);
 }
 
-export function shouldPreprocess(
-  options: ImagePreprocessOptions,
-): boolean {
+export function shouldPreprocess(options: ImagePreprocessOptions): boolean {
   return (
     options.grayscale === true ||
     (options.contrast !== undefined && options.contrast !== 1.0) ||
