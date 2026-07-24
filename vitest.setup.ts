@@ -1,0 +1,13 @@
+process.env.POSTGRES_URL = "postgres://mock:mock@localhost:5432/mock";
+process.env.ENCRYPTION_MASTER_KEY = "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890";
+process.env.ENCRYPTION_KEY_VERSION = "1";
+process.env.CLOUDINARY_CLOUD_NAME = "mock-cloud";
+process.env.CLOUDINARY_API_KEY = "mock-key";
+process.env.CLOUDINARY_API_SECRET = "mock-secret";
+process.env.GEMINI_API_KEY = "mock-gemini-key";
+process.env.LLM_API_KEY = "mock-llm-key";
+process.env.OPENAI_API_KEY = "mock-openai-key";
+process.env.CAL_COM_API_KEY = "mock-cal-key";
+process.env.CAL_COM_BASE_URL = "https://api.cal.com";
+process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "mock-anon-key";
