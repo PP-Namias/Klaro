@@ -12,7 +12,7 @@ import { callLLMAPI } from "../services/llm";
 import { scrubPhi, detectPhiTypes } from "../services/phiScrubber";
 import { logChatMessage, logLlmApiCall } from "../services/auditLogger";
 import { checkInputGuardrails, filterOutput, buildBlockedResponse } from "../services/medicalGuardrails";
-import { protectedProcedure } from "../trpc";
+import { chatProcedure as protectedProcedure } from "../trpc";
 
 export type ChatSeverity = "LOW" | "MODERATE" | "HIGH";
 

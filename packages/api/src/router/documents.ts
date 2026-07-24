@@ -16,7 +16,7 @@ import {
 import { extractTestsFromText } from "../services/extraction";
 import { generatePlainLanguageExplanation } from "../services/llm";
 import { buildOcrResult } from "../services/ocr";
-import { protectedProcedure, publicProcedure } from "../trpc";
+import { protectedProcedure, publicProcedure, scanProcedure } from "../trpc";
 
 const scanUrgencyValues = ["LOW", "MODERATE", "HIGH"] as const;
 type ScanUrgency = (typeof scanUrgencyValues)[number];
@@ -175,7 +175,7 @@ export const documentsRouter = {
    * Upload a medical document (PDF, image, etc.)
    * Triggers OCR processing asynchronously
    */
-  upload: protectedProcedure
+  upload: scanProcedure
     .input(
       z.object({
         fileName: z.string().max(255),
@@ -536,7 +536,7 @@ export const documentsRouter = {
   /**
    * Process a document's image using server-side OCR and extract fields
    */
-  processServerOcr: protectedProcedure
+  processServerOcr: scanProcedure
     .input(
       z.object({
         documentId: z.uuid(),
@@ -544,12 +544,6 @@ export const documentsRouter = {
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "User must be authenticated",
-        });
-      }
 
       const [doc] = await ctx.db
         .select()
@@ -606,7 +600,7 @@ export const documentsRouter = {
    * Generate plain-language explanation using LLM service
    * Requires extracted test fields to be present
    */
-  generateAnalysis: protectedProcedure
+  generateAnalysis: scanProcedure
     .input(
       z.object({
         documentId: z.uuid(),
@@ -614,12 +608,6 @@ export const documentsRouter = {
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "User must be authenticated",
-        });
-      }
 
       // Fetch document and verify ownership
       const [doc] = await ctx.db
