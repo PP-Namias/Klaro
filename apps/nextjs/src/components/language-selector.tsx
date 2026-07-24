@@ -6,7 +6,6 @@ import type { Language } from "@klaro/validators/language";
 import { LANGUAGE_OPTIONS } from "@klaro/validators/language";
 
 import { useLanguage } from "~/providers/language-provider";
-
 import styles from "./language-selector.module.css";
 
 const FLAG_EMOJI: Record<Language, string> = {
@@ -17,7 +16,7 @@ const FLAG_EMOJI: Record<Language, string> = {
 };
 
 export function LanguageSelector() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -42,11 +41,7 @@ export function LanguageSelector() {
   const current = LANGUAGE_OPTIONS.find((l) => l.code === language);
 
   return (
-    <div
-      ref={ref}
-      className={styles.container}
-      onBlur={handleBlur}
-    >
+    <div ref={ref} className={styles.container} onBlur={handleBlur}>
       <button
         type="button"
         onClick={handleToggle}

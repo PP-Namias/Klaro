@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import type React, { useRef, useState } from "react";
+
 import { Button } from "@klaro/ui/button";
-import { WorkflowProgress, type WorkflowStage } from "./workflow-progress";
+
+import type { WorkflowStage } from "./workflow-progress";
+import { WorkflowProgress } from "./workflow-progress";
 
 interface SelectedFile {
   file: File;
@@ -49,7 +52,7 @@ function fileToBase64(file: File): Promise<string> {
 export function EnhancedUpload({
   onUploadComplete,
   onError,
-  language = "English",
+  _language = "English",
 }: EnhancedUploadProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -60,7 +63,9 @@ export function EnhancedUpload({
   const [processingTime, setProcessingTime] = useState<number | undefined>();
 
   const isProcessing =
-    workflowStage !== "idle" && workflowStage !== "completed" && workflowStage !== "error";
+    workflowStage !== "idle" &&
+    workflowStage !== "completed" &&
+    workflowStage !== "error";
 
   const selectFile = (file: File) => {
     if (!acceptedTypes.has(file.type)) {
@@ -119,7 +124,7 @@ export function EnhancedUpload({
     try {
       // Stage 1: Upload
       setProgress(10);
-      const base64 = await fileToBase64(selected.file);
+      const _base64 = await fileToBase64(selected.file);
 
       // Stage 2: OCR
       setWorkflowStage("ocr");
@@ -223,7 +228,13 @@ export function EnhancedUpload({
           <p style={{ margin: 0, fontSize: "0.875rem", color: "#666" }}>
             or click to browse
           </p>
-          <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.75rem", color: "#999" }}>
+          <p
+            style={{
+              margin: "0.5rem 0 0 0",
+              fontSize: "0.75rem",
+              color: "#999",
+            }}
+          >
             Supports PNG, JPG, PDF (max 50MB)
           </p>
           <input
@@ -254,7 +265,9 @@ export function EnhancedUpload({
               marginBottom: "0.75rem",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+            >
               <span style={{ fontSize: "1.5rem" }}>
                 {selected.kind === "pdf" ? "📄" : "🖼️"}
               </span>
@@ -299,7 +312,11 @@ export function EnhancedUpload({
           <Button
             type="button"
             onClick={handleSubmit}
-            style={{ width: "100%", backgroundColor: "#2563eb", color: "white" }}
+            style={{
+              width: "100%",
+              backgroundColor: "#2563eb",
+              color: "white",
+            }}
           >
             Process with AI
           </Button>

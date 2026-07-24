@@ -8,9 +8,6 @@
  *
  * HIPAA Compliance: Auto-logoff after 15 minutes of inactivity
  */
-
-import { useEffect, useState } from "react";
-
 import { useSessionTimeout } from "~/providers/session-timeout-provider";
 
 interface SessionWarningModalProps {
@@ -22,21 +19,12 @@ export function SessionWarningModal({
   onExtend,
   onLogout,
 }: SessionWarningModalProps) {
-  const { isWarning, remainingMs, formattedRemaining, extendSession, forceLogout } =
-    useSessionTimeout();
-  const [countdown, setCountdown] = useState(formattedRemaining);
-
-  // Update countdown display
-  useEffect(() => {
-    if (!isWarning) return;
-
-    const timer = setInterval(() => {
-      const state = useSessionTimeout();
-      setCountdown(state.formattedRemaining);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [isWarning]);
+  const {
+    isWarning,
+    formattedRemaining,
+    extendSession,
+    forceLogout,
+  } = useSessionTimeout();
 
   if (!isWarning) return null;
 
@@ -87,7 +75,7 @@ export function SessionWarningModal({
         <div className="mb-6 flex justify-center">
           <div className="rounded-lg bg-red-50 px-4 py-3 dark:bg-red-900/20">
             <span className="text-2xl font-bold text-red-600 dark:text-red-400">
-              {countdown}
+              {formattedRemaining}
             </span>
             <span className="ml-2 text-sm text-red-500 dark:text-red-400">
               remaining
@@ -99,13 +87,13 @@ export function SessionWarningModal({
         <div className="flex flex-col gap-3">
           <button
             onClick={handleExtend}
-            className="w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
           >
             Continue Session
           </button>
           <button
             onClick={handleLogout}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             Logout Now
           </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import type React from "react";
 
 export type WorkflowStage =
   | "idle"
@@ -18,7 +18,7 @@ interface WorkflowProgressProps {
   processingTimeMs?: number;
 }
 
-const stages: Array<{ key: WorkflowStage; label: string; icon: string }> = [
+const stages: { key: WorkflowStage; label: string; icon: string }[] = [
   { key: "uploading", label: "Uploading", icon: "📤" },
   { key: "ocr", label: "OCR Processing", icon: "🔍" },
   { key: "extraction", label: "Data Extraction", icon: "📊" },
@@ -73,7 +73,14 @@ export function WorkflowProgress({
             />
           </div>
           {processingTimeMs && (
-            <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.8rem", color: "#666", textAlign: "center" }}>
+            <p
+              style={{
+                margin: "0.5rem 0 0 0",
+                fontSize: "0.8rem",
+                color: "#666",
+                textAlign: "center",
+              }}
+            >
               Processing time: {(processingTimeMs / 1000).toFixed(1)}s
             </p>
           )}
@@ -81,8 +88,14 @@ export function WorkflowProgress({
       )}
 
       {/* Stage Indicators */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2rem" }}>
-        {stages.map((s, index) => {
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "2rem",
+        }}
+      >
+        {stages.map((s, _index) => {
           const isActive = s.key === stage;
           const isComplete = currentIndex > getStageIndex(s.key);
           const isPending = currentIndex < getStageIndex(s.key);
@@ -163,7 +176,13 @@ export function WorkflowProgress({
             <p style={{ margin: 0, color: "#2563eb", fontWeight: "500" }}>
               {getStageMessage(stage)}
             </p>
-            <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.875rem", color: "#666" }}>
+            <p
+              style={{
+                margin: "0.5rem 0 0 0",
+                fontSize: "0.875rem",
+                color: "#666",
+              }}
+            >
               This may take a few moments...
             </p>
           </div>

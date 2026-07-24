@@ -1,9 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { labResultsDemo } from "~/data/demo-lab-results";
-import { prescriptionDemo } from "~/data/demo-prescriptions";
 import { dischargeDemo } from "~/data/demo-discharge";
+import { labResultsDemo } from "~/data/demo-lab-results";
 import { xrayReportDemo } from "~/data/demo-other-docs";
+import { prescriptionDemo } from "~/data/demo-prescriptions";
 
 describe("DemoLabResults display", () => {
   it("shows patient name", () => {

@@ -1,12 +1,18 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import type { SeverityLevel } from "~/components/scan/SeverityIndicator";
 import type { FlaggedValue } from "~/components/scan/FlaggedValuesSection";
 import type { Dialect } from "~/components/scan/PlainLanguageSummary";
+import type { SeverityLevel } from "~/components/scan/SeverityIndicator";
 
 describe("SeverityIndicator", () => {
   it("supports all severity levels", () => {
-    const levels: SeverityLevel[] = ["normal", "low", "moderate", "high", "critical"];
+    const levels: SeverityLevel[] = [
+      "normal",
+      "low",
+      "moderate",
+      "high",
+      "critical",
+    ];
     expect(levels).toHaveLength(5);
     expect(levels).toContain("critical");
     expect(levels).toContain("moderate");

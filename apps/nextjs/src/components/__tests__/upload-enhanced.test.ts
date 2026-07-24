@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import type { UploadFileItem } from "~/hooks/use-file-upload";
 import type { UploadErrorItem } from "~/components/upload-error";
+import type { UploadFileItem } from "~/hooks/use-file-upload";
 
 describe("UploadError", () => {
   it("renders nothing when errors array is empty", () => {
@@ -83,9 +83,24 @@ describe("UploadComplete", () => {
 describe("Upload Queue", () => {
   it("tracks progress per file", () => {
     const items: UploadFileItem[] = [
-      { id: "f1", file: new File(["a"], "a.pdf"), stage: "uploading", progress: 45 },
-      { id: "f2", file: new File(["b"], "b.png"), stage: "complete", progress: 100 },
-      { id: "f3", file: new File(["c"], "c.jpg"), stage: "pending", progress: 0 },
+      {
+        id: "f1",
+        file: new File(["a"], "a.pdf"),
+        stage: "uploading",
+        progress: 45,
+      },
+      {
+        id: "f2",
+        file: new File(["b"], "b.png"),
+        stage: "complete",
+        progress: 100,
+      },
+      {
+        id: "f3",
+        file: new File(["c"], "c.jpg"),
+        stage: "pending",
+        progress: 0,
+      },
     ];
     expect(items[0]?.progress).toBe(45);
     expect(items[1]?.progress).toBe(100);
@@ -94,8 +109,18 @@ describe("Upload Queue", () => {
 
   it("supports cancellation by file id", () => {
     const items: UploadFileItem[] = [
-      { id: "f1", file: new File(["a"], "a.pdf"), stage: "pending", progress: 0 },
-      { id: "f2", file: new File(["b"], "b.png"), stage: "uploading", progress: 50 },
+      {
+        id: "f1",
+        file: new File(["a"], "a.pdf"),
+        stage: "pending",
+        progress: 0,
+      },
+      {
+        id: "f2",
+        file: new File(["b"], "b.png"),
+        stage: "uploading",
+        progress: 50,
+      },
     ];
     const cancelled = new Set<string>(["f1"]);
     const filtered = items.filter((f) => !cancelled.has(f.id));
@@ -111,7 +136,12 @@ describe("Upload Queue", () => {
       progress: 0,
       error: "Network error",
     };
-    const retried = { ...item, stage: "pending" as const, progress: 0, error: undefined };
+    const retried = {
+      ...item,
+      stage: "pending" as const,
+      progress: 0,
+      error: undefined,
+    };
     expect(retried.stage).toBe("pending");
     expect(retried.error).toBeUndefined();
   });

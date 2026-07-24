@@ -1,11 +1,24 @@
 "use client";
 
-import React from "react";
-import { Check, Loader2, AlertCircle, Scan, Brain, FileText } from "lucide-react";
+import type React from "react";
+import {
+  AlertCircle,
+  Brain,
+  Check,
+  FileText,
+  Loader2,
+  Scan,
+} from "lucide-react";
 
 import styles from "./upload-progress.module.css";
 
-type UploadStage = "idle" | "validating" | "uploading" | "processing" | "complete" | "error";
+type UploadStage =
+  | "idle"
+  | "validating"
+  | "uploading"
+  | "processing"
+  | "complete"
+  | "error";
 
 interface UploadProgressProps {
   stage: UploadStage;
@@ -35,22 +48,37 @@ const stageIcons: Record<UploadStage, React.ReactNode> = {
 const pipelineStages = [
   { key: "ocr", label: "Checking document clarity", icon: <Scan size={16} /> },
   { key: "gemini", label: "Reading with Gemini", icon: <Brain size={16} /> },
-  { key: "simplify", label: "Simplifying for you", icon: <FileText size={16} /> },
+  {
+    key: "simplify",
+    label: "Simplifying for you",
+    icon: <FileText size={16} />,
+  },
   { key: "done", label: "Analysis complete", icon: <Check size={16} /> },
 ];
 
-export function UploadProgress({ stage, progress = 0, error, className }: UploadProgressProps) {
+export function UploadProgress({
+  stage,
+  progress = 0,
+  error,
+  className,
+}: UploadProgressProps) {
   if (stage === "idle") return null;
 
-  const isActive = stage === "validating" || stage === "uploading" || stage === "processing";
+  const isActive =
+    stage === "validating" || stage === "uploading" || stage === "processing";
   const isComplete = stage === "complete";
   const isError = stage === "error";
 
-  const currentPipelineStep = stage === "validating" ? -1
-    : stage === "uploading" ? 0
-    : stage === "processing" ? 1
-    : stage === "complete" ? 3
-    : -1;
+  const currentPipelineStep =
+    stage === "validating"
+      ? -1
+      : stage === "uploading"
+        ? 0
+        : stage === "processing"
+          ? 1
+          : stage === "complete"
+            ? 3
+            : -1;
 
   return (
     <div
@@ -59,14 +87,18 @@ export function UploadProgress({ stage, progress = 0, error, className }: Upload
       <div className={styles.progressHeader}>
         <span className={styles.progressIcon}>{stageIcons[stage]}</span>
         <span className={styles.progressLabel}>
-          {isError ? error || stageLabels[stage] : stageLabels[stage]}
+          {isError ? error ?? stageLabels[stage] : stageLabels[stage]}
         </span>
         {isActive && (
-          <span className={styles.progressPercent}>{Math.round(progress)}%</span>
+          <span className={styles.progressPercent}>
+            {Math.round(progress)}%
+          </span>
         )}
       </div>
 
-      {(stage === "uploading" || stage === "processing" || stage === "complete") && (
+      {(stage === "uploading" ||
+        stage === "processing" ||
+        stage === "complete") && (
         <div style={{ marginTop: "1rem" }}>
           {pipelineStages.map((ps, idx) => {
             const isPast = currentPipelineStep > idx;
@@ -93,7 +125,11 @@ export function UploadProgress({ stage, progress = 0, error, className }: Upload
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor: isPast ? "#22c55e" : isCurrent ? "#3b82f6" : "#e5e7eb",
+                    backgroundColor: isPast
+                      ? "#22c55e"
+                      : isCurrent
+                        ? "#3b82f6"
+                        : "#e5e7eb",
                     color: isPast || isCurrent ? "#fff" : "#9ca3af",
                     fontSize: "12px",
                     transition: "all 0.3s ease",
@@ -105,7 +141,11 @@ export function UploadProgress({ stage, progress = 0, error, className }: Upload
                   style={{
                     fontSize: "0.85rem",
                     fontWeight: isCurrent ? 600 : 400,
-                    color: isPast ? "#16a34a" : isCurrent ? "#1e40af" : "#6b7280",
+                    color: isPast
+                      ? "#16a34a"
+                      : isCurrent
+                        ? "#1e40af"
+                        : "#6b7280",
                   }}
                 >
                   {ps.label}

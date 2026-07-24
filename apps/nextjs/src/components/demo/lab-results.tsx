@@ -2,9 +2,9 @@
 
 import React from "react";
 
+import type { DemoLanguage } from "~/components/demo-modal";
 import type { LabResultsDemo } from "~/data/demo-lab-results";
 import { labResultsEnglish } from "~/data/demo-english";
-import type { DemoLanguage } from "~/components/demo-modal";
 import { useLanguage } from "~/providers/language-provider";
 
 interface DemoLabResultsProps {
@@ -50,13 +50,18 @@ export function DemoLabResults({ data, language = "tl" }: DemoLabResultsProps) {
       <div style={urgencyBadgeStyle(d.urgency)}>
         <span style={{ fontWeight: 600 }}>
           {d.urgency === "HIGH"
-            ? language === "tl" ? "MATAAS" : "HIGH"
+            ? language === "tl"
+              ? "MATAAS"
+              : "HIGH"
             : d.urgency === "MODERATE"
               ? "MODERATE"
-              : language === "tl" ? "MABABA" : "LOW"}
+              : language === "tl"
+                ? "MABABA"
+                : "LOW"}
         </span>
         <span style={{ fontSize: "0.8rem", opacity: 0.8 }}>
-          — {flaggedCount} {language === "tl" ? "ng" : "of"} {totalCount} {language === "tl" ? "tests ay hindi normal" : "tests are abnormal"}
+          — {flaggedCount} {language === "tl" ? "ng" : "of"} {totalCount}{" "}
+          {language === "tl" ? "tests ay hindi normal" : "tests are abnormal"}
         </span>
       </div>
 
@@ -69,24 +74,57 @@ export function DemoLabResults({ data, language = "tl" }: DemoLabResultsProps) {
       {/* Test Results Table */}
       <div>
         <h4 style={sectionTitleStyle}>{t("results.section.extractedData")}</h4>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+        >
           {d.tests.map((test, i) => (
             <div key={i} style={testCardStyle(test.flagged)}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 500, color: "#111", fontSize: "0.9rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span
+                  style={{ fontWeight: 500, color: "#111", fontSize: "0.9rem" }}
+                >
                   {test.name}
                 </span>
-                {test.flagged && <span style={flaggedBadgeStyle}>{language === "tl" ? "Hindi Normal" : "Abnormal"}</span>}
+                {test.flagged && (
+                  <span style={flaggedBadgeStyle}>
+                    {language === "tl" ? "Hindi Normal" : "Abnormal"}
+                  </span>
+                )}
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-                <span style={{ fontSize: "1.1rem", fontWeight: 600, color: test.flagged ? "#dc2626" : "#16a34a" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginTop: 4,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "1.1rem",
+                    fontWeight: 600,
+                    color: test.flagged ? "#dc2626" : "#16a34a",
+                  }}
+                >
                   {test.value} {test.unit}
                 </span>
                 <span style={{ fontSize: "0.8rem", color: "#999" }}>
                   Ref: {test.referenceRange}
                 </span>
               </div>
-              <p style={{ fontSize: "0.8rem", color: "#666", margin: "6px 0 0", lineHeight: 1.4 }}>
+              <p
+                style={{
+                  fontSize: "0.8rem",
+                  color: "#666",
+                  margin: "6px 0 0",
+                  lineHeight: 1.4,
+                }}
+              >
                 {test.interpretation}
               </p>
             </div>
@@ -97,11 +135,23 @@ export function DemoLabResults({ data, language = "tl" }: DemoLabResultsProps) {
       {/* Warnings */}
       {d.warnings.length > 0 && (
         <div style={warningBoxStyle}>
-          <h4 style={{ ...sectionTitleStyle, color: "#991b1b", marginBottom: 8 }}>{t("results.section.warnings")}</h4>
+          <h4
+            style={{ ...sectionTitleStyle, color: "#991b1b", marginBottom: 8 }}
+          >
+            {t("results.section.warnings")}
+          </h4>
           {d.warnings.map((w, i) => (
             <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
               <span style={{ color: "#dc2626", flexShrink: 0 }}>&#9888;</span>
-              <span style={{ fontSize: "0.85rem", color: "#7f1d1d", lineHeight: 1.4 }}>{w}</span>
+              <span
+                style={{
+                  fontSize: "0.85rem",
+                  color: "#7f1d1d",
+                  lineHeight: 1.4,
+                }}
+              >
+                {w}
+              </span>
             </div>
           ))}
         </div>
@@ -109,11 +159,19 @@ export function DemoLabResults({ data, language = "tl" }: DemoLabResultsProps) {
 
       {/* Recommendations */}
       <div style={recommendationBoxStyle}>
-        <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>{t("results.section.recommendations")}</h4>
+        <h4 style={{ ...sectionTitleStyle, color: "#1e40af", marginBottom: 8 }}>
+          {t("results.section.recommendations")}
+        </h4>
         {d.recommendations.map((r, i) => (
           <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
-            <span style={{ color: "#3b82f6", flexShrink: 0, fontWeight: 600 }}>{i + 1}.</span>
-            <span style={{ fontSize: "0.85rem", color: "#1e3a5f", lineHeight: 1.4 }}>{r}</span>
+            <span style={{ color: "#3b82f6", flexShrink: 0, fontWeight: 600 }}>
+              {i + 1}.
+            </span>
+            <span
+              style={{ fontSize: "0.85rem", color: "#1e3a5f", lineHeight: 1.4 }}
+            >
+              {r}
+            </span>
           </div>
         ))}
       </div>
@@ -124,12 +182,28 @@ export function DemoLabResults({ data, language = "tl" }: DemoLabResultsProps) {
           {t("results.section.tanqmo")}
         </h4>
         <p style={{ fontSize: "0.8rem", color: "#666", margin: "0 0 8px" }}>
-          {language === "tl" ? "Mga tanong na pwede mong itanong sa iyong doktor:" : "Questions you can ask your doctor:"}
+          {language === "tl"
+            ? "Mga tanong na pwede mong itanong sa iyong doktor:"
+            : "Questions you can ask your doctor:"}
         </p>
         {d.tanongMoQuestions.map((q, i) => (
-          <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, padding: "8px 12px", background: "#eff6ff", borderRadius: 8 }}>
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              gap: 8,
+              marginBottom: 6,
+              padding: "8px 12px",
+              background: "#eff6ff",
+              borderRadius: 8,
+            }}
+          >
             <span style={{ color: "#3b82f6", flexShrink: 0 }}>&#10067;</span>
-            <span style={{ fontSize: "0.85rem", color: "#1e40af", lineHeight: 1.4 }}>{q}</span>
+            <span
+              style={{ fontSize: "0.85rem", color: "#1e40af", lineHeight: 1.4 }}
+            >
+              {q}
+            </span>
           </div>
         ))}
       </div>

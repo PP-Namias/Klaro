@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import Lenis from "lenis";
 
-type LenisProviderProps = {
+interface LenisProviderProps {
   children: React.ReactNode;
 };
 

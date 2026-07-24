@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Sparkles, Globe } from "lucide-react";
+import { Globe, Sparkles, X } from "lucide-react";
 
 import { useLanguage } from "~/providers/language-provider";
 import styles from "./demo-modal.module.css";
@@ -97,7 +97,11 @@ export function DemoModal({
                   className={styles.langToggle}
                   onClick={toggleLanguage}
                   aria-label={`Switch to ${language === "tl" ? "English" : "Tagalog"}`}
-                  title={language === "tl" ? "Switch to English" : "Mag-switch sa Tagalog"}
+                  title={
+                    language === "tl"
+                      ? "Switch to English"
+                      : "Mag-switch sa Tagalog"
+                  }
                 >
                   <Globe size={14} />
                   <span>{language === "tl" ? "EN" : "TL"}</span>

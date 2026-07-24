@@ -12,13 +12,24 @@ interface DisclaimerBannerProps {
 const defaultMessages = {
   info: "This information is for educational purposes only.",
   warning: "Some information could not be verified against your document.",
-  medical: "This is not medical advice. Always consult a healthcare professional.",
+  medical:
+    "This is not medical advice. Always consult a healthcare professional.",
 };
 
 const bannerStyles = {
   info: { bg: "#eff6ff", border: "#bfdbfe", color: "#1d4ed8", Icon: Info },
-  warning: { bg: "#fffbeb", border: "#fde68a", color: "#d97706", Icon: AlertTriangle },
-  medical: { bg: "#fef2f2", border: "#fecaca", color: "#dc2626", Icon: AlertTriangle },
+  warning: {
+    bg: "#fffbeb",
+    border: "#fde68a",
+    color: "#d97706",
+    Icon: AlertTriangle,
+  },
+  medical: {
+    bg: "#fef2f2",
+    border: "#fecaca",
+    color: "#dc2626",
+    Icon: AlertTriangle,
+  },
 };
 
 export function DisclaimerBanner({

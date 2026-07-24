@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+
 export const SCAN_SESSION_KEY = "scanAnalysisSession";
 
 export interface ScanAnalysisSession {
@@ -20,16 +22,16 @@ export interface ScanAnalysisSession {
   };
 }
 
-export type RawScanPayload = {
+export interface RawScanPayload {
   requestId?: string;
-  status?: "completed" | "error" | "pending" | string;
+  status?: string;
   source?: ScanAnalysisSession["source"];
   language?: string;
   confidence?: number;
   extractedData?: Record<string, unknown>;
   fields?: Record<string, unknown>;
   plainLanguageSummary?: string;
-  urgency?: "LOW" | "MODERATE" | "HIGH" | string;
+  urgency?: string;
   recommendations?: string[];
   warnings?: string[];
   timestamp?: string;

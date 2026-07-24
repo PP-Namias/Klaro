@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { LANGUAGE_OPTIONS, LANGUAGE_LABELS } from "@klaro/validators/language";
+import { LANGUAGE_LABELS, LANGUAGE_OPTIONS } from "@klaro/validators/language";
 
 describe("LanguageSelector component (unit tests)", () => {
   describe("language options", () => {

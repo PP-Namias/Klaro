@@ -81,7 +81,8 @@ export function PlainLanguageSummary({
                 fontSize: "0.75rem",
                 fontWeight: d.value === dialect ? 600 : 400,
                 fontFamily: "var(--font-geist)",
-                boxShadow: d.value === dialect ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                boxShadow:
+                  d.value === dialect ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
               }}
               type="button"
               title={d.value}

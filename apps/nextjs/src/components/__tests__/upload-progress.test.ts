@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { UploadStage } from "../upload-progress";
 
@@ -31,7 +31,11 @@ describe("UploadProgress", () => {
   });
 
   it("validating stage is part of upload flow", () => {
-    const activeStages: UploadStage[] = ["validating", "uploading", "processing"];
+    const activeStages: UploadStage[] = [
+      "validating",
+      "uploading",
+      "processing",
+    ];
     expect(activeStages).toContain("validating");
     expect(activeStages).toContain("uploading");
     expect(activeStages).toContain("processing");

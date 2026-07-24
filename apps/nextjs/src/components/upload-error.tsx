@@ -36,7 +36,15 @@ export function UploadError({ errors, onDismiss, onRetry }: UploadErrorProps) {
   if (errors.length === 0) return null;
 
   return (
-    <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+    <div
+      style={{
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        marginTop: 12,
+      }}
+    >
       {errors.map((err, i) => {
         const Icon = errorIcons[err.type];
         const color = errorColor[err.type];
@@ -57,10 +65,14 @@ export function UploadError({ errors, onDismiss, onRetry }: UploadErrorProps) {
           >
             <Icon size={18} color={color} style={{ flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 500, color: "#1a1a1a", marginBottom: 2 }}>
+              <div
+                style={{ fontWeight: 500, color: "#1a1a1a", marginBottom: 2 }}
+              >
                 {err.fileName}
               </div>
-              <div style={{ color: "#666", lineHeight: 1.4 }}>{err.message}</div>
+              <div style={{ color: "#666", lineHeight: 1.4 }}>
+                {err.message}
+              </div>
             </div>
             <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
               {onRetry && err.type === "network" && (

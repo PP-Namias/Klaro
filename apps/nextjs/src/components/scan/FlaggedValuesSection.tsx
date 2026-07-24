@@ -2,7 +2,8 @@
 
 import { AlertTriangle } from "lucide-react";
 
-import { SeverityIndicator, type SeverityLevel } from "./SeverityIndicator";
+import type { SeverityLevel } from "./SeverityIndicator";
+import { SeverityIndicator } from "./SeverityIndicator";
 
 interface FlaggedValue {
   testName: string;

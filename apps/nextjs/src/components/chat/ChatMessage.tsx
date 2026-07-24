@@ -9,7 +9,10 @@ interface ChatMessageProps {
   claraAvatarUrl?: string;
 }
 
-export function ChatMessage({ message, claraAvatarUrl = "/clara.png" }: ChatMessageProps) {
+export function ChatMessage({
+  message,
+  claraAvatarUrl = "/clara.png",
+}: ChatMessageProps) {
   const isUser = message.sender === "user";
 
   return (
@@ -41,11 +44,7 @@ export function ChatMessage({ message, claraAvatarUrl = "/clara.png" }: ChatMess
           </div>
         )}
         {message.text && (
-          <div
-            className={
-              isUser ? "userChatBubble" : "claraChatBubble"
-            }
-          >
+          <div className={isUser ? "userChatBubble" : "claraChatBubble"}>
             <span>{message.text}</span>
           </div>
         )}

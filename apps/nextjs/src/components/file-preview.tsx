@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
 import { FileText, X } from "lucide-react";
 
@@ -26,7 +25,11 @@ const formatBytes = (bytes: number): string => {
   return `${mb.toFixed(2)} MB`;
 };
 
-export function FilePreview({ files, onRemove, disabled = false }: FilePreviewProps) {
+export function FilePreview({
+  files,
+  onRemove,
+  disabled = false,
+}: FilePreviewProps) {
   if (files.length === 0) return null;
 
   return (
@@ -47,7 +50,9 @@ export function FilePreview({ files, onRemove, disabled = false }: FilePreviewPr
           </div>
           <div className={styles.fileInfo}>
             <span className={styles.fileName}>{item.file.name}</span>
-            <span className={styles.fileSize}>{formatBytes(item.file.size)}</span>
+            <span className={styles.fileSize}>
+              {formatBytes(item.file.size)}
+            </span>
           </div>
           {!disabled && (
             <button

@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 
 import type { ChatMessage } from "~/hooks/use-chat";
-
 import { ChatMessage as ChatMessageComponent } from "./ChatMessage";
 
 interface ChatHistoryProps {

@@ -13,7 +13,12 @@ interface TanongMoCardProps {
 
 const severityColors = {
   low: { bg: "#f0fdf4", border: "#bbf7d0", text: "#166534", dot: "#22c55e" },
-  moderate: { bg: "#fffbeb", border: "#fde68a", text: "#92400e", dot: "#f59e0b" },
+  moderate: {
+    bg: "#fffbeb",
+    border: "#fde68a",
+    text: "#92400e",
+    dot: "#f59e0b",
+  },
   high: { bg: "#fef2f2", border: "#fecaca", text: "#991b1b", dot: "#ef4444" },
 };
 
@@ -25,7 +30,7 @@ export function TanongMoCard({
   title = "Questions for Your Doctor",
   subtitle = "Tanong Mo Sa Doktor",
 }: TanongMoCardProps) {
-  const colors = severityColors[severity] ?? severityColors.low;
+  const colors = severityColors[severity];
 
   return (
     <div

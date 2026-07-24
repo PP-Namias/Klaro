@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-base-to-string */
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -88,8 +90,7 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
       <div style={{ padding: "2rem", maxWidth: "700px", margin: "0 auto" }}>
         <h1>{t("results.scanInProgress")}</h1>
         <p style={{ color: "#334155" }}>
-          {result.plainLanguageSummary ||
-            t("results.processingByGemini")}
+          {result.plainLanguageSummary || t("results.processingByGemini")}
         </p>
         <div
           style={{
@@ -107,9 +108,10 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
   }
 
   if (result.status === "error") {
-    const rejectionAdvice = result.error?.includes("blurry") || result.error?.includes("clarity")
-      ? result.error
-      : null;
+    const rejectionAdvice =
+      result.error?.includes("blurry") || result.error?.includes("clarity")
+        ? result.error
+        : null;
 
     return (
       <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
@@ -165,18 +167,21 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
               borderLeft: "4px solid #eab308",
             }}
           >
-            <p style={{ margin: 0, fontSize: "0.9rem" }}>
-              {rejectionAdvice}
-            </p>
-            <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "#666" }}>
-              Tip: Place the document flat on a table in good lighting. Hold your camera steady and ensure all text is readable.
+            <p style={{ margin: 0, fontSize: "0.9rem" }}>{rejectionAdvice}</p>
+            <p
+              style={{
+                margin: "0.5rem 0 0 0",
+                fontSize: "0.85rem",
+                color: "#666",
+              }}
+            >
+              Tip: Place the document flat on a table in good lighting. Hold
+              your camera steady and ensure all text is readable.
             </p>
           </div>
         )}
 
-        {!rejectionAdvice && (
-          <p>{result.error || t("results.scanError")}</p>
-        )}
+        {!rejectionAdvice && <p>{result.error || t("results.scanError")}</p>}
 
         <Button onClick={onScanAgain} style={{ marginTop: "1rem" }}>
           {t("btn.tryAgain")}
@@ -191,7 +196,8 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
       <div style={{ marginBottom: "2rem" }}>
         <h1>{t("results.medicalAnalysis")}</h1>
         <p style={{ color: "#666", marginBottom: "0.5rem" }}>
-          {t("results.scanId") + " "}<code>{result.requestId}</code>
+          {t("results.scanId") + " "}
+          <code>{result.requestId}</code>
         </p>
         <p style={{ color: "#666" }}>
           {result.timestamp &&
@@ -237,7 +243,8 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             {urgencyStyles[urgency].label}
           </div>
           <h2 style={{ margin: 0, marginBottom: "0.5rem" }}>
-            {t("results.urgencyLabel") + " "}{urgency}
+            {t("results.urgencyLabel") + " "}
+            {urgency}
           </h2>
           <p style={{ margin: 0, color: "#334155" }}>
             {urgency === "HIGH"
@@ -267,7 +274,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
               marginBottom: "0.5rem",
             }}
           >
-            <p style={{ margin: 0, fontWeight: "500" }}>{t("results.confidence")}</p>
+            <p style={{ margin: 0, fontWeight: "500" }}>
+              {t("results.confidence")}
+            </p>
 
             {result.source && (
               <span
@@ -301,7 +310,11 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
                         : "#e65100",
                 }}
               >
-                {result.source === "gemini" ? "AI" : result.source === "llm" ? "LLM" : "Fallback"}
+                {result.source === "gemini"
+                  ? "AI"
+                  : result.source === "llm"
+                    ? "LLM"
+                    : "Fallback"}
               </span>
             )}
           </div>
@@ -362,7 +375,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             marginBottom: "1.5rem",
           }}
         >
-          <h2 style={{ marginTop: 0 }}>{"📋 " + t("results.section.summary")}</h2>
+          <h2 style={{ marginTop: 0 }}>
+            {"📋 " + t("results.section.summary")}
+          </h2>
           <p>{summary}</p>
         </div>
       )}
@@ -378,7 +393,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             marginBottom: "1.5rem",
           }}
         >
-          <h2 style={{ marginTop: 0, color: "#c62828" }}>{"⚠️ " + t("results.section.warnings")}</h2>
+          <h2 style={{ marginTop: 0, color: "#c62828" }}>
+            {"⚠️ " + t("results.section.warnings")}
+          </h2>
           <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
             {result.warnings.map((warning, idx) => (
               <li key={idx} style={{ marginBottom: "0.5rem" }}>
@@ -400,7 +417,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             marginBottom: "1.5rem",
           }}
         >
-          <h2 style={{ marginTop: 0 }}>{"💡 " + t("results.section.recommendations")}</h2>
+          <h2 style={{ marginTop: 0 }}>
+            {"💡 " + t("results.section.recommendations")}
+          </h2>
           <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
             {recommendations.map((rec, idx) => (
               <li key={idx} style={{ marginBottom: "0.5rem" }}>
@@ -421,7 +440,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             marginBottom: "1.5rem",
           }}
         >
-          <h2 style={{ marginTop: 0 }}>{"📊 " + t("results.section.extractedData")}</h2>
+          <h2 style={{ marginTop: 0 }}>
+            {"📊 " + t("results.section.extractedData")}
+          </h2>
           <table
             style={{
               width: "100%",

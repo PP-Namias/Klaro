@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, FileText, Image as ImageIcon, Eye } from "lucide-react";
+import { Check, Eye, FileText, Image as ImageIcon } from "lucide-react";
 
 interface UploadCompleteItem {
   fileName: string;
@@ -25,7 +25,15 @@ export function UploadComplete({ items, onViewAnalysis }: UploadCompleteProps) {
   if (items.length === 0) return null;
 
   return (
-    <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+    <div
+      style={{
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        marginTop: 12,
+      }}
+    >
       {items.map((item) => (
         <div
           key={item.analysisId}
@@ -81,9 +89,19 @@ export function UploadComplete({ items, onViewAnalysis }: UploadCompleteProps) {
             >
               {item.fileName}
             </div>
-            <div style={{ color: "#16a34a", fontSize: "0.8rem", display: "flex", alignItems: "center", gap: 4 }}>
+            <div
+              style={{
+                color: "#16a34a",
+                fontSize: "0.8rem",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
               <Check size={12} />
-              <span>Uploaded successfully &middot; {formatBytes(item.fileSize)}</span>
+              <span>
+                Uploaded successfully &middot; {formatBytes(item.fileSize)}
+              </span>
             </div>
           </div>
 

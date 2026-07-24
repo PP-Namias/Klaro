@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, react-hooks/set-state-in-effect */
+
 /**
  * Medical Disclaimer Overlay
  *
@@ -9,8 +11,7 @@
  * before receiving AI-generated medical information. Required for HIPAA compliance
  * and to set proper expectations about AI limitations.
  */
-
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useLanguage } from "~/providers/language-provider";
 
@@ -92,7 +93,8 @@ const DISCLAIMER_TRANSLATIONS = {
     ],
     acceptButton: "Naiintindihan ko at Tinatanggap ko",
     declineButton: "Hindi Ko Tinatanggap",
-    requiredNotice: "Kailangan mong tanggapin ang paunawa na ito para magamit ang serbisyo.",
+    requiredNotice:
+      "Kailangan mong tanggapin ang paunawa na ito para magamit ang serbisyo.",
     privacyNote:
       "Ang iyong data sa kalusugan ay naka-encrypt at protektado ayon sa mga regulasyon ng HIPAA.",
   },
@@ -123,7 +125,8 @@ const DISCLAIMER_TRANSLATIONS = {
     ],
     acceptButton: "Nakabalo Ko ug Dawat Ko",
     declineButton: "Wala Ko Dakop",
-    requiredNotice: "Kinahanglan nimu dawaton kini nga disclaimer aron mogamit sa serbisyo.",
+    requiredNotice:
+      "Kinahanglan nimu dawaton kini nga disclaimer aron mogamit sa serbisyo.",
     privacyNote:
       "Ang imong data sa kahimsog gi-encrypt ug giprotektahan sumala sa mga regulasyon sa HIPAA.",
   },
@@ -154,7 +157,8 @@ const DISCLAIMER_TRANSLATIONS = {
     ],
     acceptButton: "Nakunak iti Narigat & Tirikko",
     declineButton: "Haan Akka Tirikko",
-    requiredNotice: "Kailangan mo tirikko daytoy a disclaimer aron magamit iti serbisyo.",
+    requiredNotice:
+      "Kailangan mo tirikko daytoy a disclaimer aron magamit iti serbisyo.",
     privacyNote:
       "Ti data mo iti kasasaad ket encrypted ken naprotektahan babaen iti mga regulasyon iti HIPAA.",
   },
@@ -197,7 +201,10 @@ export function MedicalDisclaimerOverlay({
   const handleAccept = () => {
     // Store acceptance in localStorage
     try {
-      localStorage.setItem("klaro-disclaimer-accepted", new Date().toISOString());
+      localStorage.setItem(
+        "klaro-disclaimer-accepted",
+        new Date().toISOString(),
+      );
     } catch {
       // localStorage not available
     }
@@ -293,14 +300,14 @@ export function MedicalDisclaimerOverlay({
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               onClick={handleDecline}
-              className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               {t.declineButton}
             </button>
             <button
               onClick={handleAccept}
               disabled={!hasScrolled}
-              className="flex-1 rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600"
+              className="flex-1 rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600"
             >
               {t.acceptButton}
             </button>

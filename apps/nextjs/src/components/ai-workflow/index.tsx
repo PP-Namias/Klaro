@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-floating-promises */
+
+import { useCallback, useState } from "react";
+
 import { Button } from "@klaro/ui/button";
 
 interface TestResult {
@@ -31,7 +34,10 @@ interface WorkflowResultsProps {
   onPrintClick?: () => void;
 }
 
-const severityColors: Record<string, { bg: string; text: string; border: string }> = {
+const severityColors: Record<
+  string,
+  { bg: string; text: string; border: string }
+> = {
   LOW: { bg: "#dcfce7", text: "#166534", border: "#86efac" },
   MODERATE: { bg: "#fef9c3", text: "#854d0e", border: "#fde047" },
   HIGH: { bg: "#ffedd5", text: "#9a3412", border: "#fdba74" },
@@ -87,7 +93,13 @@ export function WorkflowResults({
           <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "600" }}>
             Document Analysis
           </h2>
-          <p style={{ margin: "0.25rem 0 0 0", color: "#666", fontSize: "0.875rem" }}>
+          <p
+            style={{
+              margin: "0.25rem 0 0 0",
+              color: "#666",
+              fontSize: "0.875rem",
+            }}
+          >
             Request ID: {requestId.slice(0, 20)}...
           </p>
         </div>
@@ -133,27 +145,44 @@ export function WorkflowResults({
         }}
       >
         <StatCard label="Total Tests" value={tests.length} />
-        <StatCard label="Flagged" value={flaggedTests.length} accent={flaggedTests.length > 0} />
+        <StatCard
+          label="Flagged"
+          value={flaggedTests.length}
+          accent={flaggedTests.length > 0}
+        />
         <StatCard
           label="Confidence"
           value={confidence ? `${Math.round(confidence * 100)}%` : "N/A"}
         />
         <StatCard
           label="Processing Time"
-          value={processingTimeMs ? `${(processingTimeMs / 1000).toFixed(1)}s` : "N/A"}
+          value={
+            processingTimeMs
+              ? `${(processingTimeMs / 1000).toFixed(1)}s`
+              : "N/A"
+          }
         />
       </div>
 
       {/* Filter Toggle */}
       <div style={{ marginBottom: "1rem" }}>
-        <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            cursor: "pointer",
+          }}
+        >
           <input
             type="checkbox"
             checked={showFlaggedOnly}
             onChange={(e) => setShowFlaggedOnly(e.target.checked)}
             style={{ width: "18px", height: "18px" }}
           />
-          <span style={{ fontSize: "0.9rem" }}>Show flagged tests only ({flaggedTests.length})</span>
+          <span style={{ fontSize: "0.9rem" }}>
+            Show flagged tests only ({flaggedTests.length})
+          </span>
         </label>
       </div>
 
@@ -172,7 +201,9 @@ export function WorkflowResults({
               expanded={expandedTest === `${test.name}-${index}`}
               onToggle={() =>
                 setExpandedTest(
-                  expandedTest === `${test.name}-${index}` ? null : `${test.name}-${index}`,
+                  expandedTest === `${test.name}-${index}`
+                    ? null
+                    : `${test.name}-${index}`,
                 )
               }
             />
@@ -352,7 +383,13 @@ function TestResultCard({
         }
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <div>
           <span style={{ fontWeight: "600" }}>{test.name}</span>
           {isFlagged && (
@@ -374,14 +411,28 @@ function TestResultCard({
           <span style={{ fontWeight: "600" }}>
             {test.value} {test.unit}
           </span>
-          <span style={{ color: "#666", fontSize: "0.8rem" }}>{expanded ? "▲" : "▼"}</span>
+          <span style={{ color: "#666", fontSize: "0.8rem" }}>
+            {expanded ? "▲" : "▼"}
+          </span>
         </div>
       </div>
 
       {expanded && (
-        <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: "1px solid #e2e8f0" }}>
+        <div
+          style={{
+            marginTop: "0.75rem",
+            paddingTop: "0.75rem",
+            borderTop: "1px solid #e2e8f0",
+          }}
+        >
           {test.referenceRange && (
-            <p style={{ margin: "0 0 0.5rem 0", fontSize: "0.9rem", color: "#666" }}>
+            <p
+              style={{
+                margin: "0 0 0.5rem 0",
+                fontSize: "0.9rem",
+                color: "#666",
+              }}
+            >
               Reference Range: {test.referenceRange}
             </p>
           )}

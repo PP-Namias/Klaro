@@ -38,7 +38,7 @@ export function DocumentsPanel() {
         setFileSize("");
         toast.success("Document queued for analysis.");
         await queryClient.invalidateQueries(trpc.documents.pathFilter());
-        if (result?.analysisId) {
+        if (result.analysisId) {
           toast.message(`Analysis created: ${result.analysisId}`);
         }
       },

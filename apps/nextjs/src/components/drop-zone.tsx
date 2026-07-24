@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { Upload, FileImage, FileText } from "lucide-react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+import { useRef, useState } from "react";
+import { FileImage, Upload } from "lucide-react";
 
 import styles from "./drop-zone.module.css";
 
@@ -30,7 +32,7 @@ export function DropZone({
 }: DropZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [dragCounter, setDragCounter] = useState(0);
+  const [_dragCounter, setDragCounter] = useState(0);
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
@@ -108,7 +110,9 @@ export function DropZone({
         tabIndex={-1}
       />
       <div className={styles.dropZoneContent}>
-        <div className={`${styles.iconWrapper} ${isDragOver ? styles.iconWrapperActive : ""}`}>
+        <div
+          className={`${styles.iconWrapper} ${isDragOver ? styles.iconWrapperActive : ""}`}
+        >
           {isDragOver ? (
             <FileImage size={32} strokeWidth={1.5} />
           ) : (
@@ -116,7 +120,9 @@ export function DropZone({
           )}
         </div>
         <p className={styles.dropText}>
-          {isDragOver ? "Drop files here" : "Drag & drop files or click to browse"}
+          {isDragOver
+            ? "Drop files here"
+            : "Drag & drop files or click to browse"}
         </p>
         <p className={styles.dropSubtext}>PNG, JPG, WebP, PDF up to 50MB</p>
       </div>

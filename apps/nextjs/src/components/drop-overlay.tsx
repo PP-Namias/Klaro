@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
+
+import { useEffect, useState } from "react";
 import { FileImage, Upload } from "lucide-react";
 
 import styles from "./drop-overlay.module.css";

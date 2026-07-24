@@ -38,11 +38,13 @@ export function SeverityIndicator({
   showIcon = true,
   size = "md",
 }: SeverityIndicatorProps) {
-  const config = severityConfig[level] ?? severityConfig.normal;
+  const config = severityConfig[level];
   const displayLabel = label ?? config.label;
 
-  const padding = size === "sm" ? "4px 10px" : size === "lg" ? "8px 18px" : "6px 14px";
-  const fontSize = size === "sm" ? "0.75rem" : size === "lg" ? "0.95rem" : "0.85rem";
+  const padding =
+    size === "sm" ? "4px 10px" : size === "lg" ? "8px 18px" : "6px 14px";
+  const fontSize =
+    size === "sm" ? "0.75rem" : size === "lg" ? "0.95rem" : "0.85rem";
 
   return (
     <span

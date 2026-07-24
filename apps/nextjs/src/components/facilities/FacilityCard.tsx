@@ -2,7 +2,7 @@
 
 import type { Facility } from "./FacilityMap";
 
-type FacilityCardProps = {
+interface FacilityCardProps {
   facility: Facility;
   isActive?: boolean;
   isBestFit?: boolean;

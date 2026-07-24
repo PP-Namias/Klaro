@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
+
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -6,11 +8,11 @@ import { useMutation } from "@tanstack/react-query";
 
 import { Button } from "@klaro/ui/button";
 import { toast } from "@klaro/ui/toast";
+import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 
 import { saveScanAnalysisSession } from "~/components/scan-session";
-import { useTRPC } from "~/trpc/react";
 import { useLanguage } from "~/providers/language-provider";
-import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
+import { useTRPC } from "~/trpc/react";
 
 interface SelectedFile {
   file: File;
@@ -212,9 +214,7 @@ export function UploadForm() {
 
   const selectFile = (file: File) => {
     if (!acceptedTypes.has(file.type)) {
-      setError(
-        t("upload.fileTypeNotSupported"),
-      );
+      setError(t("upload.fileTypeNotSupported"));
       setSelected(null);
       setScanState("error");
       return;
@@ -269,8 +269,7 @@ export function UploadForm() {
       requestId: pendingRequestId,
       status: "pending",
       language: LANGUAGE_TO_DIALECT[language],
-      plainLanguageSummary:
-        t("upload.sessionUploading"),
+      plainLanguageSummary: t("upload.sessionUploading"),
       warnings: ["processing_in_progress"],
       timestamp: new Date().toISOString(),
     });
@@ -282,11 +281,16 @@ export function UploadForm() {
       scanGuestImage.mutate({
         base64Image: base64,
         fileName: selected.file.name,
-        language: LANGUAGE_TO_DIALECT[language] as "English" | "Filipino" | "Bisaya" | "Ilocano",
+        language: LANGUAGE_TO_DIALECT[language] as
+          | "English"
+          | "Filipino"
+          | "Bisaya"
+          | "Ilocano",
       });
     } catch (err) {
       setScanState("error");
-      const msg = err instanceof Error ? err.message : t("upload.failedReadFile");
+      const msg =
+        err instanceof Error ? err.message : t("upload.failedReadFile");
       setError(msg);
       setUploadStatus(msg);
     }
@@ -318,8 +322,7 @@ export function UploadForm() {
       requestId: pendingRequestId,
       status: "pending",
       language: LANGUAGE_TO_DIALECT[language],
-      plainLanguageSummary:
-        t("upload.imageUploading"),
+      plainLanguageSummary: t("upload.imageUploading"),
       warnings: ["processing_in_progress"],
       timestamp: new Date().toISOString(),
     });
@@ -330,7 +333,11 @@ export function UploadForm() {
       scanGuestImage.mutate({
         base64Image: base64,
         fileName: file.name,
-        language: LANGUAGE_TO_DIALECT[language] as "English" | "Filipino" | "Bisaya" | "Ilocano",
+        language: LANGUAGE_TO_DIALECT[language] as
+          | "English"
+          | "Filipino"
+          | "Bisaya"
+          | "Ilocano",
       });
     } catch (err) {
       setScanState("error");

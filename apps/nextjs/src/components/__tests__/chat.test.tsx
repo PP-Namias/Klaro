@@ -1,8 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import type { ChatMessage } from "~/hooks/use-chat";
-
-import type { Dialect } from "~/hooks/use-chat";
+import type { ChatMessage, Dialect } from "~/hooks/use-chat";
 
 describe("ChatMessage", () => {
   it("renders user message with text", () => {
