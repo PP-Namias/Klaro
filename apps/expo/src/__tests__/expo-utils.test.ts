@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-empty-function */
+/* eslint-disable @typescript-eslint/no-empty-function */
 
 describe("Expo utility patterns", () => {
   describe("base-url patterns", () => {

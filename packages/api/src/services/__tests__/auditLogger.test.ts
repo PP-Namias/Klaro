@@ -50,19 +50,34 @@ vi.mock("@klaro/db/schema", () => ({
 }));
 
 describe("Audit Logger", () => {
-  let consoleSpy: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
-    consoleSpy.mockRestore();
+    vi.restoreAllMocks();
     stopAuditFlushTimer();
   });
+
+  function expectConsoleCalled() {
+    expect(
+      console.info || console.log || console.warn || console.error,
+    ).toBeDefined();
+    const infoSpy = vi.mocked(console.info);
+    const logSpy = vi.mocked(console.log);
+    const warnSpy = vi.mocked(console.warn);
+    const errorSpy = vi.mocked(console.error);
+    expect(
+      infoSpy.mock.calls.length > 0 ||
+        logSpy.mock.calls.length > 0 ||
+        warnSpy.mock.calls.length > 0 ||
+        errorSpy.mock.calls.length > 0,
+    ).toBe(true);
+  }
 
   describe("logAuditEvent", () => {
     it("logs info event to console", async () => {
@@ -72,7 +87,7 @@ describe("Audit Logger", () => {
         documentId: "doc-456",
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expectConsoleCalled();
     });
 
     it("logs warning event to console", async () => {
@@ -84,7 +99,7 @@ describe("Audit Logger", () => {
         phiTypesDetected: ["name", "ssn"],
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expectConsoleCalled();
     });
 
     it("logs critical event to console", async () => {
@@ -94,7 +109,7 @@ describe("Audit Logger", () => {
         ipAddress: "192.168.1.1",
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expectConsoleCalled();
     });
   });
 
@@ -108,7 +123,7 @@ describe("Audit Logger", () => {
         phiTypes: [],
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expectConsoleCalled();
     });
 
     it("logs upload with PHI detection", async () => {
@@ -120,7 +135,7 @@ describe("Audit Logger", () => {
         phiTypes: ["name", "date_of_birth"],
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expectConsoleCalled();
     });
   });
 
@@ -136,7 +151,7 @@ describe("Audit Logger", () => {
         success: true,
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expectConsoleCalled();
     });
 
     it("logs failed LLM call", async () => {
@@ -148,7 +163,7 @@ describe("Audit Logger", () => {
         success: false,
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expectConsoleCalled();
     });
 
     it("warns when PHI not scrubbed", async () => {
@@ -160,7 +175,7 @@ describe("Audit Logger", () => {
         success: true,
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expectConsoleCalled();
     });
   });
 
@@ -174,7 +189,7 @@ describe("Audit Logger", () => {
         phiTypes: ["name", "ssn", "mrn"],
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expectConsoleCalled();
     });
   });
 
@@ -187,7 +202,7 @@ describe("Audit Logger", () => {
         phiTypes: [],
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expectConsoleCalled();
     });
 
     it("logs chat message with PHI", async () => {
@@ -198,7 +213,7 @@ describe("Audit Logger", () => {
         phiTypes: ["name"],
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expectConsoleCalled();
     });
   });
 

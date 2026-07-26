@@ -7,26 +7,26 @@ import {
 
 import { callLLMAPI } from "./llm";
 
-type MedicalContextInput = {
+interface MedicalContextInput {
   severity: "LOW" | "MODERATE" | "HIGH";
   testSummary?: string;
-  flaggedTests: Array<{ name: string; value?: string; unit?: string }>;
-};
+  flaggedTests: { name: string; value?: string; unit?: string }[];
+}
 
-type RecommendByTestResultsInput = {
-  extractedTests: Array<{
+interface RecommendByTestResultsInput {
+  extractedTests: {
     name: string;
     value?: string;
     unit?: string;
     flagged?: boolean;
-  }>;
+  }[];
   latitude: number;
   longitude: number;
   radiusKm?: number;
   limit?: number;
-};
+}
 
-export type FacilityLike = {
+export interface FacilityLike {
   id?: string;
   name?: string | null;
   facilityType?: string | null;
@@ -38,7 +38,7 @@ export type FacilityLike = {
   isPhilHealthAccredited?: boolean | null;
   acceptedSpecialties?: unknown;
   openingHours?: unknown;
-};
+}
 
 export type RankedFacility = FacilityResponse & {
   rankingScore: number;

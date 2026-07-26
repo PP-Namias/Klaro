@@ -372,7 +372,7 @@ function checkValuePlausibility(
  * Check for impossible combinations of test results
  */
 function checkImpossibleCombinations(
-  tests: Array<{ name: string; value: string; unit?: string }>,
+  tests: { name: string; value: string; unit?: string }[],
 ): HallucinationCheck[] {
   const hallucinations: HallucinationCheck[] = [];
   const testMap = new Map(
@@ -430,7 +430,7 @@ function checkImpossibleCombinations(
  */
 function checkOcrConsistency(
   ocrText: string,
-  extractedTests: Array<{ name: string; value: string }>,
+  extractedTests: { name: string; value: string }[],
 ): HallucinationCheck[] {
   const hallucinations: HallucinationCheck[] = [];
   const ocrLower = ocrText.toLowerCase();
@@ -466,7 +466,7 @@ function checkOcrConsistency(
  * Check for duplicate tests with different values
  */
 function checkDuplicateTests(
-  tests: Array<{ name: string; value: string }>,
+  tests: { name: string; value: string }[],
 ): HallucinationCheck[] {
   const hallucinations: HallucinationCheck[] = [];
   const testCounts = new Map<string, string[]>();
@@ -505,9 +505,9 @@ function checkDuplicateTests(
 export function detectHallucinations(
   ocrText: string,
   extractedData: {
-    tests: Array<{ name: string; value: string; unit?: string }>;
+    tests: { name: string; value: string; unit?: string }[];
     diagnosis?: string[];
-    medications?: Array<{ name: string; dosage?: string }>;
+    medications?: { name: string; dosage?: string }[];
   },
   originalConfidence: number,
 ): HallucinationResult {

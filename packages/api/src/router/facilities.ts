@@ -64,7 +64,7 @@ const isEmergencyCapable = (facilityRow: {
 };
 
 const summarizeLoad = (
-  rows: Array<Record<string, unknown>>,
+  rows: Record<string, unknown>[],
   latitude: number,
   longitude: number,
   input: {
@@ -179,10 +179,10 @@ const selectFacilities = async (
   }
 
   if (conditions.length === 1) {
-    return baseQuery.where(conditions[0] as SQL<unknown>).limit(safeLimit);
+    return baseQuery.where(conditions[0]!).limit(safeLimit);
   }
 
-  return baseQuery.where(and(...conditions) as SQL<unknown>).limit(safeLimit);
+  return baseQuery.where(and(...conditions)!).limit(safeLimit);
 };
 
 export const facilitiesRouter = {
@@ -221,13 +221,13 @@ export const facilitiesRouter = {
 
       if (conditions.length === 1) {
         return baseQuery
-          .where(conditions[0] as SQL<unknown>)
+          .where(conditions[0])
           .limit(input.limit)
           .offset(input.offset);
       }
 
       return baseQuery
-        .where(and(...conditions) as SQL<unknown>)
+        .where(and(...conditions))
         .limit(input.limit)
         .offset(input.offset);
     }),
@@ -255,7 +255,7 @@ export const facilitiesRouter = {
     .query(async ({ ctx, input }) => {
       const rows = await selectFacilities(ctx, input);
       const mapped = summarizeLoad(
-        rows as Array<Record<string, unknown>>,
+        rows as Record<string, unknown>[],
         input.latitude,
         input.longitude,
         input,
@@ -298,7 +298,7 @@ export const facilitiesRouter = {
       });
 
       const mapped = summarizeLoad(
-        rows as Array<Record<string, unknown>>,
+        rows as Record<string, unknown>[],
         input.latitude,
         input.longitude,
         {
@@ -329,7 +329,7 @@ export const facilitiesRouter = {
       });
 
       const mapped = summarizeLoad(
-        rows as Array<Record<string, unknown>>,
+        rows as Record<string, unknown>[],
         input.latitude,
         input.longitude,
         {

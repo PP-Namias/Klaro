@@ -880,9 +880,7 @@ export const documentsRouter = {
         });
       }
 
-      const { executeCleanup } = await import(
-        "../services/fileCleanup"
-      );
+      const { executeCleanup } = await import("../services/fileCleanup");
 
       const result = await executeCleanup({
         retentionHours: input?.retentionHours,

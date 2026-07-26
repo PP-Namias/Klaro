@@ -180,7 +180,7 @@ export const TERMINOLOGY_DB: TerminologyMapping[] = [
 
 export function getTerminology(
   code: string,
-  _language: string = "en",
+  _language = "en",
 ): TerminologyMapping | null {
   const term = TERMINOLOGY_DB.find(
     (t) => t.code.toUpperCase() === code.toUpperCase(),
@@ -199,7 +199,7 @@ export function getTerminology(
 
 export function convertToPlainLanguage(
   testCode: string,
-  language: string = "en",
+  language = "en",
 ): string {
   const term = getTerminology(testCode, language);
   if (!term) return testCode;
@@ -230,8 +230,8 @@ export function getIlocanoTerm(code: string): string {
 
 export function batchConvert(
   codes: string[],
-  language: string = "en",
-): Array<{ code: string; original: string; converted: string }> {
+  language = "en",
+): { code: string; original: string; converted: string }[] {
   return codes.map((code) => ({
     code,
     original: convertToPlainLanguage(code, "en"),

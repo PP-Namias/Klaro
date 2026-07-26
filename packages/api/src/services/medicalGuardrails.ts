@@ -57,7 +57,7 @@ const DIAGNOSIS_REQUEST_PATTERNS = [
 
   // Treatment advice requests
   /what\s+(medication|drug|medicine)\s+should\s+i\s+take/i,
-  /should\s+i\s+(take|stop|start|change)\s+(my\s+)?(medication|drug|medicine|treatment)/i,
+  /should\s+i\s+\w+\s+(my\s+)?(medication|drug|medicine|treatment)/i,
   /how\s+much\s+(medication|drug|medicine)\s+should\s+i/i,
   /what\s+dosage/i,
   /can\s+i\s+(stop|skip|reduce)\s+(my\s+)?(medication|drug|medicine)/i,
@@ -112,7 +112,7 @@ const DIAGNOSTIC_OUTPUT_PATTERNS = [
  */
 const TREATMENT_OUTPUT_PATTERNS = [
   /you\s+should\s+(take|start|stop|increase|decrease)\s+(this|the|a)/i,
-  /take\s+\d+\s+(mg|mcg|ml|tablets?|capsules?)/i,
+  /take\s*\d+\s*(mg|mcg|ml|tablets?|capsules?)/i,
   /dosage:\s*\d+/i,
   /i\s+(recommend|suggest|prescribe)\s+(you\s+)?(to\s+)?(take|start|use)/i,
   /this\s+medication\s+will\s+(cure|treat|fix)/i,
@@ -266,7 +266,7 @@ export function filterOutput(
  */
 export function buildBlockedResponse(
   originalQuery: string,
-  language: string = "en",
+  language = "en",
 ): string {
   const disclaimer =
     MEDICAL_DISCLAIMERS[language as keyof typeof MEDICAL_DISCLAIMERS] ||
@@ -284,7 +284,7 @@ ${disclaimer}`;
  */
 export function buildEducationalResponse(
   query: string,
-  language: string = "en",
+  language = "en",
 ): string {
   const disclaimer =
     MEDICAL_DISCLAIMERS[language as keyof typeof MEDICAL_DISCLAIMERS] ||

@@ -1,7 +1,8 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, no-empty */
-import React, { useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, X } from "lucide-react";
 
@@ -85,7 +86,7 @@ export default function CalModal({
         const isBooking =
           (d.type && /booking|event|created/i.test(String(d.type))) ||
           (d.event && /booking|created/i.test(String(d.event))) ||
-          (d.data && d.data.object && /booking/i.test(String(d.data.object)));
+          (d.data?.object && /booking/i.test(String(d.data.object)));
         if (isBooking) handleBooked();
       } catch {}
     }

@@ -11,9 +11,7 @@ import {
   isLowConfidence,
   normalizeExtractionData,
 } from "./geminiExtraction";
-import {
-  simplifyWithGemini,
-} from "./geminiSimplification";
+import { simplifyWithGemini } from "./geminiSimplification";
 import { detectHallucinations } from "./hallucinationDetection";
 import { detectPhiTypes, scrubForExternalApi } from "./phiScrubber";
 
@@ -36,7 +34,7 @@ export interface FallbackChainResult {
 export async function executeFallbackChain(
   imageBase64: string,
   ocrText: string,
-  language: string = "en",
+  language = "en",
 ): Promise<FallbackChainResult> {
   const startTime = Date.now();
   const warnings: string[] = [];
@@ -230,7 +228,7 @@ async function tryOcrExtraction(
       return { success: false, error: `Gemini API error: ${response.status}` };
     }
 
-    const result = (await response.json()) as any;
+    const result = (await response.json());
     const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     if (!text) {

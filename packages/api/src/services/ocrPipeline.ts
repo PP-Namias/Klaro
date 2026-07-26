@@ -27,7 +27,7 @@ export interface OcrPipelineResult {
 
 export async function runOcrOnImage(
   imageBase64: string,
-  pageNumber: number = 1,
+  pageNumber = 1,
 ): Promise<OcrPageResult> {
   const { performOcr } = await import("./ocr");
   const warnings: string[] = [];
@@ -165,7 +165,7 @@ export async function runOcrWithRetry(
 
 export function buildRejectionResponse(
   result: OcrPipelineResult,
-  language: string = "English",
+  language = "English",
 ) {
   const validLanguages = ["English", "Filipino", "Bisaya", "Ilocano"] as const;
   const lang = validLanguages.includes(

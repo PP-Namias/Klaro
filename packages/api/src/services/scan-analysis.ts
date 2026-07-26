@@ -149,7 +149,7 @@ function validateAnalysis(data: unknown): data is AIScanAnalysis {
  * Extract JSON from LLM response (handles extra text)
  */
 function extractJSON(response: string): string {
-  const jsonMatch = response.match(/\{[\s\S]*\}/);
+  const jsonMatch = /\{[\s\S]*\}/.exec(response);
   return jsonMatch ? jsonMatch[0] : response;
 }
 

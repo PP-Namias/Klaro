@@ -1,4 +1,4 @@
-import { RunnableConfig } from "@langchain/core/runnables";
+import type { RunnableConfig } from "@langchain/core/runnables";
 import { Annotation } from "@langchain/langgraph";
 
 import {

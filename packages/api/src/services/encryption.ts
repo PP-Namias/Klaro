@@ -200,7 +200,7 @@ export async function encryptJson(
   value: Record<string, unknown> | null,
 ): Promise<string | null> {
   if (value === null || value === undefined) {
-    return value as null;
+    return value;
   }
 
   const jsonString = JSON.stringify(value);

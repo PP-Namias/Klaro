@@ -96,7 +96,7 @@ If a field has no data, use null or empty array. Return ONLY the JSON object, no
 export function parseGeminiResponse(
   response: string,
 ): Record<string, unknown> | null {
-  const jsonMatch = response.match(/\{[\s\S]*\}/);
+  const jsonMatch = /\{[\s\S]*\}/.exec(response);
   if (!jsonMatch) return null;
 
   try {
@@ -135,15 +135,19 @@ export function calculateExtractionConfidence(
   let score = 0;
   let total = 6;
 
+  const tests = data.tests ?? [];
+  const diagnosis = data.diagnosis ?? [];
+  const medications = data.medications ?? [];
+
   if (data.patientName) score += 1;
   if (data.date) score += 1;
   if (data.documentType) score += 1;
-  if (data.diagnosis.length > 0) score += 1;
-  if (data.medications.length > 0) score += 1;
-  if (data.tests.length > 0) score += 2;
+  if (diagnosis.length > 0) score += 1;
+  if (medications.length > 0) score += 1;
+  if (tests.length > 0) score += 2;
 
-  total += data.tests.length;
-  for (const test of data.tests) {
+  total += tests.length;
+  for (const test of tests) {
     if (test.value) score += 1;
     if (test.unit) score += 0.5;
     if (test.referenceRange) score += 0.5;
@@ -155,20 +159,24 @@ export function calculateExtractionConfidence(
 export function validateExtractionData(data: MedicalExtractionData): string[] {
   const errors: string[] = [];
 
-  if (data.tests && !Array.isArray(data.tests)) {
+  const tests = data.tests ?? [];
+  const diagnosis = data.diagnosis ?? [];
+  const medications = data.medications ?? [];
+
+  if (!Array.isArray(tests)) {
     errors.push("tests must be an array");
   }
 
-  if (data.diagnosis && !Array.isArray(data.diagnosis)) {
+  if (!Array.isArray(diagnosis)) {
     errors.push("diagnosis must be an array");
   }
 
-  if (data.medications && !Array.isArray(data.medications)) {
+  if (!Array.isArray(medications)) {
     errors.push("medications must be an array");
   }
 
-  for (const test of data.tests) {
-    if (!test.name) {
+  for (const test of tests) {
+    if (!test?.name) {
       errors.push("each test must have a name");
     }
   }

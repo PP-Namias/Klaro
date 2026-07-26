@@ -1,4 +1,4 @@
-/* eslint-disable turbo/no-undeclared-env-vars, no-restricted-properties, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-promise-reject-errors */
+/* eslint-disable no-restricted-properties, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-promise-reject-errors */
 
 import type { NextRequest } from "next/server";
 import { v2 as cloudinary } from "cloudinary";

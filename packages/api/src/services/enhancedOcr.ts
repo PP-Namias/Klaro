@@ -108,7 +108,7 @@ export function buildPreprocessDescription(
 }
 
 export function calculateOcrConfidence(
-  results: Array<{ confidence: number }>,
+  results: { confidence: number }[],
 ): number {
   if (results.length === 0) return 0;
   const total = results.reduce((sum, r) => sum + r.confidence, 0);

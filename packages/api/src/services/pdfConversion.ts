@@ -95,7 +95,7 @@ export async function countPdfPages(pdfBuffer: Buffer): Promise<number> {
     return count;
   } catch {
     const text = pdfBuffer.toString("ascii");
-    const match = text.match(/\/Type\s*\/Pages[^/]*\/Count\s+(\d+)/);
+    const match = /\/Type\s*\/Pages[^/]*\/Count\s+(\d+)/.exec(text);
     if (match) return parseInt(match[1] ?? "1", 10);
     const pages = text.match(/\/Type\s*\/Page\b/g);
     return pages ? pages.length : 1;

@@ -1,5 +1,5 @@
-import { Document } from "@langchain/core/documents";
-import { RunnableConfig } from "@langchain/core/runnables";
+import type { Document } from "@langchain/core/documents";
+import type { RunnableConfig } from "@langchain/core/runnables";
 import { END, START, StateGraph } from "@langchain/langgraph";
 
 import { RetrievalConfigurationAnnotation } from "./configuration.js";

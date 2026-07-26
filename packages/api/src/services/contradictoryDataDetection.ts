@@ -26,11 +26,11 @@ export interface Contradiction {
   /** Human-readable description */
   description: string;
   /** The conflicting values */
-  conflictingValues: Array<{
+  conflictingValues: {
     value: string;
     source?: string;
     field?: string;
-  }>;
+  }[];
   /** Suggested resolution */
   resolution?: string;
 }
@@ -60,21 +60,21 @@ export interface MedicalDocument {
   /** Document type */
   documentType?: string;
   /** Extracted tests */
-  tests: Array<{
+  tests: {
     name: string;
     value: string;
     unit?: string;
     referenceRange?: string;
     flagged?: boolean;
-  }>;
+  }[];
   /** Extracted diagnoses */
   diagnosis: string[];
   /** Extracted medications */
-  medications: Array<{
+  medications: {
     name: string;
     dosage?: string;
     frequency?: string;
-  }>;
+  }[];
   /** Extraction confidence */
   confidence?: number;
   /** OCR text */
@@ -127,16 +127,16 @@ function detectPatientNameConflicts(
           id: generateContradictionId(),
           type: "patient_name_variant",
           severity: "warning",
-          description: `Similar patient names detected: "${docs1[0]?.patientName ?? ''}" and "${docs2[0]?.patientName ?? ''}"`,
+          description: `Similar patient names detected: "${docs1[0]?.patientName ?? ""}" and "${docs2[0]?.patientName ?? ""}"`,
           conflictingValues: [
             {
-              value: docs1[0]?.patientName ?? '',
-              source: docs1[0]?.id ?? '',
+              value: docs1[0]?.patientName ?? "",
+              source: docs1[0]?.id ?? "",
               field: "patientName",
             },
             {
-              value: docs2[0]?.patientName ?? '',
-              source: docs2[0]?.id ?? '',
+              value: docs2[0]?.patientName ?? "",
+              source: docs2[0]?.id ?? "",
               field: "patientName",
             },
           ],
@@ -158,7 +158,7 @@ function detectDateConflicts(documents: MedicalDocument[]): Contradiction[] {
   // Check for dates that are too far apart for related documents
   const dates = documents
     .filter((d) => d.date)
-    .map((d) => ({ date: new Date(d.date ?? ''), doc: d }))
+    .map((d) => ({ date: new Date(d.date ?? ""), doc: d }))
     .filter((d) => !isNaN(d.date.getTime()))
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -172,7 +172,7 @@ function detectDateConflicts(documents: MedicalDocument[]): Contradiction[] {
         severity: "error",
         description: `Document date ${doc.date} is in the future`,
         conflictingValues: [
-          { value: doc.date ?? 'unknown', source: doc.id, field: "date" },
+          { value: doc.date ?? "unknown", source: doc.id, field: "date" },
         ],
         resolution: "Verify the document date is correct",
       });
@@ -187,7 +187,7 @@ function detectDateConflicts(documents: MedicalDocument[]): Contradiction[] {
         severity: "info",
         description: `Document date ${doc.date} is more than 1 year old`,
         conflictingValues: [
-          { value: doc.date ?? 'unknown', source: doc.id, field: "date" },
+          { value: doc.date ?? "unknown", source: doc.id, field: "date" },
         ],
         resolution: "Consider if this document is still relevant",
       });
@@ -204,7 +204,7 @@ function detectTestConflicts(documents: MedicalDocument[]): Contradiction[] {
   const contradictions: Contradiction[] = [];
 
   // Group tests by name across documents
-  const testMap = new Map<string, Array<{ value: string; source: string }>>();
+  const testMap = new Map<string, { value: string; source: string }[]>();
 
   for (const doc of documents) {
     for (const test of doc.tests) {
@@ -279,8 +279,8 @@ function detectDiagnosisConflicts(
   );
 
   for (const pair of contradictoryPairs) {
-    const term1 = pair[0] ?? '';
-    const term2 = pair[1] ?? '';
+    const term1 = pair[0] ?? "";
+    const term2 = pair[1] ?? "";
     const matches1 = allDiagnoses.filter((d) =>
       d.diagnosis.toLowerCase().includes(term1),
     );
@@ -318,7 +318,7 @@ function detectMedicationConflicts(
   // Group medications by name
   const medMap = new Map<
     string,
-    Array<{ dosage?: string; frequency?: string; source: string }>
+    { dosage?: string; frequency?: string; source: string }[]
   >();
 
   for (const doc of documents) {
@@ -351,7 +351,7 @@ function detectMedicationConflicts(
           severity: "warning",
           description: `Conflicting dosages for "${medName}": ${uniqueDosages.join(", ")}`,
           conflictingValues: dosages.map((d) => ({
-            value: d.dosage ?? '',
+            value: d.dosage ?? "",
             source: d.source,
             field: medName,
           })),

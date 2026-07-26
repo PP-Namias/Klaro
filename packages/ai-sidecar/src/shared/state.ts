@@ -1,4 +1,4 @@
-import { Document } from "@langchain/core/documents";
+import type { Document } from "@langchain/core/documents";
 import { v4 as uuidv4 } from "uuid";
 
 export function reduceDocs(

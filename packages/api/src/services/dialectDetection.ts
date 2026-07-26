@@ -3,7 +3,7 @@ export type Dialect = "en" | "fil" | "bisaya" | "ilocano";
 export interface DialectDetectionResult {
   dialect: Dialect;
   confidence: number;
-  alternativeDialects: Array<{ dialect: Dialect; confidence: number }>;
+  alternativeDialects: { dialect: Dialect; confidence: number }[];
 }
 
 const DIALECT_PATTERNS: Record<Dialect, RegExp[]> = {
@@ -56,7 +56,7 @@ export function detectDialect(text: string): DialectDetectionResult {
 
   const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
 
-  const dialectConfidences: Array<{ dialect: Dialect; confidence: number }> = (
+  const dialectConfidences: { dialect: Dialect; confidence: number }[] = (
     Object.entries(scores) as [Dialect, number][]
   ).map(([dialect, score]) => ({
     dialect,
@@ -144,7 +144,7 @@ export function simplifyLanguage(text: string): string {
 }
 
 export function getMessageLanguage(
-  messages: Array<{ role: string; content: string }>,
+  messages: { role: string; content: string }[],
 ): Dialect {
   const userMessages = messages.filter((m) => m.role === "user");
   if (userMessages.length === 0) return "en";

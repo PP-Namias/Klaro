@@ -11,24 +11,28 @@ describe('POST /api/scan with presigned upload', () => {
   let uploadServer;
   let uploadPort;
 
-  beforeAll((done) => {
+  beforeAll(async () => {
     // start a tiny server to accept PUT uploads
-    uploadServer = http.createServer((req, res) => {
-      if (req.method === 'PUT') {
-        let received = 0;
-        req.on('data', (chunk) => { received += chunk.length; });
-        req.on('end', () => res.end('ok'));
-      } else {
-        res.statusCode = 404; res.end('not found');
-      }
-    }).listen(0, () => {
-      uploadPort = uploadServer.address().port;
-      server = app.listen(0, done);
+    await new Promise((resolve) => {
+      uploadServer = http.createServer((req, res) => {
+        if (req.method === 'PUT') {
+          let received = 0;
+          req.on('data', (chunk) => { received += chunk.length; });
+          req.on('end', () => res.end('ok'));
+        } else {
+          res.statusCode = 404; res.end('not found');
+        }
+      }).listen(0, () => {
+        uploadPort = uploadServer.address().port;
+        server = app.listen(0, resolve);
+      });
     });
   });
 
-  afterAll((done) => {
-    uploadServer.close(() => server.close(done));
+  afterAll(async () => {
+    await new Promise((resolve) => {
+      uploadServer.close(() => server.close(resolve));
+    });
   });
 
   it('uploads file to presigned URL and returns result', async () => {

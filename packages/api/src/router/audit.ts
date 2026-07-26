@@ -488,8 +488,8 @@ function generateRecommendations(
 }
 
 function getTopActions(
-  logs: Array<{ action: string }>,
-): Array<{ action: string; count: number }> {
+  logs: { action: string }[],
+): { action: string; count: number }[] {
   const actionCounts: Record<string, number> = {};
   for (const log of logs) {
     actionCounts[log.action] = (actionCounts[log.action] || 0) + 1;
@@ -502,8 +502,8 @@ function getTopActions(
 }
 
 function getHourlyDistribution(
-  logs: Array<{ timestamp: Date }>,
-): Array<{ hour: number; count: number }> {
+  logs: { timestamp: Date }[],
+): { hour: number; count: number }[] {
   const hourCounts: Record<number, number> = {};
   for (const log of logs) {
     const hour = new Date(log.timestamp).getHours();

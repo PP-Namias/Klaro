@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  executePlainLanguageStage,
-  getPipelineConfig,
-} from "../geminiPipeline";
+import { executeFallbackChain } from "../geminiPipeline";
 
 describe("Gemini Pipeline", () => {
   const originalEnv = process.env;
@@ -13,54 +10,20 @@ describe("Gemini Pipeline", () => {
     vi.restoreAllMocks();
   });
 
-  describe("getPipelineConfig", () => {
-    it("returns default config", () => {
-      delete process.env.PIPELINE_ENABLE_OCR;
-      delete process.env.PIPELINE_ENABLE_GEMINI;
-      delete process.env.PIPELINE_ENABLE_FALLBACK;
-      delete process.env.PIPELINE_LANGUAGE;
-
-      const config = getPipelineConfig();
-      expect(config.enableOcr).toBe(true);
-      expect(config.enableGemini).toBe(true);
-      expect(config.enableFallback).toBe(true);
-      expect(config.language).toBe("en");
+  describe("executeFallbackChain", () => {
+    it("returns a result with expected structure", async () => {
+      const result = await executeFallbackChain("", "", "en");
+      expect(result).toHaveProperty("extractedData");
+      expect(result).toHaveProperty("path");
+      expect(result).toHaveProperty("confidence");
+      expect(result).toHaveProperty("processingTimeMs");
+      expect(result).toHaveProperty("warnings");
     });
 
-    it("reads env vars", () => {
-      process.env.PIPELINE_ENABLE_OCR = "false";
-      process.env.PIPELINE_ENABLE_GEMINI = "false";
-      process.env.PIPELINE_LANGUAGE = "fil";
-
-      const config = getPipelineConfig();
-      expect(config.enableOcr).toBe(false);
-      expect(config.enableGemini).toBe(false);
-      expect(config.language).toBe("fil");
-    });
-  });
-
-  describe("executePlainLanguageStage", () => {
-    it("generates plain language summary", async () => {
-      const data = {
-        patientName: "John Doe",
-        diagnosis: ["Hypertension"],
-        medications: [{ name: "Amlodipine", dosage: "5mg" }],
-      };
-
-      const result = await executePlainLanguageStage(data, "en");
-      expect(result.text).toContain("John Doe");
-      expect(result.timeMs).toBeGreaterThanOrEqual(0);
-    });
-
-    it("handles empty data", async () => {
-      const result = await executePlainLanguageStage({});
-      expect(result.text).toBeDefined();
-    });
-
-    it("handles Filipino language", async () => {
-      const data = { patientName: "Juan" };
-      const result = await executePlainLanguageStage(data, "fil");
-      expect(result.text).toBeDefined();
+    it("handles empty inputs gracefully", async () => {
+      const result = await executeFallbackChain("", "", "fil");
+      expect(result.warnings).toBeDefined();
+      expect(typeof result.confidence).toBe("number");
     });
   });
 });

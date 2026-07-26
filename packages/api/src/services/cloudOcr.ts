@@ -7,7 +7,7 @@ export interface CloudOcrOptions {
 export interface CloudOcrResult {
   text: string;
   confidence: number;
-  blocks: Array<{ text: string; confidence: number }>;
+  blocks: { text: string; confidence: number }[];
   language?: string;
 }
 
@@ -27,7 +27,7 @@ export function buildVisionApiUrl(apiKey: string): string {
 
 export function buildVisionRequest(
   imageBase64: string,
-  _mimeType: string = "image/png",
+  _mimeType = "image/png",
 ): object {
   return {
     requests: [
@@ -60,7 +60,7 @@ export function parseVisionResponse(response: any): CloudOcrResult {
     };
   }
 
-  const blocks: Array<{ text: string; confidence: number }> = [];
+  const blocks: { text: string; confidence: number }[] = [];
 
   if (annotation.pages) {
     for (const page of annotation.pages) {
@@ -103,7 +103,7 @@ export function isRetryableError(error: any): boolean {
 
 export function calculateRetryDelay(
   attempt: number,
-  baseDelay: number = 1000,
+  baseDelay = 1000,
 ): number {
   const maxDelay = 30000;
   const delay = baseDelay * Math.pow(2, attempt);

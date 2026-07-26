@@ -9,7 +9,7 @@ import {
 } from "../ai-workflow";
 
 vi.mock("../llm", () => ({
-  generatePlainLanguageExplanation: vi.fn().mockResolvedValue({
+  generatePlainLanguageExplanation: vi.fn().mockReturnValue({
     summary: "Your results look normal overall.",
     tests: [
       {

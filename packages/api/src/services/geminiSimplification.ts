@@ -21,7 +21,7 @@ function getDialectLabel(code: string): string {
 
 export function buildSimplificationPrompt(
   data: MedicalExtractionData,
-  language: string = "en",
+  language = "en",
 ): string {
   const dialect = getDialectLabel(language);
   const langInstruction =
@@ -78,7 +78,7 @@ Return your response as JSON:
 export function parseSimplificationResponse(
   response: string,
 ): { summary: string; readingLevel: string } | null {
-  const jsonMatch = response.match(/\{[\s\S]*\}/);
+  const jsonMatch = /\{[\s\S]*\}/.exec(response);
   if (!jsonMatch) return null;
 
   try {
@@ -97,7 +97,7 @@ export function parseSimplificationResponse(
 
 export async function simplifyWithGemini(
   data: MedicalExtractionData,
-  language: string = "en",
+  language = "en",
 ): Promise<SimplificationResult> {
   const prompt = buildSimplificationPrompt(data, language);
   const dialect = getDialectLabel(language);
@@ -132,7 +132,7 @@ export async function simplifyWithGemini(
       return buildFallbackSimplification(data, dialect);
     }
 
-    const result = (await response.json()) as any;
+    const result = (await response.json());
     const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     const parsed = parseSimplificationResponse(text);

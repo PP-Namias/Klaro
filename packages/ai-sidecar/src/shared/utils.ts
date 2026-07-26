@@ -1,4 +1,4 @@
-import { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { ChatOpenAI } from "@langchain/openai";
 
 type ModelConstructor = new (fields: Record<string, unknown>) => BaseChatModel;

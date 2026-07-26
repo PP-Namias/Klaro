@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import type React from "react";
 
 import type { DemoLanguage } from "~/components/demo-modal";
 import type { LabResultsDemo } from "~/data/demo-lab-results";

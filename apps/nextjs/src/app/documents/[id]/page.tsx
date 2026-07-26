@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-base-to-string, @typescript-eslint/no-empty-function, @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-base-to-string, @typescript-eslint/no-empty-function, @typescript-eslint/no-unnecessary-condition */
 
 "use client";
 
 import { use, useCallback } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, FileText, Trash2 } from "lucide-react";
 
 import { ConfidenceScore } from "~/components/scan/ConfidenceScore";
@@ -199,9 +199,7 @@ export default function DocumentDetailPage({
       {docAnalysis && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {doc.confidence && (
-            <ConfidenceScore
-              score={parseFloat(String(doc.confidence)) * 100}
-            />
+            <ConfidenceScore score={parseFloat(String(doc.confidence)) * 100} />
           )}
 
           {docAnalysis.plainLanguageSummary && (

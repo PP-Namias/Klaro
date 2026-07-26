@@ -1,4 +1,4 @@
-import { Document } from "@langchain/core/documents";
+import type { Document } from "@langchain/core/documents";
 import { Annotation } from "@langchain/langgraph";
 
 import { reduceDocs } from "../shared/state.js";

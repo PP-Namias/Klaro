@@ -6,9 +6,9 @@ const dirname = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   resolve: {
-    alias: {
-      "~": fileURLToPath(new URL("./src", import.meta.url)),
-    },
+    alias: [
+      { find: /^~(?:\/|$)/, replacement: fileURLToPath(new URL("./src/", import.meta.url)) },
+    ],
   },
   esbuild: {
     jsx: "automatic",
@@ -18,5 +18,6 @@ export default defineConfig({
     globals: true,
     setupFiles: [resolve(dirname, "../../vitest.setup.ts")],
     environment: "jsdom",
+    exclude: ["**/e2e/**", "**/node_modules/**", "**/dist/**", "**/.next/**"],
   },
 });

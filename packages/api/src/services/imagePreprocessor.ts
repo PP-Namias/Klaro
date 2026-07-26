@@ -1,10 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CanvasLike = any;
 
-type CanvasModule = {
+interface CanvasModule {
   createCanvas: (width: number, height: number) => CanvasLike;
   loadImage: (source: Buffer) => Promise<CanvasLike>;
-};
+}
 
 let canvasModule: CanvasModule | null = null;
 let canvasLoadAttempted = false;
@@ -13,9 +13,7 @@ async function getCanvas(): Promise<CanvasModule | null> {
   if (canvasLoadAttempted) return canvasModule;
   canvasLoadAttempted = true;
   try {
-    const mod = await (import("canvas") as Promise<
-      typeof import("canvas")
-    >);
+    const mod = await (import("canvas") as Promise<typeof import("canvas")>);
     canvasModule = {
       createCanvas: mod.createCanvas as CanvasModule["createCanvas"],
       loadImage: mod.loadImage,
@@ -60,7 +58,9 @@ function clamp(value: number, min = 0, max = 255): number {
 
 function applyGrayscale(data: Uint8ClampedArray): void {
   for (let i = 0; i < data.length; i += 4) {
-    const gray = toGray((data[i] ?? 0) + ((data[i + 1] ?? 0) << 8) + ((data[i + 2] ?? 0) << 16));
+    const gray = toGray(
+      (data[i] ?? 0) + ((data[i + 1] ?? 0) << 8) + ((data[i + 2] ?? 0) << 16),
+    );
     data[i] = gray;
     data[i + 1] = gray;
     data[i + 2] = gray;
@@ -87,7 +87,9 @@ function applyMedianDenoise(
             const idx = (ny * width + nx) * 4;
             neighbors.push(
               toGray(
-                (copy[idx] ?? 0) + ((copy[idx + 1] ?? 0) << 8) + ((copy[idx + 2] ?? 0) << 16),
+                (copy[idx] ?? 0) +
+                  ((copy[idx + 1] ?? 0) << 8) +
+                  ((copy[idx + 2] ?? 0) << 16),
               ),
             );
           }

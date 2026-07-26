@@ -152,7 +152,7 @@ export function formatDiagnosisSection(
 }
 
 export function formatMedicationsSection(
-  medications: Array<{ name: string; dosage: string; frequency: string }>,
+  medications: { name: string; dosage: string; frequency: string }[],
   language: LanguageCode,
 ): PlainLanguageSection {
   const items = medications.map(
@@ -167,12 +167,12 @@ export function formatMedicationsSection(
 }
 
 export function formatLabResultsSection(
-  labResults: Array<{
+  labResults: {
     testName: string;
     value: string;
     unit: string;
     referenceRange: string;
-  }>,
+  }[],
   language: LanguageCode,
 ): PlainLanguageSection {
   const items = labResults.map(
@@ -202,11 +202,11 @@ export function generatePlainLanguageSummary(
   if (Array.isArray(data.medications) && data.medications.length > 0) {
     sections.push(
       formatMedicationsSection(
-        data.medications as Array<{
+        data.medications as {
           name: string;
           dosage: string;
           frequency: string;
-        }>,
+        }[],
         language,
       ),
     );
@@ -215,12 +215,12 @@ export function generatePlainLanguageSummary(
   if (Array.isArray(data.labResults) && data.labResults.length > 0) {
     sections.push(
       formatLabResultsSection(
-        data.labResults as Array<{
+        data.labResults as {
           testName: string;
           value: string;
           unit: string;
           referenceRange: string;
-        }>,
+        }[],
         language,
       ),
     );

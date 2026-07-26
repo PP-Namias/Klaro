@@ -99,7 +99,7 @@ function extractCloudinaryPublicId(url: string): string | null {
     // Get everything after upload/ (excluding file extension)
     const publicIdParts = pathParts.slice(startIndex);
     if (publicIdParts.length === 0) return null;
-    const lastPart = publicIdParts.at(-1) ?? '';
+    const lastPart = publicIdParts.at(-1) ?? "";
     const ext = lastPart.split(".").pop();
 
     if (ext && ["jpg", "jpeg", "png", "gif", "webp", "pdf"].includes(ext)) {

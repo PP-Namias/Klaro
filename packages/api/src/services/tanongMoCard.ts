@@ -30,7 +30,7 @@ const DISCLAIMERS: Record<string, string> = {
 function generateQuestions(
   testCode: string,
   severity: SeverityLevel,
-  language: string = "en",
+  language = "en",
 ): string[] {
   const questionsBySeverity: Record<SeverityLevel, string[]> = {
     normal: [
@@ -101,7 +101,7 @@ function translateToFilipino(english: string): string {
 
 function generateRecommendations(
   severity: SeverityLevel,
-  _language: string = "en",
+  _language = "en",
 ): string[] {
   const recommendations: Record<SeverityLevel, string[]> = {
     normal: [

@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/consistent-type-definitions, @typescript-eslint/array-type, @typescript-eslint/no-base-to-string, @typescript-eslint/no-unnecessary-condition, react-hooks/set-state-in-effect, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/consistent-type-definitions, @typescript-eslint/array-type, @typescript-eslint/no-base-to-string, @typescript-eslint/no-unnecessary-condition, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { trpc } from "~/utils/api";
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
+ 
 
 export default function DocumentDetail() {
   const { id } = useGlobalSearchParams<{ id?: string | string[] }>();

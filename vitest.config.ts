@@ -8,6 +8,7 @@ export default defineConfig({
   test: {
     globals: true,
     setupFiles: [resolve(dirname, "vitest.setup.ts")],
+    exclude: ["**/e2e/**", "**/node_modules/**", "**/dist/**", "**/.next/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "json-summary", "html"],

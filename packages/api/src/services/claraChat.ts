@@ -91,9 +91,9 @@ When answering questions about the patient data:
  */
 function scrubExtractedDataForClara(data: Record<string, unknown>): {
   scrubbedData: Record<string, unknown>;
-  matches: Array<{ type: string; value: string }>;
+  matches: { type: string; value: string }[];
 } {
-  const matches: Array<{ type: string; value: string }> = [];
+  const matches: { type: string; value: string }[] = [];
   const scrubbed: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(data)) {
@@ -134,7 +134,7 @@ export function shouldRespondToMessage(message: string): boolean {
     /^(hi|hello|hey|good morning|good afternoon|good evening)$/i.test(trimmed)
   )
     return true;
-  if (/\?/.test(trimmed)) return true;
+  if (trimmed.includes('?')) return true;
 
   const healthKeywords = [
     "diagnosis",
@@ -193,7 +193,7 @@ export function buildPatientDataSummary(data: Record<string, unknown>): string {
     parts.push(`Diagnoses: ${(data.diagnosis as string[]).join(", ")}`);
   }
   if (Array.isArray(data.medications) && data.medications.length > 0) {
-    const meds = data.medications as Array<{ name: string; dosage: string }>;
+    const meds = data.medications as { name: string; dosage: string }[];
     parts.push(
       `Medications: ${meds.map((m) => `${m.name} ${m.dosage}`).join(", ")}`,
     );

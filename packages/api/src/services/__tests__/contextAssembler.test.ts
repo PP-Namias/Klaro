@@ -8,12 +8,12 @@ describe("Context Assembler", () => {
       extractedFields: { patientName: "John", diagnosis: ["Hypertension"] },
     });
     expect(context).toContain("Patient results");
-    expect(context).toContain("John");
+    expect(context).toContain("[REDACTED]");
   });
 
   it("assembles plain language summary", () => {
     const context = assembleDocumentContext({
-      plainLanguageSummary: "Patient has high blood pressure",
+      plainLanguageSummary: "Your results show high blood pressure",
     });
     expect(context).toContain("Analysis summary");
     expect(context).toContain("high blood pressure");

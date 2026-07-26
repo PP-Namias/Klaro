@@ -47,7 +47,7 @@ export function getChatHistory(
 
 export function getRecentMessages(
   analysisId: string,
-  count: number = 5,
+  count = 5,
 ): ChatMessage[] {
   const messages = chatStore.get(analysisId) || [];
   return messages.slice(-count);

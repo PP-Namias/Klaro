@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -40,11 +39,6 @@ function getStoredLanguage(): Language {
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>(getStoredLanguage);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
@@ -64,11 +58,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(
     () => ({
-      language: mounted ? language : DEFAULT_LANGUAGE,
+      language,
       setLanguage,
       t: tFn,
     }),
-    [language, mounted, setLanguage, tFn],
+    [language, setLanguage, tFn],
   );
 
   return (

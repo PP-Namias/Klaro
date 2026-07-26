@@ -5,10 +5,7 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean);
 
-export function isAdmin(ctx: {
-  db: any;
-  session: any;
-}): boolean {
+export function isAdmin(ctx: { db: any; session: any }): boolean {
   if (!ctx.session?.user?.id) return false;
   if (ADMIN_EMAILS.length === 0) return false;
   const email = ctx.session.user.email?.toLowerCase();
@@ -16,9 +13,6 @@ export function isAdmin(ctx: {
   return ADMIN_EMAILS.includes(email);
 }
 
-export function requireAdmin(ctx: {
-  db: any;
-  session: any;
-}): boolean {
+export function requireAdmin(ctx: { db: any; session: any }): boolean {
   return isAdmin(ctx);
 }

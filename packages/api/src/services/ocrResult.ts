@@ -3,12 +3,12 @@ export interface NormalizedOcrResult {
   normalizedText: string;
   confidence: number;
   language: string;
-  blocks: Array<{
+  blocks: {
     text: string;
     normalizedText: string;
     confidence: number;
     lineIndex: number;
-  }>;
+  }[];
   metadata: {
     totalBlocks: number;
     averageConfidence: number;
@@ -87,8 +87,8 @@ export function normalizeBlock(
 
 export function normalizeOcrResult(
   rawText: string,
-  blocks: Array<{ text: string; confidence?: number }> = [],
-  _source: string = "local",
+  blocks: { text: string; confidence?: number }[] = [],
+  _source = "local",
 ): NormalizedOcrResult {
   const startTime = Date.now();
 

@@ -1,5 +1,5 @@
-import { Document } from "@langchain/core/documents";
-import { BaseMessage } from "@langchain/core/messages";
+import type { Document } from "@langchain/core/documents";
+import type { BaseMessage } from "@langchain/core/messages";
 import { Annotation } from "@langchain/langgraph";
 
 import { reduceDocs } from "../shared/state.js";

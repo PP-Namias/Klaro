@@ -113,7 +113,7 @@ export function getSeverityIcon(severity: SeverityLevel): string {
 }
 
 export function batchCalculateSeverity(
-  tests: Array<{ code: string; value: number }>,
+  tests: { code: string; value: number }[],
 ): SeverityResult[] {
   return tests.map((test) => calculateSeverity(test.code, test.value));
 }

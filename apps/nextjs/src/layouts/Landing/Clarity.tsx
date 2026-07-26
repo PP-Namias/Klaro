@@ -32,9 +32,9 @@ export function Clarity() {
     },
   ];
 
-  const item1 = clarityItems[0] as (typeof clarityItems)[number];
-  const item2 = clarityItems[1] as (typeof clarityItems)[number];
-  const item3 = clarityItems[2] as (typeof clarityItems)[number];
+  const item1 = clarityItems[0]!;
+  const item2 = clarityItems[1]!;
+  const item3 = clarityItems[2]!;
 
   return (
     <motion.section

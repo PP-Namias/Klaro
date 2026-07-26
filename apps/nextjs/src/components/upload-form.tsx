@@ -1,8 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
+ 
 
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 
@@ -160,7 +161,7 @@ export function UploadForm() {
     let mounted = true;
     async function startCamera() {
       try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)
+        if (!navigator.mediaDevices?.getUserMedia)
           return;
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
@@ -188,7 +189,7 @@ export function UploadForm() {
         videoRef.current &&
         videoRef.current.srcObject instanceof MediaStream
       ) {
-        const st = videoRef.current.srcObject as MediaStream;
+        const st = videoRef.current.srcObject;
         st.getTracks().forEach((t) => t.stop());
       }
     };

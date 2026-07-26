@@ -1,4 +1,4 @@
-/* eslint-disable turbo/no-undeclared-env-vars, no-restricted-properties */
+/* eslint-disable no-restricted-properties */
 
 import type { NextRequest } from "next/server";
 import { v2 as cloudinary } from "cloudinary";

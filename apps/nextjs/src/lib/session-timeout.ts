@@ -1,4 +1,4 @@
-/* eslint-disable turbo/no-undeclared-env-vars, no-restricted-properties, @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable no-restricted-properties, @typescript-eslint/prefer-nullish-coalescing */
 
 /**
  * Session Timeout Service

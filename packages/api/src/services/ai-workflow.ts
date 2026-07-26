@@ -50,12 +50,12 @@ export interface WorkflowResult {
   /** Plain language explanation */
   plainLanguage: {
     summary: string;
-    tests: Array<{
+    tests: {
       name: string;
       value?: string;
       interpretation: string;
       recommendation?: string;
-    }>;
+    }[];
     severity: Severity;
     disclaimer?: string;
     bookingCta?: string;
@@ -91,7 +91,7 @@ export interface WorkflowError {
  * Processes images/PDFs through OCR → Extraction → Analysis → Plain Language
  */
 export async function executeDocumentWorkflow(
-  images: Array<{ buffer: Buffer; filename: string; mimeType?: string }>,
+  images: { buffer: Buffer; filename: string; mimeType?: string }[],
   config: Partial<WorkflowConfig> = {},
 ): Promise<WorkflowResult> {
   const startTime = Date.now();
@@ -207,7 +207,7 @@ export async function executeDocumentWorkflow(
  * Process OCR for multiple images with fallback
  */
 async function processOCR(
-  images: Array<{ buffer: Buffer; filename: string; mimeType?: string }>,
+  images: { buffer: Buffer; filename: string; mimeType?: string }[],
   config: WorkflowConfig,
   warnings: string[],
 ): Promise<{
@@ -261,7 +261,7 @@ async function processOCR(
  * Simplified workflow for guest users (no authentication required)
  */
 export async function executeGuestWorkflow(
-  base64Images: Array<{ bytesBase64: string; filename: string }>,
+  base64Images: { bytesBase64: string; filename: string }[],
   options: {
     language?: "Filipino" | "English" | "Bisaya" | "Ilocano";
     patientAge?: number;
@@ -275,7 +275,7 @@ export async function executeGuestWorkflow(
     mimeType: guessMimeType(img.filename),
   }));
 
-  const dialect: Dialect = (options.language as Dialect) || "Filipino";
+  const dialect: Dialect = (options.language!) || "Filipino";
 
   return executeDocumentWorkflow(images, {
     dialect,
@@ -301,7 +301,7 @@ function guessMimeType(filename: string): string {
  * Validate workflow input
  */
 export function validateWorkflowInput(
-  images: Array<{ buffer?: Buffer; filename: string; mimeType?: string }>,
+  images: { buffer?: Buffer; filename: string; mimeType?: string }[],
 ): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
@@ -332,9 +332,10 @@ export function validateWorkflowInput(
  * Get workflow status for a given request ID
  * (In production, this would query a job queue or database)
  */
-export function getWorkflowStatus(
-  _requestId: string,
-): { status: string; progress?: number } {
+export function getWorkflowStatus(_requestId: string): {
+  status: string;
+  progress?: number;
+} {
   // Placeholder - in production, query job queue
   return {
     status: "completed",
