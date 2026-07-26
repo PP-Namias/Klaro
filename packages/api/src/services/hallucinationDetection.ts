@@ -322,7 +322,7 @@ const PLAUSIBILITY_RULES: MedicalPlausibilityRule[] = [
 function checkValuePlausibility(
   testName: string,
   value: string,
-  unit?: string,
+  _unit?: string,
 ): HallucinationCheck | null {
   const numericValue = parseFloat(value);
   if (isNaN(numericValue)) {

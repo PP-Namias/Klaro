@@ -14,14 +14,12 @@ import {
 } from "@klaro/validators";
 
 import {
-  buildMedicalContext,
   buildRecommendationSummary,
   calculateDistanceKm,
   matchesSpecialty,
   matchesTextSearch,
   rankFacilitiesForContext,
   recommendFacilitiesByTests,
-  summarizeMedicalContext,
 } from "../services/facilities";
 import { publicProcedure } from "../trpc";
 
@@ -65,7 +63,7 @@ const isEmergencyCapable = (facilityRow: {
   return false;
 };
 
-const summarizeLoad = async (
+const summarizeLoad = (
   rows: Array<Record<string, unknown>>,
   latitude: number,
   longitude: number,
@@ -181,10 +179,10 @@ const selectFacilities = async (
   }
 
   if (conditions.length === 1) {
-    return baseQuery.where(conditions[0]!).limit(safeLimit);
+    return baseQuery.where(conditions[0] as SQL<unknown>).limit(safeLimit);
   }
 
-  return baseQuery.where(and(...conditions)!).limit(safeLimit);
+  return baseQuery.where(and(...conditions) as SQL<unknown>).limit(safeLimit);
 };
 
 export const facilitiesRouter = {
@@ -223,13 +221,13 @@ export const facilitiesRouter = {
 
       if (conditions.length === 1) {
         return baseQuery
-          .where(conditions[0]!)
+          .where(conditions[0] as SQL<unknown>)
           .limit(input.limit)
           .offset(input.offset);
       }
 
       return baseQuery
-        .where(and(...conditions)!)
+        .where(and(...conditions) as SQL<unknown>)
         .limit(input.limit)
         .offset(input.offset);
     }),
@@ -256,7 +254,7 @@ export const facilitiesRouter = {
     .input(searchNearbySchema)
     .query(async ({ ctx, input }) => {
       const rows = await selectFacilities(ctx, input);
-      const mapped = await summarizeLoad(
+      const mapped = summarizeLoad(
         rows as Array<Record<string, unknown>>,
         input.latitude,
         input.longitude,
@@ -299,7 +297,7 @@ export const facilitiesRouter = {
         limit: 50,
       });
 
-      const mapped = await summarizeLoad(
+      const mapped = summarizeLoad(
         rows as Array<Record<string, unknown>>,
         input.latitude,
         input.longitude,
@@ -330,7 +328,7 @@ export const facilitiesRouter = {
         limit: 200,
       });
 
-      const mapped = await summarizeLoad(
+      const mapped = summarizeLoad(
         rows as Array<Record<string, unknown>>,
         input.latitude,
         input.longitude,

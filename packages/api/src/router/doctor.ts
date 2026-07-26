@@ -327,7 +327,7 @@ const togglePrcVerification = protectedProcedure
       });
     }
 
-    if (!(await isAdmin(ctx))) {
+    if (!isAdmin(ctx)) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Only admins can verify doctors",

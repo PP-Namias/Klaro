@@ -1,5 +1,4 @@
 import type {
-  ExtractedTest,
   GeminiExtractionResult,
   MedicalExtractionData,
 } from "./geminiExtraction";
@@ -13,7 +12,6 @@ import {
   normalizeExtractionData,
 } from "./geminiExtraction";
 import {
-  buildSimplificationPrompt,
   simplifyWithGemini,
 } from "./geminiSimplification";
 import { detectHallucinations } from "./hallucinationDetection";
@@ -133,7 +131,7 @@ export async function executeFallbackChain(
 
 async function tryVisionExtraction(
   imageBase64: string,
-  language: string,
+  _language: string,
 ): Promise<GeminiExtractionResult> {
   try {
     const { callGeminiVision } = await import("./geminiVision");

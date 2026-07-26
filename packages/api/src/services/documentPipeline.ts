@@ -1,9 +1,8 @@
 import type { FallbackChainResult } from "./geminiPipeline";
 import type { OcrPipelineResult } from "./ocrPipeline";
-import { getPipelineConfig } from "../config/pipeline";
 import { executeFallbackChain } from "./geminiPipeline";
 import { runOcrWithRetry } from "./ocrPipeline";
-import { convertPdfToImages, isPdf } from "./pdfConversion";
+import { convertPdfToImages } from "./pdfConversion";
 import { emitPipelineTelemetry } from "./pipelineTelemetry";
 
 export interface PipelineStageTiming {
@@ -38,12 +37,6 @@ export interface PipelineInput {
   pdfBuffer?: Buffer;
 }
 
-const URGENCY_MAP: Record<string, string> = {
-  HIGH: "HIGH",
-  MODERATE: "MODERATE",
-  LOW: "LOW",
-};
-
 function computeUrgency(tests: { flagged?: boolean }[]): string {
   const flagged = tests.filter((t) => t.flagged).length;
   if (flagged >= 3) return "HIGH";
@@ -75,11 +68,10 @@ export async function executeDocumentPipeline(
   input: PipelineInput,
 ): Promise<DocumentPipelineResult> {
   const startTime = Date.now();
-  const config = getPipelineConfig();
   const warnings: string[] = [];
   const timing: PipelineStageTiming = { total: 0 };
 
-  emitPipelineTelemetry("started", { requestId: input.fileName });
+  void emitPipelineTelemetry("started", { requestId: input.fileName });
 
   let imageToProcess = input.imageBase64;
 
@@ -114,7 +106,7 @@ export async function executeDocumentPipeline(
   const ocrResult: OcrPipelineResult = await runOcrWithRetry(imageToProcess);
   timing.ocr = Date.now() - ocrStart;
 
-  emitPipelineTelemetry("ocr.completed", {
+  void emitPipelineTelemetry("ocr.completed", {
     ocrConfidence: ocrResult.confidence,
     accepted: ocrResult.accepted,
     processingTimeMs: timing.ocr,
@@ -168,7 +160,7 @@ export async function executeDocumentPipeline(
   );
   timing.gemini = Date.now() - geminiStart;
 
-  emitPipelineTelemetry("gemini.completed", {
+  void emitPipelineTelemetry("gemini.completed", {
     geminiConfidence: geminiResult.confidence,
     path: geminiResult.path,
     processingTimeMs: timing.gemini,
@@ -180,7 +172,7 @@ export async function executeDocumentPipeline(
 
   timing.total = Date.now() - startTime;
 
-  emitPipelineTelemetry("completed", {
+  void emitPipelineTelemetry("completed", {
     ocrConfidence: ocrResult.confidence,
     geminiConfidence: geminiResult.confidence,
     path: geminiResult.path,

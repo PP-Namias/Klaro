@@ -101,7 +101,7 @@ function translateToFilipino(english: string): string {
 
 function generateRecommendations(
   severity: SeverityLevel,
-  language: string = "en",
+  _language: string = "en",
 ): string[] {
   const recommendations: Record<SeverityLevel, string[]> = {
     normal: [

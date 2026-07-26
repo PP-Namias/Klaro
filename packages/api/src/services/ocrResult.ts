@@ -88,7 +88,7 @@ export function normalizeBlock(
 export function normalizeOcrResult(
   rawText: string,
   blocks: Array<{ text: string; confidence?: number }> = [],
-  source: string = "local",
+  _source: string = "local",
 ): NormalizedOcrResult {
   const startTime = Date.now();
 

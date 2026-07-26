@@ -660,7 +660,7 @@ export const documentsRouter = {
 
       try {
         // Generate plain-language explanation
-        const llmResponse = await generatePlainLanguageExplanation(
+        const llmResponse = generatePlainLanguageExplanation(
           analysisRecord.extractedFields as ExtractedTest[],
           input.dialect,
         );
@@ -880,7 +880,7 @@ export const documentsRouter = {
         });
       }
 
-      const { executeCleanup, getCleanupStats } = await import(
+      const { executeCleanup } = await import(
         "../services/fileCleanup"
       );
 

@@ -3,7 +3,7 @@
  * Orchestrates the complete pipeline: Upload → OCR → Extraction → Analysis → Plain Language
  */
 
-import type { Dialect, LLMResponse, Severity } from "@klaro/validators/llm";
+import type { Dialect, Severity } from "@klaro/validators/llm";
 
 import { extractTestsFromText } from "./extraction";
 import { generatePlainLanguageExplanation } from "./llm";
@@ -125,7 +125,7 @@ export async function executeDocumentWorkflow(
       referenceRange: t.referenceRange,
       flagged: t.flagged,
     }));
-    const plainLanguage = await generatePlainLanguageExplanation(
+    const plainLanguage = generatePlainLanguageExplanation(
       llmTests,
       fullConfig.dialect,
     );
@@ -332,9 +332,9 @@ export function validateWorkflowInput(
  * Get workflow status for a given request ID
  * (In production, this would query a job queue or database)
  */
-export async function getWorkflowStatus(
-  requestId: string,
-): Promise<{ status: string; progress?: number }> {
+export function getWorkflowStatus(
+  _requestId: string,
+): { status: string; progress?: number } {
   // Placeholder - in production, query job queue
   return {
     status: "completed",

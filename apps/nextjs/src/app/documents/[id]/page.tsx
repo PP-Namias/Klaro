@@ -3,6 +3,7 @@
 "use client";
 
 import { use, useCallback } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, FileText, Trash2 } from "lucide-react";
 
@@ -21,16 +22,22 @@ export default function DocumentDetailPage({
   const { id } = use(params);
   const router = useRouter();
   const trpc = useTRPC();
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
 
-  const { data, isLoading } = trpc.documents.byId.useQuery({ id });
+  const { data, isLoading } = useQuery(
+    trpc.documents.byId.queryOptions({ id }),
+  );
 
-  const deleteMutation = trpc.documents.delete.useMutation({
-    onSuccess: () => {
-      utils.documents.list.invalidate();
-      router.push("/documents");
-    },
-  });
+  const deleteMutation = useMutation(
+    trpc.documents.delete.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.documents.list.queryKey(),
+        });
+        router.push("/documents");
+      },
+    }),
+  );
 
   const handleDelete = useCallback(() => {
     if (window.confirm("Delete this document? This action cannot be undone.")) {
@@ -191,9 +198,9 @@ export default function DocumentDetailPage({
       {/* Analysis results */}
       {docAnalysis && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {docAnalysis.confidence && (
+          {doc.confidence && (
             <ConfidenceScore
-              score={parseFloat(String(docAnalysis.confidence)) * 100}
+              score={parseFloat(String(doc.confidence)) * 100}
             />
           )}
 

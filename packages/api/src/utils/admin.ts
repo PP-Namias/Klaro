@@ -1,5 +1,3 @@
-import type { TRPCContext } from "../trpc";
-
 // Admin authorization via environment variable ADMIN_EMAILS (comma-separated).
 // In production, replace with a proper role column on the user table.
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
@@ -7,10 +5,10 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean);
 
-export async function isAdmin(ctx: {
+export function isAdmin(ctx: {
   db: any;
   session: any;
-}): Promise<boolean> {
+}): boolean {
   if (!ctx.session?.user?.id) return false;
   if (ADMIN_EMAILS.length === 0) return false;
   const email = ctx.session.user.email?.toLowerCase();
@@ -18,9 +16,9 @@ export async function isAdmin(ctx: {
   return ADMIN_EMAILS.includes(email);
 }
 
-export async function requireAdmin(ctx: {
+export function requireAdmin(ctx: {
   db: any;
   session: any;
-}): Promise<boolean> {
+}): boolean {
   return isAdmin(ctx);
 }

@@ -5,7 +5,7 @@
  * PHI Protection: All patient identifiers are scrubbed before context assembly
  * to prevent leakage to external LLM APIs.
  */
-import { buildScrubbedContext, scrubPhi } from "./phiScrubber";
+import { scrubPhi } from "./phiScrubber";
 
 /**
  * PHI-sensitive fields that should be redacted from context

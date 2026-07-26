@@ -113,26 +113,30 @@ function detectPatientNameConflicts(
   // Check for very similar names that might be the same person
   const names = Array.from(nameMap.keys());
   for (let i = 0; i < names.length; i++) {
+    const name1 = names[i];
+    if (!name1) continue;
     for (let j = i + 1; j < names.length; j++) {
-      const similarity = calculateStringSimilarity(names[i]!, names[j]!);
+      const name2 = names[j];
+      if (!name2) continue;
+      const similarity = calculateStringSimilarity(name1, name2);
       if (similarity > 0.8 && similarity < 1) {
         // Similar but not identical - potential conflict
-        const docs1 = nameMap.get(names[i]!) || [];
-        const docs2 = nameMap.get(names[j]!) || [];
+        const docs1 = nameMap.get(name1) || [];
+        const docs2 = nameMap.get(name2) || [];
         contradictions.push({
           id: generateContradictionId(),
           type: "patient_name_variant",
           severity: "warning",
-          description: `Similar patient names detected: "${docs1[0]!.patientName}" and "${docs2[0]!.patientName}"`,
+          description: `Similar patient names detected: "${docs1[0]?.patientName ?? ''}" and "${docs2[0]?.patientName ?? ''}"`,
           conflictingValues: [
             {
-              value: docs1[0]!.patientName!,
-              source: docs1[0]!.id,
+              value: docs1[0]?.patientName ?? '',
+              source: docs1[0]?.id ?? '',
               field: "patientName",
             },
             {
-              value: docs2[0]!.patientName!,
-              source: docs2[0]!.id,
+              value: docs2[0]?.patientName ?? '',
+              source: docs2[0]?.id ?? '',
               field: "patientName",
             },
           ],
@@ -154,7 +158,7 @@ function detectDateConflicts(documents: MedicalDocument[]): Contradiction[] {
   // Check for dates that are too far apart for related documents
   const dates = documents
     .filter((d) => d.date)
-    .map((d) => ({ date: new Date(d.date!), doc: d }))
+    .map((d) => ({ date: new Date(d.date ?? ''), doc: d }))
     .filter((d) => !isNaN(d.date.getTime()))
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -168,7 +172,7 @@ function detectDateConflicts(documents: MedicalDocument[]): Contradiction[] {
         severity: "error",
         description: `Document date ${doc.date} is in the future`,
         conflictingValues: [
-          { value: doc.date!, source: doc.id, field: "date" },
+          { value: doc.date ?? 'unknown', source: doc.id, field: "date" },
         ],
         resolution: "Verify the document date is correct",
       });
@@ -183,7 +187,7 @@ function detectDateConflicts(documents: MedicalDocument[]): Contradiction[] {
         severity: "info",
         description: `Document date ${doc.date} is more than 1 year old`,
         conflictingValues: [
-          { value: doc.date!, source: doc.id, field: "date" },
+          { value: doc.date ?? 'unknown', source: doc.id, field: "date" },
         ],
         resolution: "Consider if this document is still relevant",
       });
@@ -274,12 +278,14 @@ function detectDiagnosisConflicts(
     d.diagnosis.map((diag) => ({ diagnosis: diag, source: d.id })),
   );
 
-  for (const [term1, term2] of contradictoryPairs) {
+  for (const pair of contradictoryPairs) {
+    const term1 = pair[0] ?? '';
+    const term2 = pair[1] ?? '';
     const matches1 = allDiagnoses.filter((d) =>
-      d.diagnosis.toLowerCase().includes(term1!),
+      d.diagnosis.toLowerCase().includes(term1),
     );
     const matches2 = allDiagnoses.filter((d) =>
-      d.diagnosis.toLowerCase().includes(term2!),
+      d.diagnosis.toLowerCase().includes(term2),
     );
 
     if (matches1.length > 0 && matches2.length > 0) {
@@ -345,7 +351,7 @@ function detectMedicationConflicts(
           severity: "warning",
           description: `Conflicting dosages for "${medName}": ${uniqueDosages.join(", ")}`,
           conflictingValues: dosages.map((d) => ({
-            value: d.dosage!,
+            value: d.dosage ?? '',
             source: d.source,
             field: medName,
           })),

@@ -1,4 +1,4 @@
-import { detectPhiTypes, scrubPhi } from "./phiScrubber";
+import { scrubPhi } from "./phiScrubber";
 
 export type ClaraMessageType = "user" | "clara" | "system";
 

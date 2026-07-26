@@ -65,10 +65,10 @@ export async function chat(
   return request<ChatResponse>("POST", "/api/chat", { question, messages });
 }
 
-export async function chatStreamURL(
+export function chatStreamURL(
   question: string,
   messages: ChatMessage[] = [],
-): Promise<string> {
+): string {
   const params = new URLSearchParams({ question });
   if (messages.length > 0) {
     params.set("messages", JSON.stringify(messages));

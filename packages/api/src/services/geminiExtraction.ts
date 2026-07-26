@@ -109,10 +109,6 @@ export function parseGeminiResponse(
 export function normalizeExtractionData(
   raw: Record<string, unknown>,
 ): MedicalExtractionData {
-  const tests = (raw.tests as unknown[])?.filter(Array.isArray) ?? [];
-  const medications =
-    (raw.medications as unknown[])?.filter(Array.isArray) ?? [];
-
   return {
     patientName:
       typeof raw.patientName === "string" ? raw.patientName : undefined,

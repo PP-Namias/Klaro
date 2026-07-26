@@ -104,7 +104,7 @@ export const chatRouter = {
         .where(eq(analysis.id, input.analysisId));
 
       const userId = ctx.session?.user?.id;
-      if (!docAnalysis || docAnalysis.userId !== userId) {
+      if (docAnalysis?.userId !== userId) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have access to this analysis",
@@ -125,7 +125,13 @@ export const chatRouter = {
         plainLanguageSummary?: string | null;
       };
 
-      const userId = ctx.session!.user.id;
+      if (!ctx.session) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Not authenticated",
+        });
+      }
+      const userId = ctx.session.user.id;
 
       // AI-06: Medical Context Guardrails - Check input for blocked patterns
       const inputGuardrail = checkInputGuardrails(input.content);
@@ -364,7 +370,7 @@ export const chatRouter = {
         .from(analysis)
         .where(eq(analysis.id, input.analysisId));
 
-      if (!doc_analysis || doc_analysis.userId !== userId) {
+      if (doc_analysis?.userId !== userId) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have access to this analysis",
@@ -401,7 +407,7 @@ export const chatRouter = {
         .from(analysis)
         .where(eq(analysis.id, input.analysisId));
 
-      if (!doc_analysis || doc_analysis.userId !== userId) {
+      if (doc_analysis?.userId !== userId) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have access to this analysis",

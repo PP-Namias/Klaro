@@ -17,7 +17,6 @@ import {
   encryptAnalysisFields,
   encryptChatMessage,
   encryptDocumentFields,
-  isEncrypted,
 } from "./encryption";
 
 // ============================================================================

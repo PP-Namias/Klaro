@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { document } from "@klaro/db/schema";
 

@@ -185,26 +185,16 @@ ${testList}
  * NOTE: In production, this would call OpenAI/Claude/Gemini API
  * For now, we generate structured responses based on test data
  */
-export async function generatePlainLanguageExplanation(
+export function generatePlainLanguageExplanation(
   extractedTests: ExtractedTest[],
   dialect: Dialect = "Filipino",
-): Promise<LLMResponse> {
+): LLMResponse {
   // Separate normal and flagged tests
   const flaggedTests = extractedTests.filter((t) => t.flagged);
   const severity = computeSeverity(
     extractedTests.map((t) => t.flagged ?? false),
   );
 
-  // Get dialect-specific greeting
-  const greetings: Record<Dialect, string> = {
-    English: "Your results show your current health status.",
-    Filipino:
-      "Ang iyong mga resulta ay nagpapakita ng iyong kasalukuyang kalusugan.",
-    Bisaya:
-      "Ang imong mga resulta ay nagpakita sa imong kasagaran na kalusugan.",
-    Ilocano:
-      "Ang iyong mga resulta ay nagpakita sa iyong panglalaking kalusugan.",
-  };
 
   // Build test explanations
   const tests = extractedTests.map((test) => ({
@@ -446,7 +436,7 @@ function buildSummary(
     },
   };
 
-  return ((summaries[dialect] && summaries[dialect][severity]) ??
+  return ((summaries[dialect]?.[severity]) ??
     (summaries.Filipino as Record<Severity, string>)[severity]) as string;
 }
 

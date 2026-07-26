@@ -109,7 +109,7 @@ const EMAIL_PATTERN = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
  * Filtered by context clues (DOB, birth, born, date of birth)
  */
 const DOB_CONTEXT_PATTERNS: RegExp[] = [
-  /\b(?:DOB|D\.O\.B\.|DATE\s*OF\s*BIRTH|BIRTHDATE|BORN|BIRTH\s*DATE)[:\s]*(\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})\b/gi,
+  /\b(?:DOB|D\.O\.B\.|DATE\s*OF\s*BIRTH|BIRTHDATE|BORN|BIRTH\s*DATE)[:\s]*(\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4})\b/gi,
   /\b(?:DOB|D\.O\.B\.|DATE\s*OF\s*BIRTH|BIRTHDATE|BORN|BIRTH\s*DATE)[:\s]*(\w+\s+\d{1,2},?\s+\d{4})\b/gi,
   /\b(?:DOB|D\.O\.B\.|DATE\s*OF\s*BIRTH|BIRTHDATE|BORN|BIRTH\s*DATE)[:\s]*(\d{4}-\d{2}-\d{2})\b/gi,
 ];
@@ -118,7 +118,7 @@ const DOB_CONTEXT_PATTERNS: RegExp[] = [
  * Standalone dates that look like birth years (19XX, 20XX context)
  */
 const BIRTH_YEAR_PATTERN =
-  /\b(0[1-9]|1[0-2])[\/.-](0[1-9]|[12]\d|3[01])[\/.-](19|20)\d{2}\b/g;
+  /\b(0[1-9]|1[0-2])[/.-](0[1-9]|[12]\d|3[01])[/.-](19|20)\d{2}\b/g;
 
 /**
  * Addresses: Philippine address patterns
@@ -401,7 +401,8 @@ function redactPattern(
 
   // Apply redactions in reverse order to preserve indices
   for (let i = foundMatches.length - 1; i >= 0; i--) {
-    const fm = foundMatches[i]!;
+    const fm = foundMatches[i];
+    if (!fm) continue;
     const { fullMatch, index } = fm;
     const endIdx = index + fullMatch.length;
 

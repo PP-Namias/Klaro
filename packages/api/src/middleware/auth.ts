@@ -10,7 +10,7 @@ export interface SessionSecurityInfo {
 
 export const requireAuth = (ctx: TRPCContext): SessionSecurityInfo => {
   const user = ctx?.session?.user;
-  if (!user || !user.id) {
+  if (!user?.id) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You must be authenticated to access this resource",

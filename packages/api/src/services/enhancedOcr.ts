@@ -1,5 +1,3 @@
-import type { OcrResult } from "./ocr";
-
 export interface ImagePreprocessOptions {
   grayscale?: boolean;
   contrast?: number;

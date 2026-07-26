@@ -165,16 +165,16 @@ const CANONICAL_TEST_NAMES: Record<string, string> = {
  */
 const LAB_PATTERNS = [
   // Pattern 1: "TestName: value unit (reference range)"
-  /^([A-Za-z\s\-\/()]+?):\s*([\d.]+)\s+([A-Za-z/%\-°C°F]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
+  /^([A-Za-z\s-/()]+?):\s*([\d.]+)\s+([A-Za-z/%\-°C°F]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
 
   // Pattern 2: "TestName value unit (reference range)" (no colon)
-  /^([A-Za-z\s\-\/()]+?)\s+([\d.]+)\s+([A-Za-z/%\-°C°F]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
+  /^([A-Za-z\s-/()]+?)\s+([\d.]+)\s+([A-Za-z/%\-°C°F]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
 
   // Pattern 3: "TestName: value (reference range)" (abbreviated, with optional ref range)
-  /^([A-Za-z\s\-\/()0-9]+?):\s*([\d.]+)(?:\s*\(([\d.\-\s]+?)\))?$/,
+  /^([A-Za-z\s-/()0-9]+?):\s*([\d.]+)(?:\s*\(([\d.\-\s]+?)\))?$/,
 
   // Pattern 4: Tab-separated
-  /^([A-Za-z\s\-\/()]+?)\t+([\d.]+)\t+([A-Za-z/%\-°C°F]+?)(?:\t+([\d.\-\s]+?))?$/,
+  /^([A-Za-z\s-/()]+?)\t+([\d.]+)\t+([A-Za-z/%\-°C°F]+?)(?:\t+([\d.\-\s]+?))?$/,
 ];
 
 const rangeRegex = /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/;

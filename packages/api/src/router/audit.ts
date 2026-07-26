@@ -16,7 +16,7 @@ import { z } from "zod/v4";
 import { db } from "@klaro/db/client";
 import { phiAuditLog } from "@klaro/db/schema";
 
-import type { AuditAction, AuditSeverity } from "../services/auditLogger";
+import type { AuditSeverity } from "../services/auditLogger";
 import { protectedProcedure } from "../trpc";
 
 // ============================================================================

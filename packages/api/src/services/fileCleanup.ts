@@ -15,7 +15,7 @@
  */
 
 import { v2 as cloudinary } from "cloudinary";
-import { and, eq, inArray, lt } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 
 import { db } from "@klaro/db/client";
 import { document } from "@klaro/db/schema";
@@ -98,7 +98,8 @@ function extractCloudinaryPublicId(url: string): string | null {
 
     // Get everything after upload/ (excluding file extension)
     const publicIdParts = pathParts.slice(startIndex);
-    const lastPart = publicIdParts[publicIdParts.length - 1]!;
+    if (publicIdParts.length === 0) return null;
+    const lastPart = publicIdParts.at(-1) ?? '';
     const ext = lastPart.split(".").pop();
 
     if (ext && ["jpg", "jpeg", "png", "gif", "webp", "pdf"].includes(ext)) {

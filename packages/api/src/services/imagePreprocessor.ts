@@ -13,7 +13,7 @@ async function getCanvas(): Promise<CanvasModule | null> {
   if (canvasLoadAttempted) return canvasModule;
   canvasLoadAttempted = true;
   try {
-    const mod = await (Function('return import("canvas")')() as Promise<
+    const mod = await (import("canvas") as Promise<
       typeof import("canvas")
     >);
     canvasModule = {
@@ -60,7 +60,7 @@ function clamp(value: number, min = 0, max = 255): number {
 
 function applyGrayscale(data: Uint8ClampedArray): void {
   for (let i = 0; i < data.length; i += 4) {
-    const gray = toGray(data[i]! + (data[i + 1]! << 8) + (data[i + 2]! << 16));
+    const gray = toGray((data[i] ?? 0) + ((data[i + 1] ?? 0) << 8) + ((data[i + 2] ?? 0) << 16));
     data[i] = gray;
     data[i + 1] = gray;
     data[i + 2] = gray;
@@ -87,7 +87,7 @@ function applyMedianDenoise(
             const idx = (ny * width + nx) * 4;
             neighbors.push(
               toGray(
-                copy[idx]! + (copy[idx + 1]! << 8) + (copy[idx + 2]! << 16),
+                (copy[idx] ?? 0) + ((copy[idx + 1] ?? 0) << 8) + ((copy[idx + 2] ?? 0) << 16),
               ),
             );
           }
@@ -143,17 +143,17 @@ function applyAdaptiveBinarize(
 function applyContrast(data: Uint8ClampedArray, factor: number): void {
   const midpoint = 128;
   for (let i = 0; i < data.length; i += 4) {
-    data[i] = clamp(midpoint + (data[i]! - midpoint) * factor);
-    data[i + 1] = clamp(midpoint + (data[i + 1]! - midpoint) * factor);
-    data[i + 2] = clamp(midpoint + (data[i + 2]! - midpoint) * factor);
+    data[i] = clamp(midpoint + ((data[i] ?? 0) - midpoint) * factor);
+    data[i + 1] = clamp(midpoint + ((data[i + 1] ?? 0) - midpoint) * factor);
+    data[i + 2] = clamp(midpoint + ((data[i + 2] ?? 0) - midpoint) * factor);
   }
 }
 
 function applyBrightness(data: Uint8ClampedArray, factor: number): void {
   for (let i = 0; i < data.length; i += 4) {
-    data[i] = clamp(data[i]! * factor);
-    data[i + 1] = clamp(data[i + 1]! * factor);
-    data[i + 2] = clamp(data[i + 2]! * factor);
+    data[i] = clamp((data[i] ?? 0) * factor);
+    data[i + 1] = clamp((data[i + 1] ?? 0) * factor);
+    data[i + 2] = clamp((data[i + 2] ?? 0) * factor);
   }
 }
 

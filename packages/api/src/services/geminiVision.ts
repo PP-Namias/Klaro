@@ -149,11 +149,13 @@ export async function callGeminiVision(
 
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
-        throw {
-          code: response.status,
-          message: errorBody?.error?.message || "Unknown error",
-          retryable: response.status === 429 || response.status >= 500,
-        };
+        throw Object.assign(
+          new Error(errorBody?.error?.message || "Unknown error"),
+          {
+            code: response.status,
+            retryable: response.status === 429 || response.status >= 500,
+          },
+        );
       }
 
       const data = await response.json();

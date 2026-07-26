@@ -23,7 +23,7 @@ export async function convertPdfToImages(
 ): Promise<PdfConversionResult> {
   let createCanvas: ((w: number, h: number) => CanvasLike) | undefined;
   try {
-    const canvasMod = await (Function('return import("canvas")')() as Promise<
+    const canvasMod = await (import("canvas") as Promise<
       typeof import("canvas")
     >);
     createCanvas = canvasMod.createCanvas;
@@ -66,7 +66,7 @@ export async function convertPdfToImages(
       page.cleanup();
     }
 
-    doc.destroy();
+    void doc.destroy();
 
     return { pages, pageCount: pages.length, success: true };
   } catch (error) {
@@ -76,7 +76,7 @@ export async function convertPdfToImages(
   }
 }
 
-export async function isPdf(buffer: Buffer): Promise<boolean> {
+export function isPdf(buffer: Buffer): boolean {
   try {
     const header = buffer.subarray(0, 5).toString("ascii");
     return header === "%PDF-";
@@ -91,7 +91,7 @@ export async function countPdfPages(pdfBuffer: Buffer): Promise<number> {
     const doc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfBuffer) })
       .promise;
     const count = doc.numPages;
-    doc.destroy();
+    void doc.destroy();
     return count;
   } catch {
     const text = pdfBuffer.toString("ascii");

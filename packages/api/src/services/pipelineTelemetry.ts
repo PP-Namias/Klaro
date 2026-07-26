@@ -35,9 +35,9 @@ export function emitTelemetry(
   }
 }
 
-export async function emitPipelineTelemetry(
+export function emitPipelineTelemetry(
   stage: string,
   data: Partial<PipelineTelemetryEvent>,
-): Promise<void> {
+): void {
   emitTelemetry(`pipeline.${stage}`, data);
 }

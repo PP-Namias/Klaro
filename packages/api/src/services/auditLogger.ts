@@ -294,9 +294,6 @@ export async function queryAuditLogs(params: {
     conditions.push(/* sql */ `action = ${params.action}`);
   }
 
-  // Use Drizzle's query builder for type-safe queries
-  const query = db.select().from(phiAuditLog);
-
   // For now, return recent logs (can be extended with Drizzle filters)
   const results = await db
     .select()
@@ -324,7 +321,7 @@ export async function queryAuditLogs(params: {
 /**
  * Get audit summary for compliance reporting
  */
-export async function getAuditSummary(params: {
+export async function getAuditSummary(_params: {
   startDate?: Date;
   endDate?: Date;
   userId?: string;

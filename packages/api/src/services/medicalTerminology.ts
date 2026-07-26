@@ -180,7 +180,7 @@ export const TERMINOLOGY_DB: TerminologyMapping[] = [
 
 export function getTerminology(
   code: string,
-  language: string = "en",
+  _language: string = "en",
 ): TerminologyMapping | null {
   const term = TERMINOLOGY_DB.find(
     (t) => t.code.toUpperCase() === code.toUpperCase(),
