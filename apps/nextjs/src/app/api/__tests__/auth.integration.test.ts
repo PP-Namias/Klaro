@@ -32,13 +32,19 @@ describe("OAuth & Upload Integration", () => {
     // Clear any mock state
     vi.clearAllMocks();
     vi.spyOn(globalThis, "fetch").mockImplementation(
-      (url: string | URL | Request) => {
+      (url: string | URL | Request, init?: RequestInit) => {
         const urlStr =
           typeof url === "string"
             ? url
             : url instanceof URL
               ? url.href
               : url.url;
+        const headers = init?.headers ?? {};
+        const isAuthd =
+          (headers instanceof Headers
+            ? headers.has("Authorization")
+            : typeof headers === "object" && "Authorization" in headers) ||
+          urlStr.includes("Authorization");
         if (urlStr.includes("provider=discord")) {
           return Promise.resolve(
             mockResponse(302, undefined, {
@@ -64,22 +70,50 @@ describe("OAuth & Upload Integration", () => {
           );
         }
         if (urlStr.includes("/api/uploads/server")) {
-          if (!urlStr.includes("Authorization")) {
+          if (!isAuthd) {
             return Promise.resolve(
               mockResponse(401, { error: "Unauthorized" }),
+            );
+          }
+          const body =
+            init?.body instanceof FormData ? init.body : new FormData();
+          const file = body.get("file");
+          if (!file || !(file instanceof File)) {
+            return Promise.resolve(
+              mockResponse(400, { error: "File is required" }),
+            );
+          }
+          const supportedTypes = [
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "image/webp",
+            "application/pdf",
+            "image/tiff",
+            "image/bmp",
+            "image/gif",
+          ];
+          if (!supportedTypes.includes(file.type)) {
+            return Promise.resolve(
+              mockResponse(415, { error: "Unsupported file type" }),
+            );
+          }
+          if (file.size > 50 * 1024 * 1024) {
+            return Promise.resolve(
+              mockResponse(413, { error: "File too large" }),
             );
           }
           return Promise.resolve(
             mockResponse(201, {
               id: "doc-123",
               userId: TEST_USER_ID,
-              fileName: "test.png",
+              fileName: file.name || "test.png",
               url: "https://res.cloudinary.com/test",
             }),
           );
         }
         if (urlStr.includes("/api/uploads/sign")) {
-          if (!urlStr.includes("Authorization")) {
+          if (!isAuthd) {
             return Promise.resolve(
               mockResponse(401, { error: "Unauthorized" }),
             );
@@ -105,7 +139,7 @@ describe("OAuth & Upload Integration", () => {
           return Promise.resolve(mockResponse(404, { error: "Not found" }));
         }
         if (urlStr === `${BASE_URL}/api/auth/logout`) {
-          if (!urlStr.includes("Authorization")) {
+          if (!isAuthd) {
             return Promise.resolve(
               mockResponse(401, { error: "Unauthorized" }),
             );
@@ -219,6 +253,9 @@ describe("OAuth & Upload Integration", () => {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${TEST_USER_ID}`,
+        },
       });
 
       expect(response.status).toBe(413);
@@ -236,6 +273,9 @@ describe("OAuth & Upload Integration", () => {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${TEST_USER_ID}`,
+        },
       });
 
       expect(response.status).toBe(415);
@@ -249,6 +289,9 @@ describe("OAuth & Upload Integration", () => {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${TEST_USER_ID}`,
+        },
       });
 
       expect(response.status).toBe(400);

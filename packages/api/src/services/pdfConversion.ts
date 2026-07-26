@@ -53,7 +53,9 @@ export async function convertPdfToImages(
       const height = Math.floor(viewport.height);
 
       const canvas = createCanvas(width, height);
-      const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+      const ctx = canvas.getContext(
+        "2d",
+      ) as unknown as CanvasRenderingContext2D;
       const renderTask = page.render({ canvasContext: ctx, viewport });
       await renderTask.promise;
 

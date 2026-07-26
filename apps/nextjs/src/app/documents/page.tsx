@@ -4,6 +4,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText, Search } from "lucide-react";
 
 import type { DocumentCardProps } from "./_components/DocumentCard";
@@ -12,20 +13,23 @@ import { DocumentCard } from "./_components/DocumentCard";
 
 export default function DocumentsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const trpc = useTRPC();
-  const utils = trpc.useUtils();
   const [search, setSearch] = useState("");
 
-  const { data, isLoading } = trpc.documents.list.useQuery({
-    limit: 100,
-    offset: 0,
-  });
+  const { data, isLoading } = useQuery(
+    trpc.documents.list.queryOptions({ limit: 100, offset: 0 }),
+  );
 
-  const deleteMutation = trpc.documents.delete.useMutation({
-    onSuccess: () => {
-      utils.documents.list.invalidate();
-    },
-  });
+  const deleteMutation = useMutation(
+    trpc.documents.delete.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.documents.list.queryKey(),
+        });
+      },
+    }),
+  );
 
   const handleView = useCallback(
     (id: string) => {
@@ -190,7 +194,7 @@ export default function DocumentsPage() {
               fileName={doc.fileName}
               fileType={doc.mimeType ?? "application/pdf"}
               status={doc.status as DocumentCardProps["status"]}
-              createdAt={doc.createdAt}
+              createdAt={doc.createdAt.toISOString()}
               onView={handleView}
               onDelete={handleDelete}
             />

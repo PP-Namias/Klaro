@@ -2,12 +2,12 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
-const dirname = fileURLToPath(new URL(".", import.meta.url));
+const dirname = fileURLToPath(new URL(".", import.meta.url).href);
 
 export default defineConfig({
   resolve: {
     alias: {
-      "~": fileURLToPath(new URL("./src", import.meta.url)),
+      "~": fileURLToPath(new URL("./src", import.meta.url).href),
     },
   },
   test: {

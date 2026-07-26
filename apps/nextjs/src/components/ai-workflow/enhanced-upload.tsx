@@ -1,6 +1,6 @@
 "use client";
 
-import type React, { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 
 import { Button } from "@klaro/ui/button";
 
@@ -52,7 +52,7 @@ function fileToBase64(file: File): Promise<string> {
 export function EnhancedUpload({
   onUploadComplete,
   onError,
-  _language = "English",
+  language: _language = "English",
 }: EnhancedUploadProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);

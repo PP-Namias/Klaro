@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, no-empty */
-import type React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, X } from "lucide-react";
 
@@ -51,7 +51,6 @@ export default function CalModal({
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<Element | null>(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
   const focusTrapRef = useFocusTrap(dialogRef, open);
   const computedUrl = buildUrl(url, prefill);
 
@@ -75,27 +74,6 @@ export default function CalModal({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
-
-  function handleBooked() {
-    try {
-      sessionStorage.setItem(
-        SESSION_KEY,
-        JSON.stringify({ when: new Date().toISOString(), url: computedUrl }),
-      );
-    } catch {}
-    if (
-      (window as any).analytics &&
-      typeof (window as any).analytics.track === "function"
-    ) {
-      try {
-        (window as any).analytics.track("booking_completed", {
-          source: "cal_modal",
-        });
-      } catch {}
-    }
-    onBooked?.();
-    onClose();
-  }
 
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
@@ -171,7 +149,6 @@ export default function CalModal({
           <motion.div
             ref={(node) => {
               dialogRef.current = node;
-              // @ts-expect-error - ref assignment for focus trap
               focusTrapRef.current = node;
             }}
             initial={{ opacity: 0, scale: 0.98, y: 10 }}

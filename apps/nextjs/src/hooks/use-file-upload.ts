@@ -9,7 +9,7 @@ import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 
 import type { UploadStage } from "~/components/upload-progress";
 import { fileToBase64, validateFiles } from "~/lib/file-validation";
-import { useTRPC } from "~/trpc/react";
+import { useTRPCClient } from "~/trpc/react";
 
 export interface UploadFileItem {
   id: string;
@@ -55,7 +55,7 @@ export function useFileUpload({
   const [requestId, setRequestId] = useState<string | null>(null);
   const cancelledRef = useRef<Set<string>>(new Set());
 
-  const trpc = useTRPC();
+  const trpcClient = useTRPCClient();
 
   const processFile = useCallback(
     async (item: UploadFileItem): Promise<void> => {
@@ -78,73 +78,45 @@ export function useFileUpload({
           ),
         );
 
-        return new Promise((resolve, reject) => {
-          trpc.documents.scanGuestImage.mutate(
-            {
-              base64Image: base64,
-              fileName: item.file.name,
-              language: LANGUAGE_TO_DIALECT[language],
-            },
-            {
-              onSuccess: (result) => {
-                if (cancelledRef.current.has(item.id)) {
-                  resolve();
-                  return;
-                }
-                if (result.status === "error") {
-                  setQueue((prev) =>
-                    prev.map((f) =>
-                      f.id === item.id
-                        ? {
-                            ...f,
-                            stage: "error",
-                            progress: 0,
-                            error: result.error || "Scan failed",
-                          }
-                        : f,
-                    ),
-                  );
-                  reject(new Error(result.error || "Scan failed"));
-                  return;
-                }
-                setQueue((prev) =>
-                  prev.map((f) =>
-                    f.id === item.id
-                      ? {
-                          ...f,
-                          stage: "complete",
-                          progress: 100,
-                          requestId: result.requestId,
-                        }
-                      : f,
-                  ),
-                );
-                setRequestId(result.requestId);
-                onSuccess?.(result.requestId);
-                resolve();
-              },
-              onError: (err) => {
-                if (cancelledRef.current.has(item.id)) {
-                  resolve();
-                  return;
-                }
-                setQueue((prev) =>
-                  prev.map((f) =>
-                    f.id === item.id
-                      ? {
-                          ...f,
-                          stage: "error",
-                          progress: 0,
-                          error: err.message,
-                        }
-                      : f,
-                  ),
-                );
-                reject(err);
-              },
-            },
-          );
+        const result = await trpcClient.documents.scanGuestImage.mutate({
+          base64Image: base64,
+          fileName: item.file.name,
+          language: LANGUAGE_TO_DIALECT[language] as
+            | "English"
+            | "Filipino"
+            | "Bisaya"
+            | "Ilocano",
         });
+        if (cancelledRef.current.has(item.id)) return;
+        if (result.status === "error") {
+          setQueue((prev) =>
+            prev.map((f) =>
+              f.id === item.id
+                ? {
+                    ...f,
+                    stage: "error",
+                    progress: 0,
+                    error: result.error || "Scan failed",
+                  }
+                : f,
+            ),
+          );
+          throw new Error(result.error || "Scan failed");
+        }
+        setQueue((prev) =>
+          prev.map((f) =>
+            f.id === item.id
+              ? {
+                  ...f,
+                  stage: "complete",
+                  progress: 100,
+                  requestId: result.requestId,
+                }
+              : f,
+          ),
+        );
+        setRequestId(result.requestId);
+        onSuccess?.(result.requestId);
       } catch (err) {
         if (cancelledRef.current.has(item.id)) return;
         setQueue((prev) =>
@@ -161,7 +133,7 @@ export function useFileUpload({
         );
       }
     },
-    [trpc, language, onSuccess],
+    [trpcClient, language, onSuccess],
   );
 
   const upload = useCallback(

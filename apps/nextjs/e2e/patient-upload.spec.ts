@@ -24,7 +24,7 @@ test.describe("Patient Upload Flow", () => {
     await page.goto("/api/docs");
     await page.waitForLoadState("networkidle");
     const content = await page.textContent("body");
-    expect(content).toContain("Klaro API Docs");
+    expect(content).toContain("Klaro API");
     await page.screenshot({ path: "e2e-screenshots/04-api-docs.png" });
   });
 

@@ -32,10 +32,10 @@ async function countPdfPages(file: File): Promise<number> {
 
   const pagesMatch = text.match(/\/Type\s*\/Pages[^/]*\/Count\s+(\d+)/);
   if (pagesMatch) {
-    return parseInt(pagesMatch[1], 10);
+    return parseInt(pagesMatch[1] ?? "1", 10);
   }
 
-  const pageMatch = text.match(/\/Type\s*\/Page[^/]/g);
+  const pageMatch = text.match(/\/Type\s*\/Page\b[^/]/g);
   if (pageMatch) {
     return pageMatch.length;
   }

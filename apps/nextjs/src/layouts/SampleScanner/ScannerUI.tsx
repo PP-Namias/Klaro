@@ -5,7 +5,7 @@ import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Bot, Check, Focus, Lock, Trash2, X } from "lucide-react";
+import { Bot, Check, Focus, Lock, Paperclip, Trash2, X } from "lucide-react";
 
 import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 

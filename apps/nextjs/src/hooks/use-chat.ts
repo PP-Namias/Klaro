@@ -3,8 +3,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
-import { useTRPC } from "~/trpc/react";
+import { useTRPC, useTRPCClient } from "~/trpc/react";
 
 export type Dialect = "English" | "Filipino" | "Bisaya" | "Ilocano";
 
@@ -44,7 +45,7 @@ export function useChat({
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const trpc = useTRPC();
-  const utils = trpc.useUtils();
+  const trpcClient = useTRPCClient();
 
   // Load history when analysisId changes
   useEffect(() => {
@@ -58,7 +59,7 @@ export function useChat({
 
     const load = async () => {
       try {
-        const history = await utils.client.chat.getHistory.query({
+        const history = await trpcClient.chat.getHistory.query({
           analysisId,
           limit: 50,
         });
@@ -89,35 +90,37 @@ export function useChat({
     return () => {
       cancelled = true;
     };
-  }, [analysisId, utils]);
+  }, [analysisId, trpcClient]);
 
-  const sendMessageMutation = trpc.chat.sendMessage.useMutation({
-    onSuccess: (result) => {
-      const assistantMsg: ChatMessage = {
-        id: `clara-${Date.now()}`,
-        sender: "clara",
-        text:
-          result.assistantMessage?.content ||
-          "I can help explain what you scanned.",
-        timestamp: Date.now(),
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-      setIsTyping(false);
-      onSuccess?.(assistantMsg);
-    },
-    onError: (err) => {
-      setIsTyping(false);
-      const fallbackMsg: ChatMessage = {
-        id: `clara-fallback-${Date.now()}`,
-        sender: "clara",
-        text: "I can help explain what you scanned and suggest the next best step. Could you try asking again?",
-        timestamp: Date.now(),
-      };
-      setMessages((prev) => [...prev, fallbackMsg]);
-      setError(err.message);
-      onError?.(err.message);
-    },
-  });
+  const sendMessageMutation = useMutation(
+    trpc.chat.sendMessage.mutationOptions({
+      onSuccess: (result) => {
+        const assistantMsg: ChatMessage = {
+          id: `clara-${Date.now()}`,
+          sender: "clara",
+          text:
+            result.assistantMessage?.content ||
+            "I can help explain what you scanned.",
+          timestamp: Date.now(),
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+        setIsTyping(false);
+        onSuccess?.(assistantMsg);
+      },
+      onError: (err) => {
+        setIsTyping(false);
+        const fallbackMsg: ChatMessage = {
+          id: `clara-fallback-${Date.now()}`,
+          sender: "clara",
+          text: "I can help explain what you scanned and suggest the next best step. Could you try asking again?",
+          timestamp: Date.now(),
+        };
+        setMessages((prev) => [...prev, fallbackMsg]);
+        setError(err.message);
+        onError?.(err.message);
+      },
+    }),
+  );
 
   const sendMessage = useCallback(
     async (content: string, image?: string) => {
@@ -168,14 +171,14 @@ export function useChat({
   const clearMessages = useCallback(async () => {
     if (analysisId) {
       try {
-        await utils.client.chat.clearHistory.mutate({ analysisId });
+        await trpcClient.chat.clearHistory.mutate({ analysisId });
       } catch {
         // Silently fail - local clear is sufficient
       }
     }
     setMessages([]);
     setError(null);
-  }, [analysisId, utils]);
+  }, [analysisId, trpcClient]);
 
   return {
     messages,

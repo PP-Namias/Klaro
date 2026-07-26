@@ -88,7 +88,7 @@ describe("validateFile", () => {
     const file = createFile("huge.png", "image/png", 51 * 1024 * 1024);
     const result = await validateFile(file);
     expect(result.valid).toBe(false);
-    expect(result.error).toContain("exceeds 50 MB");
+    expect(result.error).toContain("50 MB limit");
   });
 
   it("rejects empty files", async () => {

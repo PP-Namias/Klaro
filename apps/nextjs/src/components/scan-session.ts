@@ -5,7 +5,7 @@ export const SCAN_SESSION_KEY = "scanAnalysisSession";
 export interface ScanAnalysisSession {
   requestId: string;
   status: "completed" | "error" | "pending";
-  source?: "mock" | "llm" | "fallback" | "raw";
+  source?: "mock" | "llm" | "fallback" | "raw" | "gemini";
   language?: string;
   confidence?: number;
   extractedData?: Record<string, unknown>;

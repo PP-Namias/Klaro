@@ -58,7 +58,7 @@ export function ScanAgentSidebar() {
     trpc.documents.analyzeScanWithAI.mutationOptions({
       onSuccess: (data) => {
         if (data.success) {
-          setAnalysis(data.analysis);
+          setAnalysis(data.analysis ?? null);
           toast.success("Scan analysis complete!");
         } else {
           toast.error(data.error || "Analysis failed");

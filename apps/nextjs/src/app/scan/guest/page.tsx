@@ -4,6 +4,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { FileText, Lock, Sparkles, Upload, UserPlus } from "lucide-react";
 
 import type { UploadStage } from "~/components/upload-progress";
@@ -20,17 +21,19 @@ export default function GuestScanPage() {
   const [error, setError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
-  const scanMutation = trpc.documents.scanGuestImage.useMutation({
-    onSuccess: () => {
-      setStage("complete");
-      setProgress(100);
-      setShowUpgrade(true);
-    },
-    onError: (err) => {
-      setStage("error");
-      setError(err.message);
-    },
-  });
+  const scanMutation = useMutation(
+    trpc.documents.scanGuestImage.mutationOptions({
+      onSuccess: () => {
+        setStage("complete");
+        setProgress(100);
+        setShowUpgrade(true);
+      },
+      onError: (err) => {
+        setStage("error");
+        setError(err.message);
+      },
+    }),
+  );
 
   const handleFilesSelected = useCallback(
     async (files: File[]) => {

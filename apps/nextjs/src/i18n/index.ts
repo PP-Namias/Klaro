@@ -1,5 +1,6 @@
 import type { Language } from "@klaro/validators/language";
 
+import type { TranslationKeys } from "./en";
 import ceb from "./ceb";
 import en from "./en";
 import fil from "./fil";
@@ -13,7 +14,7 @@ const dictionaries: Record<Language, Record<string, string>> = {
 };
 
 export function getTranslation(language: Language): Record<string, string> {
-  return dictionaries[language];
+  return dictionaries[language] ?? dictionaries.en;
 }
 
 export function t(
@@ -21,7 +22,7 @@ export function t(
   key: string,
   params?: Record<string, string | number>,
 ): string {
-  const dict = dictionaries[language];
+  const dict = dictionaries[language] ?? dictionaries.en;
   let value = dict[key] ?? dictionaries.en[key] ?? key;
 
   if (params) {
@@ -37,3 +38,4 @@ export function t(
 }
 
 export { en, fil, ceb, ilo };
+export type { TranslationKeys };

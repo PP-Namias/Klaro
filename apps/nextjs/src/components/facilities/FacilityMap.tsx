@@ -99,6 +99,7 @@ export default function FacilityMap({
     (async () => {
       try {
         const L = await import("leaflet");
+        // @ts-expect-error - leaflet CSS has no type declarations
         await import("leaflet/dist/leaflet.css");
         const factory = (emoji: string, background: string) =>
           L.divIcon({

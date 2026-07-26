@@ -305,9 +305,7 @@ export function scrubPhi(
 /**
  * Scrub PHI from extracted medical data (structured object)
  */
-export function scrubExtractedData<
-  T extends ScrubbableData,
->(
+export function scrubExtractedData<T extends ScrubbableData>(
   data: T,
   config: ScrubberConfig = {},
 ): { scrubbedData: T; matches: PhiMatch[] } {
