@@ -57,7 +57,7 @@ const DIAGNOSIS_REQUEST_PATTERNS = [
 
   // Treatment advice requests
   /what\s+(medication|drug|medicine)\s+should\s+i\s+take/i,
-  /should\s+i\s+\w+\s+(my\s+)?(medication|drug|medicine|treatment)/i,
+  /should\s+i\s+\w+(?:\s+\w+)?\s+(my\s+)?(medication|drug|medicine|treatment)/i,
   /how\s+much\s+(medication|drug|medicine)\s+should\s+i/i,
   /what\s+dosage/i,
   /can\s+i\s+(stop|skip|reduce)\s+(my\s+)?(medication|drug|medicine)/i,

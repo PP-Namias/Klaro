@@ -252,15 +252,15 @@ describe("LLM Service", () => {
 
   describe("Prompt Versioning", () => {
     beforeEach(() => {
-      // Reset prompt versions before each test
-      vi.clearAllMocks();
+      vi.resetModules();
     });
 
-    it("should register a new prompt version", () => {
+    it("should register a new prompt version", async () => {
+      const { registerPromptVersion: register } = await import("../llm");
       const promptTemplate =
         "You are a medical assistant explaining test results in simple Filipino.";
 
-      const version = registerPromptVersion(
+      const version = register(
         "explanation",
         "Filipino",
         promptTemplate,
@@ -273,8 +273,9 @@ describe("LLM Service", () => {
       expect(version.active).toBe(true);
     });
 
-    it("should deactivate previous versions when registering new version", () => {
-      const v1 = registerPromptVersion(
+    it("should deactivate previous versions when registering new version", async () => {
+      const { registerPromptVersion: register, getActivePromptVersion: getActive } = await import("../llm");
+      const v1 = register(
         "explanation",
         "Filipino",
         "Prompt v1",
@@ -283,7 +284,7 @@ describe("LLM Service", () => {
 
       expect(v1.active).toBe(true);
 
-      const v2 = registerPromptVersion(
+      const v2 = register(
         "explanation",
         "Filipino",
         "Prompt v2",
@@ -292,28 +293,33 @@ describe("LLM Service", () => {
 
       expect(v2.active).toBe(true);
       expect(v2.version).toBe(2);
+      expect(v1.active).toBe(false);
     });
 
-    it("should get active prompt version", () => {
-      registerPromptVersion("explanation", "Filipino", "Prompt v1", "gemini");
+    it("should get active prompt version", async () => {
+      const { registerPromptVersion: register, getActivePromptVersion: getActive } = await import("../llm");
+      register("explanation", "Filipino", "Prompt v1", "gemini");
 
-      const active = getActivePromptVersion("explanation", "Filipino");
+      const active = getActive("explanation", "Filipino");
 
       expect(active).toBeDefined();
       expect(active?.active).toBe(true);
     });
 
-    it("should return null when no version is active", () => {
-      const active = getActivePromptVersion("explanation", "Filipino");
+    it("should return null when no version is active", async () => {
+      const { getActivePromptVersion: getActive } = await import("../llm");
 
-      expect(active).toBeNull() || expect(active).toBeDefined();
+      const active = getActive("explanation", "Filipino");
+
+      expect(active).toBeNull();
     });
 
-    it("should get all prompt versions", () => {
-      registerPromptVersion("explanation", "Filipino", "Prompt v1", "gemini");
-      registerPromptVersion("explanation", "Filipino", "Prompt v2", "gemini");
+    it("should get all prompt versions", async () => {
+      const { registerPromptVersion: register, getAllPromptVersions: getAll } = await import("../llm");
+      register("explanation", "Filipino", "Prompt v1", "gemini");
+      register("explanation", "Filipino", "Prompt v2", "gemini");
 
-      const allVersions = getAllPromptVersions("explanation");
+      const allVersions = getAll("explanation");
 
       expect(allVersions).toBeDefined();
       expect(allVersions.explanation).toBeDefined();

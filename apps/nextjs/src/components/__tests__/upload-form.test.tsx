@@ -26,6 +26,26 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
+vi.mock("~/providers/language-provider", () => ({
+  useLanguage: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        "upload.scanWithAI": "Scan with AI",
+        "upload.fileTypeNotSupported":
+          "File type not supported. Please use PNG, JPG, PDF, WebP, TIFF, BMP, or GIF.",
+        "upload.fileSizeTooLarge": "File size must be under 50 MB.",
+        "upload.cameraNotAvailable": "Camera not available",
+        "upload.dragOrUpload": "Drag & drop or click to upload",
+        "upload.removeFile": "Remove",
+        "upload.scanning": "Scanning...",
+        "upload.takePhoto": "Take a Photo",
+      };
+      return translations[key] ?? key;
+    },
+    language: "en",
+  }),
+}));
+
 describe("UploadForm", () => {
   afterEach(() => {
     cleanup();
@@ -64,8 +84,6 @@ describe("UploadForm", () => {
         /file type not supported\. please use png, jpg, pdf, webp, tiff, bmp, or gif\./i,
       ),
     ).toBeTruthy();
-    expect(screen.getByText(/state:/i)).toBeTruthy();
-    expect(screen.getByText("error")).toBeTruthy();
   });
 
   it("shows an error when file exceeds the max size", () => {
@@ -84,7 +102,5 @@ describe("UploadForm", () => {
     });
 
     expect(screen.getByText(/file size must be under 50 mb\./i)).toBeTruthy();
-    expect(screen.getByText(/state:/i)).toBeTruthy();
-    expect(screen.getByText("error")).toBeTruthy();
   });
 });

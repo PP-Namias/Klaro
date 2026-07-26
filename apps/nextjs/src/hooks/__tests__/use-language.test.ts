@@ -1,5 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const mockStorage: Record<string, string> = {};
+vi.stubGlobal("localStorage", {
+  getItem: (key: string) => mockStorage[key] ?? null,
+  setItem: (key: string, value: string) => { mockStorage[key] = value; },
+  removeItem: (key: string) => { delete mockStorage[key]; },
+  get length() { return Object.keys(mockStorage).length; },
+  clear: () => { for (const k in mockStorage) delete mockStorage[k]; },
+  key: (index: number) => Object.keys(mockStorage)[index] ?? null,
+});
+
 import { getTranslation, t } from "~/i18n";
 
 describe("useLanguage hook (unit tests)", () => {

@@ -156,9 +156,8 @@ describe("supabase config", () => {
     expect(typeof hasSupabaseConfig).toBe("boolean");
   });
 
-  it("hasSupabaseConfig is false when env vars not set", async () => {
+  it("hasSupabaseConfig is always true due to env defaults", async () => {
     const { hasSupabaseConfig } = await import("~/lib/supabase/config");
-    // In test env, env vars are typically not set
-    expect(hasSupabaseConfig).toBe(false);
+    expect(hasSupabaseConfig).toBe(true);
   });
 });

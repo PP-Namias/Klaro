@@ -1,3 +1,15 @@
+if (typeof globalThis.FileReader === "undefined") {
+  globalThis.FileReader = class MockFileReader {
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    result: string | null = null;
+    readAsDataURL(blob: Blob): void {
+      this.result = "data:text/plain;base64,dGVzdA==";
+      if (this.onload) setTimeout(() => this.onload!());
+    }
+  } as unknown as typeof FileReader;
+}
+
 process.env.POSTGRES_URL = "postgres://mock:mock@localhost:5432/mock";
 process.env.AUTH_DISCORD_ID = "mock-discord-id";
 process.env.AUTH_DISCORD_SECRET = "mock-discord-secret";

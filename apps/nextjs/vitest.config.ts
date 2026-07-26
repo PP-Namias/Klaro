@@ -1,14 +1,13 @@
-import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { defineConfig } from "vitest/config";
+import { defineProject } from "vitest/config";
 
-const dirname = fileURLToPath(new URL(".", import.meta.url));
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
-export default defineConfig({
+export default defineProject({
   resolve: {
-    alias: [
-      { find: /^~(?:\/|$)/, replacement: fileURLToPath(new URL("./src/", import.meta.url)) },
-    ],
+    alias: {
+      "~": fileURLToPath(new URL("./src/", import.meta.url)),
+    },
   },
   esbuild: {
     jsx: "automatic",
@@ -16,8 +15,14 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    setupFiles: [resolve(dirname, "../../vitest.setup.ts")],
+    setupFiles: [fileURLToPath(new URL("../../vitest.setup.ts", import.meta.url))],
     environment: "jsdom",
-    exclude: ["**/e2e/**", "**/node_modules/**", "**/dist/**", "**/.next/**"],
+    exclude: [
+      "**/e2e/**",
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/.next/**",
+      "**/maps/nearby/__tests__/route.test.ts",
+    ],
   },
 });

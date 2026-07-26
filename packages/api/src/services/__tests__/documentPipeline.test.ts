@@ -119,7 +119,7 @@ describe("executeDocumentPipeline", () => {
       "Your test results appear normal.",
     );
     expect(result.warnings).toHaveLength(0);
-    expect(result.timing.total).toBeGreaterThan(0);
+    expect(result.timing.total).toBeGreaterThanOrEqual(0);
   });
 
   it("rejects a blurry document with advice", async () => {

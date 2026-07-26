@@ -292,8 +292,8 @@ export function getSessionStatus(): SessionState {
  * Force session expiry (for logout)
  */
 export function forceSessionExpiry(): void {
-  currentStatus = "expired";
   stopSessionTimeout();
+  currentStatus = "expired";
 }
 
 /**
