@@ -1,8 +1,4 @@
 import { getPipelineConfig } from "../config/pipeline";
-import {
-  getDefaultPreprocessingOptions,
-  preprocessImage,
-} from "./imagePreprocessor";
 
 export interface OcrPageResult {
   pageNumber: number;
@@ -115,6 +111,9 @@ export async function runOcrWithRetry(
     );
 
     try {
+      const { preprocessImage, getDefaultPreprocessingOptions } = await import(
+        "./imagePreprocessor"
+      );
       const preprocessed = await preprocessImage(imageBase64, {
         ...getDefaultPreprocessingOptions(),
         binarize: attempt >= 2,

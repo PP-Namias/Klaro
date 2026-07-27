@@ -36,7 +36,6 @@
     "@klaro/eslint-config": "workspace:*",
     "@klaro/prettier-config": "workspace:*",
     "@klaro/tsconfig": "workspace:*",
-    "canvas": "3.1.0",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:",
