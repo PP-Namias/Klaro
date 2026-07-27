@@ -65,8 +65,9 @@ export function WorkflowResults({
   const [showFlaggedOnly, setShowFlaggedOnly] = useState(false);
   const [expandedTest, setExpandedTest] = useState<string | null>(null);
 
-  const colors: { bg: string; text: string; border: string } =
-    (severityColors[severity] ?? severityColors.MODERATE) as { bg: string; text: string; border: string };
+  const colors: { bg: string; text: string; border: string } = (severityColors[
+    severity
+  ] ?? severityColors.MODERATE) as { bg: string; text: string; border: string };
   const flaggedTests = tests.filter((t) => t.flagged);
   const displayTests = showFlaggedOnly ? flaggedTests : tests;
 

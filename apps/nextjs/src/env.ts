@@ -44,6 +44,7 @@ export const env = createEnv({
   },
   skipValidation:
     !!process.env.CI ||
+    !!process.env.VERCEL ||
     process.env.npm_lifecycle_event === "lint" ||
     !!process.env.SKIP_ENV_VALIDATION,
 });
