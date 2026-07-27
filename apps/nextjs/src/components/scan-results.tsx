@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-base-to-string */
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -8,6 +9,7 @@ import { Button } from "@klaro/ui/button";
 
 import type { ScanAnalysisSession } from "~/components/scan-session";
 import { readScanAnalysisSession } from "~/components/scan-session";
+import { useLanguage } from "~/providers/language-provider";
 
 interface ScanResultsProps {
   onScanAgain?: () => void;
@@ -18,6 +20,8 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
   const scanId = searchParams.get("id");
   const [result, setResult] = useState<ScanAnalysisSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { t } = useLanguage();
 
   useEffect(() => {
     const stored = readScanAnalysisSession();
@@ -40,17 +44,17 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
     LOW: {
       badge: "border-emerald-200 bg-emerald-100 text-emerald-800",
       panel: "border-emerald-200 bg-emerald-50",
-      label: "Low urgency",
+      label: t("results.urgency.low"),
     },
     MODERATE: {
       badge: "border-amber-200 bg-amber-100 text-amber-800",
       panel: "border-amber-200 bg-amber-50",
-      label: "Moderate urgency",
+      label: t("results.urgency.moderate"),
     },
     HIGH: {
       badge: "border-rose-200 bg-rose-100 text-rose-800",
       panel: "border-rose-200 bg-rose-50",
-      label: "High urgency",
+      label: t("results.urgency.high"),
     },
   };
 
@@ -66,7 +70,7 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
   if (isLoading) {
     return (
       <div style={{ padding: "2rem", textAlign: "center" }}>
-        <p>Loading scan results...</p>
+        <p>{t("results.loading")}</p>
       </div>
     );
   }
@@ -74,11 +78,8 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
   if (!result) {
     return (
       <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
-        <h1>No Scan Results</h1>
-        <p>
-          No scan results found. Please upload a medical document to get
-          started.
-        </p>
+        <h1>{t("results.noResults")}</h1>
+        <p>{t("results.noResultsDesc")}</p>
       </div>
     );
   }
@@ -86,10 +87,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
   if (result.status === "pending") {
     return (
       <div style={{ padding: "2rem", maxWidth: "700px", margin: "0 auto" }}>
-        <h1>Scan In Progress</h1>
+        <h1>{t("results.scanInProgress")}</h1>
         <p style={{ color: "#334155" }}>
-          {result.plainLanguageSummary ||
-            "Your document is currently being processed by Gemini."}
+          {result.plainLanguageSummary || t("results.processingByGemini")}
         </p>
         <div
           style={{
@@ -100,22 +100,90 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             color: "#0f172a",
           }}
         >
-          The scheduler is still loading and may continue in the background. You
-          can open booking in a new tab, or continue waiting here.
+          {t("results.schedulerStillLoading")}
         </div>
       </div>
     );
   }
 
   if (result.status === "error") {
+    const rejectionAdvice =
+      result.error?.includes("blurry") || result.error?.includes("clarity")
+        ? result.error
+        : null;
+
     return (
       <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
-        <h1 style={{ color: "#d32f2f" }}>Scan Failed</h1>
-        <p>
-          {result.error || "An error occurred while scanning the document."}
-        </p>
+        <h1 style={{ color: "#d32f2f" }}>{t("results.scanFailed")}</h1>
+
+        {result.confidence !== undefined && result.confidence < 0.7 && (
+          <div
+            style={{
+              marginTop: "1rem",
+              padding: "1rem",
+              backgroundColor: "#fff3e0",
+              borderRadius: "8px",
+              borderLeft: "4px solid #ff9800",
+            }}
+          >
+            <p style={{ margin: 0, fontWeight: "600" }}>
+              Document clarity: {Math.round(result.confidence * 100)}%
+            </p>
+            <div
+              style={{
+                width: "100%",
+                height: "8px",
+                backgroundColor: "#ddd",
+                borderRadius: "4px",
+                marginTop: "0.5rem",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${Math.round(result.confidence * 100)}%`,
+                  height: "100%",
+                  borderRadius: "4px",
+                  backgroundColor:
+                    result.confidence >= 0.7
+                      ? "#22c55e"
+                      : result.confidence >= 0.5
+                        ? "#eab308"
+                        : "#ef4444",
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {rejectionAdvice && (
+          <div
+            style={{
+              marginTop: "1rem",
+              padding: "1rem",
+              backgroundColor: "#fef9c3",
+              borderRadius: "8px",
+              borderLeft: "4px solid #eab308",
+            }}
+          >
+            <p style={{ margin: 0, fontSize: "0.9rem" }}>{rejectionAdvice}</p>
+            <p
+              style={{
+                margin: "0.5rem 0 0 0",
+                fontSize: "0.85rem",
+                color: "#666",
+              }}
+            >
+              Tip: Place the document flat on a table in good lighting. Hold
+              your camera steady and ensure all text is readable.
+            </p>
+          </div>
+        )}
+
+        {!rejectionAdvice && <p>{result.error || t("results.scanError")}</p>}
+
         <Button onClick={onScanAgain} style={{ marginTop: "1rem" }}>
-          Try Again
+          {t("btn.tryAgain")}
         </Button>
       </div>
     );
@@ -125,13 +193,14 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
     <div style={{ padding: "2rem", maxWidth: "900px", margin: "0 auto" }}>
       {/* Header */}
       <div style={{ marginBottom: "2rem" }}>
-        <h1>Medical Document Analysis</h1>
+        <h1>{t("results.medicalAnalysis")}</h1>
         <p style={{ color: "#666", marginBottom: "0.5rem" }}>
-          Scan ID: <code>{result.requestId}</code>
+          {t("results.scanId") + " "}
+          <code>{result.requestId}</code>
         </p>
         <p style={{ color: "#666" }}>
           {result.timestamp &&
-            `Scanned: ${new Date(result.timestamp).toLocaleString()}`}
+            `${t("results.scannedAt")} ${new Date(result.timestamp).toLocaleString()}`}
         </p>
       </div>
 
@@ -173,19 +242,20 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             {urgencyStyles[urgency].label}
           </div>
           <h2 style={{ margin: 0, marginBottom: "0.5rem" }}>
-            Urgency: {urgency}
+            {t("results.urgencyLabel") + " "}
+            {urgency}
           </h2>
           <p style={{ margin: 0, color: "#334155" }}>
             {urgency === "HIGH"
-              ? "This result needs prompt review. Seek care urgently if symptoms are worsening."
+              ? t("results.urgencyDesc.high")
               : urgency === "MODERATE"
-                ? "This result should be reviewed soon with a healthcare provider."
-                : "No immediate red flags were identified in this analysis."}
+                ? t("results.urgencyDesc.moderate")
+                : t("results.urgencyDesc.low")}
           </p>
         </div>
       )}
 
-      {/* Confidence Score */}
+      {/* Confidence Score + Source Badge */}
       {result.confidence !== undefined && (
         <div
           style={{
@@ -195,35 +265,101 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             marginBottom: "1.5rem",
           }}
         >
-          <p style={{ margin: 0, fontWeight: "500" }}>Analysis Confidence</p>
-          <div style={{ marginTop: "0.5rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "0.5rem",
+            }}
+          >
+            <p style={{ margin: 0, fontWeight: "500" }}>
+              {t("results.confidence")}
+            </p>
+
+            {result.source && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
+                  padding: "0.2rem 0.6rem",
+                  borderRadius: "999px",
+                  fontSize: "0.7rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  border: "1px solid",
+                  backgroundColor:
+                    result.source === "gemini"
+                      ? "#e8f5e9"
+                      : result.source === "llm"
+                        ? "#e3f2fd"
+                        : "#fff3e0",
+                  borderColor:
+                    result.source === "gemini"
+                      ? "#a5d6a7"
+                      : result.source === "llm"
+                        ? "#90caf9"
+                        : "#ffcc80",
+                  color:
+                    result.source === "gemini"
+                      ? "#2e7d32"
+                      : result.source === "llm"
+                        ? "#1565c0"
+                        : "#e65100",
+                }}
+              >
+                {result.source === "gemini"
+                  ? "AI"
+                  : result.source === "llm"
+                    ? "LLM"
+                    : "Fallback"}
+              </span>
+            )}
+          </div>
+
+          <div
+            style={{
+              width: "100%",
+              height: "10px",
+              backgroundColor: "#ddd",
+              borderRadius: "5px",
+              overflow: "hidden",
+            }}
+          >
             <div
               style={{
-                width: "100%",
-                height: "8px",
-                backgroundColor: "#ddd",
-                borderRadius: "4px",
-                overflow: "hidden",
+                width: `${Math.round(result.confidence * 100)}%`,
+                height: "100%",
+                borderRadius: "5px",
+                transition: "width 0.5s ease",
+                backgroundColor:
+                  result.confidence >= 0.7
+                    ? "#22c55e"
+                    : result.confidence >= 0.5
+                      ? "#eab308"
+                      : "#ef4444",
               }}
-            >
-              <div
-                style={{
-                  width: `${Math.round(result.confidence * 100)}%`,
-                  height: "100%",
-                  backgroundColor: "#4caf50",
-                }}
-              />
-            </div>
-            <p
-              style={{
-                margin: "0.5rem 0 0 0",
-                fontSize: "0.9rem",
-                color: "#666",
-              }}
-            >
-              {Math.round(result.confidence * 100)}% confident
-            </p>
+            />
           </div>
+          <p
+            style={{
+              margin: "0.5rem 0 0 0",
+              fontSize: "0.85rem",
+              color:
+                result.confidence >= 0.7
+                  ? "#16a34a"
+                  : result.confidence >= 0.5
+                    ? "#ca8a04"
+                    : "#dc2626",
+            }}
+          >
+            {result.confidence >= 0.7
+              ? "High confidence — results reliable"
+              : result.confidence >= 0.5
+                ? "Moderate confidence — review recommended"
+                : "Low confidence — results may be inaccurate"}
+          </p>
         </div>
       )}
 
@@ -238,7 +374,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             marginBottom: "1.5rem",
           }}
         >
-          <h2 style={{ marginTop: 0 }}>📋 Summary</h2>
+          <h2 style={{ marginTop: 0 }}>
+            {"📋 " + t("results.section.summary")}
+          </h2>
           <p>{summary}</p>
         </div>
       )}
@@ -254,7 +392,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             marginBottom: "1.5rem",
           }}
         >
-          <h2 style={{ marginTop: 0, color: "#c62828" }}>⚠️ Warnings</h2>
+          <h2 style={{ marginTop: 0, color: "#c62828" }}>
+            {"⚠️ " + t("results.section.warnings")}
+          </h2>
           <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
             {result.warnings.map((warning, idx) => (
               <li key={idx} style={{ marginBottom: "0.5rem" }}>
@@ -276,7 +416,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             marginBottom: "1.5rem",
           }}
         >
-          <h2 style={{ marginTop: 0 }}>💡 Recommendations</h2>
+          <h2 style={{ marginTop: 0 }}>
+            {"💡 " + t("results.section.recommendations")}
+          </h2>
           <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
             {recommendations.map((rec, idx) => (
               <li key={idx} style={{ marginBottom: "0.5rem" }}>
@@ -297,7 +439,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
             marginBottom: "1.5rem",
           }}
         >
-          <h2 style={{ marginTop: 0 }}>📊 Extracted Data</h2>
+          <h2 style={{ marginTop: 0 }}>
+            {"📊 " + t("results.section.extractedData")}
+          </h2>
           <table
             style={{
               width: "100%",
@@ -331,9 +475,9 @@ export function ScanResults({ onScanAgain }: ScanResultsProps) {
 
       {/* Actions */}
       <div style={{ marginTop: "2rem", display: "flex", gap: "1rem" }}>
-        <Button onClick={onScanAgain}>Scan Another Document</Button>
+        <Button onClick={onScanAgain}>{t("btn.scanAnother")}</Button>
         <Button asChild variant="outline">
-          <Link href="/">Go to Home</Link>
+          <Link href="/">{t("btn.goHome")}</Link>
         </Button>
       </div>
     </div>

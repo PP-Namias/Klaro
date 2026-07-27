@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import styles from "../../app/scan/page.module.css";
 
 const previewRows = [

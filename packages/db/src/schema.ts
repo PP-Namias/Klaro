@@ -24,6 +24,7 @@ export const documentStatusEnum = pgEnum("document_status", [
   "processing",
   "analyzed",
   "failed",
+  "archived",
 ]);
 
 export const analysisStatusEnum = pgEnum("analysis_status", [
@@ -235,7 +236,6 @@ export const payment = pgTable(
     currency: varchar("currency", { length: 3 }).default("PHP"),
     status: paymentStatusEnum("status").default("pending").notNull(),
     stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 255 }),
-    stripeClientSecret: text("stripe_client_secret"),
     failureReason: text("failure_reason"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -249,6 +249,49 @@ export const payment = pgTable(
     index("payment_status_idx").on(t.status),
   ],
 );
+
+// PHI Audit Log (HIPAA compliance - 6-year retention)
+export const phiAuditLog = pgTable(
+  "phi_audit_log",
+  {
+    id: uuid("id").notNull().primaryKey().defaultRandom(),
+    timestamp: timestamp("timestamp").defaultNow().notNull(),
+    action: varchar("action", { length: 100 }).notNull(),
+    userId: text("user_id"),
+    sessionId: text("session_id"),
+    documentId: uuid("document_id"),
+    analysisId: uuid("analysis_id"),
+    severity: varchar("severity", { length: 20 }).default("info").notNull(),
+    details: jsonb("details"),
+    phiTypesDetected: jsonb("phi_types_detected"),
+    externalApiCalled: boolean("external_api_called").default(false).notNull(),
+    ipAddress: varchar("ip_address", { length: 45 }),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    index("phi_audit_log_user_id_idx").on(t.userId),
+    index("phi_audit_log_document_id_idx").on(t.documentId),
+    index("phi_audit_log_timestamp_idx").on(t.timestamp),
+    index("phi_audit_log_action_idx").on(t.action),
+    index("phi_audit_log_severity_idx").on(t.severity),
+  ],
+);
+
+export const phiAuditLogRelations = relations(phiAuditLog, ({ one }) => ({
+  user: one(user, {
+    fields: [phiAuditLog.userId],
+    references: [user.id],
+  }),
+  document: one(document, {
+    fields: [phiAuditLog.documentId],
+    references: [document.id],
+  }),
+  analysis: one(analysis, {
+    fields: [phiAuditLog.analysisId],
+    references: [analysis.id],
+  }),
+}));
 
 // Relations
 export const documentRelations = relations(document, ({ one, many }) => ({

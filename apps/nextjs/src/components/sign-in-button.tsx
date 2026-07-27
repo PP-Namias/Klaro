@@ -5,6 +5,16 @@ import { Button } from "@klaro/ui/button";
 
 import { auth } from "~/auth/server";
 
+function isSafeRedirect(url: string): boolean {
+  if (url.startsWith("/")) return true;
+  try {
+    const parsed = new URL(url, "http://localhost");
+    return parsed.origin === "http://localhost";
+  } catch {
+    return false;
+  }
+}
+
 interface SignInButtonProps {
   children: ReactNode;
   className?: string;
@@ -28,6 +38,8 @@ export function SignInButton({
   variant,
   size = "lg",
 }: SignInButtonProps) {
+  const safeCallbackURL = isSafeRedirect(callbackURL) ? callbackURL : "/";
+
   return (
     <form>
       <Button
@@ -40,7 +52,7 @@ export function SignInButton({
           const result = await auth.api.signInSocial({
             body: {
               provider,
-              callbackURL,
+              callbackURL: safeCallbackURL,
             },
           });
 

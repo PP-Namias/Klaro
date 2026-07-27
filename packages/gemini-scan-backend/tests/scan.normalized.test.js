@@ -1,13 +1,14 @@
-const request = require('supertest');
-const path = require('path');
+import request from 'supertest';
+import path from 'path';
 
 describe('POST /api/scan normalized medical response', () => {
   let app;
 
-  beforeEach(() => {
-    jest.resetModules();
+  beforeEach(async () => {
+    vi.resetModules();
     process.env.MOCK_GEMINI = 'true';
-    app = require('../src/index');
+    const mod = await import('../src/index');
+    app = mod.default;
   });
 
   it('returns the normalized medical analysis contract for JSON uploads', async () => {

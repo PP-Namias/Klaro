@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -7,7 +8,10 @@ export function Footer() {
         <div className="mb-24 flex flex-col justify-between gap-12 lg:flex-row">
           {/* Logo Section */}
           <div className="flex-shrink-0">
-            <div className="footer-logo flex items-center gap-2 text-black">
+            <Link
+              href="/"
+              className="footer-logo flex items-center gap-2 text-black"
+            >
               <Image
                 src="/klaro-dark.svg"
                 alt="Klaro"
@@ -16,7 +20,7 @@ export function Footer() {
                 className="opacity-90"
               />
               Klaro
-            </div>
+            </Link>
           </div>
 
           {/* Links Section */}
@@ -24,90 +28,90 @@ export function Footer() {
             <div className="flex flex-col gap-4">
               <h4 className="feature-small-title text-zinc-600">Features</h4>
               <nav className="flex flex-col gap-2">
-                <a
-                  href="#"
+                <Link
+                  href="/scan"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   Scan & Analyze
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/scan"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   AI Medical Chat
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/maps"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   Clinic Finder
-                </a>
-                <a
-                  href="#"
-                  className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
+                </Link>
+                <span
+                  className="feature-small-desc cursor-not-allowed text-zinc-300"
+                  aria-disabled="true"
                 >
                   Doctor Booking
-                </a>
+                </span>
               </nav>
             </div>
 
             <div className="flex flex-col gap-4">
               <h4 className="feature-small-title text-zinc-600">Resources</h4>
               <nav className="flex flex-col gap-2">
-                <a
-                  href="#"
+                <Link
+                  href="/how-it-works"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   How it Works
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/patient-stories"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   Patient Stories
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/security-privacy"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   Security & Privacy
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/contact-support"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   Contact Support
-                </a>
+                </Link>
               </nav>
             </div>
 
             <div className="flex flex-col gap-4">
               <h4 className="feature-small-title text-zinc-600">Legal</h4>
               <nav className="flex flex-col gap-2">
-                <a
-                  href="#"
+                <Link
+                  href="/privacy-policy"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   Privacy Policy
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/terms-of-service"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   Terms of Service
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/dpa-compliance"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   DPA Compliance
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/cookie-settings"
                   className="feature-small-desc text-zinc-500 transition-colors hover:text-black"
                 >
                   Cookie Settings
-                </a>
+                </Link>
               </nav>
             </div>
           </div>
@@ -120,7 +124,9 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-5">
             <a
-              href="#"
+              href="https://web.facebook.com/profile.php?id=61589428109759"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-zinc-700 transition-colors hover:text-black"
             >
               <svg
@@ -133,7 +139,9 @@ export function Footer() {
               </svg>
             </a>
             <a
-              href="#"
+              href="https://discord.gg/krnGXBmp3h"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-zinc-700 transition-colors hover:text-black"
             >
               <svg
@@ -146,7 +154,9 @@ export function Footer() {
               </svg>
             </a>
             <a
-              href="#"
+              href="https://github.com/PP-Namias"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-zinc-700 transition-colors hover:text-black"
             >
               <svg

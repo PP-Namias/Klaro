@@ -2,39 +2,42 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
 import { MapPreview } from "~/components/facilities/MapPreview";
+import { useLanguage } from "~/providers/language-provider";
 
 export function Clarity() {
+  const { t } = useLanguage();
+
   const clarityItems = [
     {
-      title: "Connect to Real Doctors",
-      body: "Consult licensed Filipino doctors via chat or video and get guidance based on your results",
+      title: t("clarity.connectDoctors"),
+      body: t("clarity.connectDoctors.desc"),
       image: "/sections/clarity/1.png",
       alt: "Stethoscope icon",
     },
     {
-      title: "Understand Your Results",
-      body: "Upload your medical documents and get clear explanations with key insights",
+      title: t("clarity.understandResults"),
+      body: t("clarity.understandResults.desc"),
       image: "/sections/clarity/2.png",
       alt: "Medical documents icon",
     },
     {
-      title: "Find the Right Care Near You",
-      body: "Find nearby clinics and hospitals based on your needs, availability, and specialty",
+      title: t("clarity.findCare"),
+      body: t("clarity.findCare.desc"),
       image: "/sections/clarity/3.png",
       alt: "Magnifying glass icon",
     },
   ];
 
-  const item1 = clarityItems[0]!;
-  const item2 = clarityItems[1]!;
-  const item3 = clarityItems[2]!;
+  const item1 = clarityItems[0] as (typeof clarityItems)[number];
+  const item2 = clarityItems[1] as (typeof clarityItems)[number];
+  const item3 = clarityItems[2] as (typeof clarityItems)[number];
 
   return (
-    <motion.section 
+    <motion.section
       className="mt-[100px] flex flex-col gap-[2.5rem]"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -42,7 +45,7 @@ export function Clarity() {
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
       <h2 className="section-header m-0 h-auto w-max tracking-[0px] text-black">
-        Clarity From Results to Care
+        {t("clarity.heading")}
       </h2>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -62,7 +65,7 @@ export function Clarity() {
                 alt={item1.alt}
                 width={200}
                 height={200}
-                quality={200}
+                quality={85}
                 className="object-contain transition-transform duration-300 group-hover:scale-105"
               />
             </div>
@@ -82,7 +85,7 @@ export function Clarity() {
                 alt={item2.alt}
                 width={200}
                 height={200}
-                quality={200}
+                quality={85}
                 className="object-contain transition-transform duration-300 group-hover:scale-105"
               />
             </div>
@@ -107,7 +110,7 @@ export function Clarity() {
               href="/maps"
               className="feature-card-description inline-flex items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1"
             >
-              Try it out{" "}
+              {t("btn.tryItOut")}{" "}
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>

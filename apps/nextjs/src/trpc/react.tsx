@@ -27,7 +27,8 @@ const getQueryClient = () => {
   }
 };
 
-export const { useTRPC, TRPCProvider } = createTRPCContext<AppRouter>();
+export const { useTRPC, useTRPCClient, TRPCProvider } =
+  createTRPCContext<AppRouter>();
 
 export function TRPCReactProvider(props: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
@@ -46,6 +47,14 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
           headers() {
             const headers = new Headers();
             headers.set("x-trpc-source", "nextjs-react");
+            try {
+              const stored = localStorage.getItem("klaro-language");
+              if (stored && ["en", "fil", "ceb", "ilo"].includes(stored)) {
+                headers.set("x-klaro-language", stored);
+              }
+            } catch {
+              // localStorage not available
+            }
             return headers;
           },
         }),

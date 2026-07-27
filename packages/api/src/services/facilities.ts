@@ -1,28 +1,32 @@
 import type { FacilityResponse } from "@klaro/validators";
 import type { ExtractedTest } from "@klaro/validators/extraction";
+import {
+  facilityTypeOrder,
+  facilityTypeRank as sharedFacilityTypeRank,
+} from "@klaro/validators";
 
 import { callLLMAPI } from "./llm";
 
-type MedicalContextInput = {
+interface MedicalContextInput {
   severity: "LOW" | "MODERATE" | "HIGH";
   testSummary?: string;
-  flaggedTests: Array<{ name: string; value?: string; unit?: string }>;
-};
+  flaggedTests: { name: string; value?: string; unit?: string }[];
+}
 
-type RecommendByTestResultsInput = {
-  extractedTests: Array<{
+interface RecommendByTestResultsInput {
+  extractedTests: {
     name: string;
     value?: string;
     unit?: string;
     flagged?: boolean;
-  }>;
+  }[];
   latitude: number;
   longitude: number;
   radiusKm?: number;
   limit?: number;
-};
+}
 
-export type FacilityLike = {
+export interface FacilityLike {
   id?: string;
   name?: string | null;
   facilityType?: string | null;
@@ -34,7 +38,7 @@ export type FacilityLike = {
   isPhilHealthAccredited?: boolean | null;
   acceptedSpecialties?: unknown;
   openingHours?: unknown;
-};
+}
 
 export type RankedFacility = FacilityResponse & {
   rankingScore: number;
@@ -42,17 +46,7 @@ export type RankedFacility = FacilityResponse & {
   urgency: "LOW" | "MODERATE" | "HIGH";
 };
 
-const FACILITY_TYPE_ORDER = [
-  "hospital",
-  "clinic",
-  "medical_center",
-  "diagnostic_center",
-  "health_unit",
-  "rural_health_unit",
-  "birthing_home",
-] as const;
-
-type FacilityTypeValue = (typeof FACILITY_TYPE_ORDER)[number];
+type FacilityTypeValue = (typeof facilityTypeOrder)[number];
 
 const normalize = (value: string | null | undefined) =>
   value?.trim().toLowerCase() ?? "";
@@ -78,13 +72,7 @@ export const calculateDistanceKm = (
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-export const facilityTypeRank = (type: string | null | undefined) => {
-  const normalizedType = normalize(type);
-  const rank = FACILITY_TYPE_ORDER.indexOf(
-    normalizedType as (typeof FACILITY_TYPE_ORDER)[number],
-  );
-  return rank === -1 ? FACILITY_TYPE_ORDER.length : rank;
-};
+export const facilityTypeRank = sharedFacilityTypeRank;
 
 const coerceFacilityType = (
   type: string | null | undefined,
@@ -92,7 +80,7 @@ const coerceFacilityType = (
   const normalizedType = normalize(type);
   if (!normalizedType) return null;
 
-  return FACILITY_TYPE_ORDER.includes(normalizedType as FacilityTypeValue)
+  return facilityTypeOrder.includes(normalizedType as FacilityTypeValue)
     ? (normalizedType as FacilityTypeValue)
     : null;
 };
@@ -260,7 +248,7 @@ const scoreFacility = (
   score +=
     Math.max(
       0,
-      FACILITY_TYPE_ORDER.length - facilityTypeRank(facility.facilityType),
+      facilityTypeOrder.length - facilityTypeRank(facility.facilityType),
     ) * 5;
 
   if (facility.isPhilHealthAccredited) {

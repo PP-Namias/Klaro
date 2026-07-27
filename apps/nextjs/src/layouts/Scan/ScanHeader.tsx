@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
+
 import Link from "next/link";
 
 import { Button } from "@klaro/ui/button";

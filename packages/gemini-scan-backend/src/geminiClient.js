@@ -227,7 +227,7 @@ async function processImages(images, metadata = {}, opts = {}) {
     inlineParts.push({ inlineData: { mimeType: asset.mimeType, data: asset.base64 } });
   }
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`;
   const payload = {
     systemInstruction: { parts: [{ text: buildSystemPrompt(taskMetadata) || SYSTEM_PROMPT }] },
     contents: [{
@@ -243,7 +243,10 @@ async function processImages(images, metadata = {}, opts = {}) {
 
   const response = await fetchImpl(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': GEMINI_API_KEY,
+    },
     body: JSON.stringify(payload)
   });
 

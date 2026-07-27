@@ -6,6 +6,7 @@ import { z } from "zod/v4";
 import { doctor, doctorAvailability } from "@klaro/db/schema";
 
 import { protectedProcedure, publicProcedure } from "../trpc";
+import { isAdmin } from "../utils/admin";
 
 const doctorSessionTypesSchema = z.array(
   z.enum(["chat_consult", "video_consult", "async_review"]),
@@ -326,6 +327,13 @@ const togglePrcVerification = protectedProcedure
       });
     }
 
+    if (!isAdmin(ctx)) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only admins can verify doctors",
+      });
+    }
+
     const [doc] = await ctx.db
       .select()
       .from(doctor)
@@ -362,25 +370,21 @@ export const doctorRouter = {
    * List all active doctors (public endpoint)
    */
   list: listDoctors,
-  listDoctors,
 
   /**
    * Get doctor profile by ID
    */
   byId: getDoctorById,
-  getDoctorById,
 
   /**
    * Register as a doctor (protected)
    */
   register: createDoctor,
-  createDoctor,
 
   /**
    * Update doctor profile (doctor-only)
    */
   update: updateDoctor,
-  updateDoctor,
 
   /**
    * Toggle PRC verification status for a doctor (admin endpoint)

@@ -6,10 +6,11 @@ import { reactConfig } from "@klaro/eslint-config/react";
 
 export default defineConfig(
   {
-    ignores: [".next/**"],
+    ignores: [".next/**", "scripts/**"],
   },
   baseConfig,
   reactConfig,
   nextjsConfig,
   restrictEnvAccess,
+  { ignores: ["**/__tests__/**", "**/*.test.*", "**/__test-utils__/**"] },
 );

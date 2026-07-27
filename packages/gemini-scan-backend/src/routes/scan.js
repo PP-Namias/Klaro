@@ -8,7 +8,19 @@ const geminiClient = require('../geminiClient');
 const db = require('../db');
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
+const MAX_FILES = 10;
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_FILE_SIZE, files: MAX_FILES },
+});
+
+const MAX_BASE64_SIZE = 10 * 1024 * 1024; // 10MB decoded
+
+function sanitizePathSegment(value) {
+  if (typeof value !== 'string') return 'unknown';
+  return value.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.{2,}/g, '_').slice(0, 128);
+}
 
 function isLikelyBase64(value) {
   if (typeof value !== 'string') return false;
@@ -28,13 +40,16 @@ router.post('/scan', upload.array('file'), async (req, res) => {
       task: metadata.task || 'medical_scan',
       language: metadata.language === 'Filipino' ? 'Filipino' : 'English'
     };
-    const scanId = metadata.requestId || uuidv4();
+    const scanId = sanitizePathSegment(metadata.requestId) || uuidv4();
 
     // Support JSON body with images (base64) as well as multipart files
     const saved = [];
     if (req.is('application/json') && req.body && req.body.images) {
       if (!Array.isArray(req.body.images) || req.body.images.length === 0) {
         return res.status(400).json({ error: 'invalid_images', message: 'images[] is required' });
+      }
+      if (req.body.images.length > MAX_FILES) {
+        return res.status(400).json({ error: 'too_many_images', message: `Maximum ${MAX_FILES} images allowed` });
       }
 
       for (const im of req.body.images) {
@@ -43,12 +58,15 @@ router.post('/scan', upload.array('file'), async (req, res) => {
         }
 
         const buf = Buffer.from(im.bytesBase64, 'base64');
+        if (buf.length > MAX_BASE64_SIZE) {
+          return res.status(413).json({ error: 'file_too_large', message: `Image exceeds ${MAX_BASE64_SIZE / 1024 / 1024}MB limit` });
+        }
         // save locally
-        const out = await storage.saveFile(scanId, im.filename || `image-${Date.now()}.jpg`, buf);
+        const out = await storage.saveFile(scanId, sanitizePathSegment(im.filename) || `image-${Date.now()}.jpg`, buf);
         // optionally upload to presigned url
         if (metadata.storage_presign_url) {
           try {
-            const uploaded = await storage.uploadToPresignedUrl(scanId, im.filename || 'image.jpg', buf, metadata.storage_presign_url);
+            const uploaded = await storage.uploadToPresignedUrl(scanId, sanitizePathSegment(im.filename) || 'image.jpg', buf, metadata.storage_presign_url);
             out.url = uploaded.url;
           } catch (e) {
             console.warn('presign upload failed', e.message);
@@ -60,11 +78,11 @@ router.post('/scan', upload.array('file'), async (req, res) => {
       if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'missing_file' });
       for (const f of req.files) {
         // save local copy
-        const out = await storage.saveFile(scanId, f.originalname, f.buffer);
+        const out = await storage.saveFile(scanId, sanitizePathSegment(f.originalname), f.buffer);
         // optionally upload to presigned url (template may contain {filename})
         if (metadata.storage_presign_url) {
           try {
-            const uploaded = await storage.uploadToPresignedUrl(scanId, f.originalname, f.buffer, metadata.storage_presign_url);
+            const uploaded = await storage.uploadToPresignedUrl(scanId, sanitizePathSegment(f.originalname), f.buffer, metadata.storage_presign_url);
             out.url = uploaded.url;
           } catch (e) {
             console.warn('presign upload failed', e.message);
@@ -88,7 +106,7 @@ router.post('/scan', upload.array('file'), async (req, res) => {
 });
 
 router.get('/scan/:scanId', async (req, res) => {
-  const scanId = req.params.scanId;
+  const scanId = sanitizePathSegment(req.params.scanId);
   const result = await db.getResult(scanId);
   if (!result) return res.status(404).json({ error: 'not_found' });
   res.json(result);

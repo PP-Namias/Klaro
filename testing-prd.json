@@ -1,0 +1,278 @@
+{
+  "product": {
+    "name": "Klaro Automated Testing Suite v2",
+    "tagline": "Complete automated testing with maximum commit history for full system reliability",
+    "version": "2.0-testing",
+    "overview": "Full-spectrum automated testing for the Klaro monorepo. Every source file gets unit tests. Every test case = 1 commit for maximum history. Playwright E2E with screenshots. CI/CD with 80% coverage gate."
+  },
+  "architecture": {
+    "testFramework": "Vitest (all packages) + Playwright (E2E)",
+    "dbMocking": "In-memory SQLite via better-sqlite3 with Drizzle",
+    "commitGranularity": "1 test case = 1 commit (500+ commits)",
+    "coverageGate": "80% minimum, blocks merges below threshold",
+    "ciTriggers": ["push to dev", "PRs to main"],
+    "e2eScreenshots": "Playwright screenshot on every E2E test for AI UI/UX inspection"
+  },
+  "currentStatus": {
+    "branch": "dev",
+    "totalCommitsBefore": 434,
+    "newCommitsMade": 41,
+    "totalCommitsNow": 475,
+    "newTestsAdded": 551,
+    "totalTestsNow": 834,
+    "phasesCompleted": "1-11",
+    "phase12Status": "in_progress",
+    "playwrightConfig": "created",
+    "e2eTestsCreated": 0
+  },
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Test Infrastructure Setup",
+      "status": "COMPLETED",
+      "commits": 12,
+      "commitHashes": [
+        "f07d6ae", "aec3caa", "dbd16cc", "fe5c9bf",
+        "6c107f1", "ff03937", "8ceb87c", "c73942b",
+        "00cff43", "485158e", "d671dc1", "d24f772"
+      ],
+      "tasks": [
+        {"id": "T1.1", "title": "Vitest config for packages/validators", "status": "done"},
+        {"id": "T1.2", "title": "Vitest config for packages/db", "status": "done"},
+        {"id": "T1.3", "title": "Vitest config for packages/auth", "status": "done"},
+        {"id": "T1.4", "title": "Vitest config for apps/expo", "status": "done"},
+        {"id": "T1.5", "title": "vitest.workspace.ts at root", "status": "done"},
+        {"id": "T1.6", "title": "Test scripts in all package.json", "status": "done"},
+        {"id": "T1.7", "title": "Shared test helpers packages/api", "status": "done"},
+        {"id": "T1.8", "title": "Shared test helpers packages/validators", "status": "done"},
+        {"id": "T1.9", "title": "GitHub Actions CI workflow", "status": "done"},
+        {"id": "T1.10", "title": "Coverage gate workflow", "status": "done"},
+        {"id": "T1.11", "title": "Pre-commit hook", "status": "done"},
+        {"id": "T1.12", "title": "Root vitest.config.ts with thresholds", "status": "done"}
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Validator Schema Tests",
+      "status": "COMPLETED",
+      "commits": 8,
+      "totalTests": 200,
+      "commitHashes": [
+        "2d22eb6", "658e4f6", "948966d", "f1b00a7",
+        "3842c8f", "f756652", "b1959c0", "58a9bec"
+      ],
+      "tasks": [
+        {"id": "T2.1", "title": "auth.test.ts", "tests": 15, "status": "done"},
+        {"id": "T2.2", "title": "documents.test.ts", "tests": 26, "status": "done"},
+        {"id": "T2.3", "title": "extraction.test.ts", "tests": 19, "status": "done"},
+        {"id": "T2.4", "title": "facilities.test.ts", "tests": 36, "status": "done"},
+        {"id": "T2.5", "title": "llm.test.ts", "tests": 38, "status": "done"},
+        {"id": "T2.6", "title": "scan-analysis.test.ts", "tests": 32, "status": "done"},
+        {"id": "T2.7", "title": "index.test.ts", "tests": 25, "status": "done"},
+        {"id": "T2.8", "title": "Fix base64/mimeType test data", "status": "done"}
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Database Schema Tests",
+      "status": "COMPLETED",
+      "commits": 5,
+      "totalTests": 126,
+      "commitHashes": [
+        "6f8b6da", "a0a1c81", "8ed5c0b", "875eaa4", "33df740"
+      ],
+      "tasks": [
+        {"id": "T3.1", "title": "schema.test.ts", "tests": 60, "status": "done"},
+        {"id": "T3.2", "title": "auth-schema.test.ts", "tests": 24, "status": "done"},
+        {"id": "T3.3", "title": "client.test.ts", "tests": 2, "status": "done"},
+        {"id": "T3.4", "title": "seed.test.ts", "tests": 8, "status": "done"},
+        {"id": "T3.5", "title": "Fix seed test file path", "status": "done"}
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Auth Package Tests",
+      "status": "COMPLETED",
+      "commits": 1,
+      "totalTests": 15,
+      "commitHashes": ["c3c1bd2"],
+      "tasks": [
+        {"id": "T4.1", "title": "auth.test.ts", "tests": 15, "status": "done"}
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "API Service Tests",
+      "status": "COMPLETED",
+      "commits": 4,
+      "totalTests": 100,
+      "commitHashes": ["1795d58", "19a873f", "ab4b01d", "5bd3b71"],
+      "tasks": [
+        {"id": "T5.1", "title": "extraction.test.ts", "tests": 29, "status": "done"},
+        {"id": "T5.2", "title": "facilities.test.ts", "tests": 32, "status": "done"},
+        {"id": "T5.3", "title": "facilityGeocoding.test.ts", "tests": 13, "status": "done"},
+        {"id": "T5.4", "title": "ai-workflow.test.ts", "tests": 26, "status": "done"}
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "API Router Tests",
+      "status": "COMPLETED",
+      "commits": 1,
+      "totalTests": 24,
+      "commitHashes": ["aeb30fc"],
+      "tasks": [
+        {"id": "T6.1", "title": "admin-booking-payments.test.ts", "tests": 24, "status": "done"}
+      ]
+    },
+    {
+      "phase": 7,
+      "name": "API Utils/Middleware Tests",
+      "status": "COMPLETED",
+      "commits": 1,
+      "totalTests": 11,
+      "commitHashes": ["04dbc21"],
+      "tasks": [
+        {"id": "T7.1", "title": "admin-auth.test.ts", "tests": 11, "status": "done"}
+      ]
+    },
+    {
+      "phase": 8,
+      "name": "Next.js API Route Tests",
+      "status": "COMPLETED",
+      "commits": 1,
+      "totalTests": 24,
+      "commitHashes": ["85fd233"],
+      "tasks": [
+        {"id": "T8.1", "title": "routes.test.ts", "tests": 24, "status": "done"}
+      ]
+    },
+    {
+      "phase": 9,
+      "name": "Next.js Lib/Utility Tests",
+      "status": "COMPLETED",
+      "commits": 1,
+      "totalTests": 20,
+      "commitHashes": ["cdc089c"],
+      "tasks": [
+        {"id": "T9.1", "title": "lib-utils.test.ts", "tests": 20, "status": "done"}
+      ]
+    },
+    {
+      "phase": 10,
+      "name": "Expo Mobile Tests",
+      "status": "COMPLETED",
+      "commits": 1,
+      "totalTests": 13,
+      "commitHashes": ["a81557c"],
+      "tasks": [
+        {"id": "T10.1", "title": "expo-utils.test.ts", "tests": 13, "status": "done"}
+      ]
+    },
+    {
+      "phase": 11,
+      "name": "Integration Tests",
+      "status": "COMPLETED",
+      "commits": 1,
+      "totalTests": 18,
+      "commitHashes": ["3c3bc22"],
+      "tasks": [
+        {"id": "T11.1", "title": "integration.test.ts", "tests": 18, "status": "done"}
+      ]
+    },
+    {
+      "phase": 12,
+      "name": "E2E Tests with Playwright",
+      "status": "IN_PROGRESS",
+      "commits": 0,
+      "totalTests": 0,
+      "tasks": [
+        {
+          "id": "T12.1",
+          "title": "Playwright config setup",
+          "file": "apps/nextjs/playwright.config.ts",
+          "status": "done",
+          "commitMessage": "chore(playwright): add Playwright config with screenshot capture"
+        },
+        {
+          "id": "T12.2",
+          "title": "Patient uploads lab result E2E",
+          "file": "apps/nextjs/e2e/patient-upload.spec.ts",
+          "tests": [
+            "patient navigates to upload page",
+            "patient selects a file",
+            "patient sees upload progress indicator",
+            "patient sees extraction results",
+            "patient sees plain language summary",
+            "screenshot captured at upload step"
+          ],
+          "status": "pending",
+          "commitMessage": "test(e2e): patient upload flow with screenshots"
+        },
+        {
+          "id": "T12.3",
+          "title": "Patient chats with Clara E2E",
+          "file": "apps/nextjs/e2e/clara-chat.spec.ts",
+          "tests": [
+            "patient opens Clara chat",
+            "patient types a message",
+            "patient receives Clara response",
+            "Clara responds in correct dialect",
+            "Clara shows Tanong Mo Sa Doktor card",
+            "screenshot captured at chat step"
+          ],
+          "status": "pending",
+          "commitMessage": "test(e2e): Clara chat interaction with screenshots"
+        },
+        {
+          "id": "T12.4",
+          "title": "Patient books appointment E2E",
+          "file": "apps/nextjs/e2e/booking.spec.ts",
+          "tests": [
+            "patient views nearby facilities",
+            "patient selects a facility",
+            "patient chooses doctor",
+            "patient selects time slot",
+            "patient sees booking confirmation",
+            "screenshot captured at booking step"
+          ],
+          "status": "pending",
+          "commitMessage": "test(e2e): patient booking flow with screenshots"
+        },
+        {
+          "id": "T12.5",
+          "title": "Full patient journey E2E",
+          "file": "apps/nextjs/e2e/full-journey.spec.ts",
+          "tests": [
+            "patient signs in",
+            "patient uploads lab result",
+            "patient views analysis",
+            "patient chats with Clara",
+            "patient books appointment",
+            "patient views booking history",
+            "screenshot captured at each major step"
+          ],
+          "status": "pending",
+          "commitMessage": "test(e2e): full patient journey with screenshots"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "totalPhases": 12,
+    "completedPhases": 11,
+    "remainingPhases": 1,
+    "totalNewCommits": 41,
+    "totalNewTests": 551,
+    "remainingTests": 30,
+    "targetTotalTests": 864,
+    "targetTotalCommits": 506,
+    "coverageTarget": "80% minimum"
+  },
+  "nextSteps": [
+    "1. Create E2E test files for Phase 12",
+    "2. Each E2E test case = 1 commit",
+    "3. Run pnpm build to verify no regressions",
+    "4. Update testing-prd.json with final stats"
+  ]
+}

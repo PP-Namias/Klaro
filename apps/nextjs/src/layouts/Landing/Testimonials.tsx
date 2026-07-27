@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
 export function Testimonials() {
   return (
-    <motion.section 
+    <motion.section
       className="mt-[100px] flex flex-col gap-[2rem]"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -35,18 +36,18 @@ export function Testimonials() {
               designed, focusing on professional guidance rather than
               self-medication.”
             </p>
-            <a
-              href="#"
+            <Link
+              href="/patient-stories"
               className="testimonial-role inline-flex w-fit items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1"
             >
               Read Full Story{" "}
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </a>
+            </Link>
           </div>
           <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-[16px] md:w-[480px]">
             <Image
               src="/sections/testimonial/1.png"
-              alt="Maria Santos"
+              alt="Bea Nessa P. Naldoza"
               fill
               className="object-contain p-6 transition-transform duration-500 group-hover:scale-105"
             />
@@ -72,7 +73,7 @@ export function Testimonials() {
             <div className="relative mt-auto h-64 w-full overflow-hidden rounded-[16px]">
               <Image
                 src="/sections/testimonial/2.png"
-                alt="Juan Dela Cruz"
+                alt="Catherine Lozano"
                 fill
                 className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
               />
@@ -97,7 +98,7 @@ export function Testimonials() {
             <div className="relative mt-auto h-64 w-full overflow-hidden rounded-[16px]">
               <Image
                 src="/sections/testimonial/3.png"
-                alt="Dr. Elena Reyes"
+                alt="Christel Señadan"
                 fill
                 className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
               />
@@ -122,7 +123,7 @@ export function Testimonials() {
             <div className="relative mt-auto h-64 w-full overflow-hidden rounded-[16px]">
               <Image
                 src="/sections/testimonial/4.png"
-                alt="Paolo Gomez"
+                alt="Trisha Mae Belista"
                 fill
                 className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
               />

@@ -14,7 +14,7 @@ interface ErrorProps {
 
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
-    console.error("Error:", error);
+    // Error is logged server-side via error monitoring service
   }, [error]);
 
   return (
@@ -44,8 +44,7 @@ export default function Error({ error, reset }: ErrorProps) {
             <p className={styles.errorBlock__errorLabel}>Error Details:</p>
             <div className={styles.errorBlock__errorBox}>
               <code className={styles.errorBlock__errorCode}>
-                {error.message ||
-                  "An unexpected error occurred. Please try again."}
+                An unexpected error occurred. Please try again.
               </code>
             </div>
           </div>

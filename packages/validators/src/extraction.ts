@@ -1,8 +1,8 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const ExtractedTestSchema = z.object({
   name: z.string().min(1, "Test name required"),
-  value: z.string().regex(/^[\d.]+$/, "Value must be numeric"),
+  value: z.string().min(1, "Value required"),
   unit: z.string().optional(),
   referenceRange: z.string().optional(),
   flagged: z.boolean().optional().default(false),

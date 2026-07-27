@@ -127,7 +127,7 @@ describe("doctor router", () => {
       }),
     );
 
-    const result = await caller.doctor.createDoctor({
+    const result = await caller.doctor.register({
       name: "Dr. Ana Cruz",
       specialization: "Cardiology",
       licenseNumber: "PRC-CARD-2024-0110",
@@ -159,7 +159,7 @@ describe("doctor router", () => {
       }),
     );
 
-    const result = await caller.doctor.listDoctors({
+    const result = await caller.doctor.list({
       specialization: "Internal",
       limit: 10,
       offset: 0,
@@ -176,7 +176,7 @@ describe("doctor router", () => {
       }),
     );
 
-    const result = await caller.doctor.getDoctorById({ id: baseDoctorRow.id });
+    const result = await caller.doctor.byId({ id: baseDoctorRow.id });
 
     assert.equal(result.id, baseDoctorRow.id);
     assert.equal(result.specialization, "Internal Medicine");
@@ -194,7 +194,7 @@ describe("doctor router", () => {
       }),
     );
 
-    const result = await caller.doctor.updateDoctor({
+    const result = await caller.doctor.update({
       id: baseDoctorRow.id,
       name: "Dr. Luis Navarro, MD",
       pricePerSession: 1750,

@@ -7,9 +7,19 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import CalModal from "../../../components/CalModal";
+
+vi.mock("framer-motion", () => ({
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  motion: {
+    div: ({ children, ...props }: any) => {
+      const { initial, animate, exit, transition, ...rest } = props;
+      return <div {...rest}>{children}</div>;
+    },
+  },
+}));
 
 function ModalHarness({ onBooked }: { onBooked?: () => void }) {
   const [open, setOpen] = useState(false);
@@ -29,37 +39,23 @@ function ModalHarness({ onBooked }: { onBooked?: () => void }) {
 }
 
 describe("CalModal integration", () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    sessionStorage.clear();
-  });
-
   afterEach(() => {
     cleanup();
-    vi.runOnlyPendingTimers();
-    vi.useRealTimers();
   });
 
-  it("opens the modal, lazy-loads the iframe, and loads scheduler", async () => {
+  it("opens the modal, lazy-loads the iframe, and loads scheduler", () => {
     render(<ModalHarness />);
-
     fireEvent.click(screen.getByRole("button", { name: /book a doctor/i }));
 
-    expect(screen.getByText(/loading scheduling tool/i)).not.toBeNull();
-    expect(screen.getByTitle("Cal.com scheduling-preload")).not.toBeNull();
-
-    await act(async () => {
-      vi.advanceTimersByTime(100);
-    });
-
     expect(
-      screen.getByRole("link", { name: /open in new tab/i }),
+      screen.getByRole("dialog", { name: /book a doctor/i }),
     ).not.toBeNull();
+    expect(screen.getByRole("link", { name: /new tab/i })).not.toBeNull();
+    expect(screen.getByTitle("Cal.com scheduling")).not.toBeNull();
   });
 
   it("closes from the close button and restores the modal state", () => {
     render(<ModalHarness />);
-
     fireEvent.click(screen.getByRole("button", { name: /book a doctor/i }));
     fireEvent.click(screen.getByLabelText(/close booking modal/i));
 
@@ -72,15 +68,13 @@ describe("CalModal integration", () => {
     render(<ModalHarness onBooked={onBooked} />);
     fireEvent.click(screen.getByRole("button", { name: /book a doctor/i }));
 
-    window.dispatchEvent(
-      new MessageEvent("message", {
-        data: { type: "booking.created" },
-        origin: "https://cal.com",
-      }),
-    );
-
     await act(async () => {
-      vi.runAllTimers();
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          data: { type: "booking.created" },
+          origin: "https://cal.com",
+        }),
+      );
     });
 
     expect(onBooked).toHaveBeenCalled();

@@ -56,11 +56,13 @@ interface PromptVersion {
  */
 const promptVersions: Record<string, Record<Dialect, PromptVersion[]>> = {
   explanation: {
+    English: [],
     Filipino: [],
     Bisaya: [],
     Ilocano: [],
   },
   tanqmo: {
+    English: [],
     Filipino: [],
     Bisaya: [],
     Ilocano: [],
@@ -120,6 +122,12 @@ function getExplanationPrompt(dialect: Dialect, severity: Severity): string {
  */
 function getDialectInstructions(dialect: Dialect): string {
   const instructions: Record<Dialect, string> = {
+    English: `
+## English Guidelines:
+- Use clear, simple language accessible to a general audience
+- Example openings: "Your results show...", "This indicates that..."
+- Use common English health terms patients understand
+- Be supportive and professional in tone`,
     Filipino: `
 ## Filipino (Tagalog) Guidelines:
 - Use formal but warm tone (tulad ng pambubuo makipag-ugnayan sa kapitbayan)
@@ -177,25 +185,15 @@ ${testList}
  * NOTE: In production, this would call OpenAI/Claude/Gemini API
  * For now, we generate structured responses based on test data
  */
-export async function generatePlainLanguageExplanation(
+export function generatePlainLanguageExplanation(
   extractedTests: ExtractedTest[],
   dialect: Dialect = "Filipino",
-): Promise<LLMResponse> {
+): LLMResponse {
   // Separate normal and flagged tests
   const flaggedTests = extractedTests.filter((t) => t.flagged);
   const severity = computeSeverity(
     extractedTests.map((t) => t.flagged ?? false),
   );
-
-  // Get dialect-specific greeting
-  const greetings: Record<Dialect, string> = {
-    Filipino:
-      "Ang iyong mga resulta ay nagpapakita ng iyong kasalukuyang kalusugan.",
-    Bisaya:
-      "Ang imong mga resulta ay nagpakita sa imong kasagaran na kalusugan.",
-    Ilocano:
-      "Ang iyong mga resulta ay nagpakita sa iyong panglalaking kalusugan.",
-  };
 
   // Build test explanations
   const tests = extractedTests.map((test) => ({
@@ -247,12 +245,13 @@ function getAbnormalInterpretation(
   dialect: Dialect,
 ): string {
   const interpretations: Record<Dialect, string> = {
+    English: `Your ${test.name} is higher/lower than normal. This should be discussed with your doctor.`,
     Filipino: `Ang iyong ${test.name} ay mas mataas/mababa kaysa normal. Ito ay dapat bahagin ng doktor.`,
     Bisaya: `Ang iyong ${test.name} ay mas taas/mubo kaysa sa normal. Kailangan ikonsulta ang doktor.`,
     Ilocano: `Ang iyong ${test.name} ay nagtaas/nagbaba pay sa normal. Dapat kita sa doktor.`,
   };
 
-  return (interpretations[dialect] ?? interpretations["Filipino"]) as string;
+  return interpretations[dialect] ?? interpretations.Filipino;
 }
 
 /**
@@ -263,12 +262,13 @@ function getNormalInterpretation(
   dialect: Dialect,
 ): string {
   const interpretations: Record<Dialect, string> = {
+    English: `Your ${test.name} is within the normal range. This is good.`,
     Filipino: `Ang iyong ${test.name} ay nasa normal na saklaw. Maganda ito.`,
     Bisaya: `Ang iyong ${test.name} ay normal. Maayo niini.`,
     Ilocano: `Ang iyong ${test.name} ay normal. Nasapa niito.`,
   };
 
-  return (interpretations[dialect] ?? interpretations["Filipino"]) as string;
+  return interpretations[dialect] ?? interpretations.Filipino;
 }
 
 /**
@@ -276,12 +276,13 @@ function getNormalInterpretation(
  */
 function getRecommendation(test: ExtractedTest, dialect: Dialect): string {
   const recommendations: Record<Dialect, string> = {
+    English: `Consult a doctor about your ${test.name}.`,
     Filipino: `Konsultahin ang isang doktor tungkol sa ${test.name}.`,
     Bisaya: `Konsultahin ang doktor tungkol sa ${test.name}.`,
     Ilocano: `Kita sa doktor para sa ${test.name}.`,
   };
 
-  return (recommendations[dialect] ?? recommendations["Filipino"]) as string;
+  return recommendations[dialect] ?? recommendations.Filipino;
 }
 
 /**
@@ -296,6 +297,13 @@ function generateQuestionsForDoctor(
   }
 
   const questions: Record<Dialect, string[]> = {
+    English: [
+      `Why is my ${flaggedTests[0]?.name || "result"} high/low?`,
+      `How can I improve my ${flaggedTests[0]?.name || "health"}?`,
+      `Do I need medication for this?`,
+      `When should I come back for a follow-up exam?`,
+      `Are there any risks I should be aware of?`,
+    ],
     Filipino: [
       `Bakit mataas/mababa ang aking ${flaggedTests[0]?.name || "resulta"}?`,
       `Paano ako magpapabuti ng aking ${flaggedTests[0]?.name || "kalusugan"}?`,
@@ -330,12 +338,13 @@ function generateQuestionsForDoctor(
  */
 function getFollowUpQuestion(dialect: Dialect): string {
   const questions: Record<Dialect, string> = {
+    English: "What can I do to stay healthy?",
     Filipino: "Ano ang dapat kong gawin para manatiling malusog?",
     Bisaya: "Unsaon ko man panatilihin ang aking kalusugan?",
     Ilocano: "Apay ti dapat ko a gawin para manatili a malusog?",
   };
 
-  return (questions[dialect] ?? questions["Filipino"]) as string;
+  return questions[dialect] ?? questions.Filipino;
 }
 
 /**
@@ -343,12 +352,13 @@ function getFollowUpQuestion(dialect: Dialect): string {
  */
 function getTanongMoTitle(dialect: Dialect): string {
   const titles: Record<Dialect, string> = {
+    English: "Questions For Your Doctor",
     Filipino: "Itatanong Mo Sa Doktor",
     Bisaya: "Pangutanon Para Sa Doktor",
     Ilocano: "Itatanong Mo Sa Doktor",
   };
 
-  return (titles[dialect] ?? titles["Filipino"]) as string;
+  return titles[dialect] ?? titles.Filipino;
 }
 
 /**
@@ -356,6 +366,8 @@ function getTanongMoTitle(dialect: Dialect): string {
  */
 function getSafetyDisclaimer(dialect: Dialect): string {
   const disclaimers: Record<Dialect, string> = {
+    English:
+      "⚠️ Some results are not normal. It is important to see a doctor as soon as possible.",
     Filipino:
       "⚠️ Ang ilang resulta ay hindi normal. Mahalaga na makita mo ang isang doktor kaagad.",
     Bisaya:
@@ -364,7 +376,7 @@ function getSafetyDisclaimer(dialect: Dialect): string {
       "⚠️ Ang napadaan a resulta ay saan normal. Mahalaga na makita mo ti doktor.",
   };
 
-  return (disclaimers[dialect] ?? disclaimers["Filipino"]) as string;
+  return disclaimers[dialect] ?? disclaimers.Filipino;
 }
 
 /**
@@ -372,12 +384,13 @@ function getSafetyDisclaimer(dialect: Dialect): string {
  */
 function getBookingCTA(dialect: Dialect): string {
   const ctas: Record<Dialect, string> = {
+    English: "📞 Book an appointment with a doctor now",
     Filipino: "📞 Mag-book ng appointment sa isang doktor ngayon",
     Bisaya: "📞 Mag-book ug appointment sa doktor karon",
     Ilocano: "📞 Mag-book ug appointment sa doktor dita",
   };
 
-  return (ctas[dialect] ?? ctas["Filipino"]) as string;
+  return ctas[dialect] ?? ctas.Filipino;
 }
 
 /**
@@ -391,14 +404,20 @@ function buildSummary(
 ): string {
   if (flaggedCount === 0) {
     const summaries: Record<Dialect, string> = {
+      English: `Great! All ${totalTests} results are normal. Continue taking care of your health.`,
       Filipino: `Maganda! Ang lahat ng ${totalTests} results ay normal. Patuloy na alagaan ang iyong kalusugan.`,
       Bisaya: `Maayo! Ang tanan mga ${totalTests} resulta ay normal. Magpatuloy sa pag-aaga sa imong kalusugan.`,
       Ilocano: `Nasapa! Ang amin mga ${totalTests} resulta ay normal. Tuloy ang pag-aaga sa iyong kalusugan.`,
     };
-    return (summaries[dialect] ?? summaries.Filipino) as string;
+    return summaries[dialect] ?? summaries.Filipino;
   }
 
   const summaries: Record<Dialect, Record<Severity, string>> = {
+    English: {
+      LOW: `There are ${flaggedCount} abnormal results out of ${totalTests} tests. You should consult a doctor.`,
+      MODERATE: `There are ${flaggedCount} abnormal results out of ${totalTests} tests. You should seek professional advice.`,
+      HIGH: `There are ${flaggedCount} significantly abnormal results. You need to see a doctor immediately.`,
+    },
     Filipino: {
       LOW: `May ${flaggedCount} resulta na hindi normal sa ${totalTests} tests. Dapat konsultahin ang doktor.`,
       MODERATE: `May ${flaggedCount} abnormal na resulta sa ${totalTests} tests. Dapat makakuha ng propesyonal na payo.`,
@@ -416,8 +435,7 @@ function buildSummary(
     },
   };
 
-  return ((summaries[dialect] && summaries[dialect][severity]) ??
-    (summaries.Filipino as Record<Severity, string>)[severity]) as string;
+  return summaries[dialect]?.[severity] ?? summaries.Filipino[severity];
 }
 
 /**
@@ -538,12 +556,17 @@ async function callGemini(
   systemPrompt: string,
   config: LLMConfig,
 ): Promise<string> {
+  if (!config.apiKey) {
+    throw new Error("Gemini API key is required");
+  }
+
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${config.model || "gemini-1.5-pro"}:generateContent?key=${config.apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${config.model || "gemini-1.5-pro"}:generateContent`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "x-goog-api-key": config.apiKey,
       },
       body: JSON.stringify({
         contents: [
@@ -593,6 +616,7 @@ export function registerPromptVersion(
   const bucket: Record<Dialect, PromptVersion[]> = (promptVersions[
     promptType
   ] ||= {
+    English: [],
     Filipino: [],
     Bisaya: [],
     Ilocano: [],
@@ -672,6 +696,7 @@ export const PROMPT_TEMPLATES = {
   explanation: getExplanationPrompt,
   tanqmo: getTanongMoPrompt,
   dialects: {
+    English: "English - Global language",
     Filipino: "Tagalog - Main language",
     Bisaya: "Visayan - Cebuano variant",
     Ilocano: "Ilocano - Northern Philippine language",

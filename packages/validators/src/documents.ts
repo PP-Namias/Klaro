@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
 
+import { DialectEnum } from "./llm";
+
 // Document upload request schema
 export const uploadDocumentInputSchema = z.object({
   fileName: z.string().min(1).max(255),
@@ -89,7 +91,7 @@ export const uploadResponseSchema = z.object({
 
 export const uploadDocumentSchema = z.object({
   file: fileSchema,
-  dialect: z.enum(["Filipino", "Bisaya", "Ilocano"]).default("Filipino"),
+  dialect: DialectEnum.default("Filipino"),
 });
 
 export const uploadDocumentResponseSchema = z.object({

@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-properties, @typescript-eslint/prefer-nullish-coalescing */
+
 import type { NextRequest } from "next/server";
 
 function setCorsHeaders(res: Response) {
@@ -48,9 +50,9 @@ export const POST = async (req: NextRequest) => {
       return res;
     }
 
-    // Generate Cal.com booking link
+    // Generate Cal.com booking link (server-side only, no API key in URL)
     // Format: https://cal.com/{username}/event-type
-    const bookingLink = `${CAL_COM_BASE_URL}/api/v2/event-types/${eventTypeId}?apiKey=${CAL_COM_API_KEY}`;
+    const bookingLink = `${CAL_COM_BASE_URL}/api/v2/event-types/${eventTypeId}`;
 
     const responseBody = {
       url: `https://cal.com/${userName || "booking"}/${eventTypeId}`,

@@ -4,10 +4,18 @@ import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import { analysis, chatMessage } from "@klaro/db/schema";
+import { DialectEnum } from "@klaro/validators/llm";
 
+import { logChatMessage, logLlmApiCall } from "../services/auditLogger";
 import { assembleDocumentContext } from "../services/contextAssembler";
 import { callLLMAPI } from "../services/llm";
-import { protectedProcedure } from "../trpc";
+import {
+  buildBlockedResponse,
+  checkInputGuardrails,
+  filterOutput,
+} from "../services/medicalGuardrails";
+import { detectPhiTypes, scrubPhi } from "../services/phiScrubber";
+import { chatProcedure as protectedProcedure } from "../trpc";
 
 export type ChatSeverity = "LOW" | "MODERATE" | "HIGH";
 
@@ -86,7 +94,7 @@ export const chatRouter = {
       z.object({
         analysisId: z.string().uuid(),
         content: z.string().min(1).max(2000),
-        dialect: z.enum(["Filipino", "Bisaya", "Ilocano"]).default("Filipino"),
+        dialect: DialectEnum.default("Filipino"),
       }),
     )
     .use(async ({ ctx, input, next }) => {
@@ -96,7 +104,7 @@ export const chatRouter = {
         .where(eq(analysis.id, input.analysisId));
 
       const userId = ctx.session?.user?.id;
-      if (!docAnalysis || docAnalysis.userId !== userId) {
+      if (docAnalysis?.userId !== userId) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have access to this analysis",
@@ -117,8 +125,86 @@ export const chatRouter = {
         plainLanguageSummary?: string | null;
       };
 
-      // Save user message
-      const userId = ctx.session!.user.id;
+      if (!ctx.session) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Not authenticated",
+        });
+      }
+      const userId = ctx.session.user.id;
+
+      // AI-06: Medical Context Guardrails - Check input for blocked patterns
+      const inputGuardrail = checkInputGuardrails(input.content);
+      if (inputGuardrail.level === "blocked") {
+        // Log the blocked request for audit
+        logChatMessage({
+          userId,
+          analysisId: input.analysisId,
+          phiDetected: false,
+          phiTypes: [],
+        }).catch(() => {});
+
+        // Save user message (for record-keeping)
+        await ctx.db.insert(chatMessage).values({
+          analysisId: input.analysisId,
+          userId,
+          role: "user",
+          content: input.content,
+          dialect: input.dialect,
+        });
+
+        // Return blocked response
+        const blockedResponse = buildBlockedResponse(
+          input.content,
+          input.dialect,
+        );
+
+        const assistantMessage = {
+          role: "assistant",
+          content: blockedResponse,
+          dialect: input.dialect,
+        };
+
+        await ctx.db
+          .insert(chatMessage)
+          .values({
+            analysisId: input.analysisId,
+            userId,
+            role: "assistant",
+            content: blockedResponse,
+            dialect: input.dialect,
+          })
+          .returning();
+
+        return {
+          userMessage: {
+            role: "user",
+            content: input.content,
+            dialect: input.dialect,
+          },
+          assistantMessage,
+          suggestedActions: [],
+          safety: {
+            severity: "HIGH" as const,
+            disclaimer: inputGuardrail.reason,
+            suggestedActions: ["consultDoctor"],
+          },
+          guardrailBlocked: true,
+        };
+      }
+
+      // PHI Detection: Check user message for PHI before processing
+      const userPhiTypes = detectPhiTypes(input.content);
+      if (userPhiTypes.length > 0) {
+        logChatMessage({
+          userId,
+          analysisId: input.analysisId,
+          phiDetected: true,
+          phiTypes: userPhiTypes,
+        }).catch(() => {});
+      }
+
+      // Save user message (original, for record-keeping)
       await ctx.db.insert(chatMessage).values({
         analysisId: input.analysisId,
         userId,
@@ -153,26 +239,80 @@ export const chatRouter = {
         recentMessages,
       );
 
-      const systemPrompt = `You are a helpful health assistant. Keep responses brief, supportive, and ask one follow-up question when appropriate. If safety guidance is present, include it before any other advice.`;
+      // PHI Scrubbing: Redact patient data from context before sending to LLM
+      const scrubbedContext = scrubPhi(context);
+      if (scrubbedContext.matchCount > 0) {
+        console.log(
+          JSON.stringify({
+            type: "phi_scrubbed",
+            context: "chat_message",
+            phiCount: scrubbedContext.matchCount,
+            phiTypes: detectPhiTypes(context),
+            timestamp: new Date().toISOString(),
+          }),
+        );
+      }
+
+      const systemPrompt = `You are a helpful health assistant. Keep responses brief, supportive, and ask one follow-up question when appropriate. If safety guidance is present, include it before any other advice. IMPORTANT: Respond in the patient's preferred language: ${input.dialect}. NEVER provide medical diagnosis or treatment recommendations. Always recommend consulting a healthcare professional.`;
       const safetyPrefix =
         ctx.chatSafety?.severity === "HIGH" && ctx.chatSafety.bookingSuggestion
           ? `${ctx.chatSafety.disclaimer}\n${ctx.chatSafety.bookingSuggestion}\n\n`
           : ctx.chatSafety?.disclaimer
             ? `${ctx.chatSafety.disclaimer}\n\n`
             : "";
-      const prompt = `Context:\n${context}\n\nSafety guidance:\n${ctx.chatSafety?.severity ?? "LOW"}\n\nUser message:\n${input.content}\n\nRespond briefly and include one follow-up question.`;
+      // Use scrubbed context for LLM prompt
+      const prompt = `Context:\n${scrubbedContext.scrubbedText}\n\nSafety guidance:\n${ctx.chatSafety?.severity ?? "LOW"}\n\nUser message:\n${input.content}\n\nRespond briefly and include one follow-up question. Do not provide diagnosis or treatment advice.`;
 
       // Call LLM (falls back to empty string if API key not configured)
       let llmOutput = "";
       try {
         llmOutput = await callLLMAPI(prompt, systemPrompt);
+
+        // Audit log for successful LLM call
+        logLlmApiCall({
+          userId,
+          analysisId: input.analysisId,
+          phiScrubbed: true,
+          phiCount: scrubbedContext.matchCount,
+          externalProvider: "llm",
+          success: true,
+        }).catch(() => {});
       } catch (err) {
         console.error("LLM call failed:", err);
+
+        // Audit log for failed LLM call
+        logLlmApiCall({
+          userId,
+          analysisId: input.analysisId,
+          phiScrubbed: true,
+          phiCount: scrubbedContext.matchCount,
+          externalProvider: "llm",
+          success: false,
+        }).catch(() => {});
+
         llmOutput = "";
       }
 
+      // AI-06: Medical Context Guardrails - Filter output
+      let finalOutput = llmOutput;
+      if (llmOutput) {
+        const outputFilter = filterOutput(llmOutput);
+        if (outputFilter.filteredContent) {
+          finalOutput = outputFilter.filteredContent;
+        }
+        if (outputFilter.modifications.length > 0) {
+          console.log(
+            JSON.stringify({
+              type: "output_filtered",
+              modifications: outputFilter.modifications,
+              timestamp: new Date().toISOString(),
+            }),
+          );
+        }
+      }
+
       // Fallback if LLM not configured
-      const assistantContent = `${safetyPrefix}${llmOutput || `${docAnalysis.plainLanguageSummary || "I reviewed your results."}\n\nFollow-up: Can you tell me if you have any new symptoms or concerns?`}`;
+      const assistantContent = `${safetyPrefix}${finalOutput || `${docAnalysis.plainLanguageSummary || "I reviewed your results."}\n\nFollow-up: Can you tell me if you have any new symptoms or concerns?`}`;
 
       const assistantMessage = {
         role: "assistant",
@@ -201,6 +341,7 @@ export const chatRouter = {
         assistantMessage,
         suggestedActions: ctx.chatSafety?.suggestedActions ?? [],
         safety: ctx.chatSafety,
+        guardrailBlocked: false,
       };
     }),
 
@@ -229,7 +370,7 @@ export const chatRouter = {
         .from(analysis)
         .where(eq(analysis.id, input.analysisId));
 
-      if (!doc_analysis || doc_analysis.userId !== userId) {
+      if (doc_analysis?.userId !== userId) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have access to this analysis",
@@ -266,7 +407,7 @@ export const chatRouter = {
         .from(analysis)
         .where(eq(analysis.id, input.analysisId));
 
-      if (!doc_analysis || doc_analysis.userId !== userId) {
+      if (doc_analysis?.userId !== userId) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have access to this analysis",

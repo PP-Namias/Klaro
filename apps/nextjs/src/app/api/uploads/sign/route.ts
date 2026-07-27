@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-properties */
+
 import crypto from "crypto";
 import type { NextRequest } from "next/server";
 
@@ -15,7 +17,7 @@ export const OPTIONS = () => {
   return res;
 };
 
-export const GET = async (req: NextRequest) => {
+export const GET = async (_req: NextRequest) => {
   try {
     // validate session (optional for sign endpoint, but recommended)
     const session = await validateSession();
@@ -35,10 +37,10 @@ export const GET = async (req: NextRequest) => {
     }
 
     const timestamp = Math.floor(Date.now() / 1000);
-    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET || "";
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "";
-    const apiKey = process.env.CLOUDINARY_API_KEY || "";
-    const apiSecret = process.env.CLOUDINARY_API_SECRET || "";
+    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET ?? "";
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME ?? "";
+    const _apiKey = process.env.CLOUDINARY_API_KEY ?? "";
+    const apiSecret = process.env.CLOUDINARY_API_SECRET ?? "";
 
     // Build params string for Cloudinary signature
     let paramsToSign = `timestamp=${timestamp}`;
@@ -52,11 +54,10 @@ export const GET = async (req: NextRequest) => {
       .digest("hex");
 
     const body = {
-      apiKey,
       cloudName,
       timestamp,
       signature,
-      uploadPreset: uploadPreset || null,
+      uploadPreset: uploadPreset ?? null,
     };
 
     const res = new Response(JSON.stringify(body), {

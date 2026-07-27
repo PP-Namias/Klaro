@@ -1,18 +1,20 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-floating-promises, no-empty */
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 
+import { LanguageSelector } from "~/components/language-selector";
 import styles from "../../app/page.module.css";
 
 async function fetchSessionPrefill() {
   try {
-    const res = await fetch('/api/auth/session');
+    const res = await fetch("/api/auth/session");
     if (!res.ok) return undefined;
     const data = await res.json();
-    return { name: data?.name || '', email: data?.email || '' };
+    return { name: data?.name || "", email: data?.email || "" };
   } catch {
     return undefined;
   }
@@ -22,10 +24,14 @@ function openBooking(): void {
   fetchSessionPrefill().then((prefill) => {
     try {
       if ((globalThis as any).analytics?.track) {
-        (globalThis as any).analytics.track('booking_opened', { source: 'nav' });
+        (globalThis as any).analytics.track("booking_opened", {
+          source: "nav",
+        });
       }
     } catch {}
-    window.dispatchEvent(new CustomEvent('klaro:openBooking', { detail: { prefill } }));
+    window.dispatchEvent(
+      new CustomEvent("klaro:openBooking", { detail: { prefill } }),
+    );
   });
 }
 
@@ -73,7 +79,9 @@ export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
             className="mr-1"
             priority
           />
-          <span className={theme === "light" ? "text-zinc-900" : "text-white"}>Klaro</span>
+          <span className={theme === "light" ? "text-zinc-900" : "text-white"}>
+            Klaro
+          </span>
         </Link>
         <div className={styles.headerLinks}>
           <Link href="/scan" className={styles.headerLink}>
@@ -85,18 +93,25 @@ export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
           <button onClick={openBooking} className={styles.headerLink}>
             Book a doctor
           </button>
+          <LanguageSelector />
         </div>
 
         {/* Mobile Toggle */}
-        <button 
-          className="flex md:hidden" 
+        <button
+          className="flex md:hidden"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle menu"
         >
           {isMobileMenuOpen ? (
-            <X className={theme === "light" ? "text-zinc-900" : "text-white"} size={28} />
+            <X
+              className={theme === "light" ? "text-zinc-900" : "text-white"}
+              size={28}
+            />
           ) : (
-            <Menu className={theme === "light" ? "text-zinc-900" : "text-white"} size={28} />
+            <Menu
+              className={theme === "light" ? "text-zinc-900" : "text-white"}
+              size={28}
+            />
           )}
         </button>
       </header>
@@ -124,21 +139,36 @@ export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
             <button onClick={openBooking} className={styles.floatingLink}>
               Book a doctor
             </button>
+            <LanguageSelector />
           </div>
-          <button 
-            className="flex md:hidden" 
+          <button
+            className="flex md:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
           >
-            {isMobileMenuOpen ? <X className="text-zinc-900" size={24} /> : <Menu className="text-zinc-900" size={24} />}
+            {isMobileMenuOpen ? (
+              <X className="text-zinc-900" size={24} />
+            ) : (
+              <Menu className="text-zinc-900" size={24} />
+            )}
           </button>
         </header>
       </div>
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[2000] flex flex-col bg-white p-8 md:hidden">
-          <div className="flex items-center justify-between mb-12">
-            <Link href="/" className="flex items-center gap-2 text-xl font-semibold text-zinc-900" onClick={() => setIsMobileMenuOpen(false)}>
+        <div
+          className="fixed inset-0 z-[2000] flex flex-col bg-white p-8 md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation"
+        >
+          <div className="mb-12 flex items-center justify-between">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-xl font-semibold text-zinc-900"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               <Image src="/klaro-dark.svg" alt="Klaro" width={32} height={32} />
               Klaro
             </Link>
@@ -147,25 +177,33 @@ export function Navbar({ theme = "dark" }: { theme?: "dark" | "light" } = {}) {
             </button>
           </div>
           <nav className="flex flex-col gap-8">
-            <Link href="/scan" className="text-2xl font-medium text-zinc-900" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link
+              href="/scan"
+              className="text-2xl font-medium text-zinc-900"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               Scan & Analyze
             </Link>
-            <Link href="/maps" className="text-2xl font-medium text-zinc-900" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link
+              href="/maps"
+              className="text-2xl font-medium text-zinc-900"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               Clinics and Hospitals
             </Link>
-            <button 
+            <button
               onClick={() => {
                 setIsMobileMenuOpen(false);
                 openBooking();
-              }} 
+              }}
               className="text-left text-2xl font-medium text-zinc-900"
             >
               Book a doctor
             </button>
           </nav>
           <div className="mt-auto">
-            <Link 
-              href="/scan" 
+            <Link
+              href="/scan"
               className="flex w-full items-center justify-center rounded-full bg-black py-4 text-lg font-medium text-white"
               onClick={() => setIsMobileMenuOpen(false)}
             >

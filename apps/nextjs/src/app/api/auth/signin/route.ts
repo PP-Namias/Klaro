@@ -19,7 +19,7 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
-  const provider = searchParams.get("provider") as "discord" | "google";
+  const provider = searchParams.get("provider");
 
   if (!provider || !["discord", "google"].includes(provider)) {
     return Response.json(

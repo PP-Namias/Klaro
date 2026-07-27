@@ -13,7 +13,7 @@ const store: RateLimitStore = {};
  * Get rate limit key from request
  * Prioritizes authenticated user ID, falls back to IP address
  */
-function getRateLimitKey(req: Request, userId?: string): string {
+function _getRateLimitKey(req: Request, userId?: string): string {
   if (userId) return `user:${userId}`;
 
   const ip =

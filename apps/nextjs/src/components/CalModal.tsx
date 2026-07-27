@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { X, ExternalLink } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, no-empty */
+import { useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ExternalLink, X } from "lucide-react";
 
 import useFocusTrap from "./useFocusTrap";
 
-export type CalModalProps = {
+interface CalModalProps {
   open: boolean;
   onClose: () => void;
   url?: string;
@@ -14,7 +15,7 @@ export type CalModalProps = {
   iframeTitle?: string;
   prefill?: Record<string, string>;
   onBooked?: () => void;
-};
+}
 
 const DEFAULT_URL =
   "https://cal.com/pp-namias/1-hour-session-with-clara?embed=1&theme=light";
@@ -49,23 +50,16 @@ export default function CalModal({
 }: CalModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<Element | null>(null);
-  const [loadIframe, setLoadIframe] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
   const focusTrapRef = useFocusTrap(dialogRef, open);
   const computedUrl = buildUrl(url, prefill);
 
   useEffect(() => {
     if (open) {
       triggerRef.current = document.activeElement;
-      setLoadIframe(true);
-      setIframeLoaded(false);
       document.body.style.overflow = "hidden";
       return () => {
         document.body.style.overflow = "";
       };
-    } else {
-      setLoadIframe(false);
-      setIframeLoaded(false);
     }
   }, [open]);
 
@@ -76,24 +70,6 @@ export default function CalModal({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
-
-  useEffect(() => {
-    function handleMessage(e: MessageEvent) {
-      try {
-        const originOk =
-          typeof e.origin === "string" && e.origin.includes("cal.com");
-        if (!originOk) return;
-        const d = e.data || {};
-        const isBooking =
-          (d.type && /booking|event|created/i.test(String(d.type))) ||
-          (d.event && /booking|created/i.test(String(d.event))) ||
-          (d.data && d.data.object && /booking/i.test(String(d.data.object)));
-        if (isBooking) handleBooked();
-      } catch {}
-    }
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []);
 
   function handleBooked() {
     try {
@@ -116,15 +92,23 @@ export default function CalModal({
     onClose();
   }
 
-  const onIframeLoad = () => {
-    setIframeLoaded(true);
-  };
-
-  const onOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
+  useEffect(() => {
+    function handleMessage(e: MessageEvent) {
+      try {
+        const originOk =
+          typeof e.origin === "string" && e.origin.includes("cal.com");
+        if (!originOk) return;
+        const d = e.data || {};
+        const isBooking =
+          (d.type && /booking|event|created/i.test(String(d.type))) ||
+          (d.event && /booking|created/i.test(String(d.event))) ||
+          (d.data?.object && /booking/i.test(String(d.data.object)));
+        if (isBooking) handleBooked();
+      } catch {}
     }
-  };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   return (
     <AnimatePresence>
@@ -151,7 +135,6 @@ export default function CalModal({
           <motion.div
             ref={(node) => {
               dialogRef.current = node;
-              // @ts-ignore
               focusTrapRef.current = node;
             }}
             initial={{ opacity: 0, scale: 0.98, y: 10 }}
@@ -159,7 +142,7 @@ export default function CalModal({
             exit={{ opacity: 0, scale: 0.98, y: 10 }}
             transition={{ type: "spring", damping: 30, stiffness: 400 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative z-[2001] flex flex-col w-full max-w-[1000px] overflow-hidden rounded-[28px] border border-white/40 bg-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-2xl"
+            className="relative z-[2001] flex w-full max-w-[1000px] flex-col overflow-hidden rounded-[28px] border border-white/40 bg-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-2xl"
             style={{ height: "min(720px, 80vh)" }}
           >
             {/* Header */}
@@ -168,11 +151,15 @@ export default function CalModal({
                 <h2
                   id="cal-modal-title"
                   className="font-cormorant text-2xl font-medium tracking-tight text-zinc-900 md:text-3xl"
-                  style={{ fontFamily: 'var(--font-cormorant)' }}
+                  style={{ fontFamily: "var(--font-cormorant)" }}
                 >
                   {title}
                 </h2>
-                <p id="cal-modal-desc" className="font-geist text-[0.9rem] text-zinc-500/80" style={{ fontFamily: 'var(--font-geist)' }}>
+                <p
+                  id="cal-modal-desc"
+                  className="font-geist text-[0.9rem] text-zinc-500/80"
+                  style={{ fontFamily: "var(--font-geist)" }}
+                >
                   Schedule a secure session at your convenience.
                 </p>
               </div>
@@ -183,7 +170,7 @@ export default function CalModal({
                   target="_blank"
                   rel="noreferrer"
                   className="hidden items-center gap-1.5 text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-900 md:flex"
-                  style={{ fontFamily: 'var(--font-geist)' }}
+                  style={{ fontFamily: "var(--font-geist)" }}
                 >
                   <ExternalLink size={14} />
                   New tab
@@ -200,8 +187,8 @@ export default function CalModal({
 
             {/* Content Area */}
             <div className="relative flex-1 overflow-hidden bg-transparent">
-              {!iframeLoaded && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
+              {!open && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4">
                   <div className="flex gap-1.5">
                     {[0, 1, 2].map((i) => (
                       <motion.div
@@ -226,11 +213,13 @@ export default function CalModal({
                 <iframe
                   title={iframeTitle}
                   src={computedUrl}
-                  onLoad={onIframeLoad}
                   className="h-full w-full border-0"
                   sandbox="allow-scripts allow-forms allow-same-origin"
                   referrerPolicy="no-referrer-when-downgrade"
-                  style={{ opacity: iframeLoaded ? 1 : 0, transition: 'opacity 0.4s ease' }}
+                  style={{
+                    opacity: open ? 1 : 0,
+                    transition: "opacity 0.4s ease",
+                  }}
                 />
               </div>
             </div>

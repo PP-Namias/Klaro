@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+
 export const SCAN_SESSION_KEY = "scanAnalysisSession";
 
 export interface ScanAnalysisSession {
   requestId: string;
   status: "completed" | "error" | "pending";
-  source?: "mock" | "llm" | "fallback" | "raw";
+  source?: "mock" | "llm" | "fallback" | "raw" | "gemini";
   language?: string;
   confidence?: number;
   extractedData?: Record<string, unknown>;
@@ -20,22 +22,22 @@ export interface ScanAnalysisSession {
   };
 }
 
-export type RawScanPayload = {
+export interface RawScanPayload {
   requestId?: string;
-  status?: "completed" | "error" | "pending" | string;
+  status?: string;
   source?: ScanAnalysisSession["source"];
   language?: string;
   confidence?: number;
   extractedData?: Record<string, unknown>;
   fields?: Record<string, unknown>;
   plainLanguageSummary?: string;
-  urgency?: "LOW" | "MODERATE" | "HIGH" | string;
+  urgency?: string;
   recommendations?: string[];
   warnings?: string[];
   timestamp?: string;
   error?: string;
   analysis?: ScanAnalysisSession["analysis"];
-};
+}
 
 function normalizeUrgency(value: unknown): "LOW" | "MODERATE" | "HIGH" {
   if (value === "LOW" || value === "MODERATE" || value === "HIGH") {

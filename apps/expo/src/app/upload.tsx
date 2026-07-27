@@ -1,16 +1,18 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Alert, Button, Image, StyleSheet, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { trpc } from "~/utils/api";
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unsafe-enum-comparison, @typescript-eslint/no-unnecessary-condition */
+
 export default function UploadScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
-  const { mutate, isPending, error } = useMutation(
+  const { mutate } = useMutation(
     trpc.documents.upload.mutationOptions({
       async onSuccess() {
         await queryClient.invalidateQueries(trpc.documents.list.queryFilter());

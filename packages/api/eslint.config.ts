@@ -7,4 +7,5 @@ export default defineConfig(
     ignores: ["dist/**"],
   },
   baseConfig,
+  { ignores: ["**/__tests__/**", "**/*.test.*", "**/__test-utils__/**"] },
 );

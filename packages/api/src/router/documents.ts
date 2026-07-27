@@ -4,8 +4,10 @@ import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import type { ExtractedTest } from "@klaro/validators/extraction";
+import type { Dialect } from "@klaro/validators/llm";
 import type { ScanGuestResponse } from "@klaro/validators/scan-analysis";
 import { analysis, document } from "@klaro/db/schema";
+import { DialectEnum } from "@klaro/validators/llm";
 import {
   scanGuestInputSchema,
   scanGuestResponseSchema,
@@ -14,7 +16,7 @@ import {
 import { extractTestsFromText } from "../services/extraction";
 import { generatePlainLanguageExplanation } from "../services/llm";
 import { buildOcrResult } from "../services/ocr";
-import { protectedProcedure, publicProcedure } from "../trpc";
+import { protectedProcedure, publicProcedure, scanProcedure } from "../trpc";
 
 const scanUrgencyValues = ["LOW", "MODERATE", "HIGH"] as const;
 type ScanUrgency = (typeof scanUrgencyValues)[number];
@@ -70,7 +72,7 @@ function toRecord(value: unknown): Record<string, unknown> {
 }
 
 function buildFallbackGuestScanResult(params: {
-  language: "Filipino" | "English";
+  language: Dialect;
   reason: string;
   requestId?: string;
 }): ScanGuestResponse {
@@ -102,7 +104,7 @@ function buildFallbackGuestScanResult(params: {
 function normalizeGuestScanResponse(
   raw: unknown,
   input: {
-    language: "Filipino" | "English";
+    language: Dialect;
   },
 ): ScanGuestResponse {
   const data = toRecord(raw);
@@ -173,7 +175,7 @@ export const documentsRouter = {
    * Upload a medical document (PDF, image, etc.)
    * Triggers OCR processing asynchronously
    */
-  upload: protectedProcedure
+  upload: scanProcedure
     .input(
       z.object({
         fileName: z.string().max(255),
@@ -337,11 +339,24 @@ export const documentsRouter = {
       }
 
       const ocrText = input.ocrText ?? doc.ocrText;
-      if (!ocrText) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "OCR text is required before extraction",
-        });
+      if (!ocrText || ocrText.trim().length === 0) {
+        await ctx.db
+          .update(document)
+          .set({
+            status: "failed",
+            updatedAt: new Date(),
+          })
+          .where(eq(document.id, input.documentId));
+
+        return {
+          analysisId: null,
+          extractedCount: 0,
+          flaggedCount: 0,
+          accuracy: 0,
+          method: "regex",
+          error:
+            "Could not extract any text from this document. Make sure the document contains clearly printed medical text.",
+        };
       }
 
       const extractedFields = extractTestsFromText(ocrText);
@@ -534,7 +549,7 @@ export const documentsRouter = {
   /**
    * Process a document's image using server-side OCR and extract fields
    */
-  processServerOcr: protectedProcedure
+  processServerOcr: scanProcedure
     .input(
       z.object({
         documentId: z.uuid(),
@@ -542,13 +557,6 @@ export const documentsRouter = {
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "User must be authenticated",
-        });
-      }
-
       const [doc] = await ctx.db
         .select()
         .from(document)
@@ -604,21 +612,14 @@ export const documentsRouter = {
    * Generate plain-language explanation using LLM service
    * Requires extracted test fields to be present
    */
-  generateAnalysis: protectedProcedure
+  generateAnalysis: scanProcedure
     .input(
       z.object({
         documentId: z.uuid(),
-        dialect: z.enum(["Filipino", "Bisaya", "Ilocano"]).default("Filipino"),
+        dialect: DialectEnum.default("Filipino"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "User must be authenticated",
-        });
-      }
-
       // Fetch document and verify ownership
       const [doc] = await ctx.db
         .select()
@@ -659,7 +660,7 @@ export const documentsRouter = {
 
       try {
         // Generate plain-language explanation
-        const llmResponse = await generatePlainLanguageExplanation(
+        const llmResponse = generatePlainLanguageExplanation(
           analysisRecord.extractedFields as ExtractedTest[],
           input.dialect,
         );
@@ -671,7 +672,9 @@ export const documentsRouter = {
               ? "Itatanong Mo Sa Doktor"
               : input.dialect === "Bisaya"
                 ? "Pangutanon Para Sa Doktor"
-                : "Itatanong Mo Sa Doktor",
+                : input.dialect === "Ilocano"
+                  ? "Itatanong Mo Kadagiti Doktor"
+                  : "Questions For Your Doctor",
           questions: llmResponse.questionsForDoctor.slice(0, 5),
           severity: llmResponse.severity,
           disclaimer: llmResponse.disclaimer,
@@ -721,12 +724,23 @@ export const documentsRouter = {
   /**
    * Public guest endpoint: scan medical image with Gemini AI
    * No authentication required - guest uploads get temporary session
+   * Pipeline: OCR confidence gate → Gemini AI → plain-language result
    */
   scanGuestImage: publicProcedure
     .input(scanGuestInputSchema)
     .mutation(async ({ input }) => {
       const geminiApiUrl =
         process.env.GEMINI_SCAN_API_URL || "http://localhost:3001";
+
+      const { runOcrWithRetry, buildRejectionResponse } = await import(
+        "../services/ocrPipeline"
+      );
+
+      const ocrResult = await runOcrWithRetry(input.base64Image);
+
+      if (!ocrResult.accepted) {
+        return buildRejectionResponse(ocrResult, input.language);
+      }
 
       try {
         const response = await fetch(`${geminiApiUrl}/api/scan`, {
@@ -747,6 +761,8 @@ export const documentsRouter = {
               patientAge: input.patientAge,
               patientSex: input.patientSex,
               facilityName: input.facilityName,
+              ocrConfidence: ocrResult.confidence,
+              ocrText: ocrResult.text,
             },
           }),
         });
@@ -840,5 +856,96 @@ export const documentsRouter = {
           timestamp: new Date().toISOString(),
         };
       }
+    }),
+
+  /**
+   * Execute file cleanup job
+   * Deletes uploaded files past retention window from Cloudinary
+   * Requires admin authentication
+   */
+  cleanupFiles: protectedProcedure
+    .input(
+      z
+        .object({
+          retentionHours: z.number().min(1).max(720).optional(),
+          dryRun: z.boolean().default(false),
+        })
+        .optional(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User must be authenticated",
+        });
+      }
+
+      const { executeCleanup } = await import("../services/fileCleanup");
+
+      const result = await executeCleanup({
+        retentionHours: input?.retentionHours,
+        dryRun: input?.dryRun ?? false,
+      });
+
+      return {
+        success: result.failed === 0,
+        summary: {
+          totalFound: result.totalFound,
+          deleted: result.deleted,
+          archived: result.archived,
+          failed: result.failed,
+          dryRun: result.dryRun,
+        },
+        errors: result.errors,
+        deletedFiles: result.deletedFiles,
+      };
+    }),
+
+  /**
+   * Get cleanup statistics for monitoring
+   */
+  cleanupStats: protectedProcedure.query(async ({ ctx }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User must be authenticated",
+      });
+    }
+
+    const { getCleanupStats } = await import("../services/fileCleanup");
+    return getCleanupStats();
+  }),
+
+  /**
+   * Manually cleanup a specific document
+   * Deletes file from Cloudinary and archives the document
+   */
+  cleanupDocument: protectedProcedure
+    .input(z.object({ documentId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User must be authenticated",
+        });
+      }
+
+      const { cleanupDocument } = await import("../services/fileCleanup");
+      const result = await cleanupDocument(
+        input.documentId,
+        ctx.session.user.id,
+      );
+
+      if (!result.success) {
+        throw new TRPCError({
+          code:
+            result.error === "Document not found"
+              ? "NOT_FOUND"
+              : "INTERNAL_SERVER_ERROR",
+          message: result.error || "Failed to cleanup document",
+        });
+      }
+
+      return { success: true };
     }),
 } satisfies TRPCRouterRecord;

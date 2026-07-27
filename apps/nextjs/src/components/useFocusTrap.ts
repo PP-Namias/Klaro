@@ -11,7 +11,10 @@ export default function useFocusTrap(
 ) {
   const root = rootRef;
   const currentRef = useRef<HTMLElement | null>(null);
-  currentRef.current = root?.current ?? null;
+
+  useEffect(() => {
+    currentRef.current = root.current;
+  });
 
   useEffect(() => {
     if (!active) return;
@@ -25,11 +28,16 @@ export default function useFocusTrap(
       node.querySelectorAll<HTMLElement>(focusableSelector),
     ).filter((el) => el.offsetParent !== null);
 
-    if (focusable.length) focusable[0].focus();
-    else (node.setAttribute("tabindex", "-1"), node.focus());
+    if (focusable.length) {
+      (focusable[0] as HTMLElement).focus();
+    } else {
+      node.setAttribute("tabindex", "-1");
+      node.focus();
+    }
 
     function handleKey(e: KeyboardEvent) {
       if (e.key !== "Tab") return;
+      if (!node) return;
       const focusables = Array.from(
         node.querySelectorAll<HTMLElement>(focusableSelector),
       ).filter((el) => el.offsetParent !== null);
@@ -37,8 +45,8 @@ export default function useFocusTrap(
         e.preventDefault();
         return;
       }
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
+      const first = focusables[0] as HTMLElement;
+      const last = focusables[focusables.length - 1] as HTMLElement;
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
         last.focus();
@@ -53,7 +61,9 @@ export default function useFocusTrap(
       document.removeEventListener("keydown", handleKey, true);
       try {
         if (node.hasAttribute("tabindex")) node.removeAttribute("tabindex");
-      } catch {}
+      } catch {
+        // ignore
+      }
     };
   }, [active, rootRef]);
 

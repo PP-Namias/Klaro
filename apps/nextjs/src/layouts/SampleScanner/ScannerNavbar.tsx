@@ -1,18 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-floating-promises, no-empty */
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
+import { LanguageSelector } from "~/components/language-selector";
 import styles from "../../app/scan/page.module.css";
 
 async function fetchSessionPrefill() {
   try {
-    const res = await fetch('/api/auth/session');
+    const res = await fetch("/api/auth/session");
     if (!res.ok) return undefined;
     const data = await res.json();
-    return { name: data?.name || '', email: data?.email || '' };
+    return { name: data?.name || "", email: data?.email || "" };
   } catch {
     return undefined;
   }
@@ -22,10 +24,14 @@ function openBooking(): void {
   fetchSessionPrefill().then((prefill) => {
     try {
       if ((globalThis as any).analytics?.track) {
-        (globalThis as any).analytics.track('booking_opened', { source: 'nav' });
+        (globalThis as any).analytics.track("booking_opened", {
+          source: "nav",
+        });
       }
     } catch {}
-    window.dispatchEvent(new CustomEvent('klaro:openBooking', { detail: { prefill } }));
+    window.dispatchEvent(
+      new CustomEvent("klaro:openBooking", { detail: { prefill } }),
+    );
   });
 }
 
@@ -69,7 +75,7 @@ export function ScannerNavbar() {
           />
           Klaro
         </Link>
-        
+
         {/* Desktop Links */}
         <div className={styles.navLinks}>
           <Link href="/" className={styles.navLink}>
@@ -81,6 +87,7 @@ export function ScannerNavbar() {
           <button onClick={openBooking} className={styles.navLink}>
             Book a Doctor
           </button>
+          <LanguageSelector />
         </div>
 
         {/* Mobile Hamburger Toggle */}
@@ -89,32 +96,38 @@ export function ScannerNavbar() {
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle menu"
         >
-          {isMobileMenuOpen ? <X size={24} color="#000" /> : <Menu size={24} color="#000" />}
+          {isMobileMenuOpen ? (
+            <X size={24} color="#000" />
+          ) : (
+            <Menu size={24} color="#000" />
+          )}
         </button>
       </header>
 
       {/* Mobile Menu Overlay */}
-      <div className={`${styles.mobileMenu} ${isMobileMenuOpen ? styles.mobileMenuOpen : ""}`}>
+      <div
+        className={`${styles.mobileMenu} ${isMobileMenuOpen ? styles.mobileMenuOpen : ""}`}
+      >
         <div className={styles.mobileNavLinks}>
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className={styles.mobileNavLink}
             onClick={() => setIsMobileMenuOpen(false)}
           >
             Home
           </Link>
-          <Link 
-            href="/maps" 
+          <Link
+            href="/maps"
             className={styles.mobileNavLink}
             onClick={() => setIsMobileMenuOpen(false)}
           >
             Clinics and Hospitals
           </Link>
-          <button 
+          <button
             onClick={() => {
               setIsMobileMenuOpen(false);
               openBooking();
-            }} 
+            }}
             className={styles.mobileNavLink}
           >
             Book a Doctor

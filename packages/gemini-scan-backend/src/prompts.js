@@ -32,12 +32,23 @@ function buildSystemPrompt(metadata = {}) {
 
 const SYSTEM_PROMPT = buildSystemPrompt();
 
+function sanitizeForPrompt(value) {
+  if (typeof value !== 'string') return String(value);
+  return value.replace(/[\r\n\t]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+}
+
 function buildUserPrompt(metadata = {}) {
   const isMedicalScan =
     metadata.task === 'medical_scan' ||
     metadata.domain === 'medical' ||
     metadata.documentType === 'lab_result' ||
     metadata.documentType === 'medical_scan';
+
+  const safeMetadata = {
+    task: sanitizeForPrompt(metadata.task || ''),
+    language: sanitizeForPrompt(metadata.language || ''),
+    documentType: sanitizeForPrompt(metadata.documentType || ''),
+  };
 
   const outputInstructions = isMedicalScan
     ? [
@@ -64,7 +75,7 @@ function buildUserPrompt(metadata = {}) {
     'Process these images and return only JSON that conforms to the schema below.',
     '',
     'Input: images array of { url?, bytesBase64?, filename? }',
-    `metadata: ${JSON.stringify(metadata)}`,
+    `metadata: ${JSON.stringify(safeMetadata)}`,
     'If storage_presign_url is provided, upload and set images[].url accordingly; otherwise preserve images[].hash and include a short base64 snippet.',
     'Normalize dates to ISO 8601 and currency to ISO 4217 numeric values.',
     'Detect rotation and auto-rotate prior to OCR; return rotationDegrees per image.',

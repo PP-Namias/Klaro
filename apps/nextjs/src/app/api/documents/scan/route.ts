@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-properties, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/require-await */
+
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
@@ -26,7 +28,7 @@ const ALLOWED_TYPES = new Set([
   "application/pdf",
 ]);
 
-const DIALECTS = ["Filipino", "Bisaya", "Ilocano"] as const;
+const DIALECTS = ["English", "Filipino", "Bisaya", "Ilocano"] as const;
 
 /**
  * POST /api/documents/scan

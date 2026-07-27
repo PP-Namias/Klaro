@@ -5,67 +5,23 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import { facility } from "@klaro/db/schema";
-import { searchNearbySchema } from "@klaro/validators";
+import {
+  facilityTypeOrder,
+  facilityTypeRank,
+  medicalContextSchema,
+  recommendByTestResultsSchema,
+  searchNearbySchema,
+} from "@klaro/validators";
 
 import {
-  buildMedicalContext,
   buildRecommendationSummary,
   calculateDistanceKm,
   matchesSpecialty,
   matchesTextSearch,
   rankFacilitiesForContext,
   recommendFacilitiesByTests,
-  summarizeMedicalContext,
 } from "../services/facilities";
 import { publicProcedure } from "../trpc";
-
-const medicalContextSchema = z.object({
-  severity: z.enum(["LOW", "MODERATE", "HIGH"]),
-  testSummary: z.string().trim().min(1).max(500).optional(),
-  flaggedTests: z
-    .array(
-      z.object({
-        name: z.string().trim().min(1),
-        value: z.string().trim().optional(),
-        unit: z.string().trim().optional(),
-      }),
-    )
-    .default([]),
-});
-
-const recommendByTestResultsSchema = z.object({
-  extractedTests: z.array(
-    z.object({
-      name: z.string().trim().min(1),
-      value: z.string().trim().optional(),
-      unit: z.string().trim().optional(),
-      flagged: z.boolean().default(false),
-    }),
-  ),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  radiusKm: z.number().min(0.1).max(50).default(15),
-  limit: z.number().min(1).max(10).default(5),
-});
-
-const facilityTypeOrder = [
-  "hospital",
-  "clinic",
-  "medical_center",
-  "diagnostic_center",
-  "health_unit",
-  "rural_health_unit",
-  "birthing_home",
-] as const;
-
-const facilityTypeRank = (type: string | null | undefined) => {
-  const normalizedType = type?.toLowerCase() ?? "";
-  const rank = facilityTypeOrder.indexOf(
-    normalizedType as (typeof facilityTypeOrder)[number],
-  );
-
-  return rank === -1 ? facilityTypeOrder.length : rank;
-};
 
 const toNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -107,8 +63,8 @@ const isEmergencyCapable = (facilityRow: {
   return false;
 };
 
-const summarizeLoad = async (
-  rows: Array<Record<string, unknown>>,
+const summarizeLoad = (
+  rows: Record<string, unknown>[],
   latitude: number,
   longitude: number,
   input: {
@@ -223,10 +179,10 @@ const selectFacilities = async (
   }
 
   if (conditions.length === 1) {
-    return baseQuery.where(conditions[0]!).limit(safeLimit);
+    return baseQuery.where(conditions[0] as SQL<unknown>).limit(safeLimit);
   }
 
-  return baseQuery.where(and(...conditions)!).limit(safeLimit);
+  return baseQuery.where(and(...conditions) as SQL<unknown>).limit(safeLimit);
 };
 
 export const facilitiesRouter = {
@@ -265,13 +221,13 @@ export const facilitiesRouter = {
 
       if (conditions.length === 1) {
         return baseQuery
-          .where(conditions[0]!)
+          .where(conditions[0])
           .limit(input.limit)
           .offset(input.offset);
       }
 
       return baseQuery
-        .where(and(...conditions)!)
+        .where(and(...conditions))
         .limit(input.limit)
         .offset(input.offset);
     }),
@@ -298,8 +254,8 @@ export const facilitiesRouter = {
     .input(searchNearbySchema)
     .query(async ({ ctx, input }) => {
       const rows = await selectFacilities(ctx, input);
-      const mapped = await summarizeLoad(
-        rows as Array<Record<string, unknown>>,
+      const mapped = summarizeLoad(
+        rows as Record<string, unknown>[],
         input.latitude,
         input.longitude,
         input,
@@ -341,8 +297,8 @@ export const facilitiesRouter = {
         limit: 50,
       });
 
-      const mapped = await summarizeLoad(
-        rows as Array<Record<string, unknown>>,
+      const mapped = summarizeLoad(
+        rows as Record<string, unknown>[],
         input.latitude,
         input.longitude,
         {
@@ -372,8 +328,8 @@ export const facilitiesRouter = {
         limit: 200,
       });
 
-      const mapped = await summarizeLoad(
-        rows as Array<Record<string, unknown>>,
+      const mapped = summarizeLoad(
+        rows as Record<string, unknown>[],
         input.latitude,
         input.longitude,
         {

@@ -53,3 +53,7 @@ dist/
 
 # tanstack
 .tanstack
+
+# playwright
+playwright-report
+test-results

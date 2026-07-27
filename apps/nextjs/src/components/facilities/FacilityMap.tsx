@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-floating-promises */
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
@@ -69,16 +70,13 @@ export default function FacilityMap({
   // Client-only: dynamically create Leaflet divIcons to avoid referencing
   // Leaflet at module import time. This prevents SSR/bundler issues and
   // ensures icons are available once the browser has loaded Leaflet.
-  const [icons, setIcons] = useState<
-    | {
-        default: any;
-        hospital: any;
-        clinic: any;
-        diagnostic: any;
-        healthUnit: any;
-      }
-    | null
-  >(null);
+  const [icons, setIcons] = useState<{
+    default: any;
+    hospital: any;
+    clinic: any;
+    diagnostic: any;
+    healthUnit: any;
+  } | null>(null);
 
   const defaultMarker = icons?.default;
   const hospitalMarker = icons?.hospital;
@@ -101,6 +99,7 @@ export default function FacilityMap({
     (async () => {
       try {
         const L = await import("leaflet");
+        // @ts-expect-error - leaflet CSS has no type declarations
         await import("leaflet/dist/leaflet.css");
         const factory = (emoji: string, background: string) =>
           L.divIcon({
@@ -121,8 +120,6 @@ export default function FacilityMap({
         });
       } catch (err) {
         // Fail silently; markers will fall back to default icons.
-        // Console log for debug during development.
-        // eslint-disable-next-line no-console
         console.warn("Failed to load Leaflet icons:", err);
       }
     })();
@@ -162,7 +159,7 @@ export default function FacilityMap({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-        {validFacilities.map((facility, index) => {
+      {validFacilities.map((facility, index) => {
         const position: [number, number] = [
           Number(facility.latitude),
           Number(facility.longitude),

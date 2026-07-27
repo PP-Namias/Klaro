@@ -2,20 +2,18 @@
 
 import { useEffect, useState } from "react";
 
-import { Button } from "@klaro/ui/button";
-
-export type FacilityFilters = {
+export interface FacilityFilters {
   textSearch: string;
   specialty: string;
   emergencyOnly: boolean;
   ownership: "all" | "public" | "private";
-};
+}
 
-type FacilitySearchBarProps = {
+interface FacilitySearchBarProps {
   specialties: string[];
   filters: FacilityFilters;
   onChange: (filters: FacilityFilters) => void;
-};
+}
 
 export function FacilitySearchBar({
   specialties,

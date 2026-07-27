@@ -2,7 +2,7 @@
 
 import type { Facility } from "./FacilityMap";
 
-type FacilityCardProps = {
+interface FacilityCardProps {
   facility: Facility;
   isActive?: boolean;
   isBestFit?: boolean;
@@ -10,7 +10,7 @@ type FacilityCardProps = {
   urgency?: "LOW" | "MODERATE" | "HIGH";
   onSelect?: (facility: Facility) => void;
   onBook?: (facility: Facility) => void;
-};
+}
 
 export function FacilityCard({
   facility,

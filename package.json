@@ -22,6 +22,9 @@
     "lint:fix": "turbo run lint --continue -- --fix --cache --cache-location .cache/.eslintcache",
     "lint:ws": "pnpm dlx sherif@latest",
     "postinstall": "pnpm lint:ws",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "turbo run typecheck",
     "ui-add": "turbo run ui-add",
     "android": "expo run:android",
@@ -29,15 +32,18 @@
   },
   "devDependencies": {
     "@klaro/prettier-config": "workspace:*",
+    "@playwright/test": "^1.61.1",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.1",
     "@turbo/gen": "^2.5.8",
+    "@vitest/coverage-v8": "^4.1.10",
     "cross-env": "^10.1.0",
     "dotenv-cli": "^10.0.0",
     "jiti": "^2.6.1",
     "prettier": "catalog:",
     "turbo": "^2.5.8",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^4.1.9"
   },
   "prettier": "@klaro/prettier-config"
 }

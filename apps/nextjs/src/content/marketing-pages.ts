@@ -127,7 +127,10 @@ export const MARKETING_PAGES: Record<string, MarketingPageContent> = {
     description:
       "Klaro is built to take a confusing result, break it down into the important parts, and point you to a sensible next move.",
     primaryAction: { label: "Try the scanner", href: "/scan" },
-    secondaryAction: { label: "Read patient stories", href: "/patient-stories" },
+    secondaryAction: {
+      label: "Read patient stories",
+      href: "/patient-stories",
+    },
     stats: [
       { label: "Step 1", value: "Upload" },
       { label: "Step 2", value: "Understand" },
@@ -186,7 +189,10 @@ export const MARKETING_PAGES: Record<string, MarketingPageContent> = {
     title: "Designed to keep medical context private.",
     description:
       "Klaro aims to reduce unnecessary exposure by keeping sensitive data scoped, readable, and easy to control.",
-    primaryAction: { label: "Read the privacy policy", href: "/privacy-policy" },
+    primaryAction: {
+      label: "Read the privacy policy",
+      href: "/privacy-policy",
+    },
     secondaryAction: { label: "Contact support", href: "/contact-support" },
     stats: [
       { label: "Data handling", value: "Scoped access" },
@@ -276,7 +282,10 @@ export const MARKETING_PAGES: Record<string, MarketingPageContent> = {
     title: "The rules for using Klaro responsibly.",
     description:
       "These terms should cover the expected use of the product, the limits of the guidance, and the responsibilities on both sides.",
-    primaryAction: { label: "Read the privacy policy", href: "/privacy-policy" },
+    primaryAction: {
+      label: "Read the privacy policy",
+      href: "/privacy-policy",
+    },
     secondaryAction: { label: "Contact support", href: "/contact-support" },
     stats: [
       { label: "Purpose", value: "Usage rules" },

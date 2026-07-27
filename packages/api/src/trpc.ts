@@ -12,7 +12,10 @@ import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
 
 import type { Auth } from "@klaro/auth";
+import type { Language } from "@klaro/validators/language";
 import { db } from "@klaro/db/client";
+
+import { checkRateLimit } from "./middleware/rateLimiter";
 
 /**
  * 1. CONTEXT
@@ -36,11 +39,27 @@ export const createTRPCContext = async (opts: {
   const session = await authApi.getSession({
     headers: opts.headers,
   });
+
+  const rawLang = opts.headers.get("x-klaro-language");
+  const language: Language =
+    rawLang && ["en", "fil", "ceb", "ilo"].includes(rawLang)
+      ? (rawLang as Language)
+      : "fil";
+
+  const ipAddress =
+    opts.headers.get("x-forwarded-for") ||
+    opts.headers.get("x-real-ip") ||
+    null;
+  const userAgent = opts.headers.get("user-agent") || null;
+
   return {
     authApi,
     session,
     db,
     traceId,
+    language,
+    ipAddress,
+    userAgent,
   };
 };
 
@@ -120,20 +139,51 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  *
  * @see https://trpc.io/docs/procedures
  */
+const authMiddleware = t.middleware(({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      session: { ...ctx.session, user: ctx.session.user },
+    },
+  });
+});
+
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
-  .use(({ ctx, next }) => {
-    if (!ctx.session?.user) {
-      if (t._config.isDev) {
-        return next();
-      }
+  .use(authMiddleware);
 
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+/**
+ * Rate-limited procedures for chat and scan endpoints
+ * Limits: 30 requests/min for chat, 10 requests/min for scan
+ */
+export const chatProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(authMiddleware)
+  .use(({ ctx, next }) => {
+    const userId = ctx.session?.user?.id || "anon";
+    const result = checkRateLimit(`chat:${userId}`, 30);
+    if (!result.allowed) {
+      throw new TRPCError({
+        code: "TOO_MANY_REQUESTS",
+        message: `Chat rate limit exceeded. Try again in ${Math.ceil((result.resetAt - Date.now()) / 1000)}s.`,
+      });
     }
-    return next({
-      ctx: {
-        // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
-      },
-    });
+    return next();
+  });
+
+export const scanProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(authMiddleware)
+  .use(({ ctx, next }) => {
+    const userId = ctx.session?.user?.id || "anon";
+    const result = checkRateLimit(`scan:${userId}`, 10);
+    if (!result.allowed) {
+      throw new TRPCError({
+        code: "TOO_MANY_REQUESTS",
+        message: `Scan rate limit exceeded. Try again in ${Math.ceil((result.resetAt - Date.now()) / 1000)}s.`,
+      });
+    }
+    return next();
   });

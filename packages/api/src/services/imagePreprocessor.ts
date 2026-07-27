@@ -1,0 +1,351 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type CanvasLike = any;
+
+interface CanvasModule {
+  createCanvas: (width: number, height: number) => CanvasLike;
+  loadImage: (source: Buffer) => Promise<CanvasLike>;
+}
+
+let canvasModule: CanvasModule | null = null;
+let canvasLoadAttempted = false;
+
+async function getCanvas(): Promise<CanvasModule | null> {
+  if (canvasLoadAttempted) return canvasModule;
+  canvasLoadAttempted = true;
+  try {
+    const mod = await (import("canvas") as Promise<typeof import("canvas")>);
+    canvasModule = {
+      createCanvas: mod.createCanvas as CanvasModule["createCanvas"],
+      loadImage: mod.loadImage,
+    };
+    console.log("[imagePreprocessor] canvas native module loaded");
+  } catch {
+    console.warn(
+      "[imagePreprocessor] canvas native module not available, preprocessing disabled",
+    );
+  }
+  return canvasModule;
+}
+
+export interface PreprocessingOptions {
+  grayscale?: boolean;
+  denoise?: boolean;
+  deskew?: boolean;
+  binarize?: boolean;
+  contrast?: number;
+  brightness?: number;
+}
+
+export interface PreprocessingResult {
+  buffer: Buffer;
+  base64: string;
+  width: number;
+  height: number;
+  applied: string[];
+}
+
+function toGray(value: number): number {
+  return Math.round(
+    0.299 * ((value >> 16) & 0xff) +
+      0.587 * ((value >> 8) & 0xff) +
+      0.114 * (value & 0xff),
+  );
+}
+
+function clamp(value: number, min = 0, max = 255): number {
+  return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+function applyGrayscale(data: Uint8ClampedArray): void {
+  for (let i = 0; i < data.length; i += 4) {
+    const gray = toGray(
+      (data[i] ?? 0) + ((data[i + 1] ?? 0) << 8) + ((data[i + 2] ?? 0) << 16),
+    );
+    data[i] = gray;
+    data[i + 1] = gray;
+    data[i + 2] = gray;
+  }
+}
+
+function applyMedianDenoise(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+): void {
+  const copy = new Uint8ClampedArray(data);
+  const radius = 1;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const neighbors: number[] = [];
+
+      for (let dy = -radius; dy <= radius; dy++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+            const idx = (ny * width + nx) * 4;
+            neighbors.push(
+              toGray(
+                (copy[idx] ?? 0) +
+                  ((copy[idx + 1] ?? 0) << 8) +
+                  ((copy[idx + 2] ?? 0) << 16),
+              ),
+            );
+          }
+        }
+      }
+
+      neighbors.sort((a, b) => a - b);
+      const median = neighbors[Math.floor(neighbors.length / 2)] ?? 0;
+      const idx = (y * width + x) * 4;
+      data[idx] = median;
+      data[idx + 1] = median;
+      data[idx + 2] = median;
+    }
+  }
+}
+
+function applyAdaptiveBinarize(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+): void {
+  const blockSize = Math.max(8, Math.floor(Math.min(width, height) / 16));
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sum = 0;
+      let count = 0;
+      const half = Math.floor(blockSize / 2);
+
+      for (let dy = -half; dy <= half; dy++) {
+        for (let dx = -half; dx <= half; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+            const idx = (ny * width + nx) * 4;
+            sum += data[idx] ?? 0;
+            count++;
+          }
+        }
+      }
+
+      const mean = count > 0 ? sum / count : 128;
+      const idx = (y * width + x) * 4;
+      const threshold = mean - 10;
+      const value = (data[idx] ?? 0) >= threshold ? 255 : 0;
+      data[idx] = value;
+      data[idx + 1] = value;
+      data[idx + 2] = value;
+    }
+  }
+}
+
+function applyContrast(data: Uint8ClampedArray, factor: number): void {
+  const midpoint = 128;
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = clamp(midpoint + ((data[i] ?? 0) - midpoint) * factor);
+    data[i + 1] = clamp(midpoint + ((data[i + 1] ?? 0) - midpoint) * factor);
+    data[i + 2] = clamp(midpoint + ((data[i + 2] ?? 0) - midpoint) * factor);
+  }
+}
+
+function applyBrightness(data: Uint8ClampedArray, factor: number): void {
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = clamp((data[i] ?? 0) * factor);
+    data[i + 1] = clamp((data[i + 1] ?? 0) * factor);
+    data[i + 2] = clamp((data[i + 2] ?? 0) * factor);
+  }
+}
+
+function estimateSkew(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+): number {
+  const mids = Math.floor(height / 2);
+  let leftX = -1;
+  let rightX = -1;
+  const scanY = Math.floor(height / 3);
+
+  for (let x = Math.floor(width * 0.1); x < Math.floor(width * 0.5); x++) {
+    const idx = (scanY * width + x) * 4;
+    if ((data[idx] ?? 0) < 128) {
+      leftX = x;
+      break;
+    }
+  }
+  for (let x = Math.floor(width * 0.9); x > Math.floor(width * 0.5); x--) {
+    const idx = (mids * width + x) * 4;
+    if ((data[idx] ?? 0) < 128) {
+      rightX = x;
+      break;
+    }
+  }
+
+  if (leftX < 0 || rightX < 0) return 0;
+
+  const dx = rightX - leftX;
+  const dy = mids - scanY;
+  if (dx === 0) return 0;
+
+  return Math.atan2(dy, dx) * (180 / Math.PI);
+}
+
+export async function preprocessImage(
+  inputBase64: string,
+  options: PreprocessingOptions = {},
+): Promise<PreprocessingResult> {
+  const canvas = await getCanvas();
+  if (!canvas) {
+    const buffer = Buffer.from(inputBase64, "base64");
+    return {
+      buffer,
+      base64: inputBase64,
+      width: 0,
+      height: 0,
+      applied: ["canvas-not-available"],
+    };
+  }
+
+  const opts = {
+    grayscale: options.grayscale ?? true,
+    denoise: options.denoise ?? true,
+    deskew: options.deskew ?? true,
+    binarize: options.binarize ?? false,
+    contrast: options.contrast ?? 1.2,
+    brightness: options.brightness ?? 1.0,
+  };
+
+  const applied: string[] = [];
+  const buffer = Buffer.from(inputBase64, "base64");
+
+  const image = await canvas.loadImage(buffer);
+  let width = image.width;
+  let height = image.height;
+
+  if (opts.deskew) {
+    const tempCanvas = canvas.createCanvas(width, height);
+    const tempCtx = tempCanvas.getContext(
+      "2d",
+    ) as unknown as CanvasRenderingContext2D;
+    tempCtx.drawImage(image, 0, 0);
+    const tempData = tempCtx.getImageData(0, 0, width, height);
+    const skewAngle = estimateSkew(tempData.data, width, height);
+
+    if (Math.abs(skewAngle) > 0.5) {
+      const diagonal = Math.ceil(Math.sqrt(width * width + height * height));
+      const rotatedCanvas = canvas.createCanvas(diagonal, diagonal);
+      const rotatedCtx = rotatedCanvas.getContext(
+        "2d",
+      ) as unknown as CanvasRenderingContext2D;
+      rotatedCtx.fillStyle = "#ffffff";
+      rotatedCtx.fillRect(0, 0, diagonal, diagonal);
+      rotatedCtx.translate(diagonal / 2, diagonal / 2);
+      rotatedCtx.rotate((skewAngle * Math.PI) / 180);
+      rotatedCtx.drawImage(tempCanvas, -width / 2, -height / 2);
+      width = diagonal;
+      height = diagonal;
+
+      const rotatedBuffer = rotatedCanvas.toBuffer("image/png");
+      const rotatedImage = await canvas.loadImage(rotatedBuffer);
+      const resultCanvas = canvas.createCanvas(width, height);
+      const resultCtx = resultCanvas.getContext("2d");
+      resultCtx.drawImage(rotatedImage, 0, 0);
+
+      const resultData = resultCtx.getImageData(0, 0, width, height);
+      const data = resultData.data;
+
+      if (opts.grayscale) {
+        applyGrayscale(data);
+        applied.push("grayscale");
+      }
+      if (opts.denoise) {
+        applyMedianDenoise(data, width, height);
+        applied.push("denoise");
+      }
+      if (opts.binarize) {
+        applyAdaptiveBinarize(data, width, height);
+        applied.push("binarize");
+      }
+      if (opts.contrast !== 1) {
+        applyContrast(data, opts.contrast);
+        applied.push("contrast");
+      }
+      if (opts.brightness !== 1) {
+        applyBrightness(data, opts.brightness);
+        applied.push("brightness");
+      }
+
+      resultCtx.putImageData(resultData, 0, 0);
+      const finalBuffer = resultCanvas.toBuffer("image/png");
+      return {
+        buffer: finalBuffer,
+        base64: finalBuffer.toString("base64"),
+        width,
+        height,
+        applied,
+      };
+    }
+    applied.push("deskew:not-needed");
+  }
+
+  const mainCanvas = canvas.createCanvas(width, height);
+  const ctx = mainCanvas.getContext(
+    "2d",
+  ) as unknown as CanvasRenderingContext2D;
+  ctx.drawImage(image, 0, 0);
+
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+
+  if (opts.grayscale) {
+    applyGrayscale(data);
+    applied.push("grayscale");
+  }
+  if (opts.denoise) {
+    applyMedianDenoise(data, width, height);
+    applied.push("denoise");
+  }
+  if (opts.binarize) {
+    applyAdaptiveBinarize(data, width, height);
+    applied.push("binarize");
+  }
+  if (opts.contrast !== 1) {
+    applyContrast(data, opts.contrast);
+    applied.push("contrast");
+  }
+  if (opts.brightness !== 1) {
+    applyBrightness(data, opts.brightness);
+    applied.push("brightness");
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  const finalBuffer = mainCanvas.toBuffer("image/png");
+  return {
+    buffer: finalBuffer,
+    base64: finalBuffer.toString("base64"),
+    width,
+    height,
+    applied,
+  };
+}
+
+export async function preprocessBuffer(
+  imageBuffer: Buffer,
+  options: PreprocessingOptions = {},
+): Promise<PreprocessingResult> {
+  return preprocessImage(imageBuffer.toString("base64"), options);
+}
+
+export function getDefaultPreprocessingOptions(): PreprocessingOptions {
+  return {
+    grayscale: true,
+    denoise: true,
+    deskew: true,
+    binarize: false,
+    contrast: 1.2,
+    brightness: 1.0,
+  };
+}

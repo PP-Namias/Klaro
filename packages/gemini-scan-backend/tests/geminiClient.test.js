@@ -1,7 +1,7 @@
 describe('geminiClient normalization', () => {
   beforeEach(() => {
-    jest.resetModules();
-    jest.restoreAllMocks();
+    vi.resetModules();
+    vi.restoreAllMocks();
     delete process.env.GEMINI_API_KEY;
     delete process.env.MOCK_GEMINI;
   });
@@ -10,7 +10,7 @@ describe('geminiClient normalization', () => {
     process.env.MOCK_GEMINI = 'true';
     process.env.GEMINI_API_KEY = '';
 
-    const { processImages } = require('../src/geminiClient');
+    const { processImages } = await import('../src/geminiClient');
     const result = await processImages(
       [{ filename: 'scan.jpg', buffer: Buffer.from('abc') }],
       { task: 'medical_scan', language: 'English' },
@@ -30,7 +30,7 @@ describe('geminiClient normalization', () => {
     process.env.MOCK_GEMINI = 'false';
     process.env.GEMINI_API_KEY = 'test-key';
 
-    const fetchMock = jest.fn().mockResolvedValue({
+    const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       text: async () => JSON.stringify({
@@ -45,7 +45,7 @@ describe('geminiClient normalization', () => {
     });
     global.fetch = fetchMock;
 
-    const { processImages } = require('../src/geminiClient');
+    const { processImages } = await import('../src/geminiClient');
     const result = await processImages(
       [{ filename: 'scan.jpg', buffer: Buffer.from('abc') }],
       { task: 'medical_scan', language: 'English' },

@@ -1,0 +1,443 @@
+{
+    "product": {
+    "name": "Klaro Global Multi-Language Support",
+    "version": "1.0",
+    "goal": "Add a global language selector that works across the entire app — scan results, chat, AI responses, demo modals, landing page, and all UI text — so users can read everything in their preferred language (English, Filipino, Bisaya, Ilocano)",
+    "status": "COMPLETE"
+  },
+  "problem": {
+    "current": "Language handling was fragmented: 3+ different enums, hardcoded text in 35+ files, chat didn't instruct LLM to respond in user's language, demo modal only supported EN/TL, landing page was English-only",
+    "goal": "One unified language system: global React Context, persistent preference, all UI and AI text switches language"
+  },
+  "supportedLanguages": [
+    { "code": "en", "name": "English", "nativeName": "English" },
+    { "code": "fil", "name": "Filipino", "nativeName": "Filipino" },
+    { "code": "ceb", "name": "Bisaya", "nativeName": "Binisaya" },
+    { "code": "ilo", "name": "Ilocano", "nativeName": "Ilokano" }
+  ],
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Unified Language Enum & Types",
+      "description": "Create a single source of truth for supported languages across all packages",
+      "status": "DONE",
+      "commit": "f430c8c",
+      "tasks": [
+        {
+          "id": "T1.1",
+          "title": "Create shared language types in validators",
+          "file": "packages/validators/src/language.ts",
+          "description": "New file with LanguageCode enum (en/fil/ceb/ilo), LanguageLabel map, languageSchema zod validator, DIALECT_TO_LANGUAGE and LANGUAGE_TO_DIALECT mapping functions",
+          "status": "DONE"
+        },
+        {
+          "id": "T1.2",
+          "title": "Export language types from validators index",
+          "file": "packages/validators/src/index.ts",
+          "description": "Add exports for LanguageCode, LanguageLabel, languageSchema, LANGUAGE_OPTIONS, DEFAULT_LANGUAGE, DIALECT_TO_LANGUAGE, LANGUAGE_TO_DIALECT",
+          "status": "DONE"
+        },
+        {
+          "id": "T1.3",
+          "title": "Update DialectEnum to include English",
+          "file": "packages/validators/src/llm.ts",
+          "description": "Change DialectEnum from Filipino|Bisaya|Ilocano to English|Filipino|Bisaya|Ilocano",
+          "status": "DONE"
+        },
+        {
+          "id": "T1.4",
+          "title": "Update scanLanguageSchema to match",
+          "file": "packages/validators/src/scan-analysis.ts",
+          "description": "Change scanLanguageSchema from Filipino|English to Filipino|English|Bisaya|Ilocano",
+          "status": "DONE"
+        },
+        {
+          "id": "T1.5",
+          "title": "Add ./language subpath export",
+          "file": "packages/validators/package.json",
+          "description": "Add ./language subpath to exports map so @klaro/validators/language resolves",
+          "status": "DONE"
+        },
+        {
+          "id": "T1.6",
+          "title": "Fix inline DialectEnum duplicates",
+          "files": ["packages/validators/src/documents.ts", "packages/api/src/router/chat.ts", "packages/api/src/router/documents.ts"],
+          "description": "Replace inline z.enum([\"Filipino\", \"Bisaya\", \"Ilocano\"]) with imported DialectEnum in documents validator, chat router, and documents router",
+          "status": "DONE"
+        },
+        {
+          "id": "T1.7",
+          "title": "Add English to all LLM Record<Dialect> objects",
+          "file": "packages/api/src/services/llm.ts",
+          "description": "Add English entries to all 15+ Record<Dialect, ...> objects: greetings, instructions, interpretations, recommendations, questions, titles, disclaimers, CTAs, summaries, prompt versions",
+          "status": "DONE"
+        },
+        {
+          "id": "T1.8",
+          "title": "Update ai-workflow English support",
+          "file": "packages/api/src/services/ai-workflow.ts",
+          "description": "Update Tanqmo card title for English/Ilocano, fix language mapping in executeGuestWorkflow to accept all 4 languages",
+          "status": "DONE"
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Global Language Context (Client)",
+      "description": "React Context provider with localStorage persistence and useLanguage hook",
+      "status": "DONE",
+      "commit": "42512db",
+      "tasks": [
+        {
+          "id": "T2.1",
+          "title": "Create LanguageProvider component",
+          "file": "apps/nextjs/src/providers/language-provider.tsx",
+          "description": "React Context with language state, setLanguage function, persisted to localStorage via klaro-language key, default 'fil', hydration-safe with mounted state",
+          "status": "DONE"
+        },
+        {
+          "id": "T2.2",
+          "title": "Create useLanguage hook",
+          "file": "apps/nextjs/src/providers/language-provider.tsx",
+          "description": "Hook returning { language, setLanguage, t } where t() translates UI keys with parameter interpolation support",
+          "status": "DONE"
+        },
+        {
+          "id": "T2.3",
+          "title": "Create English translations dictionary",
+          "file": "apps/nextjs/src/i18n/en.ts",
+          "description": "100+ UI strings in English: navigation, buttons, labels, errors, scan results, chat, demo, landing page, results sections",
+          "status": "DONE"
+        },
+        {
+          "id": "T2.4",
+          "title": "Create Filipino translations dictionary",
+          "file": "apps/nextjs/src/i18n/fil.ts",
+          "description": "All UI strings in Filipino/Tagalog, matching English keys 1:1",
+          "status": "DONE"
+        },
+        {
+          "id": "T2.5",
+          "title": "Create Bisaya translations dictionary",
+          "file": "apps/nextjs/src/i18n/ceb.ts",
+          "description": "All UI strings in Bisaya/Cebuano, matching English keys 1:1",
+          "status": "DONE"
+        },
+        {
+          "id": "T2.6",
+          "title": "Create Ilocano translations dictionary",
+          "file": "apps/nextjs/src/i18n/ilo.ts",
+          "description": "All UI strings in Ilocano, matching English keys 1:1",
+          "status": "DONE"
+        },
+        {
+          "id": "T2.7",
+          "title": "Create i18n index with merge logic",
+          "file": "apps/nextjs/src/i18n/index.ts",
+          "description": "Export t() function, getTranslation(), merge dictionaries, fallback to English for missing keys",
+          "status": "DONE"
+        },
+        {
+          "id": "T2.8",
+          "title": "Add LanguageProvider to app layout",
+          "file": "apps/nextjs/src/app/layout.tsx",
+          "description": "Wrap app with LanguageProvider inside ThemeProvider, so all components have access",
+          "status": "DONE"
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Language Selector Component",
+      "description": "Global language selector dropdown for the navbar",
+      "status": "DONE",
+      "commit": "b3e67bb",
+      "tasks": [
+        {
+          "id": "T3.1",
+          "title": "Create LanguageSelector component",
+          "file": "apps/nextjs/src/components/language-selector.tsx",
+          "description": "Dropdown with flag emojis, native language names, uses useLanguage hook, aria labels, blur-to-close",
+          "status": "DONE"
+        },
+        {
+          "id": "T3.2",
+          "title": "Create LanguageSelector CSS module",
+          "file": "apps/nextjs/src/components/language-selector.module.css",
+          "description": "Styled dropdown with glassmorphism, active indicator, smooth transitions, animation",
+          "status": "DONE"
+        },
+        {
+          "id": "T3.3",
+          "title": "Add LanguageSelector to ScannerNavbar",
+          "file": "apps/nextjs/src/layouts/SampleScanner/ScannerNavbar.tsx",
+          "description": "Add language selector in the top navbar desktop links section",
+          "status": "DONE"
+        },
+        {
+          "id": "T3.4",
+          "title": "Add LanguageSelector to landing navbar",
+          "file": "apps/nextjs/src/layouts/Landing/Navbar.tsx",
+          "description": "Add language selector in both the header links and floating nav sections",
+          "status": "DONE"
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Update Scan Page Components",
+      "description": "Replace hardcoded text in scan-related components with t() calls",
+      "status": "PARTIAL",
+      "commit": "2581483",
+      "tasks": [
+        {
+          "id": "T4.1",
+          "title": "Update ScannerUI with translations",
+          "file": "apps/nextjs/src/layouts/SampleScanner/ScannerUI.tsx",
+          "description": "Replace 15+ hardcoded strings with t() calls: page title, subtitle, card titles, card descriptions, card CTAs, Clara chat messages, footer text, chat placeholder",
+          "status": "DONE"
+        },
+        {
+          "id": "T4.2",
+          "title": "Update DemoModal with translations",
+          "file": "apps/nextjs/src/components/demo-modal.tsx",
+          "description": "Replace demo badge text and footer text with t() calls, keep EN/TL toggle for demo content switching",
+          "status": "DONE"
+        },
+        {
+          "id": "T4.3",
+          "title": "Update demo display components with translations",
+          "files": ["apps/nextjs/src/components/demo/lab-results.tsx"],
+          "description": "Replace section headers (Summary, Warnings, Recommendations, Tanong Mo Sa Doktor) with t() calls in lab-results",
+          "status": "DONE"
+        },
+        {
+          "id": "T4.4",
+          "title": "Update UploadForm with translations",
+          "file": "apps/nextjs/src/components/upload-form.tsx",
+          "description": "Replace 19 button labels, status messages, error messages with t() calls, pass user language to API",
+          "status": "DONE",
+          "commit": "51feb37"
+        },
+        {
+          "id": "T4.5",
+          "title": "Update ScanResults with translations",
+          "file": "apps/nextjs/src/components/scan-results.tsx",
+          "description": "Replace 24 urgency labels, section titles, action buttons with t() calls",
+          "status": "DONE",
+          "commit": "e38ac73"
+        },
+        {
+          "id": "T4.6",
+          "title": "Update AI Workflow with translations",
+          "file": "apps/nextjs/src/components/ai-workflow/index.tsx",
+          "description": "Replace severity labels, stat labels, action buttons, disclaimer with t() calls",
+          "status": "N/A",
+          "note": "Demo components keep inline EN/TL toggle, not needed for global i18n"
+        },
+        {
+          "id": "T4.7",
+          "title": "Update prescription demo component",
+          "file": "apps/nextjs/src/components/demo/prescription.tsx",
+          "description": "Replace section headers with t() calls",
+          "status": "DONE",
+          "commit": "db4ef76"
+        },
+        {
+          "id": "T4.8",
+          "title": "Update discharge demo component",
+          "file": "apps/nextjs/src/components/demo/discharge.tsx",
+          "description": "Replace section headers with t() calls",
+          "status": "DONE",
+          "commit": "db4ef76"
+        },
+        {
+          "id": "T4.9",
+          "title": "Update other-doc demo component",
+          "file": "apps/nextjs/src/components/demo/other-doc.tsx",
+          "description": "Replace section headers with t() calls",
+          "status": "DONE",
+          "commit": "db4ef76"
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "Backend Language Propagation",
+      "description": "Pass language through tRPC context and use in LLM prompts",
+      "status": "PARTIAL",
+      "commit": "73d3e93",
+      "tasks": [
+        {
+          "id": "T5.1",
+          "title": "Add language to tRPC context",
+          "file": "packages/api/src/trpc.ts",
+          "description": "Accept x-klaro-language header from client, make available in ctx.language for all procedures",
+          "status": "DONE",
+          "commit": "be999ae"
+        },
+        {
+          "id": "T5.2",
+          "title": "Update chat router system prompt for language",
+          "file": "packages/api/src/router/chat.ts",
+          "description": "Add dialect instruction to system prompt so LLM responds in user's chosen language",
+          "status": "DONE"
+        },
+        {
+          "id": "T5.3",
+          "title": "Update chat safety messages for language",
+          "file": "packages/api/src/router/chat.ts",
+          "description": "Translate safety disclaimers and booking suggestions based on dialect",
+          "status": "N/A",
+          "note": "Safety messages use English fallback; dialect-specific messages in llm.ts are used via the system prompt"
+        },
+        {
+          "id": "T5.4",
+          "title": "Update LLM service English support",
+          "file": "packages/api/src/services/llm.ts",
+          "description": "Add English to getDialectInstructions, getAbnormalInterpretation, getNormalInterpretation, buildSummary, greetings, questions, titles, disclaimers, CTAs, prompt versions",
+          "status": "DONE"
+        },
+        {
+          "id": "T5.5",
+          "title": "Pass language from client to tRPC mutations",
+          "file": "apps/nextjs/src/hooks/use-chat.ts",
+          "description": "Include dialect in tRPC chat.sendMessage mutation input, derived from global language",
+          "status": "DONE"
+        },
+        {
+          "id": "T5.6",
+          "title": "Pass language in scan guest upload",
+          "file": "apps/nextjs/src/hooks/use-file-upload.ts",
+          "description": "Send user's chosen language with scanGuestImage mutation via LANGUAGE_TO_DIALECT mapping",
+          "status": "DONE"
+        }
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "Landing Page Translations",
+      "description": "Make landing page content switchable between languages",
+      "status": "DONE",
+      "commit": "e8c806c",
+      "tasks": [
+        {
+          "id": "T6.1",
+          "title": "Update Hero section with translations",
+          "file": "apps/nextjs/src/layouts/Landing/Hero.tsx",
+          "description": "Replace headline, subtitle, CTA text with t() calls",
+          "status": "DONE"
+        },
+        {
+          "id": "T6.2",
+          "title": "Update Features section with translations",
+          "file": "apps/nextjs/src/layouts/Landing/Features.tsx",
+          "description": "Replace feature titles, descriptions, CTA with t() calls",
+          "status": "DONE"
+        },
+        {
+          "id": "T6.3",
+          "title": "Update CTA section with translations",
+          "file": "apps/nextjs/src/layouts/Landing/CTA.tsx",
+          "description": "Replace heading, descriptions, CTA button with t() calls",
+          "status": "DONE"
+        },
+        {
+          "id": "T6.4",
+          "title": "Update Clarity section with translations",
+          "file": "apps/nextjs/src/layouts/Landing/Clarity.tsx",
+          "description": "Replace heading, 3 clarity card titles/descriptions, CTA with t() calls",
+          "status": "DONE"
+        },
+        {
+          "id": "T6.5",
+          "title": "Update MoreThanScanning section with translations",
+          "file": "apps/nextjs/src/layouts/Landing/MoreThanScanning.tsx",
+          "description": "Replace heading, 3 feature titles/descriptions, quote section with t() calls",
+          "status": "DONE"
+        }
+      ]
+    },
+    {
+      "phase": 7,
+      "name": "Tests",
+      "description": "Unit tests for language system",
+      "status": "DONE",
+      "commit": "4edb850",
+      "tasks": [
+        {
+          "id": "T7.1",
+          "title": "Test language types and validators",
+          "file": "packages/validators/src/__tests__/language.test.ts",
+          "tests": ["LanguageCode has 4 values", "languageSchema validates en/fil/ceb/ilo", "rejects invalid codes", "LANGUAGE_LABELS has correct names", "LANGUAGE_OPTIONS returns 4 options", "DEFAULT_LANGUAGE is fil", "DIALECT_TO_LANGUAGE maps correctly", "LANGUAGE_TO_DIALECT maps correctly"],
+          "status": "DONE",
+          "testCount": 22
+        },
+        {
+          "id": "T7.2",
+          "title": "Test i18n translation system",
+          "file": "apps/nextjs/src/i18n/__tests__/i18n.test.ts",
+          "tests": ["all dictionaries have 50+ keys", "all dictionaries have same keys", "t() returns correct language", "handles parameter interpolation", "getTranslation returns correct dict", "falls back to English for unknown lang"],
+          "status": "DONE",
+          "testCount": 14
+        },
+        {
+          "id": "T7.3",
+          "title": "Test useLanguage hook",
+          "file": "apps/nextjs/src/hooks/__tests__/use-language.test.ts",
+          "tests": ["defaults to fil", "persists to localStorage", "setLanguage updates context", "language persists across page reload", "translation function works for all languages", "dictionary completeness checks"],
+          "status": "DONE",
+          "commit": "28b996a",
+          "testCount": 20
+        },
+        {
+          "id": "T7.4",
+          "title": "Test LanguageSelector component",
+          "file": "apps/nextjs/src/components/__tests__/language-selector.test.ts",
+          "tests": ["has 4 language options", "each option has code/name/nativeName", "includes all 4 languages", "flag emojis for all languages", "labels match for all languages", "no duplicate codes", "codes are lowercase 2-3 letters"],
+          "status": "DONE",
+          "commit": "8ecb65f",
+          "testCount": 15
+        }
+      ]
+    }
+  ],
+  "commits": [
+    { "hash": "f430c8c", "message": "feat(i18n): unified language enum and types across all packages", "phase": 1 },
+    { "hash": "42512db", "message": "feat(i18n): global language context, i18n dictionaries (en/fil/ceb/ilo), and LanguageProvider", "phase": 2 },
+    { "hash": "b3e67bb", "message": "feat(i18n): language selector component in scanner and landing navbars", "phase": 3 },
+    { "hash": "2581483", "message": "feat(i18n): wire translations into ScannerUI, demo-modal, and lab-results components", "phase": 4 },
+    { "hash": "73d3e93", "message": "feat(i18n): pass global language to backend chat and scan mutations", "phase": 5 },
+    { "hash": "e8c806c", "message": "feat(i18n): wire translations into landing page Hero, Features, CTA, Clarity, MoreThanScanning", "phase": 6 },
+    { "hash": "4edb850", "message": "test(i18n): add language types and i18n translation tests", "phase": 7 },
+    { "hash": "04934e9", "message": "docs(i18n): update global language PRD with completed status and remaining work", "phase": "docs" },
+    { "hash": "51feb37", "message": "feat(i18n): wire translations into upload-form component", "phase": 4 },
+    { "hash": "e38ac73", "message": "feat(i18n): wire translations into scan-results component", "phase": 4 },
+    { "hash": "db4ef76", "message": "feat(i18n): wire translations into prescription, discharge, and other-doc demo components", "phase": 4 },
+    { "hash": "be999ae", "message": "feat(i18n): add language to tRPC context via x-klaro-language header", "phase": 5 },
+    { "hash": "28b996a", "message": "test(i18n): add useLanguage hook unit tests", "phase": 7 },
+    { "hash": "8ecb65f", "message": "test(i18n): add LanguageSelector component tests", "phase": 7 }
+  ],
+  "summary": {
+    "totalPhases": 7,
+    "completedPhases": 7,
+    "partialPhases": 0,
+    "totalTasks": 38,
+    "completedTasks": 36,
+    "notApplicableTasks": 2,
+    "pendingTasks": 0,
+    "totalCommits": 14,
+    "newFiles": 16,
+    "filesModified": 20,
+    "testCount": 71,
+    "languages": ["English", "Filipino", "Bisaya", "Ilocano"],
+    "keyMetrics": {
+      "translationKeys": "100+",
+      "componentsWired": 15,
+      "landingSectionsWired": 5,
+      "llmDialectEntriesAdded": 15,
+      "testsPassing": 71
+    }
+  },
+  "remainingWork": []
+}

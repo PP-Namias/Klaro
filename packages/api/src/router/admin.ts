@@ -6,13 +6,7 @@ import { z } from "zod/v4";
 import { doctor } from "@klaro/db/schema";
 
 import { protectedProcedure } from "../trpc";
-
-// Simple admin check - in production, use role-based access control
-const isAdmin = (userId: string) => {
-  // TODO: Implement proper admin role checking from database
-  // For now, this is a placeholder
-  return true;
-};
+import { isAdmin } from "../utils/admin";
 
 const verifyDoctor = protectedProcedure
   .input(
@@ -30,7 +24,7 @@ const verifyDoctor = protectedProcedure
       });
     }
 
-    if (!isAdmin(ctx.session.user.id)) {
+    if (!isAdmin(ctx)) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Only admins can verify doctors",
@@ -85,7 +79,7 @@ export const adminRouter = {
       });
     }
 
-    if (!isAdmin(ctx.session.user.id)) {
+    if (!isAdmin(ctx)) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Only admins can access this",
@@ -104,7 +98,7 @@ export const adminRouter = {
   /**
    * Get analytics/statistics (admin only)
    */
-  getAnalytics: protectedProcedure.query(async ({ ctx }) => {
+  getAnalytics: protectedProcedure.query(({ ctx }) => {
     if (!ctx.session?.user?.id) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -112,7 +106,7 @@ export const adminRouter = {
       });
     }
 
-    if (!isAdmin(ctx.session.user.id)) {
+    if (!isAdmin(ctx)) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Only admins can access this",
@@ -132,7 +126,7 @@ export const adminRouter = {
   /**
    * Get system health status (admin only)
    */
-  getSystemHealth: protectedProcedure.query(async ({ ctx }) => {
+  getSystemHealth: protectedProcedure.query(({ ctx }) => {
     if (!ctx.session?.user?.id) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -140,7 +134,7 @@ export const adminRouter = {
       });
     }
 
-    if (!isAdmin(ctx.session.user.id)) {
+    if (!isAdmin(ctx)) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Only admins can access this",
@@ -171,7 +165,7 @@ export const adminRouter = {
         reason: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(({ ctx, input }) => {
       if (!ctx.session?.user?.id) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
@@ -179,7 +173,7 @@ export const adminRouter = {
         });
       }
 
-      if (!isAdmin(ctx.session.user.id)) {
+      if (!isAdmin(ctx)) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only admins can access this",
@@ -204,7 +198,7 @@ export const adminRouter = {
         offset: z.number().min(0).default(0),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(({ ctx }) => {
       if (!ctx.session?.user?.id) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
@@ -212,7 +206,7 @@ export const adminRouter = {
         });
       }
 
-      if (!isAdmin(ctx.session.user.id)) {
+      if (!isAdmin(ctx)) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only admins can access this",

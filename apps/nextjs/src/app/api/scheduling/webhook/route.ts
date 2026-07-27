@@ -1,9 +1,5 @@
 import crypto from "crypto";
 import type { NextRequest } from "next/server";
-import { eq } from "drizzle-orm";
-
-import { db } from "@klaro/db";
-import { booking as bookingTable } from "@klaro/db/schema";
 
 import { env } from "~/env";
 
@@ -75,14 +71,7 @@ export const POST = async (req: NextRequest) => {
 
     // Parse body string as JSON (can't call req.json() again after req.text())
     const payload = JSON.parse(bodyString);
-    const {
-      eventId,
-      eventTitle,
-      eventDescription,
-      startTime,
-      endTime,
-      attendees,
-    } = payload;
+    const { eventId, eventTitle, startTime, endTime, attendees } = payload;
 
     // Log webhook for debugging
     console.log("Cal.com webhook received:", {

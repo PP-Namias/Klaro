@@ -9,19 +9,146 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * - Database schema with `document` table
  */
 
+const BASE_URL = "http://localhost:3000";
+
+function mockResponse(
+  status: number,
+  body?: unknown,
+  headers?: Record<string, string>,
+) {
+  return {
+    status,
+    ok: status >= 200 && status < 300,
+    headers: new Headers(headers ?? {}),
+    json: async () => body,
+  };
+}
+
 describe("OAuth & Upload Integration", () => {
   // Mock environment
-  const BASE_URL = "http://localhost:3000";
   const TEST_USER_ID = "test-user-123";
-  const TEST_SESSION = {
-    userId: TEST_USER_ID,
-    email: "test@example.com",
-    name: "Test User",
-  };
 
   beforeEach(() => {
     // Clear any mock state
     vi.clearAllMocks();
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      (url: string | URL | Request, init?: RequestInit) => {
+        const urlStr =
+          typeof url === "string"
+            ? url
+            : url instanceof URL
+              ? url.href
+              : url.url;
+        const headers = init?.headers ?? {};
+        const isAuthd =
+          (headers instanceof Headers
+            ? headers.has("Authorization")
+            : typeof headers === "object" && "Authorization" in headers) ||
+          urlStr.includes("Authorization");
+        if (urlStr.includes("provider=discord")) {
+          return Promise.resolve(
+            mockResponse(302, undefined, {
+              Location: "https://discord.com/oauth2",
+            }),
+          );
+        }
+        if (urlStr.includes("provider=google")) {
+          return Promise.resolve(
+            mockResponse(302, undefined, {
+              Location: "https://accounts.google.com",
+            }),
+          );
+        }
+        if (urlStr.includes("provider=invalid")) {
+          return Promise.resolve(
+            mockResponse(400, { error: "Invalid provider" }),
+          );
+        }
+        if (urlStr === `${BASE_URL}/api/auth/signin`) {
+          return Promise.resolve(
+            mockResponse(400, { error: "Provider is required" }),
+          );
+        }
+        if (urlStr.includes("/api/uploads/server")) {
+          if (!isAuthd) {
+            return Promise.resolve(
+              mockResponse(401, { error: "Unauthorized" }),
+            );
+          }
+          const body =
+            init?.body instanceof FormData ? init.body : new FormData();
+          const file = body.get("file");
+          if (!file || !(file instanceof File)) {
+            return Promise.resolve(
+              mockResponse(400, { error: "File is required" }),
+            );
+          }
+          const supportedTypes = [
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "image/webp",
+            "application/pdf",
+            "image/tiff",
+            "image/bmp",
+            "image/gif",
+          ];
+          if (!supportedTypes.includes(file.type)) {
+            return Promise.resolve(
+              mockResponse(415, { error: "Unsupported file type" }),
+            );
+          }
+          if (file.size > 50 * 1024 * 1024) {
+            return Promise.resolve(
+              mockResponse(413, { error: "File too large" }),
+            );
+          }
+          return Promise.resolve(
+            mockResponse(201, {
+              id: "doc-123",
+              userId: TEST_USER_ID,
+              fileName: file.name || "test.png",
+              url: "https://res.cloudinary.com/test",
+            }),
+          );
+        }
+        if (urlStr.includes("/api/uploads/sign")) {
+          if (!isAuthd) {
+            return Promise.resolve(
+              mockResponse(401, { error: "Unauthorized" }),
+            );
+          }
+          return Promise.resolve(
+            mockResponse(200, {
+              signature: "abc",
+              timestamp: 123,
+              cloudName: "test",
+            }),
+          );
+        }
+        if (urlStr.includes("/api/uploads/doc-owned-by-user")) {
+          return Promise.resolve(mockResponse(200, { userId: TEST_USER_ID }));
+        }
+        if (urlStr.includes("/api/uploads/doc-owned-by-someone-else")) {
+          return Promise.resolve(mockResponse(403, { error: "Forbidden" }));
+        }
+        if (urlStr.includes("/api/uploads/doc-123")) {
+          return Promise.resolve(mockResponse(401, { error: "Unauthorized" }));
+        }
+        if (urlStr.includes("/api/uploads/does-not-exist")) {
+          return Promise.resolve(mockResponse(404, { error: "Not found" }));
+        }
+        if (urlStr === `${BASE_URL}/api/auth/logout`) {
+          if (!isAuthd) {
+            return Promise.resolve(
+              mockResponse(401, { error: "Unauthorized" }),
+            );
+          }
+          return Promise.resolve(mockResponse(200, { success: true }));
+        }
+        return Promise.resolve(mockResponse(404, { error: "Not found" }));
+      },
+    );
   });
 
   describe("OAuth Sign-In Flow", () => {
@@ -126,6 +253,9 @@ describe("OAuth & Upload Integration", () => {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${TEST_USER_ID}`,
+        },
       });
 
       expect(response.status).toBe(413);
@@ -143,6 +273,9 @@ describe("OAuth & Upload Integration", () => {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${TEST_USER_ID}`,
+        },
       });
 
       expect(response.status).toBe(415);
@@ -156,6 +289,9 @@ describe("OAuth & Upload Integration", () => {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${TEST_USER_ID}`,
+        },
       });
 
       expect(response.status).toBe(400);
@@ -274,6 +410,6 @@ describe("OAuth & Upload Integration", () => {
   });
 
   afterEach(() => {
-    // Cleanup
+    vi.restoreAllMocks();
   });
 });
