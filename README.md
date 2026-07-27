@@ -72,9 +72,12 @@
 
 <br/>
 
-<video src="./apps/nextjs/public/Klara.mp4" controls width="100%" poster="./apps/nextjs/public/Klaro.png">
-  Your browser does not support the video tag. Download the demo video <a href="./apps/nextjs/public/Klara.mp4">here</a>.
-</video>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./public/klaro.gif">
+  <img src="./public/klaro.gif" alt="Klaro demo" width="100%">
+</picture>
+
+> 📥 Download the full demo video: [`klaro.mp4`](./public/klaro.mp4) (5.4 MB)
 
 ---
 
@@ -718,7 +721,7 @@ This project is [MIT](./LICENSE) licensed.
 [deploy-button-image]: https://vercel.com/button
 [deploy-link]: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPP-Namias%2Fklaro&env=POSTGRES_URL,AUTH_SECRET,LLM_API_KEY,CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET&project-name=klaro&repository-name=klaro
 
-[image-banner]: ./apps/nextjs/public/klaro.png
+[image-banner]: ./apps/nextjs/public/Klaro.png
 [image-star]: https://github.com/user-attachments/assets/3216e25b-186f-4a54-9cb4-2f124aec0471
 
 [profile-link]: https://github.com/PP-Namias
