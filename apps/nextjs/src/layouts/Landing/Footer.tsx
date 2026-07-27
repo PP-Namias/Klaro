@@ -8,7 +8,10 @@ export function Footer() {
         <div className="mb-24 flex flex-col justify-between gap-12 lg:flex-row">
           {/* Logo Section */}
           <div className="flex-shrink-0">
-            <Link href="/" className="footer-logo flex items-center gap-2 text-black">
+            <Link
+              href="/"
+              className="footer-logo flex items-center gap-2 text-black"
+            >
               <Image
                 src="/klaro-dark.svg"
                 alt="Klaro"

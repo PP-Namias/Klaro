@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -26,18 +25,17 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 const STORAGE_KEY = "klaro-language";
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE);
-
-  useEffect(() => {
+  const [language, setLanguageState] = useState<Language>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored && ["en", "fil", "ceb", "ilo"].includes(stored)) {
-        setLanguageState(stored as Language);
+        return stored as Language;
       }
     } catch {
       // localStorage not available
     }
-  }, []);
+    return DEFAULT_LANGUAGE;
+  });
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
