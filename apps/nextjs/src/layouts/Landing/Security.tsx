@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
@@ -35,13 +36,13 @@ export function Security() {
             AES-256 standards, the same used by banks. We comply with the Data
             Privacy Act to ensure your medical history stays in your hands only.
           </p>
-          <a
-            href="#"
+          <Link
+            href="/security-privacy"
             className="font-geist group flex items-center gap-3 text-[1.32rem] font-medium text-zinc-900 transition-colors hover:text-zinc-600"
           >
             How we protect you{" "}
             <ArrowRight className="h-5 w-5 translate-y-[1px] text-zinc-400 transition-colors group-hover:text-zinc-600" />
-          </a>
+          </Link>
         </div>
       </div>
     </motion.section>

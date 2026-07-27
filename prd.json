@@ -1,47 +1,38 @@
 {
-  "goal": "Pass all 7 failing CI checks on PR #10 for branch dev",
-  "checks": [
+  "title": "Klaro — Complete Remaining Details",
+  "description": "Fix broken placeholder links across the landing page, replacing <a href=\"#\"> with Next.js <Link> components pointing to real routes.",
+  "priority": "high",
+  "files": [
     {
-      "name": "CI / format",
-      "command": "pnpm format",
-      "status": "failed",
-      "errors": "Prettier formatting issues in 7 packages (ai-sidecar, api, auth, db, expo, nextjs, validators) — hundreds of files",
-      "fix": "Run pnpm format:fix (prettier --write) on all packages"
+      "path": "apps/nextjs/src/layouts/Landing/Footer.tsx",
+      "changes": [
+        "Replace <a> with <Link> for all 8 links in Resources and Legal columns",
+        "Resources: How it Works → /how-it-works, Patient Stories → /patient-stories, Security & Privacy → /security-privacy, Contact Support → /contact-support",
+        "Legal: Privacy Policy → /privacy-policy, Terms of Service → /terms-of-service, DPA Compliance → /dpa-compliance, Cookie Settings → /cookie-settings",
+        "Wrap logo section <div> in <Link href=\"/\"> so the logo links to homepage",
+        "Keep <a> with target=\"_blank\" for external social links (Facebook, Discord, GitHub)"
+      ]
     },
     {
-      "name": "CI / lint",
-      "command": "pnpm lint",
-      "status": "failed",
-      "errors": "ai-sidecar: missing eslint.config.js; validators: 2 unused vars; other packages have more errors",
-      "fix": "Add eslint.config.js to ai-sidecar; fix unused vars in validators; fix other packages"
+      "path": "apps/nextjs/src/layouts/Landing/Testimonials.tsx",
+      "changes": [
+        "Replace \"Read Full Story\" link href=\"#\" with /patient-stories",
+        "Replace <a> with <Link> for client-side navigation",
+        "Add import for Link from next/link"
+      ]
     },
     {
-      "name": "CI / typecheck",
-      "command": "pnpm typecheck",
-      "status": "failed",
-      "errors": "api/build: 20+ TypeScript errors across 6 files (contradictoryDataDetection, encryption, fileCleanup, imagePreprocessor, pdfConversion, phiScrubber)",
-      "fix": "Fix TS errors in packages/api/src"
-    },
-    {
-      "name": "CI / test",
-      "command": "pnpm test",
-      "status": "pending",
-      "errors": "Not yet run",
-      "fix": "Run and fix test failures"
-    },
-    {
-      "name": "Coverage Gate / coverage",
-      "command": "pnpm test:coverage",
-      "status": "pending",
-      "errors": "Not yet run",
-      "fix": "Ensure 80% line coverage threshold"
-    },
-    {
-      "name": "Vercel deployment",
-      "command": "pnpm build (apps/nextjs)",
-      "status": "pending",
-      "errors": "Depends on typecheck passing first",
-      "fix": "Fix after typecheck"
+      "path": "apps/nextjs/src/layouts/Landing/Security.tsx",
+      "changes": [
+        "Replace \"How we protect you\" link href=\"#\" with /security-privacy",
+        "Replace <a> with <Link> for client-side navigation",
+        "Add import for Link from next/link"
+      ]
     }
+  ],
+  "verification": [
+    "pnpm --filter @klaro/nextjs typecheck",
+    "pnpm --filter @klaro/nextjs build",
+    "pnpm test"
   ]
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
@@ -35,13 +36,13 @@ export function Testimonials() {
               designed, focusing on professional guidance rather than
               self-medication.”
             </p>
-            <a
-              href="#"
+            <Link
+              href="/patient-stories"
               className="testimonial-role inline-flex w-fit items-center gap-2 font-medium text-black transition-all group-hover:translate-x-1"
             >
               Read Full Story{" "}
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </a>
+            </Link>
           </div>
           <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-[16px] md:w-[480px]">
             <Image
