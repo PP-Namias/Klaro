@@ -97,15 +97,7 @@ Klaro makes healthcare accessible by turning complex medical documents into plai
 
 > [!IMPORTANT]
 >
-> **Star us** on GitHub to receive all release notifications without delay ~
-
-<details>
-  <summary><kbd>Star History</kbd></summary>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=PP-Namias/klaro&theme=dark&type=Date">
-    <img width="100%" src="https://api.star-history.com/svg?repos=PP-Namias/klaro&type=Date">
-  </picture>
-</details>
+> **Star us** on GitHub — every star helps more Filipinos discover accessible healthcare 🫶
 
 ---
 
@@ -705,8 +697,6 @@ This project is [MIT](./LICENSE) licensed.
 
 [docker-release-link]: https://hub.docker.com/r/ppnamias/klaro
 [docker-release-shield]: https://img.shields.io/badge/docker-pending-369eff?labelColor=black&logo=docker&logoColor=white&style=flat-square
-[docker-size-shield]: https://img.shields.io/badge/docker%20size-pending-369eff?labelColor=black&style=flat-square
-[docker-pulls-shield]: https://img.shields.io/badge/docker%20pulls-pending-45cc11?labelColor=black&style=flat-square
 
 [vercel-shield]: https://img.shields.io/badge/vercel-deployed-55b467?labelColor=black&logo=vercel&style=flat-square
 [playwright-link]: https://playwright.dev
@@ -715,14 +705,10 @@ This project is [MIT](./LICENSE) licensed.
 [discord-shield]: https://img.shields.io/badge/discord-join-5865F2?labelColor=black&logo=discord&logoColor=white&style=flat-square
 [discord-shield-badge]: https://img.shields.io/badge/discord-join_us-5865F2?labelColor=black&logo=discord&logoColor=white&style=for-the-badge
 
-[codespaces-shield]: https://github.com/codespaces/badge.svg
-[codespaces-link]: https://codespaces.new/PP-Namias/klaro
-
 [deploy-button-image]: https://vercel.com/button
 [deploy-link]: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPP-Namias%2Fklaro&env=POSTGRES_URL,AUTH_SECRET,LLM_API_KEY,CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET&project-name=klaro&repository-name=klaro
 
 [image-banner]: ./apps/nextjs/public/Klaro.png
-[image-star]: https://github.com/user-attachments/assets/3216e25b-186f-4a54-9cb4-2f124aec0471
 
 [profile-link]: https://github.com/PP-Namias
 
