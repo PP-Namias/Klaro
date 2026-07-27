@@ -121,7 +121,9 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-5">
             <a
-              href="#"
+              href="https://web.facebook.com/profile.php?id=61589428109759"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-zinc-700 transition-colors hover:text-black"
             >
               <svg
@@ -134,7 +136,9 @@ export function Footer() {
               </svg>
             </a>
             <a
-              href="#"
+              href="https://discord.gg/krnGXBmp3h"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-zinc-700 transition-colors hover:text-black"
             >
               <svg
@@ -147,7 +151,9 @@ export function Footer() {
               </svg>
             </a>
             <a
-              href="#"
+              href="https://github.com/PP-Namias"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-zinc-700 transition-colors hover:text-black"
             >
               <svg
