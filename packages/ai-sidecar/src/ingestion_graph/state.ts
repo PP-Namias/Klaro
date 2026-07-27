@@ -6,7 +6,7 @@ import { reduceDocs } from "../shared/state.js";
 export const IndexStateAnnotation = Annotation.Root({
   docs: Annotation<
     Document[],
-    Document[] | Record<string, unknown>[] | string[] | string | "delete"
+    Document[] | Record<string, unknown>[] | string[] | string
   >({
     default: () => [],
     reducer: reduceDocs,

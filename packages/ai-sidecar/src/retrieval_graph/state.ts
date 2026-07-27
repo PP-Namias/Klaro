@@ -14,7 +14,7 @@ export const RetrievalStateAnnotation = Annotation.Root({
   }),
   docs: Annotation<
     Document[],
-    Document[] | Record<string, unknown>[] | string[] | string | "delete"
+    Document[] | Record<string, unknown>[] | string[] | string
   >({
     default: () => [],
     reducer: reduceDocs,

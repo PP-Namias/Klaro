@@ -15,7 +15,9 @@ export default defineProject({
   },
   test: {
     globals: true,
-    setupFiles: [fileURLToPath(new URL("../../vitest.setup.ts", import.meta.url))],
+    setupFiles: [
+      fileURLToPath(new URL("../../vitest.setup.ts", import.meta.url)),
+    ],
     environment: "jsdom",
     exclude: [
       "**/e2e/**",

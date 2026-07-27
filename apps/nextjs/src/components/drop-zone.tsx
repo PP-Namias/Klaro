@@ -1,6 +1,5 @@
 "use client";
 
- 
 import { useRef, useState } from "react";
 import { FileImage, Upload } from "lucide-react";
 

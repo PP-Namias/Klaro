@@ -1,8 +1,7 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, no-empty */
-import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, X } from "lucide-react";
 
@@ -51,20 +50,16 @@ export default function CalModal({
 }: CalModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<Element | null>(null);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
   const focusTrapRef = useFocusTrap(dialogRef, open);
   const computedUrl = buildUrl(url, prefill);
 
   useEffect(() => {
     if (open) {
       triggerRef.current = document.activeElement;
-      setIframeLoaded(true);
       document.body.style.overflow = "hidden";
       return () => {
         document.body.style.overflow = "";
       };
-    } else {
-      setIframeLoaded(false);
     }
   }, [open]);
 
@@ -75,24 +70,6 @@ export default function CalModal({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
-
-  useEffect(() => {
-    function handleMessage(e: MessageEvent) {
-      try {
-        const originOk =
-          typeof e.origin === "string" && e.origin.includes("cal.com");
-        if (!originOk) return;
-        const d = e.data || {};
-        const isBooking =
-          (d.type && /booking|event|created/i.test(String(d.type))) ||
-          (d.event && /booking|created/i.test(String(d.event))) ||
-          (d.data?.object && /booking/i.test(String(d.data.object)));
-        if (isBooking) handleBooked();
-      } catch {}
-    }
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []);
 
   function handleBooked() {
     try {
@@ -115,15 +92,23 @@ export default function CalModal({
     onClose();
   }
 
-  const onIframeLoad = () => {
-    setIframeLoaded(true);
-  };
-
-  const onOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
+  useEffect(() => {
+    function handleMessage(e: MessageEvent) {
+      try {
+        const originOk =
+          typeof e.origin === "string" && e.origin.includes("cal.com");
+        if (!originOk) return;
+        const d = e.data || {};
+        const isBooking =
+          (d.type && /booking|event|created/i.test(String(d.type))) ||
+          (d.event && /booking|created/i.test(String(d.event))) ||
+          (d.data?.object && /booking/i.test(String(d.data.object)));
+        if (isBooking) handleBooked();
+      } catch {}
     }
-  };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   return (
     <AnimatePresence>
@@ -202,7 +187,7 @@ export default function CalModal({
 
             {/* Content Area */}
             <div className="relative flex-1 overflow-hidden bg-transparent">
-              {!iframeLoaded && (
+              {!open && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4">
                   <div className="flex gap-1.5">
                     {[0, 1, 2].map((i) => (
@@ -228,12 +213,11 @@ export default function CalModal({
                 <iframe
                   title={iframeTitle}
                   src={computedUrl}
-                  onLoad={onIframeLoad}
                   className="h-full w-full border-0"
                   sandbox="allow-scripts allow-forms allow-same-origin"
                   referrerPolicy="no-referrer-when-downgrade"
                   style={{
-                    opacity: iframeLoaded ? 1 : 0,
+                    opacity: open ? 1 : 0,
                     transition: "opacity 0.4s ease",
                   }}
                 />

@@ -29,7 +29,7 @@ export default function useFocusTrap(
     ).filter((el) => el.offsetParent !== null);
 
     if (focusable.length) {
-      focusable[0]!.focus();
+      (focusable[0] as HTMLElement).focus();
     } else {
       node.setAttribute("tabindex", "-1");
       node.focus();
@@ -45,8 +45,8 @@ export default function useFocusTrap(
         e.preventDefault();
         return;
       }
-      const first = focusables[0]!;
-      const last = focusables[focusables.length - 1]!;
+      const first = focusables[0] as HTMLElement;
+      const last = focusables[focusables.length - 1] as HTMLElement;
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
         last.focus();

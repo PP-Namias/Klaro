@@ -179,10 +179,10 @@ const selectFacilities = async (
   }
 
   if (conditions.length === 1) {
-    return baseQuery.where(conditions[0]!).limit(safeLimit);
+    return baseQuery.where(conditions[0] as SQL<unknown>).limit(safeLimit);
   }
 
-  return baseQuery.where(and(...conditions)!).limit(safeLimit);
+  return baseQuery.where(and(...conditions) as SQL<unknown>).limit(safeLimit);
 };
 
 export const facilitiesRouter = {

@@ -18,6 +18,9 @@ const config = {
 
   /** We already do linting and typechecking as separate tasks in CI */
   typescript: { ignoreBuildErrors: true },
+
+  /** Canvas native module needs to be externalized for server builds */
+  serverExternalPackages: ["canvas"],
 };
 
 export default config;

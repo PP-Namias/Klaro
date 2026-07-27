@@ -134,7 +134,7 @@ export function shouldRespondToMessage(message: string): boolean {
     /^(hi|hello|hey|good morning|good afternoon|good evening)$/i.test(trimmed)
   )
     return true;
-  if (trimmed.includes('?')) return true;
+  if (trimmed.includes("?")) return true;
 
   const healthKeywords = [
     "diagnosis",

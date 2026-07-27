@@ -101,10 +101,7 @@ export function isRetryableError(error: any): boolean {
   return false;
 }
 
-export function calculateRetryDelay(
-  attempt: number,
-  baseDelay = 1000,
-): number {
+export function calculateRetryDelay(attempt: number, baseDelay = 1000): number {
   const maxDelay = 30000;
   const delay = baseDelay * Math.pow(2, attempt);
   return Math.min(delay, maxDelay);

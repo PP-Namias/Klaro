@@ -1,20 +1,17 @@
-import { Document } from "@langchain/core/documents";
 import type { RunnableConfig } from "@langchain/core/runnables";
+import { Document } from "@langchain/core/documents";
 import { END, START, StateGraph } from "@langchain/langgraph";
 
 import { parsePdf } from "../services/pdfProcessor.js";
 import { chunkPages, chunkText } from "../shared/chunker.js";
 import { processDocument } from "../shared/ocr.js";
 import { makeRetriever } from "../shared/retrieval.js";
-import {
-  ensureIndexConfiguration,
-  IndexConfigurationAnnotation,
-} from "./configuration.js";
+import { IndexConfigurationAnnotation } from "./configuration.js";
 import { IndexStateAnnotation } from "./state.js";
 
-async function validateDocument(
-  state: typeof IndexStateAnnotation.State,
-): Promise<{ docs: Document[] }> {
+function validateDocument(state: typeof IndexStateAnnotation.State): {
+  docs: Document[];
+} {
   if (!state.docs || state.docs.length === 0) {
     throw new Error("No documents provided for ingestion");
   }

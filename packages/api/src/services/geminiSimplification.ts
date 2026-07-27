@@ -132,7 +132,7 @@ export async function simplifyWithGemini(
       return buildFallbackSimplification(data, dialect);
     }
 
-    const result = (await response.json());
+    const result = await response.json();
     const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     const parsed = parseSimplificationResponse(text);

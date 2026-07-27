@@ -251,7 +251,7 @@ function getAbnormalInterpretation(
     Ilocano: `Ang iyong ${test.name} ay nagtaas/nagbaba pay sa normal. Dapat kita sa doktor.`,
   };
 
-  return (interpretations[dialect] ?? interpretations.Filipino);
+  return interpretations[dialect] ?? interpretations.Filipino;
 }
 
 /**
@@ -268,7 +268,7 @@ function getNormalInterpretation(
     Ilocano: `Ang iyong ${test.name} ay normal. Nasapa niito.`,
   };
 
-  return (interpretations[dialect] ?? interpretations.Filipino);
+  return interpretations[dialect] ?? interpretations.Filipino;
 }
 
 /**
@@ -282,7 +282,7 @@ function getRecommendation(test: ExtractedTest, dialect: Dialect): string {
     Ilocano: `Kita sa doktor para sa ${test.name}.`,
   };
 
-  return (recommendations[dialect] ?? recommendations.Filipino);
+  return recommendations[dialect] ?? recommendations.Filipino;
 }
 
 /**
@@ -344,7 +344,7 @@ function getFollowUpQuestion(dialect: Dialect): string {
     Ilocano: "Apay ti dapat ko a gawin para manatili a malusog?",
   };
 
-  return (questions[dialect] ?? questions.Filipino);
+  return questions[dialect] ?? questions.Filipino;
 }
 
 /**
@@ -358,7 +358,7 @@ function getTanongMoTitle(dialect: Dialect): string {
     Ilocano: "Itatanong Mo Sa Doktor",
   };
 
-  return (titles[dialect] ?? titles.Filipino);
+  return titles[dialect] ?? titles.Filipino;
 }
 
 /**
@@ -376,7 +376,7 @@ function getSafetyDisclaimer(dialect: Dialect): string {
       "⚠️ Ang napadaan a resulta ay saan normal. Mahalaga na makita mo ti doktor.",
   };
 
-  return (disclaimers[dialect] ?? disclaimers.Filipino);
+  return disclaimers[dialect] ?? disclaimers.Filipino;
 }
 
 /**
@@ -390,7 +390,7 @@ function getBookingCTA(dialect: Dialect): string {
     Ilocano: "📞 Mag-book ug appointment sa doktor dita",
   };
 
-  return (ctas[dialect] ?? ctas.Filipino);
+  return ctas[dialect] ?? ctas.Filipino;
 }
 
 /**
@@ -409,7 +409,7 @@ function buildSummary(
       Bisaya: `Maayo! Ang tanan mga ${totalTests} resulta ay normal. Magpatuloy sa pag-aaga sa imong kalusugan.`,
       Ilocano: `Nasapa! Ang amin mga ${totalTests} resulta ay normal. Tuloy ang pag-aaga sa iyong kalusugan.`,
     };
-    return (summaries[dialect] ?? summaries.Filipino);
+    return summaries[dialect] ?? summaries.Filipino;
   }
 
   const summaries: Record<Dialect, Record<Severity, string>> = {
@@ -435,8 +435,7 @@ function buildSummary(
     },
   };
 
-  return (summaries[dialect]?.[severity] ??
-    (summaries.Filipino)[severity]);
+  return summaries[dialect]?.[severity] ?? summaries.Filipino[severity];
 }
 
 /**

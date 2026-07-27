@@ -1,5 +1,3 @@
- 
-
 "use client";
 
 import { useCallback, useState } from "react";
@@ -24,7 +22,7 @@ export default function DocumentsPage() {
   const deleteMutation = useMutation(
     trpc.documents.delete.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: trpc.documents.list.queryKey(),
         });
       },

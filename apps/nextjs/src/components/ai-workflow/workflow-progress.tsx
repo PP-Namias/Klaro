@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-
 export type WorkflowStage =
   | "idle"
   | "uploading"

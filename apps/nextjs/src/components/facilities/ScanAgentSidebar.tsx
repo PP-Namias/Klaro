@@ -49,7 +49,7 @@ export function ScanAgentSidebar() {
       if (parsed.analysis) {
         setAnalysis(parsed.analysis);
       }
-    } catch (_err) {
+    } catch {
       // ignore malformed scan state
     }
   }, []);

@@ -5,8 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 
 import { trpc } from "~/utils/api";
 
- 
-
 export default function DocumentDetail() {
   const { id } = useGlobalSearchParams<{ id?: string | string[] }>();
   const documentId = Array.isArray(id) ? id[0] : id;

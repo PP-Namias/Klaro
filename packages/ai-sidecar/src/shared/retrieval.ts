@@ -1,17 +1,14 @@
-import { Chroma } from "@langchain/community/vectorstores/chroma";
-import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 import type { Document } from "@langchain/core/documents";
 import type { Embeddings } from "@langchain/core/embeddings";
 import type { RunnableConfig } from "@langchain/core/runnables";
 import type { VectorStoreRetriever } from "@langchain/core/vectorstores";
+import { Chroma } from "@langchain/community/vectorstores/chroma";
+import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createClient } from "@supabase/supabase-js";
 
 import type { BaseConfiguration } from "./configuration.js";
-import {
-  BaseConfigurationAnnotation,
-  ensureBaseConfiguration,
-} from "./configuration.js";
+import { ensureBaseConfiguration } from "./configuration.js";
 
 const RETRIEVER_TIMEOUT = 5000;
 
@@ -121,10 +118,21 @@ export async function makeSupabaseRetriever(
 
 export function makeNoopRetriever(): VectorStoreRetriever {
   return {
-    invoke: async (_query: string): Promise<Document[]> => [],
-    getRelevantDocuments: async (_query: string): Promise<Document[]> => [],
-    addDocuments: async (_docs: Document[]): Promise<void> => {},
-    similaritySearch: async (_query: string): Promise<Document[]> => [],
+    invoke: async (_query: string): Promise<Document[]> => {
+      await Promise.resolve();
+      return [];
+    },
+    getRelevantDocuments: async (_query: string): Promise<Document[]> => {
+      await Promise.resolve();
+      return [];
+    },
+    addDocuments: async (_docs: Document[]): Promise<void> => {
+      await Promise.resolve();
+    },
+    similaritySearch: async (_query: string): Promise<Document[]> => {
+      await Promise.resolve();
+      return [];
+    },
   } as unknown as VectorStoreRetriever;
 }
 

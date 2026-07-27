@@ -3,12 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export function reduceDocs(
   existing?: Document[],
-  newDocs?:
-    | Document[]
-    | Record<string, unknown>[]
-    | string[]
-    | string
-    | "delete",
+  newDocs?: Document[] | Record<string, unknown>[] | string[] | string,
 ): Document[] {
   if (newDocs === "delete") {
     return [];

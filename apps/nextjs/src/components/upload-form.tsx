@@ -1,5 +1,3 @@
- 
-
 "use client";
 
 import type React from "react";
@@ -161,8 +159,7 @@ export function UploadForm() {
     let mounted = true;
     async function startCamera() {
       try {
-        if (!navigator.mediaDevices?.getUserMedia)
-          return;
+        if (!navigator.mediaDevices?.getUserMedia) return;
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: "environment",

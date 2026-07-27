@@ -87,9 +87,7 @@ export function assembleDocumentContext(
     Object.keys(analysis.extractedFields).length > 0
   ) {
     // Scrub PHI from extracted fields before building context
-    const scrubbedFields = scrubExtractedFields(
-      analysis.extractedFields,
-    );
+    const scrubbedFields = scrubExtractedFields(analysis.extractedFields);
     const fields = Object.entries(scrubbedFields)
       .map(([k, v]) => `${k}: ${String(v)}`)
       .join("; ");

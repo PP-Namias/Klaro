@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import React, { useState } from "react";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import CalModal from "../../../components/CalModal";
@@ -44,9 +50,7 @@ describe("CalModal integration", () => {
     expect(
       screen.getByRole("dialog", { name: /book a doctor/i }),
     ).not.toBeNull();
-    expect(
-      screen.getByRole("link", { name: /new tab/i }),
-    ).not.toBeNull();
+    expect(screen.getByRole("link", { name: /new tab/i })).not.toBeNull();
     expect(screen.getByTitle("Cal.com scheduling")).not.toBeNull();
   });
 
@@ -55,9 +59,7 @@ describe("CalModal integration", () => {
     fireEvent.click(screen.getByRole("button", { name: /book a doctor/i }));
     fireEvent.click(screen.getByLabelText(/close booking modal/i));
 
-    expect(
-      screen.queryByRole("dialog", { name: /book a doctor/i }),
-    ).toBeNull();
+    expect(screen.queryByRole("dialog", { name: /book a doctor/i })).toBeNull();
   });
 
   it("handles booking messages and stores confirmation", async () => {
@@ -76,9 +78,7 @@ describe("CalModal integration", () => {
     });
 
     expect(onBooked).toHaveBeenCalled();
-    expect(
-      screen.queryByRole("dialog", { name: /book a doctor/i }),
-    ).toBeNull();
+    expect(screen.queryByRole("dialog", { name: /book a doctor/i })).toBeNull();
     expect(sessionStorage.getItem("SCAN_CAL_BOOKING")).toContain("cal.com");
   });
 });

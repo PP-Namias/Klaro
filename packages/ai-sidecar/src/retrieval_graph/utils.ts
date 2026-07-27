@@ -1,18 +1,17 @@
 import type { Document } from "@langchain/core/documents";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import type {
-  BaseMessage} from "@langchain/core/messages";
+import type { BaseMessage } from "@langchain/core/messages";
+import type { RunnableConfig } from "@langchain/core/runnables";
 import {
   AIMessage,
   HumanMessage,
   SystemMessage,
 } from "@langchain/core/messages";
 import { StringOutputParser } from "@langchain/core/output_parsers";
-import type { RunnableConfig } from "@langchain/core/runnables";
 
+import type { RetrievalConfiguration } from "./configuration.js";
 import { makeRetriever } from "../shared/retrieval.js";
 import { isRateLimitError, loadChatModel } from "../shared/utils.js";
-import type { RetrievalConfiguration } from "./configuration.js";
 import {
   FOLLOW_UP_PROMPT,
   QA_SYSTEM_PROMPT,

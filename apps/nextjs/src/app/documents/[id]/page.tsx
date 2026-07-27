@@ -31,7 +31,7 @@ export default function DocumentDetailPage({
   const deleteMutation = useMutation(
     trpc.documents.delete.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: trpc.documents.list.queryKey(),
         });
         router.push("/documents");

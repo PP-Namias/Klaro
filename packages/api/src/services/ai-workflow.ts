@@ -275,7 +275,7 @@ export async function executeGuestWorkflow(
     mimeType: guessMimeType(img.filename),
   }));
 
-  const dialect: Dialect = (options.language!) || "Filipino";
+  const dialect: Dialect = options.language ?? "Filipino";
 
   return executeDocumentWorkflow(images, {
     dialect,

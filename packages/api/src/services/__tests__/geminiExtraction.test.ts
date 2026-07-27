@@ -73,7 +73,9 @@ describe("Gemini Extraction Service", () => {
         date: "1990-01-01",
         documentType: "Lab Report",
         diagnosis: ["Hypertension"],
-        medications: [{ name: "Amlodipine", dosage: "5mg", frequency: "Daily" }],
+        medications: [
+          { name: "Amlodipine", dosage: "5mg", frequency: "Daily" },
+        ],
         tests: [
           { name: "CBC", value: "120", unit: "g/L", referenceRange: "120-160" },
         ],
@@ -117,10 +119,7 @@ describe("Gemini Extraction Service", () => {
         medications: [
           { name: "Amlodipine", dosage: "5mg", frequency: "Daily" },
         ],
-        tests: [
-          { name: "CBC" },
-          { name: "BP" },
-        ],
+        tests: [{ name: "CBC" }, { name: "BP" }],
       };
 
       const r = calculateExtractionConfidence(requiredOnly);
@@ -158,7 +157,8 @@ describe("Gemini Extraction Service", () => {
         patientName: "John",
         date: "1990-01-01",
         diagnosis: [],
-        medications: "Amlodipine" as unknown as MedicalExtractionData["medications"],
+        medications:
+          "Amlodipine" as unknown as MedicalExtractionData["medications"],
         tests: [],
       };
       const errors = validateExtractionData(data);

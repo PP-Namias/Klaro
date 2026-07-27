@@ -221,10 +221,7 @@ export async function insertEncryptedChatMessage(data: {
 /**
  * Get chat messages with decrypted content
  */
-export async function getDecryptedChatMessages(
-  analysisId: string,
-  limit = 50,
-) {
+export async function getDecryptedChatMessages(analysisId: string, limit = 50) {
   const messages = await db
     .select()
     .from(chatMessage)
