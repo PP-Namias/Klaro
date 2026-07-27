@@ -403,7 +403,6 @@ This starts:
 >
 > Complete environment variable reference in the [Environment Variables Guide][docs-env-var].
 
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -438,7 +437,6 @@ This starts:
 | **CI/CD** | GitHub Actions (+ Renovate for dependency updates) |
 | **Deployment** | Vercel (web), Docker (ai-sidecar) |
 
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -495,7 +493,6 @@ pnpm dev
 
 See the [Mobile Development Guide][docs-mobile] for device setup.
 
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -553,7 +550,6 @@ pnpm exec playwright test e2e/upload-flow.spec.ts
 >
 > CI blocks merges below 80% branch coverage. See the [Testing Guide][docs-testing] for details.
 
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -575,7 +571,6 @@ pnpm exec playwright test e2e/upload-flow.spec.ts
 | `@klaro/tailwind-config` | `tooling/tailwind/` | Tailwind CSS 4 theme and PostCSS configuration |
 | `@klaro/tsconfig` | `tooling/typescript/` | TypeScript 5.8 strict mode configuration |
 
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -615,40 +610,10 @@ Contributions of all types are welcome. Whether fixing a typo, adding a translat
 - **UI/UX** -- Design improvements, accessibility fixes, mobile responsiveness
 
 <a href="https://github.com/PP-Namias/klaro/graphs/contributors" target="_blank">
-  <table>
-    <tr>
-      <th colspan="2">
-        <br><img src="https://contrib.rocks/image?repo=PP-Namias/klaro"><br><br>
-      </th>
-    </tr>
-    <tr>
-      <td>
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-org-active-contributors/thumbnail.png?activity=active&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=2x3&color_scheme=dark">
-          <img src="https://next.ossinsight.io/widgets/official/compose-org-active-contributors/thumbnail.png?activity=active&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=2x3&color_scheme=light">
-        </picture>
-      </td>
-      <td rowspan="2">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-org-participants-growth/thumbnail.png?activity=active&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=4x7&color_scheme=dark">
-          <img src="https://next.ossinsight.io/widgets/official/compose-org-participants-growth/thumbnail.png?activity=active&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=4x7&color_scheme=light">
-        </picture>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-org-active-contributors/thumbnail.png?activity=new&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=2x3&color_scheme=dark">
-          <img src="https://next.ossinsight.io/widgets/official/compose-org-active-contributors/thumbnail.png?activity=new&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=2x3&color_scheme=light">
-        </picture>
-      </td>
-    </tr>
-  </table>
+  <img src="https://contrib.rocks/image?repo=PP-Namias/klaro" alt="Contributors">
 </a>
 
 Please review [CONTRIBUTING.md](./CONTRIBUTING.md) for our full contribution guidelines and code of conduct.
-
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -657,13 +622,10 @@ Please review [CONTRIBUTING.md](./CONTRIBUTING.md) for our full contribution gui
 Copyright (c) 2026 [Jhon Keneth Namias][profile-link]. <br />
 This project is [MIT](./LICENSE) licensed.
 
-[![][back-to-top]](#readme-top)
-
 ---
 
 <!-- LINK GROUP -->
 
-[back-to-top]: https://img.shields.io/badge/-BACK_TO_TOP-151515?style=flat-square
 [official-site]: https://www.klaro-scans.tech
 [docs]: ./docs/README.md
 [docs-deployment]: ./docs/DEPLOYMENT_GUIDE.md
