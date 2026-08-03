@@ -14,12 +14,21 @@ import { TRPCReactProvider } from "~/trpc/react";
 
 import "~/styles/globals.css";
 
+const getSiteUrl = () => {
+  if (
+    env.VERCEL_ENV === "production" &&
+    env.VERCEL_PROJECT_PRODUCTION_URL
+  ) {
+    return `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (env.VERCEL_URL) {
+    return `https://${env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    env.VERCEL_ENV === "production"
-      ? "https://klaro.app"
-      : "http://localhost:3000",
-  ),
+  metadataBase: new URL(getSiteUrl()),
   title: "Klaro",
   description:
     "AI-powered medical document assistant with clinic discovery and consult booking",
@@ -27,7 +36,7 @@ export const metadata: Metadata = {
     title: "Klaro",
     description:
       "Upload lab results, prescriptions, or discharge summaries and get clear guidance fast.",
-    url: "https://klaro.app",
+    url: getSiteUrl(),
     siteName: "Klaro",
     images: [
       {
