@@ -28,8 +28,16 @@ pnpm --filter @klaro/ai-sidecar test
 | `GOOGLE_GENAI_API_KEY` | 2nd        | LangChain-specific key name |
 | `GEMINI_API_KEY`       | 3rd        | Klaro root `.env` uses this |
 
-The provider is set via `LLM_PROVIDER=gemini` (alias for `google-genai`).  
-Default model: `gemini-2.0-flash`.
+### Chat model
+
+| Variable          | Description                                                                                             |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| `CHAT_MODEL`      | Single source of truth: `provider/model` spec (e.g. `google-genai/gemini-2.0-flash`, `openai/gpt-4o`) |
+| `LLM_PROVIDER`    | Legacy fallback: bare provider name (`gemini`, `openai`) when `CHAT_MODEL` is unset                      |
+| `LLM_API_KEY`     | Fallback API key used when the provider-specific key variable is missing                                  |
+| `ENABLE_MOCK_MODE` | `true` returns canned answers without any network/LLM call (used by tests)                               |
+
+Resolution order: explicit model override > `CHAT_MODEL` > `LLM_PROVIDER` > `openai/gpt-4o-mini`. Empty strings count as unset.
 
 ### Embeddings
 
