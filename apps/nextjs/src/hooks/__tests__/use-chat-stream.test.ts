@@ -185,4 +185,27 @@ describe("useChatStream", () => {
     expect(result.current.messages[0].role).toBe("user");
     expect(result.current.error).toBe("network");
   });
+
+  it("attaches an image to the user message and the stream payload", async () => {
+    const image = "data:image/png;base64,iVBORw0KGgo=";
+    const stream = sseStream([
+      'data: {"event":"complete","answer":"Ang iyong WBC ay normal."}\n\n',
+    ]);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(stream));
+
+    const { result } = renderHook(() => useChatStream());
+
+    await act(async () => {
+      await result.current.sendMessage("Ano ang WBC ko?", image);
+    });
+
+    expect(result.current.messages[0].image).toBe(image);
+
+    const [, init] = vi.mocked(fetch).mock.calls[0] as [
+      string,
+      { body: string },
+    ];
+    const payload = JSON.parse(init.body) as { image?: string };
+    expect(payload.image).toBe(image);
+  });
 });

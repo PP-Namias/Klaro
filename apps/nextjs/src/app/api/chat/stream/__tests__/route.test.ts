@@ -117,4 +117,38 @@ describe("POST /api/chat/stream proxy", () => {
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ error: "Streaming proxy failed" });
   });
+
+  it("forwards a data-URI image to the sidecar", async () => {
+    const image = "data:image/png;base64,iVBORw0KGgo=";
+    const fetchMock = vi.mocked(fetch).mockResolvedValue(sseResponse(""));
+
+    await POST(makeRequest({ content: "what is this?", image }));
+
+    const [, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+    const body = JSON.parse(init.body) as { image?: string };
+    expect(body.image).toBe(image);
+  });
+
+  it("strips images that are not data URIs", async () => {
+    const fetchMock = vi.mocked(fetch).mockResolvedValue(sseResponse(""));
+
+    await POST(
+      makeRequest({
+        content: "what is this?",
+        image: "https://evil.example/x.png",
+      }),
+    );
+
+    const [, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+    const body = JSON.parse(init.body) as { image?: string };
+    expect(body.image).toBeUndefined();
+  });
+
+  it("rejects oversized image payloads with 413", async () => {
+    const huge = `data:image/png;base64,${"A".repeat(11 * 1024 * 1024)}`;
+
+    const res = await POST(makeRequest({ content: "hi", image: huge }));
+    expect(res.status).toBe(413);
+    expect(await res.json()).toEqual({ error: "Image payload too large" });
+  });
 });

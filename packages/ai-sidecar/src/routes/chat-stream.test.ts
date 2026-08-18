@@ -168,4 +168,64 @@ describe("POST /api/chat/stream", () => {
     expect(body).toContain('"answer":"Hello world!"');
     expect(body).toContain('"followUpQuestions":["Q1?","Q2?"]');
   });
+
+  it("sends the current question with an image as a vision content block", async () => {
+    const image = "data:image/png;base64,iVBORw0KGgo=";
+    const res = await request(app)
+      .post("/api/chat/stream")
+      .send({ question: "what is in this scan?", image })
+      .buffer(true)
+      .parse((res, cb) => {
+        let data = "";
+        res.on("data", (chunk: Buffer) => {
+          data += chunk.toString();
+        });
+        res.on("end", () => {
+          cb(null, data);
+        });
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body as string).toContain('"event":"complete"');
+
+    const { messages } = vi
+      .mocked(graph.streamEvents)
+      .mock.calls.at(-1)?.[0] as { messages: unknown[] };
+    const current = messages[messages.length - 1] as {
+      content: { type: string; image_url?: { url: string } }[];
+    };
+    expect(Array.isArray(current.content)).toBe(true);
+    expect(current.content[0]).toEqual({
+      type: "text",
+      text: "what is in this scan?",
+    });
+    expect(current.content[1]).toEqual({
+      type: "image_url",
+      image_url: { url: image },
+    });
+  });
+
+  it("drops invalid image payloads and sends plain text", async () => {
+    const res = await request(app)
+      .post("/api/chat/stream")
+      .send({ question: "hello", image: "not-a-data-uri" })
+      .buffer(true)
+      .parse((res, cb) => {
+        let data = "";
+        res.on("data", (chunk: Buffer) => {
+          data += chunk.toString();
+        });
+        res.on("end", () => {
+          cb(null, data);
+        });
+      });
+
+    expect(res.status).toBe(200);
+
+    const { messages } = vi
+      .mocked(graph.streamEvents)
+      .mock.calls.at(-1)?.[0] as { messages: unknown[] };
+    const current = messages[messages.length - 1] as { content: string };
+    expect(current.content).toBe("hello");
+  });
 });
