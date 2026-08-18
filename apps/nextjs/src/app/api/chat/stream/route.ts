@@ -1,0 +1,61 @@
+/* eslint-disable no-restricted-properties -- server-side env access, validated via turbo globalEnv */
+import type { NextRequest } from "next/server";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+interface ProxyBody {
+  content?: unknown;
+  history?: unknown;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = (await req.json().catch(() => ({}))) as ProxyBody;
+
+    if (typeof body.content !== "string" || !body.content.trim()) {
+      return Response.json(
+        { error: "content is required in the request body" },
+        { status: 400 },
+      );
+    }
+
+    const messages = Array.isArray(body.history)
+      ? body.history.map((msg) => {
+          const m = msg as { role?: string; content?: unknown };
+          return {
+            role: m.role === "user" ? "user" : "assistant",
+            content: String(m.content ?? ""),
+          };
+        })
+      : [];
+
+    const sidecarUrl = process.env.AI_SIDECAR_URL ?? "http://localhost:3002";
+
+    const response = await fetch(`${sidecarUrl}/api/chat/stream`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: req.headers.get("Authorization") ?? "",
+      },
+      body: JSON.stringify({ question: body.content, messages }),
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error(`Sidecar streaming failed: ${response.statusText}`);
+    }
+
+    return new Response(response.body, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      },
+    });
+  } catch (error) {
+    console.error("[ChatProxy] SSE Proxy Error:", error);
+    return Response.json({ error: "Streaming proxy failed" }, { status: 500 });
+  }
+}

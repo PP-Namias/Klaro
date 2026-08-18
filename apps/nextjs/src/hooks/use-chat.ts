@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
+import type { StreamMessage } from "~/hooks/use-chat-stream";
+import { streamChatResponse } from "~/hooks/use-chat-stream";
 import { useTRPC, useTRPCClient } from "~/trpc/react";
 
 export type Dialect = "English" | "Filipino" | "Bisaya" | "Ilocano";
@@ -154,16 +156,63 @@ export function useChat({
       }
 
       try {
-        await sendMessageMutation.mutateAsync({
-          analysisId,
-          content,
-          dialect,
-        });
+        const historyForModel: StreamMessage[] = messages
+          .filter((m) => m.sender === "user" || m.sender === "clara")
+          .map((m) => ({
+            role: m.sender === "user" ? "user" : "assistant",
+            content: m.text,
+          }));
+
+        const placeholderId = `clara-stream-${Date.now()}`;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: placeholderId,
+            sender: "clara",
+            text: "",
+            timestamp: Date.now(),
+          },
+        ]);
+
+        try {
+          const complete = await streamChatResponse(content, historyForModel, {
+            onToken: (token) => {
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === placeholderId
+                    ? { ...msg, text: msg.text + token }
+                    : msg,
+                ),
+              );
+            },
+          });
+
+          const assistantMsg: ChatMessage = {
+            id: placeholderId,
+            sender: "clara",
+            text:
+              complete.answer ||
+              "I can help explain what you scanned and suggest the next best step.",
+            timestamp: Date.now(),
+          };
+          setMessages((prev) =>
+            prev.map((msg) => (msg.id === placeholderId ? assistantMsg : msg)),
+          );
+          setIsTyping(false);
+          onSuccess?.(assistantMsg);
+        } catch {
+          setMessages((prev) => prev.filter((msg) => msg.id !== placeholderId));
+          await sendMessageMutation.mutateAsync({
+            analysisId,
+            content,
+            dialect,
+          });
+        }
       } catch {
         // Error handled in onError callback
       }
     },
-    [analysisId, dialect, sendMessageMutation],
+    [analysisId, dialect, messages, sendMessageMutation],
   );
 
   const clearMessages = useCallback(async () => {
