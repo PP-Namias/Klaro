@@ -21,24 +21,83 @@ function sendSSE(res: Response, data: Record<string, unknown>): void {
   res.write(`data: ${JSON.stringify(data)}\n\n`);
 }
 
-router.get("/stream", async (req: Request, res: Response) => {
-  const { question, messages: rawMessages } = req.query as ChatStreamQuery;
+async function streamResponse(
+  res: Response,
+  question: string,
+  parsedMessages: ChatMessage[],
+): Promise<void> {
+  const langchainMessages = parsedMessages.map((msg) => {
+    if (msg.role === "user") return new HumanMessage(msg.content);
+    return new AIMessage(msg.content);
+  });
 
-  if (!question) {
-    res.status(400).json({ error: "question query parameter is required" });
-    return;
-  }
+  sendSSE(res, { event: "status", message: "Starting retrieval..." });
 
-  let parsedMessages: ChatMessage[] = [];
-  if (rawMessages) {
-    try {
-      parsedMessages = JSON.parse(rawMessages) as ChatMessage[];
-    } catch {
-      res.status(400).json({ error: "Invalid messages JSON" });
-      return;
+  let finalAnswer = "";
+  let followUpQuestions: string[] = [];
+
+  const events = retrievalGraph.streamEvents(
+    { question, messages: langchainMessages },
+    { version: "v2" },
+  );
+
+  for await (const event of events) {
+    if (event.event === "on_chat_model_stream") {
+      const chunk = event.data?.chunk as
+        | Parameters<typeof extractChunkText>[0]
+        | undefined;
+      const text = extractChunkText(chunk);
+      if (text) {
+        finalAnswer += text;
+        sendSSE(res, { event: "token", token: text });
+      }
+    } else if (
+      event.event === "on_chain_end" &&
+      (event.name === "generate" || event.name === "emptyAnswer")
+    ) {
+      const answer = extractAnswerText(event.data?.output);
+      if (answer) {
+        if (!finalAnswer) {
+          sendSSE(res, { event: "token", token: answer });
+        }
+        finalAnswer = answer;
+      }
+      sendSSE(res, { event: "status", message: "Generation complete" });
+    } else if (event.event === "on_chain_end" && event.name === "followUp") {
+      const output = event.data?.output as
+        | { followUpQuestions?: string[] }
+        | undefined;
+      if (output?.followUpQuestions) {
+        followUpQuestions = output.followUpQuestions;
+      }
     }
   }
 
+  sendSSE(res, {
+    event: "complete",
+    answer: finalAnswer,
+    followUpQuestions,
+  });
+}
+
+function parseMessages(rawMessages: string | undefined): ChatMessage[] {
+  if (!rawMessages) return [];
+  const parsed = JSON.parse(rawMessages) as ChatMessage[];
+  if (!Array.isArray(parsed)) {
+    throw new Error("messages must be an array");
+  }
+  return parsed.map((msg) => ({
+    role: msg.role === "user" ? "user" : "assistant",
+    content: String(msg.content ?? ""),
+  }));
+}
+
+async function runStream(
+  req: Request,
+  res: Response,
+  question: string,
+  parsedMessages: ChatMessage[],
+): Promise<void> {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
@@ -49,58 +108,7 @@ router.get("/stream", async (req: Request, res: Response) => {
   res.flushHeaders();
 
   try {
-    const langchainMessages = parsedMessages.map((msg) => {
-      if (msg.role === "user") return new HumanMessage(msg.content);
-      return new AIMessage(msg.content);
-    });
-
-    sendSSE(res, { event: "status", message: "Starting retrieval..." });
-
-    let finalAnswer = "";
-    let followUpQuestions: string[] = [];
-
-    const events = retrievalGraph.streamEvents(
-      { question, messages: langchainMessages },
-      { version: "v2" },
-    );
-
-    for await (const event of events) {
-      if (event.event === "on_chat_model_stream") {
-        const chunk = event.data?.chunk as
-          | Parameters<typeof extractChunkText>[0]
-          | undefined;
-        const text = extractChunkText(chunk);
-        if (text) {
-          finalAnswer += text;
-          sendSSE(res, { event: "token", token: text });
-        }
-      } else if (
-        event.event === "on_chain_end" &&
-        (event.name === "generate" || event.name === "emptyAnswer")
-      ) {
-        const answer = extractAnswerText(event.data?.output);
-        if (answer) {
-          if (!finalAnswer) {
-            sendSSE(res, { event: "token", token: answer });
-          }
-          finalAnswer = answer;
-        }
-        sendSSE(res, { event: "status", message: "Generation complete" });
-      } else if (event.event === "on_chain_end" && event.name === "followUp") {
-        const output = event.data?.output as
-          | { followUpQuestions?: string[] }
-          | undefined;
-        if (output?.followUpQuestions) {
-          followUpQuestions = output.followUpQuestions;
-        }
-      }
-    }
-
-    sendSSE(res, {
-      event: "complete",
-      answer: finalAnswer,
-      followUpQuestions,
-    });
+    await streamResponse(res, question, parsedMessages);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     const isQuota =
@@ -116,6 +124,50 @@ router.get("/stream", async (req: Request, res: Response) => {
   } finally {
     res.end();
   }
+}
+
+router.get("/stream", async (req: Request, res: Response) => {
+  const { question, messages: rawMessages } = req.query as ChatStreamQuery;
+
+  if (!question) {
+    res.status(400).json({ error: "question query parameter is required" });
+    return;
+  }
+
+  let parsedMessages: ChatMessage[] = [];
+  if (rawMessages) {
+    try {
+      parsedMessages = parseMessages(rawMessages);
+    } catch {
+      res.status(400).json({ error: "Invalid messages JSON" });
+      return;
+    }
+  }
+
+  await runStream(req, res, question, parsedMessages);
+});
+
+router.post("/stream", async (req: Request, res: Response) => {
+  const body = req.body as
+    | { question?: unknown; messages?: unknown }
+    | undefined;
+
+  if (!body || typeof body.question !== "string" || !body.question) {
+    res.status(400).json({ error: "question is required in the request body" });
+    return;
+  }
+
+  let parsedMessages: ChatMessage[] = [];
+  if (body.messages !== undefined) {
+    try {
+      parsedMessages = parseMessages(JSON.stringify(body.messages));
+    } catch {
+      res.status(400).json({ error: "Invalid messages array" });
+      return;
+    }
+  }
+
+  await runStream(req, res, body.question, parsedMessages);
 });
 
 export default router;

@@ -120,3 +120,52 @@ describe("GET /api/chat/stream", () => {
     expect(body).toContain('"answer":"Full answer only"');
   });
 });
+
+describe("POST /api/chat/stream", () => {
+  it("returns 400 when question is missing", async () => {
+    const res = await request(app).post("/api/chat/stream").send({});
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("question is required in the request body");
+  });
+
+  it("returns 400 when messages is not an array", async () => {
+    const res = await request(app)
+      .post("/api/chat/stream")
+      .send({ question: "hello", messages: "not-an-array" });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("Invalid messages array");
+  });
+
+  it("streams tokens and a complete event from a JSON body", async () => {
+    const res = await request(app)
+      .post("/api/chat/stream")
+      .send({
+        question: "hello",
+        messages: [
+          { role: "user", content: "what is my WBC?" },
+          { role: "assistant", content: "Your WBC is normal." },
+        ],
+      })
+      .buffer(true)
+      .parse((res, cb) => {
+        let data = "";
+        res.on("data", (chunk: Buffer) => {
+          data += chunk.toString();
+        });
+        res.on("end", () => {
+          cb(null, data);
+        });
+      });
+
+    expect(res.headers["content-type"]).toMatch(/text\/event-stream/);
+    expect(res.headers["cache-control"]).toBe("no-cache");
+
+    const body = res.body as string;
+    expect(body).toContain('"event":"token"');
+    expect(body).toContain('"token":"Hello "');
+    expect(body).toContain('"token":"world"');
+    expect(body).toContain('"event":"complete"');
+    expect(body).toContain('"answer":"Hello world!"');
+    expect(body).toContain('"followUpQuestions":["Q1?","Q2?"]');
+  });
+});
