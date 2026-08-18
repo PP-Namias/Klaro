@@ -1,0 +1,64 @@
+{
+  "project": "Medical AI Chatbot Integration",
+  "branch": "ticket/KL-AI-001-langchain-langgraph-chatbot",
+  "version": "1.0.0",
+  "status": "in_progress",
+  "gates": {
+    "typecheck": "15/15",
+    "lint": "13/13",
+    "tests_passing": 1445
+  },
+  "phases": [
+    {
+      "id": "P1",
+      "name": "Sidecar Architecture & Core Pipeline",
+      "status": "completed",
+      "issues": [
+        { "id": "KL-AI-01", "task": "Resolve LangChain model resolution", "status": "done" },
+        { "id": "KL-AI-02", "task": "Fix AIMessage graph state management", "status": "done" },
+        { "id": "KL-AI-03", "task": "Implement document ingestion (docCount) and image OCR", "status": "done" },
+        { "id": "KL-AI-04", "task": "Wire chatRouter.sendMessage to sidecar RAG", "status": "done" },
+        { "id": "KL-AI-05", "task": "Implement callLLMAPI fallback mechanism", "status": "done" },
+        { "id": "KL-AI-06", "task": "Apply PHI scrub and dialect locale guardrails", "status": "done" }
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "UI Integration & Streaming",
+      "status": "in_progress",
+      "issues": [
+        { "id": "KL-AI-07", "task": "Build Next.js proxy route for sidecar SSE streaming", "status": "in_progress" },
+        { "id": "KL-AI-08", "task": "Implement UI EventSource consumption for real-time typing", "status": "pending" },
+        { "id": "KL-AI-09", "task": "Render inline image support and file attachments in chat", "status": "pending" },
+        { "id": "KL-AI-10", "task": "Implement guest chat mode and unauthenticated fallbacks", "status": "pending" }
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Production Security & Scalability",
+      "status": "pending",
+      "issues": [
+        { "id": "KL-AI-11", "task": "Enforce sidecar authentication and tenant/patient isolation", "status": "pending" },
+        { "id": "KL-AI-12", "task": "Configure API rate limiting and cost-control thresholds", "status": "pending" },
+        { "id": "KL-AI-13", "task": "Implement health checks and LangSmith/Datadog tracing", "status": "pending" }
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Frontend Testing & QA",
+      "status": "in_progress",
+      "issues": [
+        { "id": "KL-AI-14", "task": "Write React hook and component tests for UI chat interface", "status": "in_progress" },
+        { "id": "KL-AI-15", "task": "Establish end-to-end (E2E) testing for critical chat flows", "status": "pending" }
+      ]
+    },
+    {
+      "id": "P5",
+      "name": "Release & Merge",
+      "status": "pending",
+      "issues": [
+        { "id": "KL-AI-16", "task": "Execute full smoke test, finalize PR, and merge branch", "status": "pending" }
+      ]
+    }
+  ]
+}
