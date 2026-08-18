@@ -175,17 +175,22 @@ export function useChat({
         ]);
 
         try {
-          const complete = await streamChatResponse(content, historyForModel, {
-            onToken: (token) => {
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === placeholderId
-                    ? { ...msg, text: msg.text + token }
-                    : msg,
-                ),
-              );
+          const complete = await streamChatResponse(
+            content,
+            historyForModel,
+            {
+              onToken: (token) => {
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === placeholderId
+                      ? { ...msg, text: msg.text + token }
+                      : msg,
+                  ),
+                );
+              },
             },
-          });
+            image,
+          );
 
           const assistantMsg: ChatMessage = {
             id: placeholderId,

@@ -1,3 +1,7 @@
+import type {
+  DataContentBlock,
+  MessageContentComplex,
+} from "@langchain/core/messages";
 import type { Request, Response } from "express";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { Router } from "express";
@@ -8,6 +12,7 @@ import { extractAnswerText, extractChunkText } from "../shared/streaming.js";
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+  image?: string;
 }
 
 interface ChatStreamQuery {
@@ -15,21 +20,55 @@ interface ChatStreamQuery {
   messages?: string;
 }
 
+const IMAGE_DATA_URI = /^data:image\/(png|jpe?g|webp|gif);base64,/i;
+
 const router = Router();
 
 function sendSSE(res: Response, data: Record<string, unknown>): void {
   res.write(`data: ${JSON.stringify(data)}\n\n`);
 }
 
+type ChatContentBlock = MessageContentComplex | DataContentBlock;
+
+function buildUserContent(
+  question: string,
+  image?: string,
+): ChatContentBlock[] {
+  const blocks: ChatContentBlock[] = [{ type: "text", text: question }];
+  if (image && IMAGE_DATA_URI.test(image)) {
+    blocks.push({ type: "image_url", image_url: { url: image } });
+  }
+  return blocks;
+}
+
 async function streamResponse(
   res: Response,
   question: string,
   parsedMessages: ChatMessage[],
+  image?: string,
 ): Promise<void> {
   const langchainMessages = parsedMessages.map((msg) => {
-    if (msg.role === "user") return new HumanMessage(msg.content);
+    if (msg.role === "user") {
+      if (msg.image && IMAGE_DATA_URI.test(msg.image)) {
+        return new HumanMessage({
+          content: [
+            { type: "text", text: msg.content },
+            { type: "image_url", image_url: { url: msg.image } },
+          ],
+        });
+      }
+      return new HumanMessage(msg.content);
+    }
     return new AIMessage(msg.content);
   });
+
+  if (image) {
+    langchainMessages.push(
+      new HumanMessage({ content: buildUserContent(question, image) }),
+    );
+  } else {
+    langchainMessages.push(new HumanMessage(question));
+  }
 
   sendSSE(res, { event: "status", message: "Starting retrieval..." });
 
@@ -89,6 +128,10 @@ function parseMessages(rawMessages: string | undefined): ChatMessage[] {
   return parsed.map((msg) => ({
     role: msg.role === "user" ? "user" : "assistant",
     content: String(msg.content ?? ""),
+    image:
+      typeof msg.image === "string" && IMAGE_DATA_URI.test(msg.image)
+        ? msg.image
+        : undefined,
   }));
 }
 
@@ -97,6 +140,7 @@ async function runStream(
   res: Response,
   question: string,
   parsedMessages: ChatMessage[],
+  image?: string,
 ): Promise<void> {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -108,7 +152,7 @@ async function runStream(
   res.flushHeaders();
 
   try {
-    await streamResponse(res, question, parsedMessages);
+    await streamResponse(res, question, parsedMessages, image);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     const isQuota =
@@ -149,7 +193,7 @@ router.get("/stream", async (req: Request, res: Response) => {
 
 router.post("/stream", async (req: Request, res: Response) => {
   const body = req.body as
-    | { question?: unknown; messages?: unknown }
+    | { question?: unknown; messages?: unknown; image?: unknown }
     | undefined;
 
   if (!body || typeof body.question !== "string" || !body.question) {
@@ -167,7 +211,12 @@ router.post("/stream", async (req: Request, res: Response) => {
     }
   }
 
-  await runStream(req, res, body.question, parsedMessages);
+  const image =
+    typeof body.image === "string" && IMAGE_DATA_URI.test(body.image)
+      ? body.image
+      : undefined;
+
+  await runStream(req, res, body.question, parsedMessages, image);
 });
 
 export default router;

@@ -69,11 +69,14 @@ export async function streamChatResponse(
   content: string,
   history: StreamMessage[],
   handlers: StreamHandlers = {},
+  image?: string,
 ): Promise<StreamCompleteEvent> {
   const res = await fetch("/api/chat/stream", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content, history }),
+    body: JSON.stringify(
+      image ? { content, history, image } : { content, history },
+    ),
   });
 
   if (!res.ok || !res.body) {
@@ -122,6 +125,7 @@ export interface ChatStreamMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  image?: string;
 }
 
 export function useChatStream() {
@@ -130,13 +134,14 @@ export function useChatStream() {
   const [error, setError] = useState<string | null>(null);
   const historyRef = useRef<ChatStreamMessage[]>([]);
 
-  const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim()) return;
+  const sendMessage = useCallback(async (content: string, image?: string) => {
+    if (!content.trim() && !image) return;
 
     const userMsg: ChatStreamMessage = {
       id: crypto.randomUUID(),
       role: "user",
       content,
+      image,
     };
     const assistantMsgId = crypto.randomUUID();
     const history = historyRef.current;
@@ -156,18 +161,23 @@ export function useChatStream() {
     ];
 
     try {
-      const complete = await streamChatResponse(content, historyForModel, {
-        onToken: (token) => {
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantMsgId
-                ? { ...msg, content: msg.content + token }
-                : msg,
-            ),
-          );
+      const complete = await streamChatResponse(
+        content,
+        historyForModel,
+        {
+          onToken: (token) => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMsgId
+                  ? { ...msg, content: msg.content + token }
+                  : msg,
+              ),
+            );
+          },
+          onError: (message) => setError(message),
         },
-        onError: (message) => setError(message),
-      });
+        image,
+      );
 
       const assistantMsg: ChatStreamMessage = {
         id: assistantMsgId,

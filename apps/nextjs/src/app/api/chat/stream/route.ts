@@ -7,7 +7,11 @@ export const dynamic = "force-dynamic";
 interface ProxyBody {
   content?: unknown;
   history?: unknown;
+  image?: unknown;
 }
+
+const IMAGE_DATA_URI = /^data:image\/(png|jpe?g|webp|gif);base64,/i;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +34,18 @@ export async function POST(req: NextRequest) {
         })
       : [];
 
+    const image =
+      typeof body.image === "string" && IMAGE_DATA_URI.test(body.image)
+        ? body.image
+        : undefined;
+
+    if (image && image.length > MAX_IMAGE_BYTES) {
+      return Response.json(
+        { error: "Image payload too large" },
+        { status: 413 },
+      );
+    }
+
     const sidecarUrl = process.env.AI_SIDECAR_URL ?? "http://localhost:3002";
 
     const response = await fetch(`${sidecarUrl}/api/chat/stream`, {
@@ -38,7 +54,11 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
         Authorization: req.headers.get("Authorization") ?? "",
       },
-      body: JSON.stringify({ question: body.content, messages }),
+      body: JSON.stringify({
+        question: body.content,
+        messages,
+        ...(image ? { image } : {}),
+      }),
       signal: AbortSignal.timeout(30_000),
     });
 
