@@ -30,6 +30,7 @@ async function request<T>(
   method: string,
   path: string,
   body?: unknown,
+  signal?: AbortSignal,
 ): Promise<T> {
   const url = `${AI_SIDECAR_URL}${path}`;
   const headers: Record<string, string> = {};
@@ -42,6 +43,7 @@ async function request<T>(
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
+    signal,
   });
 
   if (!res.ok) {
@@ -58,11 +60,17 @@ async function request<T>(
 export async function chat(
   question: string,
   messages: ChatMessage[] = [],
+  options?: { signal?: AbortSignal },
 ): Promise<ChatResponse> {
   if (!question || typeof question !== "string") {
     throw new AiSidecarClientError("question is required", 400);
   }
-  return request<ChatResponse>("POST", "/api/chat", { question, messages });
+  return request<ChatResponse>(
+    "POST",
+    "/api/chat",
+    { question, messages },
+    options?.signal,
+  );
 }
 
 export function chatStreamURL(

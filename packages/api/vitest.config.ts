@@ -19,6 +19,7 @@ export default defineProject({
       "src/__tests__/integration.test.ts",
       "src/router/__tests__/documents-generate-analysis.test.ts",
       "src/router/__tests__/extraction-edge-cases.test.ts",
+      "src/router/__tests__/chat-sidecar.test.ts",
     ],
     exclude: [
       "src/services/__tests__/facilityImport.test.ts",

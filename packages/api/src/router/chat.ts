@@ -6,6 +6,7 @@ import { z } from "zod/v4";
 import { analysis, chatMessage } from "@klaro/db/schema";
 import { DialectEnum } from "@klaro/validators/llm";
 
+import { chat as sidecarChat } from "../services/aiSidecarClient";
 import { logChatMessage, logLlmApiCall } from "../services/auditLogger";
 import { assembleDocumentContext } from "../services/contextAssembler";
 import { callLLMAPI } from "../services/llm";
@@ -18,6 +19,16 @@ import { detectPhiTypes, scrubPhi } from "../services/phiScrubber";
 import { chatProcedure as protectedProcedure } from "../trpc";
 
 export type ChatSeverity = "LOW" | "MODERATE" | "HIGH";
+
+const DIALECT_TO_LOCALE: Record<string, string> = {
+  English: "en",
+  Filipino: "fil",
+  Bisaya: "ceb",
+  Ilocano: "ilo",
+};
+
+const dialectToLocale = (dialect: string): string =>
+  DIALECT_TO_LOCALE[dialect] ?? "en";
 
 export interface ChatSafety {
   severity: ChatSeverity;
@@ -156,7 +167,7 @@ export const chatRouter = {
         // Return blocked response
         const blockedResponse = buildBlockedResponse(
           input.content,
-          input.dialect,
+          dialectToLocale(input.dialect),
         );
 
         const assistantMessage = {
@@ -222,7 +233,7 @@ export const chatRouter = {
         .limit(5);
 
       const recentMessages = recent.map((m) => ({
-        role: m.role,
+        role: m.role as "user" | "assistant",
         content: m.content,
         dialect: m.dialect ?? undefined,
       }));
@@ -253,6 +264,10 @@ export const chatRouter = {
         );
       }
 
+      // PHI Scrubbing: Redact patient data from the user message itself
+      const scrubbedInput = scrubPhi(input.content);
+      const safeContent = scrubbedInput.scrubbedText || input.content;
+
       const systemPrompt = `You are a helpful health assistant. Keep responses brief, supportive, and ask one follow-up question when appropriate. If safety guidance is present, include it before any other advice. IMPORTANT: Respond in the patient's preferred language: ${input.dialect}. NEVER provide medical diagnosis or treatment recommendations. Always recommend consulting a healthcare professional.`;
       const safetyPrefix =
         ctx.chatSafety?.severity === "HIGH" && ctx.chatSafety.bookingSuggestion
@@ -261,12 +276,31 @@ export const chatRouter = {
             ? `${ctx.chatSafety.disclaimer}\n\n`
             : "";
       // Use scrubbed context for LLM prompt
-      const prompt = `Context:\n${scrubbedContext.scrubbedText}\n\nSafety guidance:\n${ctx.chatSafety?.severity ?? "LOW"}\n\nUser message:\n${input.content}\n\nRespond briefly and include one follow-up question. Do not provide diagnosis or treatment advice.`;
+      const prompt = `Context:\n${scrubbedContext.scrubbedText}\n\nSafety guidance:\n${ctx.chatSafety?.severity ?? "LOW"}\n\nUser message:\n${safeContent}\n\nRespond briefly and include one follow-up question. Do not provide diagnosis or treatment advice.`;
 
-      // Call LLM (falls back to empty string if API key not configured)
+      // Prefer the LangChain/LangGraph RAG sidecar when configured;
+      // fall back to the direct LLM API when it is down or unconfigured.
       let llmOutput = "";
+      if (process.env.AI_SIDECAR_URL) {
+        try {
+          const sidecarResponse = await sidecarChat(
+            safeContent,
+            recentMessages,
+            { signal: AbortSignal.timeout(3000) },
+          );
+          llmOutput = sidecarResponse.answer;
+        } catch (err) {
+          console.warn(
+            "[api] AI sidecar unavailable, falling back to direct LLM API:",
+            (err as Error).message?.substring(0, 120),
+          );
+        }
+      }
+
       try {
-        llmOutput = await callLLMAPI(prompt, systemPrompt);
+        if (!llmOutput) {
+          llmOutput = await callLLMAPI(prompt, systemPrompt);
+        }
 
         // Audit log for successful LLM call
         logLlmApiCall({
@@ -274,7 +308,7 @@ export const chatRouter = {
           analysisId: input.analysisId,
           phiScrubbed: true,
           phiCount: scrubbedContext.matchCount,
-          externalProvider: "llm",
+          externalProvider: llmOutput ? "sidecar-or-llm" : "llm",
           success: true,
         }).catch(() => {});
       } catch (err) {
@@ -296,7 +330,11 @@ export const chatRouter = {
       // AI-06: Medical Context Guardrails - Filter output
       let finalOutput = llmOutput;
       if (llmOutput) {
-        const outputFilter = filterOutput(llmOutput);
+        const outputFilter = filterOutput(
+          llmOutput,
+          undefined,
+          dialectToLocale(input.dialect),
+        );
         if (outputFilter.filteredContent) {
           finalOutput = outputFilter.filteredContent;
         }
