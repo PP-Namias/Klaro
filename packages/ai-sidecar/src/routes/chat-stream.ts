@@ -3,6 +3,7 @@ import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { Router } from "express";
 
 import { graph as retrievalGraph } from "../retrieval_graph/graph.js";
+import { extractAnswerText, extractChunkText } from "../shared/streaming.js";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -65,24 +66,24 @@ router.get("/stream", async (req: Request, res: Response) => {
 
     for await (const event of events) {
       if (event.event === "on_chat_model_stream") {
-        const chunk = event.data?.chunk as { content?: string } | undefined;
-        if (chunk?.content) {
-          const text = typeof chunk.content === "string" ? chunk.content : "";
-          if (text) {
-            finalAnswer += text;
-            sendSSE(res, { event: "token", token: text });
-          }
+        const chunk = event.data?.chunk as
+          | Parameters<typeof extractChunkText>[0]
+          | undefined;
+        const text = extractChunkText(chunk);
+        if (text) {
+          finalAnswer += text;
+          sendSSE(res, { event: "token", token: text });
         }
       } else if (
         event.event === "on_chain_end" &&
         (event.name === "generate" || event.name === "emptyAnswer")
       ) {
-        const output = event.data?.output as { answer?: string } | undefined;
-        if (output?.answer) {
+        const answer = extractAnswerText(event.data?.output);
+        if (answer) {
           if (!finalAnswer) {
-            sendSSE(res, { event: "token", token: output.answer });
+            sendSSE(res, { event: "token", token: answer });
           }
-          finalAnswer = output.answer;
+          finalAnswer = answer;
         }
         sendSSE(res, { event: "status", message: "Generation complete" });
       } else if (event.event === "on_chain_end" && event.name === "followUp") {

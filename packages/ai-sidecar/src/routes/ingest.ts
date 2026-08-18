@@ -48,7 +48,7 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
     res.json({
       status: "ok",
       ingested: true,
-      docCount: result.docs?.length ?? 0,
+      docCount: result.docCount ?? 0,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

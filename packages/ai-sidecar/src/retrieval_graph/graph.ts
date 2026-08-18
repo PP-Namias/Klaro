@@ -1,5 +1,7 @@
 import type { Document } from "@langchain/core/documents";
+import type { BaseMessage } from "@langchain/core/messages";
 import type { RunnableConfig } from "@langchain/core/runnables";
+import { AIMessage } from "@langchain/core/messages";
 import { END, START, StateGraph } from "@langchain/langgraph";
 
 import { RetrievalConfigurationAnnotation } from "./configuration.js";
@@ -30,34 +32,32 @@ function decide(
 async function generate(
   state: typeof RetrievalStateAnnotation.State,
   config?: RunnableConfig,
-): Promise<{ answer: string; messages: any[] }> {
+): Promise<{ answer: string; messages: BaseMessage[] }> {
   const answer = await generateAnswer(
     state.question,
     state.docs,
     state.messages,
     config,
   );
-  const aiMessage = { role: "assistant", content: answer };
   return {
     answer,
-    messages: [aiMessage],
+    messages: [new AIMessage(answer)],
   };
 }
 
 async function emptyAnswer(
   state: typeof RetrievalStateAnnotation.State,
   config?: RunnableConfig,
-): Promise<{ answer: string; messages: any[] }> {
+): Promise<{ answer: string; messages: BaseMessage[] }> {
   const answer = await generateAnswer(
     state.question,
     [],
     state.messages,
     config,
   );
-  const aiMessage = { role: "assistant", content: answer };
   return {
     answer,
-    messages: [aiMessage],
+    messages: [new AIMessage(answer)],
   };
 }
 

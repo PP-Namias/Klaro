@@ -11,6 +11,10 @@ export const IndexStateAnnotation = Annotation.Root({
     default: () => [],
     reducer: reduceDocs,
   }),
+  docCount: Annotation<number>({
+    default: () => 0,
+    reducer: (prev, next) => next,
+  }),
 });
 
 export type IndexState = typeof IndexStateAnnotation.State;
