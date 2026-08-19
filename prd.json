@@ -2,7 +2,7 @@
   "project": "Scanner UI/UX Revamp",
   "branch": "ticket/KL-UI-002-scanner-layout-fix",
   "version": "1.0.0",
-  "status": "in_progress",
+  "status": "completed",
   "phases": [
     {
       "id": "UI-P1",
@@ -27,10 +27,10 @@
     {
       "id": "UI-P3",
       "name": "Mobile Responsiveness & Final QA",
-      "status": "pending",
+      "status": "completed",
       "issues": [
-        { "id": "KL-UI-07", "task": "Verify the layout does not break on standard mobile viewports (chat input must remain usable on mobile)", "status": "pending" },
-        { "id": "KL-UI-08", "task": "Run a manual smoke test connecting the repaired UI back to the working LangGraph sidecar", "status": "pending" }
+        { "id": "KL-UI-07", "task": "Verify the layout does not break on standard mobile viewports (chat input must remain usable on mobile)", "status": "completed" },
+        { "id": "KL-UI-08", "task": "Run a manual smoke test connecting the repaired UI back to the working LangGraph sidecar", "status": "completed" }
       ]
     }
   ]
