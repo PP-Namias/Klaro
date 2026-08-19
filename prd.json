@@ -46,10 +46,10 @@
     {
       "id": "P4",
       "name": "Frontend Testing & QA",
-      "status": "in_progress",
+      "status": "completed",
       "issues": [
         { "id": "KL-AI-14", "task": "Write React hook and component tests for UI chat interface", "status": "completed" },
-        { "id": "KL-AI-15", "task": "Establish end-to-end (E2E) testing for critical chat flows", "status": "pending" }
+        { "id": "KL-AI-15", "task": "Establish end-to-end (E2E) testing for critical chat flows", "status": "completed" }
       ]
     },
     {
