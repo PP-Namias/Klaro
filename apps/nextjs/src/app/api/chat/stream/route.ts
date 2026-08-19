@@ -8,6 +8,7 @@ interface ProxyBody {
   content?: unknown;
   history?: unknown;
   image?: unknown;
+  metadata?: { threadId?: unknown; tenantId?: unknown };
 }
 
 const IMAGE_DATA_URI = /^data:image\/(png|jpe?g|webp|gif);base64,/i;
@@ -48,16 +49,32 @@ export async function POST(req: NextRequest) {
 
     const sidecarUrl = process.env.AI_SIDECAR_URL ?? "http://localhost:3002";
 
+    const authHeader = req.headers.get("Authorization");
+    const isGuest = !authHeader;
+    const tenantId =
+      typeof body.metadata?.tenantId === "string"
+        ? body.metadata.tenantId
+        : undefined;
+    const threadId =
+      typeof body.metadata?.threadId === "string"
+        ? body.metadata.threadId
+        : undefined;
+
     const response = await fetch(`${sidecarUrl}/api/chat/stream`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: req.headers.get("Authorization") ?? "",
+        ...(authHeader ? { Authorization: authHeader } : {}),
       },
       body: JSON.stringify({
         question: body.content,
         messages,
         ...(image ? { image } : {}),
+        metadata: {
+          guestMode: isGuest,
+          tenantId: isGuest ? "public" : (tenantId ?? undefined),
+          ...(threadId ? { threadId } : {}),
+        },
       }),
       signal: AbortSignal.timeout(30_000),
     });

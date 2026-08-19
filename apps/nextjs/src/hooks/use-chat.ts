@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import type { StreamMessage } from "~/hooks/use-chat-stream";
-import { streamChatResponse } from "~/hooks/use-chat-stream";
+import { streamChatResponse, useGuestSession } from "~/hooks/use-chat-stream";
 import { useTRPC, useTRPCClient } from "~/trpc/react";
 
 export type Dialect = "English" | "Filipino" | "Bisaya" | "Ilocano";
@@ -46,6 +46,7 @@ export function useChat({
 
   const trpc = useTRPC();
   const trpcClient = useTRPCClient();
+  const guestId = useGuestSession();
 
   // Load history when analysisId changes
   useEffect(() => {
@@ -139,19 +140,65 @@ export function useChat({
       setError(null);
 
       if (!analysisId) {
-        await new Promise<void>((resolve) => {
-          setTimeout(() => {
-            const fallbackMsg: ChatMessage = {
-              id: `clara-${Date.now()}`,
-              sender: "clara",
-              text: "I can help explain what you scanned and suggest the next best step. Please upload a document first so I can analyze your results.",
-              timestamp: Date.now(),
-            };
-            setMessages((prev) => [...prev, fallbackMsg]);
-            setIsTyping(false);
-            resolve();
-          }, 1200);
-        });
+        const placeholderId = `clara-stream-${Date.now()}`;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: placeholderId,
+            sender: "clara",
+            text: "",
+            timestamp: Date.now(),
+          },
+        ]);
+
+        try {
+          const complete = await streamChatResponse(
+            content,
+            messages
+              .filter((m) => m.sender === "user" || m.sender === "clara")
+              .map((m) => ({
+                role: m.sender === "user" ? "user" : "assistant",
+                content: m.text,
+              })),
+            {
+              onToken: (token) => {
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === placeholderId
+                      ? { ...msg, text: msg.text + token }
+                      : msg,
+                  ),
+                );
+              },
+            },
+            image,
+            guestId ? { threadId: guestId } : undefined,
+          );
+
+          const assistantMsg: ChatMessage = {
+            id: placeholderId,
+            sender: "clara",
+            text:
+              complete.answer ||
+              "I can help explain what you scanned and suggest the next best step.",
+            timestamp: Date.now(),
+          };
+          setMessages((prev) =>
+            prev.map((msg) => (msg.id === placeholderId ? assistantMsg : msg)),
+          );
+          setIsTyping(false);
+          onSuccess?.(assistantMsg);
+        } catch {
+          setMessages((prev) => prev.filter((msg) => msg.id !== placeholderId));
+          const fallbackMsg: ChatMessage = {
+            id: `clara-${Date.now()}`,
+            sender: "clara",
+            text: "I can help explain what you scanned and suggest the next best step. Please upload a document first so I can analyze your results.",
+            timestamp: Date.now(),
+          };
+          setMessages((prev) => [...prev, fallbackMsg]);
+          setIsTyping(false);
+        }
         return;
       }
 
@@ -217,7 +264,7 @@ export function useChat({
         // Error handled in onError callback
       }
     },
-    [analysisId, dialect, messages, sendMessageMutation],
+    [analysisId, dialect, guestId, messages, sendMessageMutation],
   );
 
   const clearMessages = useCallback(async () => {

@@ -7,6 +7,11 @@ export interface StreamMessage {
   content: string;
 }
 
+export interface StreamMetadata {
+  threadId?: string;
+  tenantId?: string;
+}
+
 export interface StreamTokenEvent {
   event: "token";
   token: string;
@@ -65,18 +70,37 @@ export function parseSsePayload(
   }
 }
 
+export const GUEST_SESSION_KEY = "chat_guest_id";
+
+export function useGuestSession(): string | null {
+  const [guestId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    let currentGuest = sessionStorage.getItem(GUEST_SESSION_KEY);
+    if (!currentGuest) {
+      currentGuest = `guest_${crypto.randomUUID()}`;
+      sessionStorage.setItem(GUEST_SESSION_KEY, currentGuest);
+    }
+    return currentGuest;
+  });
+
+  return guestId;
+}
+
 export async function streamChatResponse(
   content: string,
   history: StreamMessage[],
   handlers: StreamHandlers = {},
   image?: string,
+  metadata?: StreamMetadata,
 ): Promise<StreamCompleteEvent> {
+  const payload: Record<string, unknown> = { content, history };
+  if (image) payload.image = image;
+  if (metadata) payload.metadata = metadata;
+
   const res = await fetch("/api/chat/stream", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(
-      image ? { content, history, image } : { content, history },
-    ),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok || !res.body) {
