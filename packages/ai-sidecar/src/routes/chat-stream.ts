@@ -6,6 +6,8 @@ import type { Request, Response } from "express";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { Router } from "express";
 
+import type { AuthenticatedRequest, AuthUser } from "../middleware/auth.js";
+import { requireAuth } from "../middleware/auth.js";
 import { graph as retrievalGraph } from "../retrieval_graph/graph.js";
 import { extractAnswerText, extractChunkText } from "../shared/streaming.js";
 
@@ -23,7 +25,6 @@ interface ChatStreamQuery {
 interface ChatStreamMetadata {
   guestMode?: unknown;
   threadId?: unknown;
-  tenantId?: unknown;
 }
 
 const IMAGE_DATA_URI = /^data:image\/(png|jpe?g|webp|gif);base64,/i;
@@ -47,12 +48,27 @@ function buildUserContent(
   return blocks;
 }
 
+function buildChatConfigurable(
+  user: AuthUser,
+  guestMode: boolean,
+): Record<string, unknown> {
+  return {
+    tenantId: user.tenantId,
+    patientId: user.patientId,
+    filterKwargs: {
+      ...(guestMode ? { namespace: "public_faq" } : {}),
+      tenantId: user.tenantId,
+    },
+    ...(guestMode ? { k: 3 } : {}),
+  };
+}
+
 async function streamResponse(
   res: Response,
   question: string,
   parsedMessages: ChatMessage[],
   image?: string,
-  metadata?: ChatStreamMetadata,
+  configurable?: Record<string, unknown>,
 ): Promise<void> {
   const langchainMessages = parsedMessages.map((msg) => {
     if (msg.role === "user") {
@@ -82,20 +98,11 @@ async function streamResponse(
   let finalAnswer = "";
   let followUpQuestions: string[] = [];
 
-  const isGuest = metadata?.guestMode === true;
-
-  const configurable: Record<string, unknown> | undefined = isGuest
-    ? {
-        k: 3,
-        filterKwargs: { namespace: "public_faq" },
-      }
-    : undefined;
-
   const events = retrievalGraph.streamEvents(
     { question, messages: langchainMessages },
     {
       version: "v2",
-      ...(configurable ? { configurable } : {}),
+      configurable,
     } as Parameters<typeof retrievalGraph.streamEvents>[1],
   );
 
@@ -160,7 +167,7 @@ async function runStream(
   question: string,
   parsedMessages: ChatMessage[],
   image?: string,
-  metadata?: ChatStreamMetadata,
+  configurable?: Record<string, unknown>,
 ): Promise<void> {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -172,7 +179,7 @@ async function runStream(
   res.flushHeaders();
 
   try {
-    await streamResponse(res, question, parsedMessages, image, metadata);
+    await streamResponse(res, question, parsedMessages, image, configurable);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     const isQuota =
@@ -190,74 +197,106 @@ async function runStream(
   }
 }
 
-router.get("/stream", async (req: Request, res: Response) => {
-  const { question, messages: rawMessages } = req.query as ChatStreamQuery;
+router.get(
+  "/stream",
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { question, messages: rawMessages } = req.query as ChatStreamQuery;
 
-  if (!question) {
-    res.status(400).json({ error: "question query parameter is required" });
-    return;
-  }
-
-  let parsedMessages: ChatMessage[] = [];
-  if (rawMessages) {
-    try {
-      parsedMessages = parseMessages(rawMessages);
-    } catch {
-      res.status(400).json({ error: "Invalid messages JSON" });
+    if (!question) {
+      res.status(400).json({ error: "question query parameter is required" });
       return;
     }
-  }
 
-  await runStream(req, res, question, parsedMessages);
-});
+    const user = req.user;
+    if (!user) {
+      res
+        .status(401)
+        .json({ error: "Missing or invalid authorization header" });
+      return;
+    }
 
-router.post("/stream", async (req: Request, res: Response) => {
-  const body = req.body as
-    | {
-        question?: unknown;
-        messages?: unknown;
-        image?: unknown;
-        metadata?: unknown;
+    let parsedMessages: ChatMessage[] = [];
+    if (rawMessages) {
+      try {
+        parsedMessages = parseMessages(rawMessages);
+      } catch {
+        res.status(400).json({ error: "Invalid messages JSON" });
+        return;
       }
-    | undefined;
+    }
 
-  if (!body || typeof body.question !== "string" || !body.question) {
-    res.status(400).json({ error: "question is required in the request body" });
-    return;
-  }
+    await runStream(
+      req,
+      res,
+      question,
+      parsedMessages,
+      undefined,
+      buildChatConfigurable(user, false),
+    );
+  },
+);
 
-  let parsedMessages: ChatMessage[] = [];
-  if (body.messages !== undefined) {
-    try {
-      parsedMessages = parseMessages(JSON.stringify(body.messages));
-    } catch {
-      res.status(400).json({ error: "Invalid messages array" });
+router.post(
+  "/stream",
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    const body = req.body as
+      | {
+          question?: unknown;
+          messages?: unknown;
+          image?: unknown;
+          metadata?: unknown;
+        }
+      | undefined;
+
+    if (!body || typeof body.question !== "string" || !body.question) {
+      res
+        .status(400)
+        .json({ error: "question is required in the request body" });
       return;
     }
-  }
 
-  const image =
-    typeof body.image === "string" && IMAGE_DATA_URI.test(body.image)
-      ? body.image
-      : undefined;
+    let parsedMessages: ChatMessage[] = [];
+    if (body.messages !== undefined) {
+      try {
+        parsedMessages = parseMessages(JSON.stringify(body.messages));
+      } catch {
+        res.status(400).json({ error: "Invalid messages array" });
+        return;
+      }
+    }
 
-  const rawMetadata = body.metadata as Partial<ChatStreamMetadata> | undefined;
-  const metadata: ChatStreamMetadata | undefined =
-    rawMetadata && typeof rawMetadata === "object"
-      ? {
-          guestMode: rawMetadata.guestMode === true,
-          threadId:
-            typeof rawMetadata.threadId === "string"
-              ? rawMetadata.threadId
-              : undefined,
-          tenantId:
-            typeof rawMetadata.tenantId === "string"
-              ? rawMetadata.tenantId
-              : undefined,
-        }
-      : undefined;
+    const image =
+      typeof body.image === "string" && IMAGE_DATA_URI.test(body.image)
+        ? body.image
+        : undefined;
 
-  await runStream(req, res, body.question, parsedMessages, image, metadata);
-});
+    const rawMetadata = body.metadata as
+      | Partial<ChatStreamMetadata>
+      | undefined;
+    const guestMode =
+      rawMetadata && typeof rawMetadata === "object"
+        ? rawMetadata.guestMode === true
+        : false;
+
+    const user = req.user;
+    if (!user) {
+      res
+        .status(401)
+        .json({ error: "Missing or invalid authorization header" });
+      return;
+    }
+
+    await runStream(
+      req,
+      res,
+      body.question,
+      parsedMessages,
+      image,
+      buildChatConfigurable(user, guestMode),
+    );
+  },
+);
 
 export default router;
