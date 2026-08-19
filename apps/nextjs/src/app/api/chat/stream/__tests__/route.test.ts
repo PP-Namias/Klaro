@@ -3,10 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "../route";
 
-function makeRequest(body: unknown): NextRequest {
+function makeRequest(
+  body: unknown,
+  headers?: Record<string, string>,
+): NextRequest {
   return {
     json: async () => body,
-    headers: new Headers({ Authorization: "Bearer test-token" }),
+    headers: new Headers(headers ?? { Authorization: "Bearer test-token" }),
   } as unknown as NextRequest;
 }
 
@@ -73,6 +76,7 @@ describe("POST /api/chat/stream proxy", () => {
             { role: "user", content: "hi" },
             { role: "assistant", content: "hello" },
           ],
+          metadata: { guestMode: false },
         }),
       }),
     );
@@ -99,6 +103,7 @@ describe("POST /api/chat/stream proxy", () => {
     expect(JSON.parse(init.body)).toEqual({
       question: "hello",
       messages: [{ role: "assistant", content: "sys" }],
+      metadata: { guestMode: false },
     });
   });
 
@@ -150,5 +155,57 @@ describe("POST /api/chat/stream proxy", () => {
     const res = await POST(makeRequest({ content: "hi", image: huge }));
     expect(res.status).toBe(413);
     expect(await res.json()).toEqual({ error: "Image payload too large" });
+  });
+
+  it("tags requests without an Authorization header as guest mode", async () => {
+    const fetchMock = vi.mocked(fetch).mockResolvedValue(sseResponse(""));
+
+    await POST(makeRequest({ content: "what is diabetes?" }, {}));
+
+    const [, init] = fetchMock.mock.calls[0] as [
+      string,
+      { headers: Record<string, string>; body: string },
+    ];
+    expect(init.headers.Authorization).toBeUndefined();
+    expect(JSON.parse(init.body)).toMatchObject({
+      question: "what is diabetes?",
+      metadata: { guestMode: true, tenantId: "public" },
+    });
+  });
+
+  it("forwards threadId metadata and tenantId for authenticated users", async () => {
+    const fetchMock = vi.mocked(fetch).mockResolvedValue(sseResponse(""));
+
+    await POST(
+      makeRequest(
+        {
+          content: "hello",
+          metadata: { threadId: "guest_abc", tenantId: "clinic-1" },
+        },
+        { Authorization: "Bearer test-token" },
+      ),
+    );
+
+    const [, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+    expect(JSON.parse(init.body)).toMatchObject({
+      metadata: {
+        guestMode: false,
+        tenantId: "clinic-1",
+        threadId: "guest_abc",
+      },
+    });
+  });
+
+  it("forces tenantId to public for guest requests even when one is supplied", async () => {
+    const fetchMock = vi.mocked(fetch).mockResolvedValue(sseResponse(""));
+
+    await POST(
+      makeRequest({ content: "hello", metadata: { tenantId: "clinic-1" } }, {}),
+    );
+
+    const [, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+    expect(JSON.parse(init.body)).toMatchObject({
+      metadata: { guestMode: true, tenantId: "public" },
+    });
   });
 });

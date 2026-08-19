@@ -228,4 +228,53 @@ describe("POST /api/chat/stream", () => {
     const current = messages[messages.length - 1] as { content: string };
     expect(current.content).toBe("hello");
   });
+
+  it("restricts retrieval to the public FAQ namespace for guest mode", async () => {
+    const res = await request(app)
+      .post("/api/chat/stream")
+      .send({
+        question: "what is hypertension?",
+        metadata: { guestMode: true },
+      })
+      .buffer(true)
+      .parse((res, cb) => {
+        let data = "";
+        res.on("data", (chunk: Buffer) => {
+          data += chunk.toString();
+        });
+        res.on("end", () => {
+          cb(null, data);
+        });
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body as string).toContain('"event":"complete"');
+
+    const [, options] = vi.mocked(graph.streamEvents).mock.calls.at(-1) ?? [];
+    expect(options).toEqual({
+      version: "v2",
+      configurable: { k: 3, filterKwargs: { namespace: "public_faq" } },
+    });
+  });
+
+  it("keeps the default retrieval config for non-guest requests", async () => {
+    const res = await request(app)
+      .post("/api/chat/stream")
+      .send({ question: "hello", metadata: { guestMode: false } })
+      .buffer(true)
+      .parse((res, cb) => {
+        let data = "";
+        res.on("data", (chunk: Buffer) => {
+          data += chunk.toString();
+        });
+        res.on("end", () => {
+          cb(null, data);
+        });
+      });
+
+    expect(res.status).toBe(200);
+
+    const [, options] = vi.mocked(graph.streamEvents).mock.calls.at(-1) ?? [];
+    expect(options).toEqual({ version: "v2" });
+  });
 });

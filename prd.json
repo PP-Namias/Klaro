@@ -6,7 +6,7 @@
   "gates": {
     "typecheck": "15/15",
     "lint": "13/13",
-    "tests_passing": 1469
+    "tests_passing": 1479
   },
   "phases": [
     {
@@ -25,12 +25,12 @@
     {
       "id": "P2",
       "name": "UI Integration & Streaming",
-      "status": "in_progress",
+      "status": "completed",
       "issues": [
         { "id": "KL-AI-07", "task": "Build Next.js proxy route for sidecar SSE streaming", "status": "completed" },
         { "id": "KL-AI-08", "task": "Implement UI EventSource consumption for real-time typing", "status": "completed" },
         { "id": "KL-AI-09", "task": "Render inline image support and file attachments in chat", "status": "completed" },
-        { "id": "KL-AI-10", "task": "Implement guest chat mode and unauthenticated fallbacks", "status": "pending" }
+        { "id": "KL-AI-10", "task": "Implement guest chat mode and unauthenticated fallbacks", "status": "completed" }
       ]
     },
     {

@@ -6,6 +6,7 @@ import {
   parseSsePayload,
   streamChatResponse,
   useChatStream,
+  useGuestSession,
 } from "../use-chat-stream";
 
 function sseStream(chunks: string[]): Response {
@@ -135,6 +136,55 @@ describe("streamChatResponse", () => {
     await expect(streamChatResponse("hello", [])).rejects.toThrow(
       "Stream ended without a complete event",
     );
+  });
+
+  it("sends metadata alongside the payload when provided", async () => {
+    const stream = sseStream(['data: {"event":"complete","answer":"Hi"}\n\n']);
+    vi.mocked(fetch).mockResolvedValue(stream);
+
+    await streamChatResponse("hello", [], undefined, undefined, {
+      threadId: "guest_abc",
+    });
+
+    const [, init] = vi.mocked(fetch).mock.calls[0] as [
+      string,
+      { body: string },
+    ];
+    const payload = JSON.parse(init.body) as {
+      metadata?: { threadId?: string };
+    };
+    expect(payload.metadata).toEqual({ threadId: "guest_abc" });
+  });
+});
+
+describe("useGuestSession", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    sessionStorage.clear();
+  });
+
+  it("creates and persists a guest id in sessionStorage", async () => {
+    const { result } = renderHook(() => useGuestSession());
+
+    await waitFor(() => {
+      expect(result.current).toMatch(/^guest_[0-9a-f-]+$/);
+    });
+
+    const stored = sessionStorage.getItem("chat_guest_id");
+    expect(stored).toBe(result.current);
+  });
+
+  it("reuses an existing guest id and stays stable across renders", async () => {
+    sessionStorage.setItem("chat_guest_id", "guest_existing");
+
+    const { result, rerender } = renderHook(() => useGuestSession());
+
+    await waitFor(() => {
+      expect(result.current).toBe("guest_existing");
+    });
+
+    rerender();
+    expect(result.current).toBe("guest_existing");
   });
 });
 
