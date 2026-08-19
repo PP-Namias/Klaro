@@ -79,7 +79,24 @@ export async function POST(req: NextRequest) {
       signal: AbortSignal.timeout(30_000),
     });
 
-    if (!response.ok || !response.body) {
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      let errorBody: unknown = null;
+      try {
+        errorBody = JSON.parse(errorText) as unknown;
+      } catch {
+        errorBody = null;
+      }
+      if (errorBody && typeof errorBody === "object") {
+        return Response.json(errorBody, { status: response.status });
+      }
+      return Response.json(
+        { error: errorText || "Sidecar request failed" },
+        { status: response.status },
+      );
+    }
+
+    if (!response.body) {
       throw new Error(`Sidecar streaming failed: ${response.statusText}`);
     }
 

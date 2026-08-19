@@ -8,7 +8,9 @@ import { Router } from "express";
 
 import type { AuthenticatedRequest, AuthUser } from "../middleware/auth.js";
 import { requireAuth } from "../middleware/auth.js";
+import { rateLimiter } from "../middleware/rate-limit.js";
 import { graph as retrievalGraph } from "../retrieval_graph/graph.js";
+import { createCostTracker } from "../shared/costTracking.js";
 import { extractAnswerText, extractChunkText } from "../shared/streaming.js";
 
 interface ChatMessage {
@@ -63,12 +65,26 @@ function buildChatConfigurable(
   };
 }
 
+function buildStreamOptions(
+  configurable: Record<string, unknown>,
+  tenantId: string,
+): Parameters<typeof retrievalGraph.streamEvents>[1] {
+  const options: Record<string, unknown> = {
+    version: "v2",
+    configurable,
+    callbacks: createCostTracker(tenantId).callbacks,
+  };
+  return options as unknown as Parameters<
+    typeof retrievalGraph.streamEvents
+  >[1];
+}
+
 async function streamResponse(
   res: Response,
   question: string,
   parsedMessages: ChatMessage[],
   image?: string,
-  configurable?: Record<string, unknown>,
+  options?: Parameters<typeof retrievalGraph.streamEvents>[1],
 ): Promise<void> {
   const langchainMessages = parsedMessages.map((msg) => {
     if (msg.role === "user") {
@@ -100,10 +116,7 @@ async function streamResponse(
 
   const events = retrievalGraph.streamEvents(
     { question, messages: langchainMessages },
-    {
-      version: "v2",
-      configurable,
-    } as Parameters<typeof retrievalGraph.streamEvents>[1],
+    options ?? ({} as Parameters<typeof retrievalGraph.streamEvents>[1]),
   );
 
   for await (const event of events) {
@@ -167,7 +180,7 @@ async function runStream(
   question: string,
   parsedMessages: ChatMessage[],
   image?: string,
-  configurable?: Record<string, unknown>,
+  options?: Parameters<typeof retrievalGraph.streamEvents>[1],
 ): Promise<void> {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -179,7 +192,7 @@ async function runStream(
   res.flushHeaders();
 
   try {
-    await streamResponse(res, question, parsedMessages, image, configurable);
+    await streamResponse(res, question, parsedMessages, image, options);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     const isQuota =
@@ -200,6 +213,7 @@ async function runStream(
 router.get(
   "/stream",
   requireAuth,
+  rateLimiter,
   async (req: AuthenticatedRequest, res: Response) => {
     const { question, messages: rawMessages } = req.query as ChatStreamQuery;
 
@@ -232,7 +246,7 @@ router.get(
       question,
       parsedMessages,
       undefined,
-      buildChatConfigurable(user, false),
+      buildStreamOptions(buildChatConfigurable(user, false), user.tenantId),
     );
   },
 );
@@ -240,6 +254,7 @@ router.get(
 router.post(
   "/stream",
   requireAuth,
+  rateLimiter,
   async (req: AuthenticatedRequest, res: Response) => {
     const body = req.body as
       | {
@@ -294,7 +309,7 @@ router.post(
       body.question,
       parsedMessages,
       image,
-      buildChatConfigurable(user, guestMode),
+      buildStreamOptions(buildChatConfigurable(user, guestMode), user.tenantId),
     );
   },
 );
