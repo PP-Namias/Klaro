@@ -6,7 +6,7 @@
   "gates": {
     "typecheck": "15/15",
     "lint": "13/13",
-    "tests_passing": 1529
+    "tests_passing": 1530
   },
   "phases": [
     {
@@ -55,9 +55,9 @@
     {
       "id": "P5",
       "name": "Release & Merge",
-      "status": "pending",
+      "status": "completed",
       "issues": [
-        { "id": "KL-AI-16", "task": "Execute full smoke test, finalize PR, and merge branch", "status": "pending" }
+        { "id": "KL-AI-16", "task": "Execute full smoke test, finalize PR, and merge branch", "status": "completed" }
       ]
     }
   ]

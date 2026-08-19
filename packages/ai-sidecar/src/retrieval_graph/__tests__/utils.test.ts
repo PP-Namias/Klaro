@@ -85,6 +85,46 @@ describe("generateAnswer", () => {
     expect(answer).toContain("Hemoglobin 13.2 g/dL");
     expect(mockedLoadChatModel).not.toHaveBeenCalled();
   });
+
+  it("sends exactly one system message first with history folded in", async () => {
+    vi.stubEnv("ENABLE_MOCK_MODE", "false");
+    const fakeModel = {
+      invoke: vi.fn(async () => ({ content: "answer" })),
+    };
+    mockedLoadChatModel.mockResolvedValue(fakeModel as never);
+
+    const answer = await generateAnswer(
+      "What does this mean?",
+      [
+        { pageContent: "WBC 8.2", metadata: { sourceFile: "lab.pdf" } },
+      ] as Document[],
+      [
+        new HumanMessage("Ano ang WBC ko?"),
+        new AIMessage("Ang iyong WBC ay normal."),
+        new HumanMessage("What does this mean?"),
+      ],
+    );
+
+    expect(answer).toBe("answer");
+    const messages = fakeModel.invoke.mock.calls[0][0] as unknown[];
+    const systemMessages = messages.filter(
+      (m) => (m as { _getType?: () => string })._getType?.() === "system",
+    );
+    expect(systemMessages).toHaveLength(1);
+    expect(systemMessages[0]).toMatchObject({});
+    const content =
+      (systemMessages[0] as { content?: string }).content?.toString() ?? "";
+    expect(content).toContain("WBC 8.2");
+    expect(content).toContain("Ano ang WBC ko?");
+    expect(content).toContain("Ang iyong WBC ay normal.");
+    expect(content).not.toContain("What does this mean?");
+    const lastMessage = messages.at(-1) as {
+      _getType?: () => string;
+      content?: string;
+    };
+    expect(lastMessage._getType?.()).toBe("human");
+    expect(lastMessage.content).toBe("What does this mean?");
+  });
 });
 
 describe("generateFollowUpQuestions", () => {
