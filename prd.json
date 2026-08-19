@@ -17,11 +17,11 @@
     {
       "id": "UI-P2",
       "name": "Camera & Upload Dropzone Polish",
-      "status": "pending",
+      "status": "completed",
       "issues": [
-        { "id": "KL-UI-04", "task": "Refine the height and padding of the 'Take a photo & Scan here' container to save vertical space", "status": "pending" },
-        { "id": "KL-UI-05", "task": "Ensure the drag-and-drop file upload zone has clear active/hover states", "status": "pending" },
-        { "id": "KL-UI-06", "task": "Verify that uploaded images preview correctly inside the new chat input UI before sending", "status": "pending" }
+        { "id": "KL-UI-04", "task": "Refine the height and padding of the 'Take a photo & Scan here' container to save vertical space", "status": "completed" },
+        { "id": "KL-UI-05", "task": "Ensure the drag-and-drop file upload zone has clear active/hover states", "status": "completed" },
+        { "id": "KL-UI-06", "task": "Verify that uploaded images preview correctly inside the new chat input UI before sending", "status": "completed" }
       ]
     },
     {
