@@ -3,6 +3,23 @@ import { ChatOpenAI } from "@langchain/openai";
 
 type ModelConstructor = new (fields: Record<string, unknown>) => BaseChatModel;
 
+/**
+ * Single source of truth for the chat model spec (format: "provider/model").
+ * Resolution order: explicit override > CHAT_MODEL > LLM_PROVIDER > "openai/gpt-4o-mini".
+ * Bare provider names (e.g. "gemini") are valid and resolve to a default model.
+ * Empty strings are treated as unset.
+ */
+export function resolveModelSpec(override?: string): string {
+  /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- empty strings mean "unset" here */
+  return (
+    override ||
+    process.env.CHAT_MODEL ||
+    process.env.LLM_PROVIDER ||
+    "openai/gpt-4o-mini"
+  );
+  /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+}
+
 export async function loadChatModel(
   spec: string,
   temperature = 0.2,
@@ -34,11 +51,21 @@ const PROVIDER_ALIASES: Record<string, string> = {
   gpt: "openai",
   claude: "anthropic",
   llama: "ollama",
+  openai: "openai",
+  anthropic: "anthropic",
+  "google-genai": "google-genai",
+  groq: "groq",
+  ollama: "ollama",
+  bedrock: "bedrock",
+  together: "together",
+  fireworks: "fireworks",
 };
 
 const DEFAULT_MODELS: Record<string, string> = {
-  "google-genai": "gemini-2.0-flash",
+  "google-genai": "gemini-3.6-flash",
   ollama: "llama3",
+  openai: "gpt-4o-mini",
+  anthropic: "claude-3-5-haiku-20241022",
 };
 
 async function initSingleModel(
@@ -47,27 +74,32 @@ async function initSingleModel(
 ): Promise<BaseChatModel> {
   const idx = spec.indexOf("/");
   const rawProvider = idx === -1 ? undefined : spec.slice(0, idx);
-  const model = idx === -1 ? spec : spec.slice(idx + 1);
+  const model = idx === -1 ? undefined : spec.slice(idx + 1);
 
-  const normalizedProvider = rawProvider
-    ? (PROVIDER_ALIASES[rawProvider] ?? rawProvider)
-    : (PROVIDER_ALIASES[spec] ?? undefined);
+  let provider: string | undefined;
+  let resolvedModel: string;
 
-  const resolvedModel =
-    normalizedProvider && PROVIDER_ALIASES[spec]
-      ? (DEFAULT_MODELS[normalizedProvider] ?? model)
-      : model;
+  if (rawProvider) {
+    provider = PROVIDER_ALIASES[rawProvider] ?? rawProvider;
+    resolvedModel = model ?? DEFAULT_MODELS[provider] ?? "gpt-4o-mini";
+  } else if (PROVIDER_ALIASES[spec]) {
+    provider = PROVIDER_ALIASES[spec];
+    resolvedModel = DEFAULT_MODELS[provider] ?? "gpt-4o-mini";
+  } else {
+    provider = "openai";
+    resolvedModel = spec;
+  }
 
-  const ctor = await resolveModelCtor(normalizedProvider);
+  const ctor = await resolveModelCtor(provider);
   if (ctor) {
-    return new ctor(buildArgs(normalizedProvider, resolvedModel, temperature));
+    return new ctor(buildArgs(provider, resolvedModel, temperature));
   }
 
   console.warn(
-    `[ai-sidecar] Provider "${normalizedProvider ?? "none"}" not available, falling back to OpenAI`,
+    `[ai-sidecar] Provider "${provider}" not available, falling back to OpenAI`,
   );
   return new ChatOpenAI({
-    model: spec,
+    model: resolvedModel,
     temperature,
     apiKey: process.env.OPENAI_API_KEY || process.env.LLM_API_KEY,
   });
@@ -94,7 +126,7 @@ function buildArgs(
     case "google-genai":
       return {
         ...base,
-        model: model || "gemini-2.0-flash",
+        model: model || "gemini-3.6-flash",
         apiKey:
           process.env.GOOGLE_API_KEY ||
           process.env.GOOGLE_GENAI_API_KEY ||
@@ -159,11 +191,7 @@ async function tryImport(
   exportName: string,
 ): Promise<ModelConstructor | null> {
   try {
-    const mod = await (
-      Function('return import("' + modulePath + '")') as () => Promise<
-        Record<string, unknown>
-      >
-    )();
+    const mod = (await import(modulePath)) as Record<string, unknown>;
     const ctor = mod[exportName];
     if (typeof ctor === "function") {
       return ctor as unknown as ModelConstructor;

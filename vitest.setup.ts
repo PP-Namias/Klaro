@@ -18,12 +18,16 @@ process.env.AUTH_GOOGLE_SECRET = "mock-google-secret";
 process.env.AUTH_SECRET = "mock-auth-secret";
 process.env.AI_SIDECAR_URL = "http://localhost:3002";
 process.env.ANTHROPIC_API_KEY = "mock-anthropic-key";
+process.env.JWT_SECRET = "test-jwt-secret";
+process.env.RATE_LIMIT_MAX_REQUESTS = "1000";
+process.env.RATE_LIMIT_WINDOW_MS = "60000";
 process.env.AWS_BEDROCK_REGION = "us-east-1";
 process.env.CHAT_MODEL_FALLBACK = "openai/gpt-4o-mini";
 process.env.CHUNK_SIZE = "1000";
 process.env.CORS_ORIGINS = "*";
 process.env.CAL_COM_USERNAME = "mock-user";
-process.env.ENCRYPTION_MASTER_KEY = "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890";
+process.env.ENCRYPTION_MASTER_KEY =
+  "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890";
 process.env.ENCRYPTION_KEY_VERSION = "1";
 process.env.CLOUDINARY_CLOUD_NAME = "mock-cloud";
 process.env.CLOUDINARY_API_KEY = "mock-key";

@@ -57,3 +57,5 @@ dist/
 # playwright
 playwright-report
 test-results
+e2e-screenshots/
+apps/nextjs/e2e-screenshots/

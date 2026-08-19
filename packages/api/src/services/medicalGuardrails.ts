@@ -202,6 +202,7 @@ export function checkInputGuardrails(
 export function filterOutput(
   output: string,
   config: GuardrailConfig = DEFAULT_CONFIG,
+  language = "en",
 ): GuardrailResult {
   if (!config.enableOutputFiltering) {
     return {
@@ -242,7 +243,10 @@ export function filterOutput(
   if (config.enforceDisclaimers && modifications.length === 0) {
     // Only add disclaimer to substantive responses
     if (filtered.length > 100) {
-      filtered = `${filtered}\n\n---\n*${MEDICAL_DISCLAIMERS.en}*`;
+      const disclaimer =
+        MEDICAL_DISCLAIMERS[language as keyof typeof MEDICAL_DISCLAIMERS] ??
+        MEDICAL_DISCLAIMERS.en;
+      filtered = `${filtered}\n\n---\n*${disclaimer}*`;
       modifications.push("disclaimer_added");
     }
   }

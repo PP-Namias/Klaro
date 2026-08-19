@@ -72,9 +72,12 @@
 
 <br/>
 
-<video src="./apps/nextjs/public/Klara.mp4" controls width="100%" poster="./apps/nextjs/public/Klaro.png">
-  Your browser does not support the video tag. Download the demo video <a href="./apps/nextjs/public/Klara.mp4">here</a>.
-</video>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./public/klaro.gif">
+  <img src="./public/klaro.gif" alt="Klaro demo" width="100%">
+</picture>
+
+> 📥 Download the full demo video: [`klaro.mp4`](./public/klaro.mp4) (5.4 MB)
 
 ---
 
@@ -94,15 +97,7 @@ Klaro makes healthcare accessible by turning complex medical documents into plai
 
 > [!IMPORTANT]
 >
-> **Star us** on GitHub to receive all release notifications without delay ~
-
-<details>
-  <summary><kbd>Star History</kbd></summary>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=PP-Namias/klaro&theme=dark&type=Date">
-    <img width="100%" src="https://api.star-history.com/svg?repos=PP-Namias/klaro&type=Date">
-  </picture>
-</details>
+> **Star us** on GitHub — every star helps more Filipinos discover accessible healthcare 🫶
 
 ---
 
@@ -408,7 +403,6 @@ This starts:
 >
 > Complete environment variable reference in the [Environment Variables Guide][docs-env-var].
 
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -443,7 +437,6 @@ This starts:
 | **CI/CD** | GitHub Actions (+ Renovate for dependency updates) |
 | **Deployment** | Vercel (web), Docker (ai-sidecar) |
 
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -500,7 +493,6 @@ pnpm dev
 
 See the [Mobile Development Guide][docs-mobile] for device setup.
 
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -558,7 +550,6 @@ pnpm exec playwright test e2e/upload-flow.spec.ts
 >
 > CI blocks merges below 80% branch coverage. See the [Testing Guide][docs-testing] for details.
 
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -580,7 +571,6 @@ pnpm exec playwright test e2e/upload-flow.spec.ts
 | `@klaro/tailwind-config` | `tooling/tailwind/` | Tailwind CSS 4 theme and PostCSS configuration |
 | `@klaro/tsconfig` | `tooling/typescript/` | TypeScript 5.8 strict mode configuration |
 
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -620,40 +610,10 @@ Contributions of all types are welcome. Whether fixing a typo, adding a translat
 - **UI/UX** -- Design improvements, accessibility fixes, mobile responsiveness
 
 <a href="https://github.com/PP-Namias/klaro/graphs/contributors" target="_blank">
-  <table>
-    <tr>
-      <th colspan="2">
-        <br><img src="https://contrib.rocks/image?repo=PP-Namias/klaro"><br><br>
-      </th>
-    </tr>
-    <tr>
-      <td>
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-org-active-contributors/thumbnail.png?activity=active&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=2x3&color_scheme=dark">
-          <img src="https://next.ossinsight.io/widgets/official/compose-org-active-contributors/thumbnail.png?activity=active&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=2x3&color_scheme=light">
-        </picture>
-      </td>
-      <td rowspan="2">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-org-participants-growth/thumbnail.png?activity=active&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=4x7&color_scheme=dark">
-          <img src="https://next.ossinsight.io/widgets/official/compose-org-participants-growth/thumbnail.png?activity=active&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=4x7&color_scheme=light">
-        </picture>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-org-active-contributors/thumbnail.png?activity=new&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=2x3&color_scheme=dark">
-          <img src="https://next.ossinsight.io/widgets/official/compose-org-active-contributors/thumbnail.png?activity=new&period=past_28_days&owner_id=PP-Namias&repo_ids=klaro&image_size=2x3&color_scheme=light">
-        </picture>
-      </td>
-    </tr>
-  </table>
+  <img src="https://contrib.rocks/image?repo=PP-Namias/klaro" alt="Contributors">
 </a>
 
 Please review [CONTRIBUTING.md](./CONTRIBUTING.md) for our full contribution guidelines and code of conduct.
-
-[![][back-to-top]](#readme-top)
 
 ---
 
@@ -662,13 +622,10 @@ Please review [CONTRIBUTING.md](./CONTRIBUTING.md) for our full contribution gui
 Copyright (c) 2026 [Jhon Keneth Namias][profile-link]. <br />
 This project is [MIT](./LICENSE) licensed.
 
-[![][back-to-top]](#readme-top)
-
 ---
 
 <!-- LINK GROUP -->
 
-[back-to-top]: https://img.shields.io/badge/-BACK_TO_TOP-151515?style=flat-square
 [official-site]: https://www.klaro-scans.tech
 [docs]: ./docs/README.md
 [docs-deployment]: ./docs/DEPLOYMENT_GUIDE.md
@@ -702,8 +659,6 @@ This project is [MIT](./LICENSE) licensed.
 
 [docker-release-link]: https://hub.docker.com/r/ppnamias/klaro
 [docker-release-shield]: https://img.shields.io/badge/docker-pending-369eff?labelColor=black&logo=docker&logoColor=white&style=flat-square
-[docker-size-shield]: https://img.shields.io/badge/docker%20size-pending-369eff?labelColor=black&style=flat-square
-[docker-pulls-shield]: https://img.shields.io/badge/docker%20pulls-pending-45cc11?labelColor=black&style=flat-square
 
 [vercel-shield]: https://img.shields.io/badge/vercel-deployed-55b467?labelColor=black&logo=vercel&style=flat-square
 [playwright-link]: https://playwright.dev
@@ -712,14 +667,10 @@ This project is [MIT](./LICENSE) licensed.
 [discord-shield]: https://img.shields.io/badge/discord-join-5865F2?labelColor=black&logo=discord&logoColor=white&style=flat-square
 [discord-shield-badge]: https://img.shields.io/badge/discord-join_us-5865F2?labelColor=black&logo=discord&logoColor=white&style=for-the-badge
 
-[codespaces-shield]: https://github.com/codespaces/badge.svg
-[codespaces-link]: https://codespaces.new/PP-Namias/klaro
-
 [deploy-button-image]: https://vercel.com/button
 [deploy-link]: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPP-Namias%2Fklaro&env=POSTGRES_URL,AUTH_SECRET,LLM_API_KEY,CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET&project-name=klaro&repository-name=klaro
 
-[image-banner]: ./apps/nextjs/public/klaro.png
-[image-star]: https://github.com/user-attachments/assets/3216e25b-186f-4a54-9cb4-2f124aec0471
+[image-banner]: ./apps/nextjs/public/Klaro.png
 
 [profile-link]: https://github.com/PP-Namias
 

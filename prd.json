@@ -1,38 +1,37 @@
 {
-  "title": "Klaro — Complete Remaining Details",
-  "description": "Fix broken placeholder links across the landing page, replacing <a href=\"#\"> with Next.js <Link> components pointing to real routes.",
-  "priority": "high",
-  "files": [
+  "project": "Scanner UI/UX Revamp",
+  "branch": "ticket/KL-UI-002-scanner-layout-fix",
+  "version": "1.0.0",
+  "status": "completed",
+  "phases": [
     {
-      "path": "apps/nextjs/src/layouts/Landing/Footer.tsx",
-      "changes": [
-        "Replace <a> with <Link> for all 8 links in Resources and Legal columns",
-        "Resources: How it Works → /how-it-works, Patient Stories → /patient-stories, Security & Privacy → /security-privacy, Contact Support → /contact-support",
-        "Legal: Privacy Policy → /privacy-policy, Terms of Service → /terms-of-service, DPA Compliance → /dpa-compliance, Cookie Settings → /cookie-settings",
-        "Wrap logo section <div> in <Link href=\"/\"> so the logo links to homepage",
-        "Keep <a> with target=\"_blank\" for external social links (Facebook, Discord, GitHub)"
+      "id": "UI-P1",
+      "name": "Layout Audit & Chat Input Rescue",
+      "status": "completed",
+      "issues": [
+        { "id": "KL-UI-01", "task": "Audit flex/grid containers on the /scan page to identify the collapsed height issue", "status": "completed" },
+        { "id": "KL-UI-02", "task": "Fix the chat input footer so the text area, paperclip icon, and send button render clearly without overlapping", "status": "completed" },
+        { "id": "KL-UI-03", "task": "Ensure the chat input remains sticky/anchored to the bottom of the viewport or parent card", "status": "completed" }
       ]
     },
     {
-      "path": "apps/nextjs/src/layouts/Landing/Testimonials.tsx",
-      "changes": [
-        "Replace \"Read Full Story\" link href=\"#\" with /patient-stories",
-        "Replace <a> with <Link> for client-side navigation",
-        "Add import for Link from next/link"
+      "id": "UI-P2",
+      "name": "Camera & Upload Dropzone Polish",
+      "status": "completed",
+      "issues": [
+        { "id": "KL-UI-04", "task": "Refine the height and padding of the 'Take a photo & Scan here' container to save vertical space", "status": "completed" },
+        { "id": "KL-UI-05", "task": "Ensure the drag-and-drop file upload zone has clear active/hover states", "status": "completed" },
+        { "id": "KL-UI-06", "task": "Verify that uploaded images preview correctly inside the new chat input UI before sending", "status": "completed" }
       ]
     },
     {
-      "path": "apps/nextjs/src/layouts/Landing/Security.tsx",
-      "changes": [
-        "Replace \"How we protect you\" link href=\"#\" with /security-privacy",
-        "Replace <a> with <Link> for client-side navigation",
-        "Add import for Link from next/link"
+      "id": "UI-P3",
+      "name": "Mobile Responsiveness & Final QA",
+      "status": "completed",
+      "issues": [
+        { "id": "KL-UI-07", "task": "Verify the layout does not break on standard mobile viewports (chat input must remain usable on mobile)", "status": "completed" },
+        { "id": "KL-UI-08", "task": "Run a manual smoke test connecting the repaired UI back to the working LangGraph sidecar", "status": "completed" }
       ]
     }
-  ],
-  "verification": [
-    "pnpm --filter @klaro/nextjs typecheck",
-    "pnpm --filter @klaro/nextjs build",
-    "pnpm test"
   ]
 }

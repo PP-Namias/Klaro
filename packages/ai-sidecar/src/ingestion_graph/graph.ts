@@ -4,7 +4,7 @@ import { END, START, StateGraph } from "@langchain/langgraph";
 
 import { parsePdf } from "../services/pdfProcessor.js";
 import { chunkPages, chunkText } from "../shared/chunker.js";
-import { processDocument } from "../shared/ocr.js";
+import { processDocument, runOcr } from "../shared/ocr.js";
 import { makeRetriever } from "../shared/retrieval.js";
 import { IndexConfigurationAnnotation } from "./configuration.js";
 import { IndexStateAnnotation } from "./state.js";
@@ -35,8 +35,21 @@ async function parsePdfNode(
 
   for (const doc of state.docs) {
     const buffer = doc.metadata?.buffer as Buffer | undefined;
+    const mimeType = (doc.metadata?.mimeType as string | undefined) ?? "";
 
-    if (buffer) {
+    if (buffer && mimeType.startsWith("image/")) {
+      const ocrResult = await runOcr(buffer);
+      parsed.push(
+        new Document({
+          pageContent: ocrResult.text,
+          metadata: {
+            ...doc.metadata,
+            ocrConfidence: ocrResult.confidence,
+            ocrWarning: ocrResult.warning,
+          },
+        }),
+      );
+    } else if (buffer) {
       const result = await parsePdf(buffer);
       const chunks = await chunkPages(result.pages);
 
@@ -90,7 +103,7 @@ async function chunkDocumentNode(
 async function embedAndStore(
   state: typeof IndexStateAnnotation.State,
   config?: RunnableConfig,
-): Promise<{ docs: "delete" }> {
+): Promise<{ docs: "delete"; docCount: number }> {
   const retriever = await makeRetriever(config);
   await retriever.addDocuments(state.docs);
 
@@ -99,7 +112,7 @@ async function embedAndStore(
     `[ai-sidecar] Indexed ${docCount} document chunk(s) successfully`,
   );
 
-  return { docs: "delete" };
+  return { docs: "delete", docCount };
 }
 
 const builder = new StateGraph(

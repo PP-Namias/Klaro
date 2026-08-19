@@ -5,6 +5,7 @@ export default defineWorkspace([
   "packages/db",
   "packages/auth",
   "packages/api",
+  "packages/ai-sidecar",
   "apps/nextjs",
   "apps/expo",
 ]);

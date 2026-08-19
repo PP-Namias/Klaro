@@ -1,4 +1,52 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+// @vitest-environment jsdom
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { useChat } from "../use-chat";
+
+vi.mock("@tanstack/react-query", () => ({
+  useMutation: (options: { onSuccess?: () => void; onError?: () => void }) => ({
+    status: "idle",
+    isIdle: true,
+    mutateAsync: vi.fn(),
+    ...options,
+  }),
+  QueryClient: class {},
+  QueryClientProvider: ({ children }: { children: unknown }) => children,
+}));
+
+const trpcClient = {
+  chat: {
+    getHistory: { query: vi.fn() },
+    clearHistory: { mutate: vi.fn() },
+  },
+};
+const trpc = {
+  chat: { sendMessage: { mutationOptions: vi.fn(() => ({})) } },
+};
+
+vi.mock("~/trpc/react", () => ({
+  useTRPC: () => trpc,
+  useTRPCClient: () => trpcClient,
+}));
+
+function sseStream(chunks: string[]): Response {
+  return new Response(
+    new ReadableStream({
+      async start(controller) {
+        for (const chunk of chunks) {
+          controller.enqueue(new TextEncoder().encode(chunk));
+        }
+        controller.close();
+      },
+    }),
+    { status: 200 },
+  );
+}
+
+function renderUseChat() {
+  return renderHook(() => useChat());
+}
 
 describe("useChat", () => {
   beforeEach(() => {
@@ -124,5 +172,59 @@ describe("useChat", () => {
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
     expect(uuidRegex.test(uuid)).toBe(true);
+  });
+});
+
+describe("useChat guest mode", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    sessionStorage.clear();
+  });
+
+  it("streams guest questions without an analysisId and tags the thread", async () => {
+    const stream = sseStream([
+      'data: {"event":"complete","answer":"Diabetes affects blood sugar."}\n\n',
+    ]);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(stream));
+
+    const { result } = renderUseChat();
+
+    await act(async () => {
+      await result.current.sendMessage("what is diabetes?");
+    });
+
+    await waitFor(() => {
+      expect(result.current.isTyping).toBe(false);
+    });
+
+    expect(result.current.messages).toHaveLength(2);
+    expect(result.current.messages[1].sender).toBe("clara");
+    expect(result.current.messages[1].text).toBe(
+      "Diabetes affects blood sugar.",
+    );
+
+    const [, init] = vi.mocked(fetch).mock.calls[0] as [
+      string,
+      { body: string },
+    ];
+    const payload = JSON.parse(init.body) as {
+      metadata?: { threadId?: string };
+    };
+    expect(payload.metadata?.threadId).toMatch(/^guest_[0-9a-f-]+$/);
+  });
+
+  it("falls back to the canned message when guest streaming fails", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
+
+    const { result } = renderUseChat();
+
+    await act(async () => {
+      await result.current.sendMessage("what is diabetes?");
+    });
+
+    expect(result.current.messages).toHaveLength(2);
+    expect(result.current.messages[1].text).toContain(
+      "Please upload a document first",
+    );
   });
 });

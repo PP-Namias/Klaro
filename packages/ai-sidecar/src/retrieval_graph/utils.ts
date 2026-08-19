@@ -11,7 +11,11 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 
 import type { RetrievalConfiguration } from "./configuration.js";
 import { makeRetriever } from "../shared/retrieval.js";
-import { isRateLimitError, loadChatModel } from "../shared/utils.js";
+import {
+  isRateLimitError,
+  loadChatModel,
+  resolveModelSpec,
+} from "../shared/utils.js";
 import {
   FOLLOW_UP_PROMPT,
   QA_SYSTEM_PROMPT,
@@ -71,8 +75,9 @@ export async function generateAnswer(
   config?: RunnableConfig,
 ): Promise<string> {
   const c = config?.configurable as Partial<RetrievalConfiguration> | undefined;
-  const modelName = c?.model ?? process.env.LLM_PROVIDER ?? "openai";
-  const temperature = c?.temperature ?? 0.3;
+  const modelName = resolveModelSpec(c?.model);
+  const temperature =
+    c?.temperature ?? parseFloat(process.env.LLM_TEMPERATURE ?? "0.3");
   const fallbackModelSpec = process.env.CHAT_MODEL_FALLBACK;
   const mockMode = process.env.ENABLE_MOCK_MODE === "true";
 
@@ -96,6 +101,12 @@ export async function generateAnswer(
         `[ai-sidecar] Primary model "${modelName}" failed (${(err as Error).message}), trying fallback "${fallbackModelSpec}"`,
       );
       try {
+        if (fallbackModelSpec === "mock") {
+          console.warn(
+            "[ai-sidecar] Primary model failed, using mock fallback answer",
+          );
+          return generateMockAnswer(question, docs);
+        }
         const fallbackModel = await loadChatModel(
           fallbackModelSpec,
           temperature,
@@ -110,12 +121,6 @@ export async function generateAnswer(
         console.error(
           `[ai-sidecar] Fallback model "${fallbackModelSpec}" also failed`,
         );
-        if (
-          typeof fallbackModelSpec === "string" &&
-          fallbackModelSpec === "mock"
-        ) {
-          return generateMockAnswer(question, docs);
-        }
         throw fallbackErr;
       }
     }
@@ -155,20 +160,28 @@ export async function generateFollowUpQuestions(
     ];
   }
 
-  const model = await loadChatModel("openai", 0.7);
-  const historyStr = formatMessagesToHistory(messages);
-  const prompt = FOLLOW_UP_PROMPT.replace("{messages}", historyStr);
+  try {
+    const model = await loadChatModel(resolveModelSpec(c?.model), 0.7);
+    const historyStr = formatMessagesToHistory(messages);
+    const prompt = FOLLOW_UP_PROMPT.replace("{messages}", historyStr);
 
-  const parser = new StringOutputParser();
-  const chain = model.pipe(parser);
+    const parser = new StringOutputParser();
+    const chain = model.pipe(parser);
 
-  const raw = await chain.invoke(prompt, config);
+    const raw = await chain.invoke(prompt, config);
 
-  return raw
-    .split("\n")
-    .filter((line) => line.trim().startsWith("- "))
-    .map((line) => line.trim().replace(/^- /, ""))
-    .filter(Boolean);
+    return raw
+      .split("\n")
+      .filter((line) => line.trim().startsWith("- "))
+      .map((line) => line.trim().replace(/^- /, ""))
+      .filter(Boolean);
+  } catch (err) {
+    console.warn(
+      "[ai-sidecar] Follow-up question generation failed, returning empty list:",
+      (err as Error).message?.substring(0, 120),
+    );
+    return [];
+  }
 }
 
 function buildPromptMessages(
@@ -177,17 +190,23 @@ function buildPromptMessages(
   messages: BaseMessage[],
 ): BaseMessage[] {
   const contextStr = formatDocsAsString(docs);
-  const historyStr = formatMessagesToHistory(messages);
+  const priorMessages =
+    messages.length > 0 && messages.at(-1) instanceof HumanMessage
+      ? messages.slice(0, -1)
+      : messages;
+  const historyStr = formatMessagesToHistory(priorMessages);
 
   const systemPrompt = contextStr.trim()
     ? QA_SYSTEM_PROMPT.replace("{context}", contextStr)
     : QA_SYSTEM_PROMPT_NO_CONTEXT;
 
-  const result: BaseMessage[] = [new SystemMessage(systemPrompt)];
-
-  if (historyStr.trim()) {
-    result.push(new SystemMessage(`Previous conversation:\n${historyStr}`));
-  }
+  const result: BaseMessage[] = [
+    new SystemMessage(
+      historyStr.trim()
+        ? `${systemPrompt}\n\nPrevious conversation:\n${historyStr}`
+        : systemPrompt,
+    ),
+  ];
 
   result.push(new HumanMessage(question));
   return result;
