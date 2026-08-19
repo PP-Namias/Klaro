@@ -331,13 +331,15 @@ describe("POST /api/chat/stream", () => {
     expect(res.body as string).toContain('"event":"complete"');
 
     const [, options] = vi.mocked(graph.streamEvents).mock.calls.at(-1) ?? [];
-    expect(options).toEqual({
+    expect(options).toMatchObject({
       version: "v2",
+      runName: expect.stringMatching(/^chat_stream_[0-9a-f-]+$/),
       configurable: {
         tenantId: "public",
         patientId: "guest",
         filterKwargs: { namespace: "public_faq", tenantId: "public" },
         k: 3,
+        traceId: expect.any(String),
       },
       callbacks: [{ handleLLMEnd: expect.any(Function) }],
     });
@@ -362,12 +364,14 @@ describe("POST /api/chat/stream", () => {
     expect(res.status).toBe(200);
 
     const [, options] = vi.mocked(graph.streamEvents).mock.calls.at(-1) ?? [];
-    expect(options).toEqual({
+    expect(options).toMatchObject({
       version: "v2",
+      runName: expect.stringMatching(/^chat_stream_[0-9a-f-]+$/),
       configurable: {
         tenantId: "tenant-a",
         patientId: "patient-1",
         filterKwargs: { tenantId: "tenant-a" },
+        traceId: expect.any(String),
       },
       callbacks: [{ handleLLMEnd: expect.any(Function) }],
     });
@@ -395,12 +399,14 @@ describe("POST /api/chat/stream", () => {
     expect(res.status).toBe(200);
 
     const [, options] = vi.mocked(graph.streamEvents).mock.calls.at(-1) ?? [];
-    expect(options).toEqual({
+    expect(options).toMatchObject({
       version: "v2",
+      runName: expect.stringMatching(/^chat_stream_[0-9a-f-]+$/),
       configurable: {
         tenantId: "tenant-a",
         patientId: "patient-1",
         filterKwargs: { tenantId: "tenant-a" },
+        traceId: expect.any(String),
       },
       callbacks: [{ handleLLMEnd: expect.any(Function) }],
     });
@@ -424,12 +430,14 @@ describe("POST /api/chat/stream", () => {
     expect(res.status).toBe(200);
 
     const [, options] = vi.mocked(graph.streamEvents).mock.calls.at(-1) ?? [];
-    expect(options).toEqual({
+    expect(options).toMatchObject({
       version: "v2",
+      runName: expect.stringMatching(/^chat_stream_[0-9a-f-]+$/),
       configurable: {
         tenantId: "tenant-a",
         patientId: "patient-1",
         filterKwargs: { tenantId: "tenant-a" },
+        traceId: expect.any(String),
       },
       callbacks: [{ handleLLMEnd: expect.any(Function) }],
     });
