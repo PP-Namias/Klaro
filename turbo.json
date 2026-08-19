@@ -125,7 +125,9 @@
     "CHROMA_DB_URL",
     "SUPABASE_URL",
     "SUPABASE_SERVICE_ROLE_KEY",
-    "JWT_SECRET"
+    "JWT_SECRET",
+    "RATE_LIMIT_WINDOW_MS",
+    "RATE_LIMIT_MAX_REQUESTS"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",
