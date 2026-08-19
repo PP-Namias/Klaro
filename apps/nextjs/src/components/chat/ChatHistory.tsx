@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 
 import type { ChatMessage } from "~/hooks/use-chat";
+import styles from "../../app/scan/page.module.css";
 import { ChatMessage as ChatMessageComponent } from "./ChatMessage";
 
 interface ChatHistoryProps {
@@ -15,18 +16,18 @@ interface ChatHistoryProps {
 
 function TypingIndicator() {
   return (
-    <div className="claraChatWrapper">
-      <div className="claraChatAvatar">
+    <div className={styles.claraChatWrapper}>
+      <div className={styles.claraChatAvatar}>
         <Image
           src="/clara.png"
           alt="Clara"
           fill
           style={{ objectFit: "cover", borderRadius: "50%" }}
         />
-        <div className="chatClaraStatus" />
+        <div className={styles.chatClaraStatus} />
       </div>
-      <div className="claraChatBubble">
-        <div className="typingIndicator">
+      <div className={styles.claraChatBubble}>
+        <div className={styles.typingIndicator}>
           <span />
           <span />
           <span />
@@ -58,7 +59,7 @@ export function ChatHistory({
 
   if (isLoading) {
     return (
-      <div className="chatHistory">
+      <div className={styles.chatHistory}>
         <LoadingSkeleton />
       </div>
     );
@@ -67,7 +68,7 @@ export function ChatHistory({
   if (messages.length === 0 && !isTyping) return null;
 
   return (
-    <div className="chatHistory">
+    <div className={styles.chatHistory}>
       {messages.map((msg) => (
         <ChatMessageComponent
           key={msg.id}

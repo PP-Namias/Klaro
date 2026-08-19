@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Focus, Paperclip, Send, X } from "lucide-react";
 
 import type { Dialect } from "~/hooks/use-chat";
+import styles from "../../app/scan/page.module.css";
 
 interface ChatInputProps {
   onSend: (content: string, image?: string) => void;
@@ -58,7 +59,7 @@ export function ChatInput({
 
   return (
     <>
-      <div className="chatInputContainer">
+      <div className={styles.chatInputContainer}>
         {attachment && (
           <div
             style={{
@@ -103,7 +104,7 @@ export function ChatInput({
           </div>
         )}
         <textarea
-          className="chatTextArea"
+          className={styles.chatTextArea}
           placeholder={placeholder}
           rows={1}
           value={input}
@@ -116,10 +117,10 @@ export function ChatInput({
           }}
           disabled={disabled}
         />
-        <div className="chatInputActions">
-          <div className="chatInputLeftActions">
+        <div className={styles.chatInputActions}>
+          <div className={styles.chatInputLeftActions}>
             <button
-              className="chatIconBtn"
+              className={styles.chatIconBtn}
               onClick={triggerFileUpload}
               type="button"
               disabled={disabled}
@@ -128,7 +129,7 @@ export function ChatInput({
             </button>
             {onCameraClick && (
               <button
-                className="chatIconBtn"
+                className={styles.chatIconBtn}
                 onClick={onCameraClick}
                 type="button"
                 disabled={disabled}
@@ -138,7 +139,7 @@ export function ChatInput({
             )}
           </div>
           <button
-            className={`chatSendBtn ${hasContent ? "chatSendBtnActive" : ""}`}
+            className={`${styles.chatSendBtn} ${hasContent ? styles.chatSendBtnActive : ""}`}
             onClick={handleSend}
             type="button"
             disabled={disabled || (!input.trim() && !attachment)}

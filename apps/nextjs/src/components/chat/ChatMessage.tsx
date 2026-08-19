@@ -3,6 +3,7 @@
 import Image from "next/image";
 
 import type { ChatMessage as ChatMessageType } from "~/hooks/use-chat";
+import styles from "../../app/scan/page.module.css";
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -16,25 +17,27 @@ export function ChatMessage({
   const isUser = message.sender === "user";
 
   return (
-    <div className={isUser ? "userChatWrapper" : "claraChatWrapper"}>
+    <div className={isUser ? styles.userChatWrapper : styles.claraChatWrapper}>
       {!isUser && (
-        <div className="claraChatAvatar">
+        <div className={styles.claraChatAvatar}>
           <Image
             src={claraAvatarUrl}
             alt="Clara"
             fill
             style={{ objectFit: "cover", borderRadius: "50%" }}
           />
-          <div className="chatClaraStatus" />
+          <div className={styles.chatClaraStatus} />
         </div>
       )}
       <div
         className={
-          isUser ? "userMessageContentWrapper" : "claraMessageContentWrapper"
+          isUser
+            ? styles.userMessageContentWrapper
+            : styles.claraMessageContentWrapper
         }
       >
         {message.image && (
-          <div className="chatMessageImage">
+          <div className={styles.chatMessageImage}>
             <Image
               src={message.image}
               alt="Attached"
@@ -44,7 +47,9 @@ export function ChatMessage({
           </div>
         )}
         {message.text && (
-          <div className={isUser ? "userChatBubble" : "claraChatBubble"}>
+          <div
+            className={isUser ? styles.userChatBubble : styles.claraChatBubble}
+          >
             <span>{message.text}</span>
           </div>
         )}
