@@ -598,7 +598,7 @@
 .scannerBox {
   width: auto;
   margin: 0 0.8rem 0.6rem 0.8rem;
-  height: 160px;
+  height: 132px;
   background-color: #efeff0;
   border: 1px solid #e7e7e7;
   border-radius: 16px;
@@ -609,7 +609,7 @@
 }
 
 .scannerBoxExpanded {
-  height: 520px;
+  height: 460px;
 }
 
 .cameraFeed {
@@ -1020,7 +1020,7 @@
   }
 
   .scannerBox {
-    height: 120px;
+    height: 100px;
     margin: 0 0.5rem 0.5rem 0.5rem;
   }
 

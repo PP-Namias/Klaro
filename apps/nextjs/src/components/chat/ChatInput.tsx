@@ -13,6 +13,8 @@ interface ChatInputProps {
   onCameraClick?: () => void;
   dialect?: Dialect;
   imageAttachedLabel?: string;
+  externalAttachment?: string | null;
+  onExternalAttachmentClear?: () => void;
 }
 
 export function ChatInput({
@@ -21,16 +23,29 @@ export function ChatInput({
   placeholder = "Upload a medical document or ask a health question...",
   onCameraClick,
   imageAttachedLabel = "Image attached",
+  externalAttachment = null,
+  onExternalAttachmentClear,
 }: ChatInputProps) {
   const [input, setInput] = useState("");
   const [attachment, setAttachment] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const effectiveAttachment = externalAttachment ?? attachment;
+
+  const clearAttachment = () => {
+    if (externalAttachment) {
+      onExternalAttachmentClear?.();
+    } else {
+      setAttachment(null);
+    }
+  };
+
   const handleSend = () => {
-    if (!input.trim() && !attachment) return;
-    onSend(input, attachment ?? undefined);
+    if (!input.trim() && !effectiveAttachment) return;
+    onSend(input, effectiveAttachment ?? undefined);
     setInput("");
     setAttachment(null);
+    onExternalAttachmentClear?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -40,27 +55,45 @@ export function ChatInput({
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file?.type.startsWith("image/")) return;
+  const attachFiles = (files: FileList | File[]) => {
+    const file = Array.from(files).find((f) => f.type.startsWith("image/"));
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
       setAttachment(ev.target?.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) attachFiles(e.target.files);
     e.target.value = "";
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (disabled) return;
+    attachFiles(e.dataTransfer.files);
   };
 
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
   };
 
-  const hasContent = input.trim().length > 0 || attachment !== null;
+  const hasContent = input.trim().length > 0 || effectiveAttachment !== null;
 
   return (
     <>
-      <div className={styles.chatInputContainer}>
-        {attachment && (
+      <div
+        className={styles.chatInputContainer}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onDrop={handleDrop}
+      >
+        {effectiveAttachment && (
           <div
             style={{
               padding: "8px 12px",
@@ -80,7 +113,7 @@ export function ChatInput({
               }}
             >
               <img
-                src={attachment}
+                src={effectiveAttachment}
                 alt="Attachment preview"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
@@ -89,7 +122,7 @@ export function ChatInput({
               {imageAttachedLabel}
             </span>
             <button
-              onClick={() => setAttachment(null)}
+              onClick={clearAttachment}
               style={{
                 background: "none",
                 border: "none",
@@ -142,7 +175,7 @@ export function ChatInput({
             className={`${styles.chatSendBtn} ${hasContent ? styles.chatSendBtnActive : ""}`}
             onClick={handleSend}
             type="button"
-            disabled={disabled || (!input.trim() && !attachment)}
+            disabled={disabled || (!input.trim() && !effectiveAttachment)}
           >
             <Send size={18} />
           </button>

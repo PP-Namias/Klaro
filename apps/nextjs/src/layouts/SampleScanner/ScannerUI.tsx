@@ -714,6 +714,8 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                   placeholder={t("chat.placeholder")}
                   onCameraClick={handleStartScan}
                   imageAttachedLabel={t("chat.imageAttached")}
+                  externalAttachment={capturedImage}
+                  onExternalAttachmentClear={() => setCapturedImage(null)}
                 />
               </div>
             </div>
