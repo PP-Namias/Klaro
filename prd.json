@@ -1,36 +1,43 @@
 {
-  "project": "Scanner UI/UX Revamp",
-  "branch": "ticket/KL-UI-002-scanner-layout-fix",
+  "project": "Klaro Platform Unified Integration",
+  "branch": "dev",
   "version": "1.0.0",
-  "status": "completed",
+  "status": "in_progress",
+  "gates": {
+    "typecheck": "15/15",
+    "lint": "13/13",
+    "tests_passing": 1535,
+    "e2e_scanner_scope": "18/18"
+  },
   "phases": [
     {
-      "id": "UI-P1",
-      "name": "Layout Audit & Chat Input Rescue",
-      "status": "completed",
+      "id": "INT-P1",
+      "name": "CalModal Scheduling & Deep Linking",
+      "status": "in_progress",
       "issues": [
-        { "id": "KL-UI-01", "task": "Audit flex/grid containers on the /scan page to identify the collapsed height issue", "status": "completed" },
-        { "id": "KL-UI-02", "task": "Fix the chat input footer so the text area, paperclip icon, and send button render clearly without overlapping", "status": "completed" },
-        { "id": "KL-UI-03", "task": "Ensure the chat input remains sticky/anchored to the bottom of the viewport or parent card", "status": "completed" }
+        { "id": "CAL-01", "task": "Fix iframe loader lifecycle and preserve handleBooked logic", "status": "completed" },
+        { "id": "CAL-02", "task": "Implement URL hash synchronization (#booking=open)", "status": "completed" },
+        { "id": "CAL-03", "task": "Stabilize cal-modal.spec.ts with strict unambiguous locators", "status": "completed" }
       ]
     },
     {
-      "id": "UI-P2",
-      "name": "Camera & Upload Dropzone Polish",
-      "status": "completed",
+      "id": "INT-P2",
+      "name": "Branch Unification & Dev Merge",
+      "status": "in_progress",
       "issues": [
-        { "id": "KL-UI-04", "task": "Refine the height and padding of the 'Take a photo & Scan here' container to save vertical space", "status": "completed" },
-        { "id": "KL-UI-05", "task": "Ensure the drag-and-drop file upload zone has clear active/hover states", "status": "completed" },
-        { "id": "KL-UI-06", "task": "Verify that uploaded images preview correctly inside the new chat input UI before sending", "status": "completed" }
+        { "id": "MERGE-01", "task": "Merge ticket/KL-UI-002-scanner-layout-fix into dev", "status": "completed" },
+        { "id": "MERGE-02", "task": "Merge ticket/KL-CAL-003-calmodal-scheduling into dev", "status": "in_progress" },
+        { "id": "MERGE-03", "task": "Run full monorepo typecheck, lint, and vitest suite", "status": "pending" }
       ]
     },
     {
-      "id": "UI-P3",
-      "name": "Mobile Responsiveness & Final QA",
-      "status": "completed",
+      "id": "INT-P3",
+      "name": "Full System Manual Smoke Test",
+      "status": "pending",
       "issues": [
-        { "id": "KL-UI-07", "task": "Verify the layout does not break on standard mobile viewports (chat input must remain usable on mobile)", "status": "completed" },
-        { "id": "KL-UI-08", "task": "Run a manual smoke test connecting the repaired UI back to the working LangGraph sidecar", "status": "completed" }
+        { "id": "SMOKE-01", "task": "Run full stack concurrently (Next.js :3000 + Sidecar :3002)", "status": "pending" },
+        { "id": "SMOKE-02", "task": "Test /scan chat input with image drop and live SSE streaming", "status": "pending" },
+        { "id": "SMOKE-03", "task": "Test deep-link booking modal trigger via URL hash", "status": "pending" }
       ]
     }
   ]

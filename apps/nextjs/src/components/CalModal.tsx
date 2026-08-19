@@ -1,7 +1,8 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, no-empty */
-import { useEffect, useRef } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, X } from "lucide-react";
 
@@ -50,6 +51,7 @@ export default function CalModal({
 }: CalModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<Element | null>(null);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
   const focusTrapRef = useFocusTrap(dialogRef, open);
   const computedUrl = buildUrl(url, prefill);
 
@@ -110,6 +112,16 @@ export default function CalModal({
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
+  const onIframeLoad = () => {
+    setIframeLoaded(true);
+  };
+
+  const onOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -125,7 +137,7 @@ export default function CalModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={onOverlayClick}
             className="absolute inset-0 bg-black/20 backdrop-blur-md"
             role="presentation"
             aria-hidden="true"
@@ -187,7 +199,7 @@ export default function CalModal({
 
             {/* Content Area */}
             <div className="relative flex-1 overflow-hidden bg-transparent">
-              {!open && (
+              {!iframeLoaded && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4">
                   <div className="flex gap-1.5">
                     {[0, 1, 2].map((i) => (
@@ -213,11 +225,12 @@ export default function CalModal({
                 <iframe
                   title={iframeTitle}
                   src={computedUrl}
+                  onLoad={onIframeLoad}
                   className="h-full w-full border-0"
                   sandbox="allow-scripts allow-forms allow-same-origin"
                   referrerPolicy="no-referrer-when-downgrade"
                   style={{
-                    opacity: open ? 1 : 0,
+                    opacity: iframeLoaded ? 1 : 0,
                     transition: "opacity 0.4s ease",
                   }}
                 />
