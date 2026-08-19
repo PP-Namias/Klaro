@@ -258,4 +258,74 @@ describe("useChatStream", () => {
     const payload = JSON.parse(init.body) as { image?: string };
     expect(payload.image).toBe(image);
   });
+
+  it("keeps the typing state while the stream is in flight", async () => {
+    let release: (() => void) | undefined;
+    const deferred = new Response(
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          release = () => {
+            controller.enqueue(
+              new TextEncoder().encode(
+                'data: {"event":"complete","answer":"Done"}\n\n',
+              ),
+            );
+            controller.close();
+          };
+        },
+      }),
+      { status: 200 },
+    );
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(deferred));
+
+    const { result } = renderHook(() => useChatStream());
+
+    let sendPromise: Promise<void>;
+    act(() => {
+      sendPromise = result.current.sendMessage("Hi");
+    });
+
+    await waitFor(() => expect(result.current.isTyping).toBe(true));
+    expect(result.current.messages[1].content).toBe("");
+
+    await act(async () => {
+      release?.();
+      await sendPromise;
+    });
+
+    expect(result.current.isTyping).toBe(false);
+    expect(result.current.messages[1].content).toBe("Done");
+  });
+
+  it("removes the placeholder and surfaces an error when the stream ends without a complete event", async () => {
+    const stream = sseStream(['data: {"event":"status","message":"done"}\n\n']);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(stream));
+
+    const { result } = renderHook(() => useChatStream());
+
+    await act(async () => {
+      await result.current.sendMessage("hello");
+    });
+
+    expect(result.current.messages).toHaveLength(1);
+    expect(result.current.messages[0].role).toBe("user");
+    expect(result.current.error).toBe("Stream ended without a complete event");
+  });
+
+  it("surfaces proxy status failures without leaving a placeholder", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 429 } as Response),
+    );
+
+    const { result } = renderHook(() => useChatStream());
+
+    await act(async () => {
+      await result.current.sendMessage("hello");
+    });
+
+    expect(result.current.messages).toHaveLength(1);
+    expect(result.current.error).toBe("Streaming request failed");
+    expect(result.current.isTyping).toBe(false);
+  });
 });

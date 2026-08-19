@@ -6,7 +6,7 @@
   "gates": {
     "typecheck": "15/15",
     "lint": "13/13",
-    "tests_passing": 1522
+    "tests_passing": 1529
   },
   "phases": [
     {
@@ -48,7 +48,7 @@
       "name": "Frontend Testing & QA",
       "status": "in_progress",
       "issues": [
-        { "id": "KL-AI-14", "task": "Write React hook and component tests for UI chat interface", "status": "in_progress" },
+        { "id": "KL-AI-14", "task": "Write React hook and component tests for UI chat interface", "status": "completed" },
         { "id": "KL-AI-15", "task": "Establish end-to-end (E2E) testing for critical chat flows", "status": "pending" }
       ]
     },
