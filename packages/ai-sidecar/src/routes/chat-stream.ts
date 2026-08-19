@@ -68,10 +68,15 @@ function buildChatConfigurable(
 function buildStreamOptions(
   configurable: Record<string, unknown>,
   tenantId: string,
+  traceId: string,
 ): Parameters<typeof retrievalGraph.streamEvents>[1] {
   const options: Record<string, unknown> = {
     version: "v2",
-    configurable,
+    runName: `chat_stream_${traceId}`,
+    configurable: {
+      ...configurable,
+      traceId,
+    },
     callbacks: createCostTracker(tenantId).callbacks,
   };
   return options as unknown as Parameters<
@@ -246,7 +251,11 @@ router.get(
       question,
       parsedMessages,
       undefined,
-      buildStreamOptions(buildChatConfigurable(user, false), user.tenantId),
+      buildStreamOptions(
+        buildChatConfigurable(user, false),
+        user.tenantId,
+        String(req.headers["x-correlation-id"] ?? "unknown"),
+      ),
     );
   },
 );
@@ -309,7 +318,11 @@ router.post(
       body.question,
       parsedMessages,
       image,
-      buildStreamOptions(buildChatConfigurable(user, guestMode), user.tenantId),
+      buildStreamOptions(
+        buildChatConfigurable(user, guestMode),
+        user.tenantId,
+        String(req.headers["x-correlation-id"] ?? "unknown"),
+      ),
     );
   },
 );

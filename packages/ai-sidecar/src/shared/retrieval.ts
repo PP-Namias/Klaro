@@ -157,3 +157,21 @@ export async function makeRetriever(
       );
   }
 }
+
+export async function checkVectorStoreHealth(): Promise<void> {
+  const provider = process.env.VECTOR_STORE_PROVIDER;
+  if (provider === "none" || provider === "") {
+    return;
+  }
+
+  const retriever = await makeRetriever();
+  await Promise.race([
+    retriever.invoke("connectivity probe"),
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error("Vector store probe timed out after 5s")),
+        5000,
+      ),
+    ),
+  ]);
+}

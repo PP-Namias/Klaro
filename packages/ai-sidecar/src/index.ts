@@ -4,6 +4,7 @@ import type { Express } from "express";
 import cors from "cors";
 import express from "express";
 
+import { tracingMiddleware } from "./middleware/tracing.js";
 import chatStreamRouter from "./routes/chat-stream.js";
 import chatRouter from "./routes/chat.js";
 import healthRouter from "./routes/health.js";
@@ -15,6 +16,7 @@ const app: Express = express();
 
 app.use(cors({ origin: CORS_ORIGINS }));
 app.use(express.json());
+app.use(tracingMiddleware);
 
 app.use("/api/health", healthRouter);
 app.use("/api/ingest", ingestRouter);
