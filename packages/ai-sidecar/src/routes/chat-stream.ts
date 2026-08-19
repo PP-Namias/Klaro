@@ -20,6 +20,12 @@ interface ChatStreamQuery {
   messages?: string;
 }
 
+interface ChatStreamMetadata {
+  guestMode?: unknown;
+  threadId?: unknown;
+  tenantId?: unknown;
+}
+
 const IMAGE_DATA_URI = /^data:image\/(png|jpe?g|webp|gif);base64,/i;
 
 const router = Router();
@@ -46,6 +52,7 @@ async function streamResponse(
   question: string,
   parsedMessages: ChatMessage[],
   image?: string,
+  metadata?: ChatStreamMetadata,
 ): Promise<void> {
   const langchainMessages = parsedMessages.map((msg) => {
     if (msg.role === "user") {
@@ -75,9 +82,21 @@ async function streamResponse(
   let finalAnswer = "";
   let followUpQuestions: string[] = [];
 
+  const isGuest = metadata?.guestMode === true;
+
+  const configurable: Record<string, unknown> | undefined = isGuest
+    ? {
+        k: 3,
+        filterKwargs: { namespace: "public_faq" },
+      }
+    : undefined;
+
   const events = retrievalGraph.streamEvents(
     { question, messages: langchainMessages },
-    { version: "v2" },
+    {
+      version: "v2",
+      ...(configurable ? { configurable } : {}),
+    } as Parameters<typeof retrievalGraph.streamEvents>[1],
   );
 
   for await (const event of events) {
@@ -141,6 +160,7 @@ async function runStream(
   question: string,
   parsedMessages: ChatMessage[],
   image?: string,
+  metadata?: ChatStreamMetadata,
 ): Promise<void> {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -152,7 +172,7 @@ async function runStream(
   res.flushHeaders();
 
   try {
-    await streamResponse(res, question, parsedMessages, image);
+    await streamResponse(res, question, parsedMessages, image, metadata);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     const isQuota =
@@ -193,7 +213,12 @@ router.get("/stream", async (req: Request, res: Response) => {
 
 router.post("/stream", async (req: Request, res: Response) => {
   const body = req.body as
-    | { question?: unknown; messages?: unknown; image?: unknown }
+    | {
+        question?: unknown;
+        messages?: unknown;
+        image?: unknown;
+        metadata?: unknown;
+      }
     | undefined;
 
   if (!body || typeof body.question !== "string" || !body.question) {
@@ -216,7 +241,23 @@ router.post("/stream", async (req: Request, res: Response) => {
       ? body.image
       : undefined;
 
-  await runStream(req, res, body.question, parsedMessages, image);
+  const rawMetadata = body.metadata as Partial<ChatStreamMetadata> | undefined;
+  const metadata: ChatStreamMetadata | undefined =
+    rawMetadata && typeof rawMetadata === "object"
+      ? {
+          guestMode: rawMetadata.guestMode === true,
+          threadId:
+            typeof rawMetadata.threadId === "string"
+              ? rawMetadata.threadId
+              : undefined,
+          tenantId:
+            typeof rawMetadata.tenantId === "string"
+              ? rawMetadata.tenantId
+              : undefined,
+        }
+      : undefined;
+
+  await runStream(req, res, body.question, parsedMessages, image, metadata);
 });
 
 export default router;
