@@ -62,7 +62,7 @@ const PROVIDER_ALIASES: Record<string, string> = {
 };
 
 const DEFAULT_MODELS: Record<string, string> = {
-  "google-genai": "gemini-2.0-flash",
+  "google-genai": "gemini-3.6-flash",
   ollama: "llama3",
   openai: "gpt-4o-mini",
   anthropic: "claude-3-5-haiku-20241022",
@@ -126,7 +126,7 @@ function buildArgs(
     case "google-genai":
       return {
         ...base,
-        model: model || "gemini-2.0-flash",
+        model: model || "gemini-3.6-flash",
         apiKey:
           process.env.GOOGLE_API_KEY ||
           process.env.GOOGLE_GENAI_API_KEY ||

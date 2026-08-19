@@ -190,17 +190,23 @@ function buildPromptMessages(
   messages: BaseMessage[],
 ): BaseMessage[] {
   const contextStr = formatDocsAsString(docs);
-  const historyStr = formatMessagesToHistory(messages);
+  const priorMessages =
+    messages.length > 0 && messages.at(-1) instanceof HumanMessage
+      ? messages.slice(0, -1)
+      : messages;
+  const historyStr = formatMessagesToHistory(priorMessages);
 
   const systemPrompt = contextStr.trim()
     ? QA_SYSTEM_PROMPT.replace("{context}", contextStr)
     : QA_SYSTEM_PROMPT_NO_CONTEXT;
 
-  const result: BaseMessage[] = [new SystemMessage(systemPrompt)];
-
-  if (historyStr.trim()) {
-    result.push(new SystemMessage(`Previous conversation:\n${historyStr}`));
-  }
+  const result: BaseMessage[] = [
+    new SystemMessage(
+      historyStr.trim()
+        ? `${systemPrompt}\n\nPrevious conversation:\n${historyStr}`
+        : systemPrompt,
+    ),
+  ];
 
   result.push(new HumanMessage(question));
   return result;
