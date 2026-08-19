@@ -1,63 +1,36 @@
 {
-  "project": "Medical AI Chatbot Integration",
-  "branch": "ticket/KL-AI-001-langchain-langgraph-chatbot",
+  "project": "Scanner UI/UX Revamp",
+  "branch": "ticket/KL-UI-002-scanner-layout-fix",
   "version": "1.0.0",
   "status": "in_progress",
-  "gates": {
-    "typecheck": "15/15",
-    "lint": "13/13",
-    "tests_passing": 1530
-  },
   "phases": [
     {
-      "id": "P1",
-      "name": "Sidecar Architecture & Core Pipeline",
+      "id": "UI-P1",
+      "name": "Layout Audit & Chat Input Rescue",
       "status": "completed",
       "issues": [
-        { "id": "KL-AI-01", "task": "Resolve LangChain model resolution", "status": "done" },
-        { "id": "KL-AI-02", "task": "Fix AIMessage graph state management", "status": "done" },
-        { "id": "KL-AI-03", "task": "Implement document ingestion (docCount) and image OCR", "status": "done" },
-        { "id": "KL-AI-04", "task": "Wire chatRouter.sendMessage to sidecar RAG", "status": "done" },
-        { "id": "KL-AI-05", "task": "Implement callLLMAPI fallback mechanism", "status": "done" },
-        { "id": "KL-AI-06", "task": "Apply PHI scrub and dialect locale guardrails", "status": "done" }
+        { "id": "KL-UI-01", "task": "Audit flex/grid containers on the /scan page to identify the collapsed height issue", "status": "completed" },
+        { "id": "KL-UI-02", "task": "Fix the chat input footer so the text area, paperclip icon, and send button render clearly without overlapping", "status": "completed" },
+        { "id": "KL-UI-03", "task": "Ensure the chat input remains sticky/anchored to the bottom of the viewport or parent card", "status": "completed" }
       ]
     },
     {
-      "id": "P2",
-      "name": "UI Integration & Streaming",
-      "status": "completed",
+      "id": "UI-P2",
+      "name": "Camera & Upload Dropzone Polish",
+      "status": "pending",
       "issues": [
-        { "id": "KL-AI-07", "task": "Build Next.js proxy route for sidecar SSE streaming", "status": "completed" },
-        { "id": "KL-AI-08", "task": "Implement UI EventSource consumption for real-time typing", "status": "completed" },
-        { "id": "KL-AI-09", "task": "Render inline image support and file attachments in chat", "status": "completed" },
-        { "id": "KL-AI-10", "task": "Implement guest chat mode and unauthenticated fallbacks", "status": "completed" }
+        { "id": "KL-UI-04", "task": "Refine the height and padding of the 'Take a photo & Scan here' container to save vertical space", "status": "pending" },
+        { "id": "KL-UI-05", "task": "Ensure the drag-and-drop file upload zone has clear active/hover states", "status": "pending" },
+        { "id": "KL-UI-06", "task": "Verify that uploaded images preview correctly inside the new chat input UI before sending", "status": "pending" }
       ]
     },
     {
-      "id": "P3",
-      "name": "Production Security & Scalability",
-      "status": "completed",
+      "id": "UI-P3",
+      "name": "Mobile Responsiveness & Final QA",
+      "status": "pending",
       "issues": [
-        { "id": "KL-AI-11", "task": "Enforce sidecar authentication and tenant/patient isolation", "status": "completed" },
-        { "id": "KL-AI-12", "task": "Configure API rate limiting and cost-control thresholds", "status": "completed" },
-        { "id": "KL-AI-13", "task": "Implement health checks and LangSmith/Datadog tracing", "status": "completed" }
-      ]
-    },
-    {
-      "id": "P4",
-      "name": "Frontend Testing & QA",
-      "status": "completed",
-      "issues": [
-        { "id": "KL-AI-14", "task": "Write React hook and component tests for UI chat interface", "status": "completed" },
-        { "id": "KL-AI-15", "task": "Establish end-to-end (E2E) testing for critical chat flows", "status": "completed" }
-      ]
-    },
-    {
-      "id": "P5",
-      "name": "Release & Merge",
-      "status": "completed",
-      "issues": [
-        { "id": "KL-AI-16", "task": "Execute full smoke test, finalize PR, and merge branch", "status": "completed" }
+        { "id": "KL-UI-07", "task": "Verify the layout does not break on standard mobile viewports (chat input must remain usable on mobile)", "status": "pending" },
+        { "id": "KL-UI-08", "task": "Run a manual smoke test connecting the repaired UI back to the working LangGraph sidecar", "status": "pending" }
       ]
     }
   ]

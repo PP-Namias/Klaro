@@ -27,23 +27,23 @@ test.describe("Chat Interface E2E", () => {
     await page.goto("/scan");
     await page.waitForLoadState("networkidle");
 
-    const chatInput = page.locator("textarea.chatTextArea");
+    const chatInput = page.locator('textarea[class*="chatTextArea"]');
     await chatInput.fill("What does the record say?");
     await chatInput.press("Enter");
 
-    await expect(page.locator(".userChatBubble")).toHaveText(
+    await expect(page.locator('[class*="userChatBubble"]')).toHaveText(
       "What does the record say?",
     );
 
-    await expect(page.locator(".typingIndicator")).toHaveCount(1);
+    await expect(page.locator('[class*="typingIndicator"]')).toHaveCount(1);
 
     await expect(
       page
-        .locator(".claraChatBubble")
+        .locator('[class*="claraChatBubble"]')
         .filter({ hasText: "Analyzing the patient record." }),
     ).toBeVisible();
 
-    await expect(page.locator(".typingIndicator")).toHaveCount(0);
+    await expect(page.locator('[class*="typingIndicator"]')).toHaveCount(0);
   });
 
   test("shows the fallback bubble when the stream request fails", async ({
@@ -60,20 +60,20 @@ test.describe("Chat Interface E2E", () => {
     await page.goto("/scan");
     await page.waitForLoadState("networkidle");
 
-    const chatInput = page.locator("textarea.chatTextArea");
+    const chatInput = page.locator('textarea[class*="chatTextArea"]');
     await chatInput.fill("What does the record say?");
     await chatInput.press("Enter");
 
-    await expect(page.locator(".userChatBubble")).toHaveText(
+    await expect(page.locator('[class*="userChatBubble"]')).toHaveText(
       "What does the record say?",
     );
 
     await expect(
       page
-        .locator(".claraChatBubble")
+        .locator('[class*="claraChatBubble"]')
         .filter({ hasText: "Please upload a document first" }),
     ).toBeVisible();
 
-    await expect(page.locator(".typingIndicator")).toHaveCount(0);
+    await expect(page.locator('[class*="typingIndicator"]')).toHaveCount(0);
   });
 });
