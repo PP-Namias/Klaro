@@ -176,6 +176,34 @@ describe("POST /api/chat/stream", () => {
     expect(res.body.error).toBe("Forbidden: Invalid token");
   });
 
+  it("returns 429 when the per-tenant rate limit is exceeded", async () => {
+    const originalMax = process.env.RATE_LIMIT_MAX_REQUESTS;
+    process.env.RATE_LIMIT_MAX_REQUESTS = "1";
+    const limitedBearer = bearer({ tenantId: "tenant-ratelimit-test" });
+    try {
+      const first = await request(app)
+        .post("/api/chat/stream")
+        .set("Authorization", limitedBearer)
+        .send({ question: "hello" });
+      expect(first.status).toBe(200);
+
+      const blocked = await request(app)
+        .post("/api/chat/stream")
+        .set("Authorization", limitedBearer)
+        .send({ question: "hello" });
+      expect(blocked.status).toBe(429);
+      expect(blocked.body.error).toBe(
+        "Rate limit exceeded. Please wait before sending more messages.",
+      );
+    } finally {
+      if (originalMax === undefined) {
+        delete process.env.RATE_LIMIT_MAX_REQUESTS;
+      } else {
+        process.env.RATE_LIMIT_MAX_REQUESTS = originalMax;
+      }
+    }
+  });
+
   it("returns 400 when messages is not an array", async () => {
     const res = await request(app)
       .post("/api/chat/stream")
@@ -311,6 +339,7 @@ describe("POST /api/chat/stream", () => {
         filterKwargs: { namespace: "public_faq", tenantId: "public" },
         k: 3,
       },
+      callbacks: [{ handleLLMEnd: expect.any(Function) }],
     });
   });
 
@@ -340,6 +369,7 @@ describe("POST /api/chat/stream", () => {
         patientId: "patient-1",
         filterKwargs: { tenantId: "tenant-a" },
       },
+      callbacks: [{ handleLLMEnd: expect.any(Function) }],
     });
   });
 
@@ -372,6 +402,7 @@ describe("POST /api/chat/stream", () => {
         patientId: "patient-1",
         filterKwargs: { tenantId: "tenant-a" },
       },
+      callbacks: [{ handleLLMEnd: expect.any(Function) }],
     });
   });
 
@@ -400,6 +431,7 @@ describe("POST /api/chat/stream", () => {
         patientId: "patient-1",
         filterKwargs: { tenantId: "tenant-a" },
       },
+      callbacks: [{ handleLLMEnd: expect.any(Function) }],
     });
   });
 });

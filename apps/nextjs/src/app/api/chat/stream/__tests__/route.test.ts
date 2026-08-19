@@ -115,12 +115,32 @@ describe("POST /api/chat/stream proxy", () => {
     expect(await res.json()).toEqual({ error: "Streaming proxy failed" });
   });
 
-  it("returns 500 JSON when the sidecar responds with an error status", async () => {
+  it("passes through sidecar error status and body", async () => {
     vi.mocked(fetch).mockResolvedValue(new Response("boom", { status: 503 }));
 
     const res = await POST(makeRequest({ content: "hello" }));
-    expect(res.status).toBe(500);
-    expect(await res.json()).toEqual({ error: "Streaming proxy failed" });
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "boom" });
+  });
+
+  it("passes through 429 rate limit responses with the reset time", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          error:
+            "Rate limit exceeded. Please wait before sending more messages.",
+          resetAt: 1234567890,
+        }),
+        { status: 429, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    const res = await POST(makeRequest({ content: "hello" }));
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({
+      error: "Rate limit exceeded. Please wait before sending more messages.",
+      resetAt: 1234567890,
+    });
   });
 
   it("forwards a data-URI image to the sidecar", async () => {

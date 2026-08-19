@@ -6,7 +6,7 @@
   "gates": {
     "typecheck": "15/15",
     "lint": "13/13",
-    "tests_passing": 1500
+    "tests_passing": 1516
   },
   "phases": [
     {
@@ -39,7 +39,7 @@
       "status": "in_progress",
       "issues": [
         { "id": "KL-AI-11", "task": "Enforce sidecar authentication and tenant/patient isolation", "status": "completed" },
-        { "id": "KL-AI-12", "task": "Configure API rate limiting and cost-control thresholds", "status": "pending" },
+        { "id": "KL-AI-12", "task": "Configure API rate limiting and cost-control thresholds", "status": "completed" },
         { "id": "KL-AI-13", "task": "Implement health checks and LangSmith/Datadog tracing", "status": "pending" }
       ]
     },
