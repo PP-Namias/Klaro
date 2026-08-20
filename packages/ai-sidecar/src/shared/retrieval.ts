@@ -13,10 +13,25 @@ import {
 } from "./embeddings.js";
 
 const RETRIEVER_TIMEOUT = 5000;
+const SUPABASE_VECTOR_TABLE = "klaro_document_vectors";
+const SUPABASE_MATCH_FN = "match_klaro_documents";
 
 export { GEMINI_EMBEDDING_DIMS, getGeminiEmbeddings };
 export function getEmbeddings(model?: string) {
   return getGeminiEmbeddings(model);
+}
+
+// Singleton Supabase client for connection reuse (latency optimization)
+let cachedSupabaseClient: ReturnType<typeof createClient> | null = null;
+function getSupabaseClient() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set");
+  if (!cachedSupabaseClient) cachedSupabaseClient = createClient(url, key);
+  return cachedSupabaseClient;
+}
+export function resetSupabaseClient() {
+  cachedSupabaseClient = null;
 }
 
 function withTimeout<T>(
@@ -58,34 +73,44 @@ export async function makeChromaRetriever(
 export async function makeSupabaseRetriever(
   configuration: BaseConfiguration,
 ): Promise<VectorStoreRetriever> {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error(
-      "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables must be set",
-    );
-  }
-
   const embeddings = getEmbeddings();
+  const supabaseClient = getSupabaseClient();
 
-  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+  // Supabase pgvector: 768d Gemini text-embedding-004, HNSW index for <200ms
   const vectorStore = await withTimeout(
     Promise.resolve(
       new SupabaseVectorStore(embeddings, {
         client: supabaseClient,
-        tableName: "documents",
-        queryName: "match_documents",
+        tableName: SUPABASE_VECTOR_TABLE,
+        queryName: SUPABASE_MATCH_FN,
       }),
     ),
     RETRIEVER_TIMEOUT,
-    "Supabase connection",
+    "Supabase pgvector connection",
   );
 
-  return vectorStore.asRetriever({
+  const retriever = vectorStore.asRetriever({
     k: configuration.k,
     filter: configuration.filterKwargs,
   });
+
+  // Wrap invoke to measure latency and enforce sub-200ms soft budget log
+  const originalInvoke = retriever.invoke.bind(retriever);
+  retriever.invoke = async (query: string) => {
+    const start = Date.now();
+    const result = await withTimeout(
+      originalInvoke(query) as Promise<Document[]>,
+      RETRIEVER_TIMEOUT,
+      "Supabase pgvector search",
+    );
+    const latency = Date.now() - start;
+    if (latency > 200) {
+      console.warn(`[ai-sidecar] Supabase search latency ${latency}ms exceeds 200ms budget`);
+    }
+    return result;
+  };
+
+  return retriever;
 }
 
 export function makeNoopRetriever(): VectorStoreRetriever {

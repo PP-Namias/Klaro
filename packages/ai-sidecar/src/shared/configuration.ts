@@ -20,7 +20,7 @@ export function ensureBaseConfiguration(
   return {
     retrieverProvider: (configurable.retrieverProvider ??
       process.env.VECTOR_STORE_PROVIDER ??
-      "chroma") as RetrieverProvider,
+      "supabase") as RetrieverProvider,
     filterKwargs: configurable.filterKwargs ?? {},
     k: configurable.k ?? parseInt(process.env.K_RETRIEVAL ?? "5", 10),
   };
