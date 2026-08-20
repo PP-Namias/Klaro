@@ -129,7 +129,7 @@
         {
           "task_id": "TSK-03-02",
           "description": "Integrate Redis backend with serialization, compression and invalidation hooks (fallback to memory when Redis unavailable).",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(cache): integrate Redis cache backend"
         },
         {
