@@ -123,7 +123,7 @@
         {
           "task_id": "TSK-03-01",
           "description": "Implement in-memory LRU cache with TTL, max size and per-tenant isolation for prompts and embeddings.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(cache): add in-memory LRU cache with TTL"
         },
         {
