@@ -43,7 +43,7 @@
         {
           "task_id": "TSK-01-02",
           "description": "Build hierarchy-aware PDF parsing pipeline (headings, tables, lab sections) with overlap and metadata preservation (pdf-parse + LangChain).",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(rag): add hierarchy-aware PDF chunking pipeline"
         },
         {
