@@ -61,7 +61,7 @@
         {
           "task_id": "TSK-01-05",
           "description": "Implement 6 specialized chunking strategies (lab results, prescriptions, discharge, consultation, imaging, generic).",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(rag): add 6 medical document chunking strategies"
         },
         {
