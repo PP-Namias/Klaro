@@ -3,10 +3,16 @@
   "target_branch": "dev",
   "version": "2.0.0",
   "generated_at": "2026-08-21",
-  "status": "pending_approval",
+  "status": "approved_phase2",
+  "stack_adjustment": {
+    "llm_provider": "gemini-exclusive (GEMINI_API_KEY, text-embedding-004 768d, gemini-3.6-flash)",
+    "vector_store": "Supabase pgvector (primary)",
+    "adjusted_at": "2026-08-21",
+    "note": "OpenAI/Anthropic removed per authorization; EPIC-01/02 tasks updated accordingly"
+  },
   "architectural_goals": [
-    "Multi-model AI architecture (Gemini 2.0 Flash, Claude, OpenAI) with streaming SSE and provider fallback",
-    "Production-grade RAG system with 6 specialized medical chunking strategies and <200ms vector search via Qdrant/Chroma",
+    "Gemini-exclusive AI architecture (gemini-3.6-flash via GEMINI_API_KEY) with streaming SSE and model-version fallback",
+    "Production-grade RAG system with 6 specialized medical chunking strategies and <200ms vector search via Supabase pgvector",
     "Prompt caching infrastructure with memory/Redis backends reducing API costs by ~40%",
     "Hardened file upload and OCR pipeline for complex medical PDFs with hallucination validation",
     "HIPAA-style ephemeral chat handling with PHI scrubbing, AES-256-GCM and audit logging",
@@ -30,27 +36,27 @@
       "tasks": [
         {
           "task_id": "TSK-01-01",
-          "description": "Implement semantic chunking algorithm with cosine similarity boundary detection for medical PDFs (LangChain textsplitters, 1536d embeddings).",
+          "description": "Implement semantic chunking with cosine similarity boundary detection for medical PDFs using Gemini text-embedding-004 (768d) and @langchain/textsplitters.",
           "status": "pending",
           "required_commit_msg": "feat(rag): implement semantic chunking with cosine boundary detection"
         },
         {
           "task_id": "TSK-01-02",
-          "description": "Build hierarchy-aware PDF parsing pipeline (headings, tables, lab sections) with overlap and metadata preservation.",
+          "description": "Build hierarchy-aware PDF parsing pipeline (headings, tables, lab sections) with overlap and metadata preservation (pdf-parse + LangChain).",
           "status": "pending",
           "required_commit_msg": "feat(rag): add hierarchy-aware PDF chunking pipeline"
         },
         {
           "task_id": "TSK-01-03",
-          "description": "Create provider-agnostic embedding service (OpenAI 1536d, Gemini, mock) with batching and retry.",
+          "description": "Create Gemini-centric embedding service (text-embedding-004 768d via @langchain/google-genai, mock fallback) with batching and retry.",
           "status": "pending",
-          "required_commit_msg": "feat(rag): add 1536d embedding provider abstraction"
+          "required_commit_msg": "feat(rag): add Gemini embedding provider abstraction"
         },
         {
           "task_id": "TSK-01-04",
-          "description": "Integrate vector store (ChromaDB / Supabase pgvector / mock) with <200ms search, 5s timeout and noop fallback.",
+          "description": "Integrate Supabase pgvector as primary vector store (pgvector extension, 768d, <200ms search, 5s timeout, noop/mock fallback).",
           "status": "pending",
-          "required_commit_msg": "feat(rag): integrate vector store with sub-200ms latency"
+          "required_commit_msg": "feat(rag): integrate Supabase pgvector with sub-200ms latency"
         },
         {
           "task_id": "TSK-01-05",
@@ -68,14 +74,14 @@
     },
     {
       "epic_id": "EPIC-02",
-      "title": "Multi-Model AI Architecture & SSE Streaming Sidecar",
+      "title": "Gemini-Exclusive AI Architecture & SSE Streaming Sidecar",
       "status": "pending",
       "tasks": [
         {
           "task_id": "TSK-02-01",
-          "description": "Build multi-model router with automatic fallback (Gemini -> OpenAI -> Claude) and health-aware selection via LLM_PROVIDER env.",
+          "description": "Build Gemini model router with version fallback (gemini-3.6-flash -> gemini-2.0-flash) via GEMINI_API_KEY and health-aware selection (no OpenAI/Claude).",
           "status": "pending",
-          "required_commit_msg": "feat(ai): add multi-model router with automatic fallback"
+          "required_commit_msg": "feat(ai): add Gemini router with version fallback"
         },
         {
           "task_id": "TSK-02-02",
@@ -85,9 +91,9 @@
         },
         {
           "task_id": "TSK-02-03",
-          "description": "Harden loadChatModel provider abstraction and alias deprecated models (gemini-2.0-flash -> gemini-3.6-flash).",
+          "description": "Harden Gemini-only loadChatModel (GEMINI_API_KEY, alias deprecated gemini-2.0-flash -> gemini-3.6-flash, remove OpenAI/Claude paths).",
           "status": "pending",
-          "required_commit_msg": "feat(ai): harden provider-agnostic model loader"
+          "required_commit_msg": "feat(ai): harden Gemini-only model loader"
         },
         {
           "task_id": "TSK-02-04",
