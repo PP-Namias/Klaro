@@ -1,73 +1,395 @@
 {
-  "project": "Klaro Platform Unified Integration",
-  "branch": "dev",
-  "version": "1.0.0",
-  "status": "in_progress",
+  "project": "Klaro Medical AI Platform - Production Hardening",
+  "target_branch": "dev",
+  "version": "2.0.0",
+  "generated_at": "2026-08-21",
+  "status": "pending_approval",
+  "architectural_goals": [
+    "Multi-model AI architecture (Gemini 2.0 Flash, Claude, OpenAI) with streaming SSE and provider fallback",
+    "Production-grade RAG system with 6 specialized medical chunking strategies and <200ms vector search via Qdrant/Chroma",
+    "Prompt caching infrastructure with memory/Redis backends reducing API costs by ~40%",
+    "Hardened file upload and OCR pipeline for complex medical PDFs with hallucination validation",
+    "HIPAA-style ephemeral chat handling with PHI scrubbing, AES-256-GCM and audit logging",
+    "Offline-capable PWA with E2E encrypted local storage and edge-optimized latency",
+    "Flagship UI/UX foundations for /scan with SSE sidecar, drag-drop, camera and multi-format viewers"
+  ],
   "gates": {
     "typecheck": "15/15",
     "lint": "13/13",
-    "tests_passing": 1535,
-    "e2e_scanner_scope": "18/18"
+    "coverage": "80%",
+    "tests_passing_target": 1535,
+    "e2e_specs": 10,
+    "vector_search_latency_ms": 200,
+    "prompt_cache_saving_pct": 40
   },
-  "phases": [
+  "epics": [
     {
-      "id": "INT-P1",
-      "name": "CalModal Scheduling & Deep Linking",
-      "status": "in_progress",
-      "issues": [
-        { "id": "CAL-01", "task": "Fix iframe loader lifecycle and preserve handleBooked logic", "status": "completed" },
-        { "id": "CAL-02", "task": "Implement URL hash synchronization (#booking=open)", "status": "completed" },
-        { "id": "CAL-03", "task": "Stabilize cal-modal.spec.ts with strict unambiguous locators", "status": "completed" }
-      ]
-    },
-    {
-      "id": "INT-P2",
-      "name": "Branch Unification & Dev Merge",
-      "status": "in_progress",
-      "issues": [
-        { "id": "MERGE-01", "task": "Merge ticket/KL-UI-002-scanner-layout-fix into dev", "status": "completed" },
-        { "id": "MERGE-02", "task": "Merge ticket/KL-CAL-003-calmodal-scheduling into dev", "status": "in_progress" },
-        { "id": "MERGE-03", "task": "Run full monorepo typecheck, lint, and vitest suite", "status": "pending" }
-      ]
-    },
-    {
-      "id": "INT-P3",
-      "name": "Full System Manual Smoke Test",
+      "epic_id": "EPIC-01",
+      "title": "RAG Pipeline & Medical Semantic Chunking",
       "status": "pending",
-      "issues": [
-        { "id": "SMOKE-01", "task": "Run full stack concurrently (Next.js :3000 + Sidecar :3002)", "status": "completed" },
-        { "id": "SMOKE-02", "task": "Test /scan chat input with image drop and live SSE streaming", "status": "pending" },
-        { "id": "SMOKE-03", "task": "Test deep-link booking modal trigger via URL hash", "status": "pending" }
+      "tasks": [
+        {
+          "task_id": "TSK-01-01",
+          "description": "Implement semantic chunking algorithm with cosine similarity boundary detection for medical PDFs (LangChain textsplitters, 1536d embeddings).",
+          "status": "pending",
+          "required_commit_msg": "feat(rag): implement semantic chunking with cosine boundary detection"
+        },
+        {
+          "task_id": "TSK-01-02",
+          "description": "Build hierarchy-aware PDF parsing pipeline (headings, tables, lab sections) with overlap and metadata preservation.",
+          "status": "pending",
+          "required_commit_msg": "feat(rag): add hierarchy-aware PDF chunking pipeline"
+        },
+        {
+          "task_id": "TSK-01-03",
+          "description": "Create provider-agnostic embedding service (OpenAI 1536d, Gemini, mock) with batching and retry.",
+          "status": "pending",
+          "required_commit_msg": "feat(rag): add 1536d embedding provider abstraction"
+        },
+        {
+          "task_id": "TSK-01-04",
+          "description": "Integrate vector store (ChromaDB / Supabase pgvector / mock) with <200ms search, 5s timeout and noop fallback.",
+          "status": "pending",
+          "required_commit_msg": "feat(rag): integrate vector store with sub-200ms latency"
+        },
+        {
+          "task_id": "TSK-01-05",
+          "description": "Implement 6 specialized chunking strategies (lab results, prescriptions, discharge, consultation, imaging, generic).",
+          "status": "pending",
+          "required_commit_msg": "feat(rag): add 6 medical document chunking strategies"
+        },
+        {
+          "task_id": "TSK-01-06",
+          "description": "Tune retrieval (top-k, hybrid sparse+dense, reranking) and citation highlighting for grounded answers.",
+          "status": "pending",
+          "required_commit_msg": "feat(rag): tune retrieval with hybrid search and reranking"
+        }
       ]
     },
     {
-      "id": "INT-P4",
-      "name": "Final UI Polish & Hydration Fixes",
-      "status": "in_progress",
-      "issues": [
-        { "id": "POLISH-01", "task": "Resolve LanguageSelector hydration mismatch (FIL vs CEB) using a mounted state check", "status": "completed" },
-        { "id": "POLISH-02", "task": "Remove the unstyled 'ENFILBISILO' component leak from the ChatInput/ScannerWorkspace layout", "status": "completed" }
+      "epic_id": "EPIC-02",
+      "title": "Multi-Model AI Architecture & SSE Streaming Sidecar",
+      "status": "pending",
+      "tasks": [
+        {
+          "task_id": "TSK-02-01",
+          "description": "Build multi-model router with automatic fallback (Gemini -> OpenAI -> Claude) and health-aware selection via LLM_PROVIDER env.",
+          "status": "pending",
+          "required_commit_msg": "feat(ai): add multi-model router with automatic fallback"
+        },
+        {
+          "task_id": "TSK-02-02",
+          "description": "Implement SSE streaming sidecar route /api/chat/stream with backpressure, heartbeats and proper framing (data: + complete).",
+          "status": "pending",
+          "required_commit_msg": "feat(ai): implement SSE streaming with backpressure handling"
+        },
+        {
+          "task_id": "TSK-02-03",
+          "description": "Harden loadChatModel provider abstraction and alias deprecated models (gemini-2.0-flash -> gemini-3.6-flash).",
+          "status": "pending",
+          "required_commit_msg": "feat(ai): harden provider-agnostic model loader"
+        },
+        {
+          "task_id": "TSK-02-04",
+          "description": "Create LangChain prompt chain with medical context injection, dialect awareness and system prompt folding.",
+          "status": "pending",
+          "required_commit_msg": "feat(ai): build LangChain prompt chain for medical context"
+        },
+        {
+          "task_id": "TSK-02-05",
+          "description": "Optimize latency (prompt compression, streaming first-token, 5s retrieval timeout, edge caching).",
+          "status": "pending",
+          "required_commit_msg": "perf(ai): optimize streaming latency and retrieval timeout"
+        },
+        {
+          "task_id": "TSK-02-06",
+          "description": "Implement graceful degradation mock mode when LLM rate-limited or unavailable (deterministic fallback answer).",
+          "status": "pending",
+          "required_commit_msg": "feat(ai): add graceful mock fallback for rate limits"
+        }
       ]
     },
     {
-      "id": "INT-P5",
-      "name": "Conversational UI/UX Polish",
-      "status": "in_progress",
-      "issues": [
-        { "id": "UX-01", "task": "Implement Quick Starter prompt chips for the empty chat state", "status": "completed" },
-        { "id": "UX-02", "task": "Build an animated CSS pulsing dot 'thinking' indicator for Clara", "status": "completed" },
-        { "id": "UX-03", "task": "Enhance ChatMessage component with Markdown support and improved contrast", "status": "completed" },
-        { "id": "UX-04", "task": "Add dynamic active/disabled visual states to the chat input Send button", "status": "completed" }
+      "epic_id": "EPIC-03",
+      "title": "Prompt Caching Infrastructure",
+      "status": "pending",
+      "tasks": [
+        {
+          "task_id": "TSK-03-01",
+          "description": "Implement in-memory LRU cache with TTL, max size and per-tenant isolation for prompts and embeddings.",
+          "status": "pending",
+          "required_commit_msg": "feat(cache): add in-memory LRU cache with TTL"
+        },
+        {
+          "task_id": "TSK-03-02",
+          "description": "Integrate Redis backend with serialization, compression and invalidation hooks (fallback to memory when Redis unavailable).",
+          "status": "pending",
+          "required_commit_msg": "feat(cache): integrate Redis cache backend"
+        },
+        {
+          "task_id": "TSK-03-03",
+          "description": "Design deterministic cache key strategy via prompt hash (SHA256) including model, locale and document context.",
+          "status": "pending",
+          "required_commit_msg": "feat(cache): implement prompt hash dedup strategy"
+        },
+        {
+          "task_id": "TSK-03-04",
+          "description": "Add cache hit/miss metrics and cost tracking (~40% saving) exported via cost_control_metric JSON logs.",
+          "status": "pending",
+          "required_commit_msg": "feat(cache): add cache hit cost tracking metrics"
+        },
+        {
+          "task_id": "TSK-03-05",
+          "description": "Wire cache middleware into retrieval_graph generate node with stale-while-revalidate.",
+          "status": "pending",
+          "required_commit_msg": "feat(cache): integrate cache into retrieval graph"
+        }
       ]
     },
     {
-      "id": "INT-P6",
-      "name": "Media UX Overhaul",
-      "status": "in_progress",
-      "issues": [
-        { "id": "UX-05", "task": "Global drag-and-drop overlay with document-level drag listeners and a dashed visual dropzone landing", "status": "in_progress" },
-        { "id": "UX-06", "task": "Mobile-optimized full-screen camera modal (100dvh viewport, rear-facing lens, permission error states)", "status": "pending" },
-        { "id": "UX-07", "task": "Unified input bar integrating attach icon, camera icon, text input, and send button states", "status": "pending" }
+      "epic_id": "EPIC-04",
+      "title": "Document Ingestion & OCR Pipeline Hardening",
+      "status": "pending",
+      "tasks": [
+        {
+          "task_id": "TSK-04-01",
+          "description": "Harden Tesseract.js pipeline with sharp preprocessing (deskew, denoise, binarize, grayscale) and confidence scoring.",
+          "status": "pending",
+          "required_commit_msg": "feat(ocr): harden Tesseract pipeline with preprocessing"
+        },
+        {
+          "task_id": "TSK-04-02",
+          "description": "Add Google Cloud Vision fallback when local OCR confidence < threshold (OCR_CONFIDENCE_THRESHOLD=0.7).",
+          "status": "pending",
+          "required_commit_msg": "feat(ocr): add Vision fallback for low confidence"
+        },
+        {
+          "task_id": "TSK-04-03",
+          "description": "Build multi-format viewers (PDF, DOCX, PPTX, images) with text selection, annotation and citation highlighting.",
+          "status": "pending",
+          "required_commit_msg": "feat(doc): add multi-format viewers with annotation"
+        },
+        {
+          "task_id": "TSK-04-04",
+          "description": "Expand extraction engine to 200+ Philippine test variants (CBC, lipid, urinalysis, chemistry) with regex + AI.",
+          "status": "pending",
+          "required_commit_msg": "feat(extract): support 200 Philippine test variants"
+        },
+        {
+          "task_id": "TSK-04-05",
+          "description": "Implement hallucination detection validating extracted values against medical reference ranges and flagging impossible combos.",
+          "status": "pending",
+          "required_commit_msg": "feat(extract): add hallucination detection via ranges"
+        },
+        {
+          "task_id": "TSK-04-06",
+          "description": "Handle encrypted/corrupt PDFs, file validation, progress tracking, cancellation and retry with user-friendly errors.",
+          "status": "pending",
+          "required_commit_msg": "fix(ocr): handle encrypted and corrupt PDFs gracefully"
+        }
+      ]
+    },
+    {
+      "epic_id": "EPIC-05",
+      "title": "Clara Chatbot & LangGraph Hardening",
+      "status": "pending",
+      "tasks": [
+        {
+          "task_id": "TSK-05-01",
+          "description": "Build LangGraph retrieval_graph with 4 nodes (retrieve -> decide -> generate/emptyAnswer -> followUp) and conditional edges.",
+          "status": "pending",
+          "required_commit_msg": "feat(chat): build LangGraph retrieval state machine"
+        },
+        {
+          "task_id": "TSK-05-02",
+          "description": "Implement context-aware follow-up question generation and multi-turn history folding into single system message.",
+          "status": "pending",
+          "required_commit_msg": "feat(chat): add context-aware follow-up generator"
+        },
+        {
+          "task_id": "TSK-05-03",
+          "description": "Enable multilingual Clara responses (en, fil, ceb, ilo) with 100+ UI keys and dialect-specific medical terminology.",
+          "status": "pending",
+          "required_commit_msg": "feat(i18n): enable Clara multilingual responses"
+        },
+        {
+          "task_id": "TSK-05-04",
+          "description": "Implement useChatStream hook with optimistic UI, typing indicator (CSS pulsing dot) and SSE parser.",
+          "status": "pending",
+          "required_commit_msg": "feat(chat): implement streaming hook with optimistic UI"
+        },
+        {
+          "task_id": "TSK-05-05",
+          "description": "Add safety guardrails (input filtering, output validation, medical disclaimers, citation enforcement).",
+          "status": "pending",
+          "required_commit_msg": "feat(chat): add safety guardrails and disclaimers"
+        },
+        {
+          "task_id": "TSK-05-06",
+          "description": "Add quick-starter prompt chips for empty state, markdown rendering and dynamic send button states.",
+          "status": "pending",
+          "required_commit_msg": "feat(chat): add starter chips and markdown rendering"
+        }
+      ]
+    },
+    {
+      "epic_id": "EPIC-06",
+      "title": "Security & HIPAA Ephemeral Handling",
+      "status": "pending",
+      "tasks": [
+        {
+          "task_id": "TSK-06-01",
+          "description": "Implement PHI/PII scrubber (names, SSN, MRN, phones, addresses, insurance IDs) before any external API call.",
+          "status": "pending",
+          "required_commit_msg": "feat(security): implement PHI scrubber before LLM calls"
+        },
+        {
+          "task_id": "TSK-06-02",
+          "description": "Add AES-256-GCM encryption at rest for stored documents and chat using Node crypto module.",
+          "status": "pending",
+          "required_commit_msg": "feat(security): add AES-256-GCM encryption at rest"
+        },
+        {
+          "task_id": "TSK-06-03",
+          "description": "Build phiAuditLog recording every PHI access with timestamp, user identity and action type.",
+          "status": "pending",
+          "required_commit_msg": "feat(security): add phiAuditLog for PHI access"
+        },
+        {
+          "task_id": "TSK-06-04",
+          "description": "Implement ephemeral chat storage with 24h secure wipe and E2E encrypted IndexedDB fallback for offline.",
+          "status": "pending",
+          "required_commit_msg": "feat(security): add ephemeral chat with 24h wipe"
+        },
+        {
+          "task_id": "TSK-06-05",
+          "description": "Enforce rate limiting (chat 30/min, scan 10/min) with exponential backoff and 429 passthrough via proxy.",
+          "status": "pending",
+          "required_commit_msg": "feat(security): enforce chat and scan rate limits"
+        },
+        {
+          "task_id": "TSK-06-06",
+          "description": "Add tenant isolation via HS256 JWT (tenantId/patientId), namespace routing and guestMode public_faq k=3.",
+          "status": "pending",
+          "required_commit_msg": "feat(auth): isolate tenants with namespace routing"
+        }
+      ]
+    },
+    {
+      "epic_id": "EPIC-07",
+      "title": "Offline PWA & Edge Latency Optimization",
+      "status": "pending",
+      "tasks": [
+        {
+          "task_id": "TSK-07-01",
+          "description": "Configure PWA manifest, service worker with precache, runtime cache and offline fallback page.",
+          "status": "pending",
+          "required_commit_msg": "feat(pwa): add service worker with offline fallback"
+        },
+        {
+          "task_id": "TSK-07-02",
+          "description": "Implement E2E encrypted IndexedDB/localStorage fallback for ephemeral chat and scanned docs.",
+          "status": "pending",
+          "required_commit_msg": "feat(pwa): add encrypted IndexedDB storage"
+        },
+        {
+          "task_id": "TSK-07-03",
+          "description": "Optimize edge latency (Vercel edge, CDN, compression, <200ms budgets, prefetch).",
+          "status": "pending",
+          "required_commit_msg": "perf(pwa): optimize edge caching for sub-200ms"
+        },
+        {
+          "task_id": "TSK-07-04",
+          "description": "Add install prompt, offline upload queue with background sync and retry.",
+          "status": "pending",
+          "required_commit_msg": "feat(pwa): add install prompt and offline queue"
+        },
+        {
+          "task_id": "TSK-07-05",
+          "description": "Gate PWA with Lighthouse audits and performance budgets in CI.",
+          "status": "pending",
+          "required_commit_msg": "test(pwa): add Lighthouse PWA audit gates"
+        }
+      ]
+    },
+    {
+      "epic_id": "EPIC-08",
+      "title": "UI/UX Foundations & Media Experience",
+      "status": "pending",
+      "tasks": [
+        {
+          "task_id": "TSK-08-01",
+          "description": "Build responsive ScannerWorkspace with global drag-and-drop overlay, dashed dropzone and mobile 100dvh layout.",
+          "status": "pending",
+          "required_commit_msg": "feat(ui): build responsive scanner workspace"
+        },
+        {
+          "task_id": "TSK-08-02",
+          "description": "Implement full-screen camera modal (100dvh, rear-facing lens, permission error states, capture preview).",
+          "status": "pending",
+          "required_commit_msg": "feat(ui): add full-screen camera modal"
+        },
+        {
+          "task_id": "TSK-08-03",
+          "description": "Unify input bar (attach, camera, text, send states) with 44px touch targets and disabled/active visuals.",
+          "status": "pending",
+          "required_commit_msg": "feat(ui): unify input bar with media states"
+        },
+        {
+          "task_id": "TSK-08-04",
+          "description": "Build file preview with severity badges, confidence scores and upload progress/cancel/retry.",
+          "status": "pending",
+          "required_commit_msg": "feat(ui): add file preview with severity badges"
+        },
+        {
+          "task_id": "TSK-08-05",
+          "description": "Ship 60+ reusable components (shadcn/Radix, Tailwind 4, CSS Modules) with a11y and dark mode.",
+          "status": "pending",
+          "required_commit_msg": "feat(ui): add reusable shadcn component library"
+        },
+        {
+          "task_id": "TSK-08-06",
+          "description": "Integrate facility locator (Leaflet, Haversine), Cal.com booking modal with hash sync and Stripe sandbox.",
+          "status": "pending",
+          "required_commit_msg": "feat(ui): integrate facility locator and booking"
+        }
+      ]
+    },
+    {
+      "epic_id": "EPIC-09",
+      "title": "Testing, Observability & Release Gates",
+      "status": "pending",
+      "tasks": [
+        {
+          "task_id": "TSK-09-01",
+          "description": "Enforce Vitest 80% branch coverage, typecheck 15/15 and lint 13/13 gates with pre-push hooks.",
+          "status": "pending",
+          "required_commit_msg": "test(ci): enforce 80 pct coverage and typecheck gates"
+        },
+        {
+          "task_id": "TSK-09-02",
+          "description": "Add Playwright E2E suite (upload, chat SSE, booking, analysis, error states, full journey) locale-independent.",
+          "status": "pending",
+          "required_commit_msg": "test(e2e): add Playwright E2E suite for core flows"
+        },
+        {
+          "task_id": "TSK-09-03",
+          "description": "Implement tracing (x-correlation-id, x-datadog-trace-id, LangSmith runName) + cost tracking cost_control_metric logs.",
+          "status": "pending",
+          "required_commit_msg": "feat(obs): add tracing and cost metrics"
+        },
+        {
+          "task_id": "TSK-09-04",
+          "description": "Add /api/health liveness probe with vector store health check (200 healthy / 503 degraded) unauthenticated.",
+          "status": "pending",
+          "required_commit_msg": "feat(obs): add health check with vector store probe"
+        },
+        {
+          "task_id": "TSK-09-05",
+          "description": "Configure CI/CD (GitHub Actions lint/typecheck/test/coverage, Vercel deploy, Docker sidecar+Chroma).",
+          "status": "pending",
+          "required_commit_msg": "chore(ci): configure CI gates and deploy pipeline"
+        }
       ]
     }
   ]
