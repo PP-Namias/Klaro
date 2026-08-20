@@ -98,7 +98,7 @@
         {
           "task_id": "TSK-02-04",
           "description": "Create LangChain prompt chain with medical context injection, dialect awareness and system prompt folding.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(ai): build LangChain prompt chain for medical context"
         },
         {

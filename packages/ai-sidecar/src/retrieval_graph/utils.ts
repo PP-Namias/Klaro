@@ -17,30 +17,66 @@ import {
   resolveModelSpec,
 } from "../shared/utils.js";
 import {
+  buildQASystemPrompt,
   FOLLOW_UP_PROMPT,
-  QA_SYSTEM_PROMPT,
-  QA_SYSTEM_PROMPT_NO_CONTEXT,
 } from "./prompts.js";
 
 export function formatDocsAsString(docs: Document[]): string {
   if (!docs || docs.length === 0) return "";
 
   return docs
-    .map(
-      (doc, i) =>
-        `[${i + 1}] ${doc.pageContent}\nSource: ${doc.metadata?.sourceFile ?? "unknown"}`,
-    )
+    .map((doc, i) => {
+      const citation = doc.metadata?.citation ?? `[${i + 1}]`;
+      const heading = doc.metadata?.heading ? ` Heading: ${doc.metadata.heading}` : "";
+      const source = doc.metadata?.sourceFile ?? doc.metadata?.sourcePage ?? "unknown";
+      return `${citation} ${doc.pageContent}\nSource: ${source}${heading}`;
+    })
     .join("\n\n");
 }
 
 export function formatMessagesToHistory(messages: BaseMessage[]): string {
   return messages
     .map((m) => {
-      if (m instanceof HumanMessage) return `User: ${m.content}`;
-      if (m instanceof AIMessage) return `Assistant: ${m.content}`;
-      return `${m.constructor.name}: ${m.content}`;
+      const text = extractTextFromContent(m.content);
+      if (m instanceof HumanMessage) return `User: ${text}`;
+      if (m instanceof AIMessage) return `Assistant: ${text}`;
+      return `${m.constructor.name}: ${text}`;
     })
     .join("\n");
+}
+
+function extractTextFromContent(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((block) => {
+        if (typeof block === "string") return block;
+        if (
+          typeof block === "object" &&
+          block !== null &&
+          "text" in block &&
+          typeof (block as { text: unknown }).text === "string"
+        ) {
+          return (block as { text: string }).text;
+        }
+        return "";
+      })
+      .filter((part) => part.length > 0)
+      .join(" ");
+  }
+  return "";
+}
+
+function hasImageContent(content: unknown): boolean {
+  return (
+    Array.isArray(content) &&
+    content.some(
+      (block) =>
+        typeof block === "object" &&
+        block !== null &&
+        "image_url" in block,
+    )
+  );
 }
 
 export async function retrieveDocs(
@@ -74,8 +110,9 @@ export async function generateAnswer(
   messages: BaseMessage[],
   config?: RunnableConfig,
 ): Promise<string> {
-  const c = config?.configurable as Partial<RetrievalConfiguration> | undefined;
+  const c = config?.configurable as Partial<RetrievalConfiguration> & { locale?: string; dialect?: string } | undefined;
   const modelName = resolveModelSpec(c?.model);
+  const locale = c?.locale ?? c?.dialect ?? process.env.DEFAULT_LOCALE ?? "en";
   const temperature =
     c?.temperature ?? parseFloat(process.env.LLM_TEMPERATURE ?? "0.3");
   const fallbackModelSpec = process.env.CHAT_MODEL_FALLBACK;
@@ -85,7 +122,7 @@ export async function generateAnswer(
     return generateMockAnswer(question, docs);
   }
 
-  const promptMessages = buildPromptMessages(question, docs, messages);
+  const promptMessages = buildPromptMessages(question, docs, messages, locale);
 
   try {
     const model = await loadChatModel(modelName, temperature);
@@ -147,7 +184,7 @@ export async function generateFollowUpQuestions(
   messages: BaseMessage[],
   config?: RunnableConfig,
 ): Promise<string[]> {
-  const c = config?.configurable as Partial<RetrievalConfiguration> | undefined;
+  const c = config?.configurable as Partial<RetrievalConfiguration> & { locale?: string } | undefined;
   const includeFollowUps = c?.includeFollowUps ?? true;
 
   if (!includeFollowUps) return [];
@@ -161,9 +198,10 @@ export async function generateFollowUpQuestions(
   }
 
   try {
+    const locale = c?.locale ?? process.env.DEFAULT_LOCALE ?? "en";
     const model = await loadChatModel(resolveModelSpec(c?.model), 0.7);
     const historyStr = formatMessagesToHistory(messages);
-    const prompt = FOLLOW_UP_PROMPT.replace("{messages}", historyStr);
+    const prompt = FOLLOW_UP_PROMPT.replace("{messages}", historyStr).replaceAll("{locale}", locale);
 
     const parser = new StringOutputParser();
     const chain = model.pipe(parser);
@@ -184,10 +222,11 @@ export async function generateFollowUpQuestions(
   }
 }
 
-function buildPromptMessages(
+export function buildPromptMessages(
   question: string,
   docs: Document[],
   messages: BaseMessage[],
+  locale = "en",
 ): BaseMessage[] {
   const contextStr = formatDocsAsString(docs);
   const priorMessages =
@@ -196,9 +235,8 @@ function buildPromptMessages(
       : messages;
   const historyStr = formatMessagesToHistory(priorMessages);
 
-  const systemPrompt = contextStr.trim()
-    ? QA_SYSTEM_PROMPT.replace("{context}", contextStr)
-    : QA_SYSTEM_PROMPT_NO_CONTEXT;
+  // Gemini requires single SystemMessage folding history + medical context + dialect
+  const systemPrompt = buildQASystemPrompt({ context: contextStr, locale });
 
   const result: BaseMessage[] = [
     new SystemMessage(
@@ -208,7 +246,16 @@ function buildPromptMessages(
     ),
   ];
 
-  result.push(new HumanMessage(question));
+  const lastMessage = messages.length > 0 ? messages.at(-1) : undefined;
+  const isVisionMessage =
+    lastMessage instanceof HumanMessage &&
+    hasImageContent(lastMessage.content);
+
+  result.push(
+    isVisionMessage
+      ? new HumanMessage({ content: lastMessage.content })
+      : new HumanMessage(question),
+  );
   return result;
 }
 
