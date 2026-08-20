@@ -5,6 +5,8 @@ import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 import { createClient } from "@supabase/supabase-js";
 
+import { hybridSearch } from "./hybridRetrieval.js";
+
 import type { BaseConfiguration } from "./configuration.js";
 import { ensureBaseConfiguration } from "./configuration.js";
 import {
@@ -111,6 +113,17 @@ export async function makeSupabaseRetriever(
   };
 
   return retriever;
+}
+
+export async function makeHybridRetriever(
+  config?: RunnableConfig,
+): Promise<VectorStoreRetriever & { hybridSearch: (q: string) => Promise<Document[]> }> {
+  const base = await makeRetriever(config);
+  const hybrid = {
+    ...base,
+    hybridSearch: (query: string) => hybridSearch(query, base),
+  } as VectorStoreRetriever & { hybridSearch: (q: string) => Promise<Document[]> };
+  return hybrid;
 }
 
 export function makeNoopRetriever(): VectorStoreRetriever {

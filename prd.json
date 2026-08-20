@@ -32,7 +32,7 @@
     {
       "epic_id": "EPIC-01",
       "title": "RAG Pipeline & Medical Semantic Chunking",
-      "status": "pending",
+      "status": "completed",
       "tasks": [
         {
           "task_id": "TSK-01-01",
@@ -67,7 +67,7 @@
         {
           "task_id": "TSK-01-06",
           "description": "Tune retrieval (top-k, hybrid sparse+dense, reranking) and citation highlighting for grounded answers.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(rag): tune retrieval with hybrid search and reranking"
         }
       ]
