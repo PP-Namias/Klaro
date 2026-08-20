@@ -80,7 +80,7 @@
         {
           "task_id": "TSK-02-01",
           "description": "Build Gemini model router with version fallback (gemini-3.6-flash -> gemini-2.0-flash) via GEMINI_API_KEY and health-aware selection (no OpenAI/Claude).",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(ai): add Gemini router with version fallback"
         },
         {
