@@ -135,7 +135,7 @@
         {
           "task_id": "TSK-03-03",
           "description": "Design deterministic cache key strategy via prompt hash (SHA256) including model, locale and document context.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(cache): implement prompt hash dedup strategy"
         },
         {
