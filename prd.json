@@ -118,7 +118,7 @@
     {
       "epic_id": "EPIC-03",
       "title": "Prompt Caching Infrastructure",
-      "status": "pending",
+      "status": "completed",
       "tasks": [
         {
           "task_id": "TSK-03-01",
@@ -147,7 +147,7 @@
         {
           "task_id": "TSK-03-05",
           "description": "Wire cache middleware into retrieval_graph generate node with stale-while-revalidate.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(cache): integrate cache into retrieval graph"
         }
       ]

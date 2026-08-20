@@ -125,12 +125,28 @@ export async function generateAnswer(
     return generateMockAnswer(question, docs, locale);
   }
 
+  // Hybrid cache: check before LLM call (deterministic key: prompt+context+locale+tenant+model)
+  const contextStrForCache = formatDocsAsString(docs);
+  const cacheInputs = {
+    prompt: question,
+    context: contextStrForCache,
+    locale,
+    tenantId: (c as Record<string, unknown>)?.tenantId as string | undefined,
+    model: modelName,
+  };
+
+  const { getCachedAnswer, setCachedAnswer } = await import("../shared/cache/hybridCache.js");
+  const cached = await getCachedAnswer(cacheInputs);
+  if (cached) return cached.answer;
+
   const promptMessages = buildPromptMessages(question, docs, messages, locale);
 
   try {
     const model = await loadChatModel(modelName, temperature);
     const response = await invokeWithRetry(model, promptMessages, config);
-    return response.content.toString();
+    const answer = response.content.toString();
+    await setCachedAnswer(cacheInputs, answer);
+    return answer;
   } catch (err) {
     if (
       fallbackModelSpec &&
