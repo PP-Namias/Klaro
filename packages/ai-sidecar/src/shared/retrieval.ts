@@ -1,47 +1,22 @@
 import type { Document } from "@langchain/core/documents";
-import type { Embeddings } from "@langchain/core/embeddings";
 import type { RunnableConfig } from "@langchain/core/runnables";
 import type { VectorStoreRetriever } from "@langchain/core/vectorstores";
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { OpenAIEmbeddings } from "@langchain/openai";
 import { createClient } from "@supabase/supabase-js";
 
 import type { BaseConfiguration } from "./configuration.js";
 import { ensureBaseConfiguration } from "./configuration.js";
+import {
+  GEMINI_EMBEDDING_DIMS,
+  getGeminiEmbeddings,
+} from "./embeddings.js";
 
 const RETRIEVER_TIMEOUT = 5000;
 
-function isGoogleProvider(provider: string | undefined): boolean {
-  return provider === "google-genai" || provider === "gemini";
-}
-
-function getEmbeddings(model?: string): Embeddings {
-  const provider =
-    process.env.EMBEDDING_PROVIDER ?? process.env.LLM_PROVIDER ?? "openai";
-
-  if (isGoogleProvider(provider)) {
-    try {
-      return new GoogleGenerativeAIEmbeddings({
-        model: model ?? process.env.EMBEDDING_MODEL ?? "text-embedding-004",
-        apiKey:
-          process.env.GOOGLE_API_KEY ||
-          process.env.GOOGLE_GENAI_API_KEY ||
-          process.env.GEMINI_API_KEY ||
-          process.env.LLM_API_KEY,
-      });
-    } catch {
-      console.warn(
-        "[ai-sidecar] Google Generative AI embeddings not available, falling back to OpenAI",
-      );
-    }
-  }
-
-  return new OpenAIEmbeddings({
-    model: model ?? process.env.EMBEDDING_MODEL ?? "text-embedding-3-small",
-    apiKey: process.env.OPENAI_API_KEY || process.env.LLM_API_KEY,
-  });
+export { GEMINI_EMBEDDING_DIMS, getGeminiEmbeddings };
+export function getEmbeddings(model?: string) {
+  return getGeminiEmbeddings(model);
 }
 
 function withTimeout<T>(

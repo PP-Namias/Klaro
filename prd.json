@@ -49,7 +49,7 @@
         {
           "task_id": "TSK-01-03",
           "description": "Create Gemini-centric embedding service (text-embedding-004 768d via @langchain/google-genai, mock fallback) with batching and retry.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(rag): add Gemini embedding provider abstraction"
         },
         {
