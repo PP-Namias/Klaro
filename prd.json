@@ -141,7 +141,7 @@
         {
           "task_id": "TSK-03-04",
           "description": "Add cache hit/miss metrics and cost tracking (~40% saving) exported via cost_control_metric JSON logs.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(cache): add cache hit cost tracking metrics"
         },
         {
