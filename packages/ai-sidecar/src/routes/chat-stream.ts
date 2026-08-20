@@ -33,8 +33,18 @@ const IMAGE_DATA_URI = /^data:image\/(png|jpe?g|webp|gif);base64,/i;
 
 const router = Router();
 
-function sendSSE(res: Response, data: Record<string, unknown>): void {
-  res.write(`data: ${JSON.stringify(data)}\n\n`);
+function sendSSE(res: Response, data: Record<string, unknown>): boolean {
+  if (res.writableEnded || res.destroyed) return false;
+  return res.write(`data: ${JSON.stringify(data)}\n\n`);
+}
+
+function sendHeartbeat(res: Response): void {
+  if (!res.writableEnded && !res.destroyed) res.write(`: heartbeat\n\n`);
+}
+
+async function waitForDrain(res: Response): Promise<void> {
+  if (res.writableNeedDrain === false) return;
+  await new Promise<void>((resolve) => res.once("drain", resolve));
 }
 
 type ChatContentBlock = MessageContentComplex | DataContentBlock;
@@ -118,49 +128,72 @@ async function streamResponse(
 
   let finalAnswer = "";
   let followUpQuestions: string[] = [];
+  let collectAnswerTokens = true;
+  let isClosed = false;
+  const onClose = () => {
+    isClosed = true;
+  };
+  res.on("close", onClose);
+  const heartbeat = setInterval(() => sendHeartbeat(res), 15000);
 
   const events = retrievalGraph.streamEvents(
     { question, messages: langchainMessages },
     options ?? ({} as Parameters<typeof retrievalGraph.streamEvents>[1]),
   );
 
-  for await (const event of events) {
-    if (event.event === "on_chat_model_stream") {
-      const chunk = event.data?.chunk as
-        | Parameters<typeof extractChunkText>[0]
-        | undefined;
-      const text = extractChunkText(chunk);
-      if (text) {
-        finalAnswer += text;
-        sendSSE(res, { event: "token", token: text });
-      }
-    } else if (
-      event.event === "on_chain_end" &&
-      (event.name === "generate" || event.name === "emptyAnswer")
-    ) {
-      const answer = extractAnswerText(event.data?.output);
-      if (answer) {
-        if (!finalAnswer) {
-          sendSSE(res, { event: "token", token: answer });
+  try {
+    for await (const event of events) {
+      if (isClosed || res.writableEnded || res.destroyed) break;
+      if (event.event === "on_chain_start" && event.name === "followUp") {
+        collectAnswerTokens = false;
+      } else if (
+        event.event === "on_chat_model_stream" &&
+        collectAnswerTokens
+      ) {
+        const chunk = event.data?.chunk as
+          | Parameters<typeof extractChunkText>[0]
+          | undefined;
+        const text = extractChunkText(chunk);
+        if (text) {
+          finalAnswer += text;
+          const ok = sendSSE(res, { event: "token", token: text });
+          if (!ok) await waitForDrain(res);
         }
-        finalAnswer = answer;
-      }
-      sendSSE(res, { event: "status", message: "Generation complete" });
-    } else if (event.event === "on_chain_end" && event.name === "followUp") {
-      const output = event.data?.output as
-        | { followUpQuestions?: string[] }
-        | undefined;
-      if (output?.followUpQuestions) {
-        followUpQuestions = output.followUpQuestions;
+      } else if (
+        event.event === "on_chain_end" &&
+        (event.name === "generate" || event.name === "emptyAnswer")
+      ) {
+        const answer = extractAnswerText(event.data?.output);
+        if (answer) {
+          if (!finalAnswer) {
+            const ok = sendSSE(res, { event: "token", token: answer });
+            if (!ok) await waitForDrain(res);
+          }
+          finalAnswer = answer;
+        }
+        sendSSE(res, { event: "status", message: "Generation complete" });
+      } else if (event.event === "on_chain_end" && event.name === "followUp") {
+        const output = event.data?.output as
+          | { followUpQuestions?: string[] }
+          | undefined;
+        if (output?.followUpQuestions) {
+          followUpQuestions = output.followUpQuestions;
+        }
       }
     }
+  } finally {
+    clearInterval(heartbeat);
+    res.off("close", onClose);
   }
 
-  sendSSE(res, {
-    event: "complete",
-    answer: finalAnswer,
-    followUpQuestions,
-  });
+  if (!res.writableEnded && !res.destroyed) {
+    const ok = sendSSE(res, {
+      event: "complete",
+      answer: finalAnswer,
+      followUpQuestions,
+    });
+    if (!ok) await waitForDrain(res);
+  }
 }
 
 function parseMessages(rawMessages: string | undefined): ChatMessage[] {
@@ -196,9 +229,19 @@ async function runStream(
 
   res.flushHeaders();
 
+  // Client disconnect tears down Gemini stream to avoid leaked execution
+  let isClosed = false;
+  const onClose = () => {
+    isClosed = true;
+  };
+  req.on("close", onClose);
+  res.on("close", onClose);
+
   try {
     await streamResponse(res, question, parsedMessages, image, options);
+    if (isClosed) return;
   } catch (err) {
+    if (isClosed) return;
     const message = err instanceof Error ? err.message : "Unknown error";
     const isQuota =
       message.includes("429") ||
@@ -211,7 +254,9 @@ async function runStream(
       sendSSE(res, { error: message, code: 500 });
     }
   } finally {
-    res.end();
+    req.off("close", onClose);
+    res.off("close", onClose);
+    if (!res.writableEnded) res.end();
   }
 }
 

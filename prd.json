@@ -86,7 +86,7 @@
         {
           "task_id": "TSK-02-02",
           "description": "Implement SSE streaming sidecar route /api/chat/stream with backpressure, heartbeats and proper framing (data: + complete).",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(ai): implement SSE streaming with backpressure handling"
         },
         {
