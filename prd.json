@@ -104,7 +104,7 @@
         {
           "task_id": "TSK-02-05",
           "description": "Optimize latency (prompt compression, streaming first-token, 5s retrieval timeout, edge caching).",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "perf(ai): optimize streaming latency and retrieval timeout"
         },
         {

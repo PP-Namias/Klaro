@@ -83,14 +83,16 @@ export async function retrieveDocs(
   question: string,
   config?: RunnableConfig,
 ): Promise<Document[]> {
+  const { getRetrieverTimeout } = await import("../shared/latency.js");
+  const timeoutMs = getRetrieverTimeout();
   try {
     const retriever = await makeRetriever(config);
     const docs = await Promise.race([
       retriever.invoke(question),
       new Promise<Document[]>((_, reject) =>
         setTimeout(
-          () => reject(new Error("Retriever invoke timed out after 8s")),
-          8000,
+          () => reject(new Error(`Retriever invoke timed out after ${timeoutMs}ms`)),
+          timeoutMs,
         ),
       ),
     ]);
@@ -264,10 +266,21 @@ async function invokeWithTimeout(
   messages: BaseMessage[],
   config?: RunnableConfig,
 ): Promise<AIMessage> {
-  const timeoutMs = parseInt(process.env.MODEL_TIMEOUT ?? "25000", 10);
+  const { getModelTimeout, compressPrompt } = await import("../shared/latency.js");
+  const timeoutMs = getModelTimeout();
+  // Prompt compression for latency: truncate overly long system prompts
+  const compressed = messages.map((m) => {
+    const text = typeof m.content === "string" ? m.content : "";
+    if (text.length > 12000) {
+      const compressedText = compressPrompt(text);
+      const Ctor = m.constructor as new (content: string) => BaseMessage;
+      return new Ctor(compressedText);
+    }
+    return m;
+  });
 
   const result = await Promise.race([
-    model.invoke(messages, config),
+    model.invoke(compressed, config),
     new Promise<never>((_, reject) =>
       setTimeout(
         () => reject(new Error(`Model invoke timed out after ${timeoutMs}ms`)),
