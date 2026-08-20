@@ -29,16 +29,18 @@ export function DropOverlay({ isVisible }: DropOverlayProps) {
       className={`${styles.overlay} ${isVisible ? styles.overlayVisible : styles.overlayHidden}`}
     >
       <div className={styles.content}>
-        <div className={styles.iconContainer}>
-          <div className={styles.iconCircle}>
-            <FileImage size={48} strokeWidth={1.5} />
+        <div className={styles.landing} role="alert">
+          <div className={styles.iconContainer}>
+            <div className={styles.iconCircle}>
+              <FileImage size={48} strokeWidth={1.5} />
+            </div>
+            <div className={styles.uploadArrow}>
+              <Upload size={20} strokeWidth={2} />
+            </div>
           </div>
-          <div className={styles.uploadArrow}>
-            <Upload size={20} strokeWidth={2} />
-          </div>
+          <p className={styles.text}>Drop medical records here</p>
+          <p className={styles.subtext}>PNG, JPG, WebP, or PDF — up to 50MB</p>
         </div>
-        <p className={styles.text}>Drop your medical documents here</p>
-        <p className={styles.subtext}>PNG, JPG, WebP, or PDF — up to 50MB</p>
       </div>
     </div>
   );

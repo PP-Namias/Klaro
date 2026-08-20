@@ -35,9 +35,39 @@
       "name": "Full System Manual Smoke Test",
       "status": "pending",
       "issues": [
-        { "id": "SMOKE-01", "task": "Run full stack concurrently (Next.js :3000 + Sidecar :3002)", "status": "pending" },
+        { "id": "SMOKE-01", "task": "Run full stack concurrently (Next.js :3000 + Sidecar :3002)", "status": "completed" },
         { "id": "SMOKE-02", "task": "Test /scan chat input with image drop and live SSE streaming", "status": "pending" },
         { "id": "SMOKE-03", "task": "Test deep-link booking modal trigger via URL hash", "status": "pending" }
+      ]
+    },
+    {
+      "id": "INT-P4",
+      "name": "Final UI Polish & Hydration Fixes",
+      "status": "in_progress",
+      "issues": [
+        { "id": "POLISH-01", "task": "Resolve LanguageSelector hydration mismatch (FIL vs CEB) using a mounted state check", "status": "completed" },
+        { "id": "POLISH-02", "task": "Remove the unstyled 'ENFILBISILO' component leak from the ChatInput/ScannerWorkspace layout", "status": "completed" }
+      ]
+    },
+    {
+      "id": "INT-P5",
+      "name": "Conversational UI/UX Polish",
+      "status": "in_progress",
+      "issues": [
+        { "id": "UX-01", "task": "Implement Quick Starter prompt chips for the empty chat state", "status": "completed" },
+        { "id": "UX-02", "task": "Build an animated CSS pulsing dot 'thinking' indicator for Clara", "status": "completed" },
+        { "id": "UX-03", "task": "Enhance ChatMessage component with Markdown support and improved contrast", "status": "completed" },
+        { "id": "UX-04", "task": "Add dynamic active/disabled visual states to the chat input Send button", "status": "completed" }
+      ]
+    },
+    {
+      "id": "INT-P6",
+      "name": "Media UX Overhaul",
+      "status": "in_progress",
+      "issues": [
+        { "id": "UX-05", "task": "Global drag-and-drop overlay with document-level drag listeners and a dashed visual dropzone landing", "status": "in_progress" },
+        { "id": "UX-06", "task": "Mobile-optimized full-screen camera modal (100dvh viewport, rear-facing lens, permission error states)", "status": "pending" },
+        { "id": "UX-07", "task": "Unified input bar integrating attach icon, camera icon, text input, and send button states", "status": "pending" }
       ]
     }
   ]

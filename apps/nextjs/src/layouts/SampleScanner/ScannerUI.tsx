@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Bot, Check, Focus, Lock, Paperclip, Trash2, X } from "lucide-react";
+import { Bot, Focus, Lock, Paperclip, Trash2 } from "lucide-react";
 
 import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 
@@ -14,6 +14,7 @@ import type { FilePreviewItem } from "~/components/file-preview";
 import type { DemoType } from "~/data/demo-index";
 import type { Dialect } from "~/hooks/use-chat";
 import {
+  CameraCapture,
   ChatHistory,
   ChatInput,
   ClearConversationDialog,
@@ -53,7 +54,7 @@ interface ScannerUIProps {
 }
 
 export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
-  const [isScanning, setIsScanning] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [_dragCounter, setDragCounter] = useState(0);
@@ -68,8 +69,6 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
 
   const { t, language } = useLanguage();
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
 
   const fileUpload = useFileUpload({
@@ -89,7 +88,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   });
 
   useEffect(() => {
-    if (chat.messages.length === 0 && !isScanning && !chat.isTyping) return;
+    if (chat.messages.length === 0 && !isCameraOpen && !chat.isTyping) return;
     const timer = globalThis.setTimeout(() => {
       globalThis.scrollTo({
         top: document.documentElement.scrollHeight,
@@ -97,65 +96,16 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
       });
     }, 50);
     return () => globalThis.clearTimeout(timer);
-  }, [chat.messages, isScanning, chat.isTyping]);
+  }, [chat.messages, isCameraOpen, chat.isTyping]);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    return () => {
-      const stream = video?.srcObject;
-      if (stream instanceof MediaStream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
-    };
+  const openCamera = useCallback(() => {
+    setIsCameraOpen(true);
   }, []);
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "user",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        void videoRef.current.play();
-      }
-    } catch (error) {
-      console.error("Camera not available or permission denied", error);
-    }
-  };
-
-  const handleStartScan = async () => {
-    setIsScanning(true);
-    await startCamera();
-  };
-
-  const handleCancelScan = () => {
-    const stream = videoRef.current?.srcObject;
-    if (stream instanceof MediaStream) {
-      stream.getTracks().forEach((track) => track.stop());
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
-    }
-    setIsScanning(false);
-  };
-
-  const handleCapture = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageData = canvas.toDataURL("image/png");
+  const handleCameraCapture = useCallback((imageData: string) => {
     setCapturedImage(imageData);
-    handleCancelScan();
-  };
+    setIsCameraOpen(false);
+  }, []);
 
   const openDemo = useCallback((type: DemoType) => {
     setActiveDemoType(type);
@@ -188,6 +138,52 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     });
   }, []);
 
+  const readFileAsDataUrl = useCallback((file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
+  const handleGlobalDrop = useCallback(
+    async (files: File[]) => {
+      const { valid, invalid } = await validateFiles(files);
+
+      if (invalid.length > 0) {
+        alert(invalid.map((i) => i.error).join("\n"));
+      }
+      if (valid.length === 0) return;
+
+      const imageFiles = valid.filter((f) => f.type.startsWith("image/"));
+      const otherFiles = valid.filter((f) => !f.type.startsWith("image/"));
+      const firstImage = imageFiles[0];
+
+      if (firstImage) {
+        try {
+          const dataUrl = await readFileAsDataUrl(firstImage);
+          setCapturedImage(dataUrl);
+          otherFiles.push(...imageFiles.slice(1));
+        } catch {
+          otherFiles.push(...imageFiles);
+        }
+      }
+
+      if (otherFiles.length > 0) {
+        const newItems: FilePreviewItem[] = otherFiles.map((file) => ({
+          file,
+          previewUrl: createPreviewUrl(file),
+          kind: getFileKind(file),
+        }));
+        setSelectedFiles((prev) => [...prev, ...newItems]);
+      }
+    },
+    [readFileAsDataUrl],
+  );
+
   const handleUploadFiles = useCallback(async () => {
     if (selectedFiles.length === 0) return;
     const files = selectedFiles.map((item) => item.file);
@@ -205,12 +201,17 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
 
   // Global drag handlers for DropOverlay
   useEffect(() => {
+    const dragCarriesFiles = (e: DragEvent) =>
+      Array.from(e.dataTransfer?.types ?? []).includes("Files");
+
     const handleDragEnter = (e: DragEvent) => {
+      if (!dragCarriesFiles(e)) return;
       e.preventDefault();
       setDragCounter((c) => c + 1);
       setIsDragging(true);
     };
     const handleDragLeave = (e: DragEvent) => {
+      if (!dragCarriesFiles(e)) return;
       e.preventDefault();
       setDragCounter((c) => {
         const next = c - 1;
@@ -219,6 +220,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
       });
     };
     const handleDragOver = (e: DragEvent) => {
+      if (!dragCarriesFiles(e)) return;
       e.preventDefault();
     };
     const handleDrop = (e: DragEvent) => {
@@ -227,7 +229,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
       setDragCounter(0);
       const files = Array.from(e.dataTransfer?.files ?? []);
       if (files.length > 0) {
-        void handleFilesSelected(files);
+        void handleGlobalDrop(files);
       }
     };
 
@@ -242,22 +244,10 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
       document.removeEventListener("dragover", handleDragOver);
       document.removeEventListener("drop", handleDrop);
     };
-  }, [handleFilesSelected]);
+  }, [handleGlobalDrop]);
 
   let scannerPreview: ReactNode = null;
-  if (isScanning) {
-    scannerPreview = (
-      <video ref={videoRef} autoPlay playsInline className={styles.cameraFeed}>
-        <track
-          kind="captions"
-          label="Camera preview"
-          srcLang="en"
-          src="data:text/vtt,WEBVTT%0A%0A00:00.000%20--%3E%2000:10.000%0ACamera%20preview"
-          default
-        />
-      </video>
-    );
-  } else if (capturedImage) {
+  if (capturedImage) {
     scannerPreview = (
       <Image
         src={capturedImage}
@@ -539,8 +529,8 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
 
               {scannerPreview}
 
-              {!isScanning && !capturedImage && (
-                <button className={styles.primaryBtn} onClick={handleStartScan}>
+              {!capturedImage && (
+                <button className={styles.primaryBtn} onClick={openCamera}>
                   <Focus size={18} color="#ffffff" /> Take a photo & Scan here
                 </button>
               )}
@@ -642,27 +632,24 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-              {isScanning ? (
-                <>
-                  <button
-                    className={styles.secondaryBtn}
-                    onClick={handleCancelScan}
-                  >
-                    <X size={18} /> Cancel
-                  </button>
-                  <button className={styles.primaryBtn} onClick={handleCapture}>
-                    <Check size={18} /> Scan image
-                  </button>
-                </>
-              ) : null}
-            </div>
-
             {/* Chat messages */}
             <ChatHistory
               messages={chat.messages}
               isTyping={chat.isTyping}
               isLoading={chat.isLoadingHistory}
+              quickActions={[
+                { label: t("chat.quick.lab"), prompt: t("chat.quick.lab") },
+                {
+                  label: t("chat.quick.prescription"),
+                  prompt: t("chat.quick.prescription"),
+                },
+                {
+                  label: t("chat.quick.discharge"),
+                  prompt: t("chat.quick.discharge"),
+                },
+                { label: t("chat.quick.next"), prompt: t("chat.quick.next") },
+              ]}
+              onQuickAction={handleSend}
             />
 
             <div style={{ flexGrow: 1 }} />
@@ -712,7 +699,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                   onSend={handleSend}
                   disabled={chat.isTyping}
                   placeholder={t("chat.placeholder")}
-                  onCameraClick={handleStartScan}
+                  onCameraClick={openCamera}
                   imageAttachedLabel={t("chat.imageAttached")}
                   externalAttachment={capturedImage}
                   onExternalAttachmentClear={() => setCapturedImage(null)}
@@ -728,8 +715,13 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
           onCancel={() => setClearDialogOpen(false)}
         />
 
-        <canvas ref={canvasRef} style={{ display: "none" }} />
-      </section>
+        </section>
+
+      <CameraCapture
+        isOpen={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onCapture={handleCameraCapture}
+      />
 
       <DemoModal
         isOpen={demoModalOpen}

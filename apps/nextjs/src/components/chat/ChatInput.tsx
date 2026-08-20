@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Focus, Paperclip, Send, X } from "lucide-react";
+import { Camera, Paperclip, Send, X } from "lucide-react";
 
 import type { Dialect } from "~/hooks/use-chat";
 import styles from "../../app/scan/page.module.css";
@@ -94,43 +94,20 @@ export function ChatInput({
         onDrop={handleDrop}
       >
         {effectiveAttachment && (
-          <div
-            style={{
-              padding: "8px 12px",
-              borderBottom: "1px solid #eaeaea",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 8,
-                overflow: "hidden",
-                position: "relative",
-              }}
-            >
-              <img
-                src={effectiveAttachment}
-                alt="Attachment preview"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
+          <div className={styles.chatAttachmentStrip}>
+            <div className={styles.chatAttachmentThumb}>
+              <img src={effectiveAttachment} alt="Attachment preview" />
             </div>
-            <span style={{ fontSize: "0.8rem", color: "#666", flex: 1 }}>
-              {imageAttachedLabel}
-            </span>
+            <div className={styles.chatAttachmentMeta}>
+              <span className={styles.chatAttachmentLabel}>
+                {imageAttachedLabel}
+              </span>
+            </div>
             <button
+              className={styles.chatAttachmentRemove}
               onClick={clearAttachment}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "#999",
-                padding: 4,
-              }}
               type="button"
+              aria-label="Remove attachment"
             >
               <X size={14} />
             </button>
@@ -157,6 +134,8 @@ export function ChatInput({
               onClick={triggerFileUpload}
               type="button"
               disabled={disabled}
+              aria-label="Attach file"
+              title="Attach a medical record"
             >
               <Paperclip size={20} />
             </button>
@@ -166,8 +145,10 @@ export function ChatInput({
                 onClick={onCameraClick}
                 type="button"
                 disabled={disabled}
+                aria-label="Open camera"
+                title="Take a photo with your camera"
               >
-                <Focus size={20} />
+                <Camera size={20} />
               </button>
             )}
           </div>
@@ -175,6 +156,7 @@ export function ChatInput({
             className={`${styles.chatSendBtn} ${hasContent ? styles.chatSendBtnActive : ""}`}
             onClick={handleSend}
             type="button"
+            aria-label="Send message"
             disabled={disabled || (!input.trim() && !effectiveAttachment)}
           >
             <Send size={18} />
