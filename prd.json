@@ -75,7 +75,7 @@
     {
       "epic_id": "EPIC-02",
       "title": "Gemini-Exclusive AI Architecture & SSE Streaming Sidecar",
-      "status": "pending",
+      "status": "completed",
       "tasks": [
         {
           "task_id": "TSK-02-01",
@@ -110,7 +110,7 @@
         {
           "task_id": "TSK-02-06",
           "description": "Implement graceful degradation mock mode when LLM rate-limited or unavailable (deterministic fallback answer).",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(ai): add graceful mock fallback for rate limits"
         }
       ]

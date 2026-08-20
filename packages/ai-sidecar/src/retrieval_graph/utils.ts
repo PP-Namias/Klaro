@@ -20,6 +20,7 @@ import {
   buildQASystemPrompt,
   FOLLOW_UP_PROMPT,
 } from "./prompts.js";
+import { getMockAnswer } from "../shared/mockFallback.js";
 
 export function formatDocsAsString(docs: Document[]): string {
   if (!docs || docs.length === 0) return "";
@@ -121,7 +122,7 @@ export async function generateAnswer(
   const mockMode = process.env.ENABLE_MOCK_MODE === "true";
 
   if (mockMode) {
-    return generateMockAnswer(question, docs);
+    return generateMockAnswer(question, docs, locale);
   }
 
   const promptMessages = buildPromptMessages(question, docs, messages, locale);
@@ -144,7 +145,7 @@ export async function generateAnswer(
           console.warn(
             "[ai-sidecar] Primary model failed, using mock fallback answer",
           );
-          return generateMockAnswer(question, docs);
+          return generateMockAnswer(question, docs, locale);
         }
         const fallbackModel = await loadChatModel(
           fallbackModelSpec,
@@ -168,18 +169,14 @@ export async function generateAnswer(
       (err.message.includes("timed out") || err.message.includes("429"))
     ) {
       console.warn("[ai-sidecar] LLM unavailable, returning mock answer");
-      return generateMockAnswer(question, docs);
+      return generateMockAnswer(question, docs, locale);
     }
     throw err;
   }
 }
 
-function generateMockAnswer(question: string, docs: Document[]): string {
-  const firstDoc = docs.length > 0 ? docs[0] : undefined;
-  const context = firstDoc
-    ? firstDoc.pageContent.substring(0, 100)
-    : "No documents retrieved";
-  return `This is a simulated response for: "${question}". Based on available information (${context}...), I would provide a helpful answer here. For full AI-powered responses, please configure a valid API key.`;
+function generateMockAnswer(question: string, docs: Document[], locale = "en"): string {
+  return getMockAnswer(question, docs, locale);
 }
 
 export async function generateFollowUpQuestions(
@@ -208,7 +205,16 @@ export async function generateFollowUpQuestions(
     const parser = new StringOutputParser();
     const chain = model.pipe(parser);
 
-    const raw = await chain.invoke(prompt, config);
+    const timeoutMs = parseInt(process.env.FOLLOW_UP_TIMEOUT ?? "45000", 10);
+    const raw = await Promise.race([
+      chain.invoke(prompt, config),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`Follow-up generation timed out after ${timeoutMs}ms`)),
+          timeoutMs,
+        ),
+      ),
+    ]);
 
     return raw
       .split("\n")
