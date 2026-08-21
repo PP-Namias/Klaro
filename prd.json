@@ -172,7 +172,7 @@
         {
           "task_id": "TSK-04-03",
           "description": "Build multi-format viewers (PDF, DOCX, PPTX, images) with text selection, annotation and citation highlighting.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(doc): add multi-format viewers with annotation"
         },
         {

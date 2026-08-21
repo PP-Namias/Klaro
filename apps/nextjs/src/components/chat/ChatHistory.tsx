@@ -12,6 +12,8 @@ interface ChatHistoryProps {
   isTyping: boolean;
   isLoading?: boolean;
   claraAvatarUrl?: string;
+  quickActions?: { label: string; prompt: string }[];
+  onQuickAction?: (prompt: string) => void;
 }
 
 function TypingIndicator() {
@@ -50,6 +52,8 @@ export function ChatHistory({
   isTyping,
   isLoading = false,
   claraAvatarUrl,
+  quickActions = [],
+  onQuickAction,
 }: ChatHistoryProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -65,7 +69,32 @@ export function ChatHistory({
     );
   }
 
-  if (messages.length === 0 && !isTyping) return null;
+  if (messages.length === 0 && !isTyping) {
+    return quickActions.length > 0 ? (
+      <div className={styles.chatHistory}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", padding: "0.5rem" }}>
+          {quickActions.map((qa) => (
+            <button
+              key={qa.label}
+              type="button"
+              onClick={() => onQuickAction?.(qa.prompt)}
+              style={{
+                padding: "0.4rem 0.8rem",
+                borderRadius: "9999px",
+                border: "1px solid #e5e7eb",
+                backgroundColor: "#fff",
+                fontSize: "0.8rem",
+                cursor: "pointer",
+              }}
+            >
+              {qa.label}
+            </button>
+          ))}
+        </div>
+        <div ref={bottomRef} />
+      </div>
+    ) : null;
+  }
 
   return (
     <div className={styles.chatHistory}>
@@ -77,6 +106,27 @@ export function ChatHistory({
         />
       ))}
       {isTyping && <TypingIndicator />}
+      {quickActions.length > 0 && !isTyping && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", padding: "0.5rem" }}>
+          {quickActions.map((qa) => (
+            <button
+              key={qa.label}
+              type="button"
+              onClick={() => onQuickAction?.(qa.prompt)}
+              style={{
+                padding: "0.4rem 0.8rem",
+                borderRadius: "9999px",
+                border: "1px solid #e5e7eb",
+                backgroundColor: "#fff",
+                fontSize: "0.8rem",
+                cursor: "pointer",
+              }}
+            >
+              {qa.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div style={{ height: 180 }} />
       <div ref={bottomRef} />
     </div>
