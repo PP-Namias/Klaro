@@ -496,6 +496,116 @@ function checkDuplicateTests(
 }
 
 // ============================================================================
+// Garbled / Fidelity Checks (TSK-04-05)
+// ============================================================================
+
+/**
+ * Fidelity check: detects garbled OCR text that could poison RAG
+ * Flags excessive symbols, low vowel ratio, repeated chars, unpronounceable tokens
+ */
+export function detectGarbledText(ocrText: string): HallucinationCheck[] {
+  const checks: HallucinationCheck[] = [];
+  if (!ocrText || ocrText.trim().length < 10) return checks;
+
+  const totalChars = ocrText.length;
+  const alphaCount = (ocrText.match(/[A-Za-z]/g) ?? []).length;
+  const digitCount = (ocrText.match(/\d/g) ?? []).length;
+  const symbolCount = totalChars - alphaCount - digitCount - (ocrText.match(/\s/g) ?? []).length;
+
+  const symbolRatio = symbolCount / Math.max(1, totalChars);
+  if (symbolRatio > 0.35) {
+    checks.push({
+      type: "garbled_symbols",
+      severity: "high",
+      description: `Excessive symbols in OCR text (${Math.round(symbolRatio * 100)}% symbols) suggests garbled extraction`,
+      confidencePenalty: 0.3,
+    });
+  }
+
+  // Low vowel ratio
+  const vowels = (ocrText.match(/[aeiouAEIOU]/g) ?? []).length;
+  const vowelRatio = alphaCount > 0 ? vowels / alphaCount : 1;
+  if (alphaCount > 20 && vowelRatio < 0.15) {
+    checks.push({
+      type: "garbled_low_vowel",
+      severity: "medium",
+      description: `Low vowel ratio (${Math.round(vowelRatio * 100)}%) indicates possible OCR gibberish`,
+      confidencePenalty: 0.2,
+    });
+  }
+
+  // Repeated character sequences (e.g., "aaaaa", "%%%%")
+  if (/(.)\1{4,}/.test(ocrText)) {
+    checks.push({
+      type: "garbled_repeated_chars",
+      severity: "medium",
+      description: "Repeated character sequence detected - likely garbled scan",
+      confidencePenalty: 0.15,
+    });
+  }
+
+  // Average word length extreme
+  const words = ocrText.split(/\s+/).filter((w) => w.length > 0);
+  const avgLen = words.length ? words.reduce((s, w) => s + w.length, 0) / words.length : 0;
+  if (words.length > 5 && (avgLen > 15 || avgLen < 2)) {
+    checks.push({
+      type: "garbled_word_length",
+      severity: "low",
+      description: `Abnormal average word length (${avgLen.toFixed(1)}) suggests poor OCR fidelity`,
+      confidencePenalty: 0.1,
+    });
+  }
+
+  // Unrecognizable token ratio: tokens with 0 vowels and no digits
+  const unrecognizable = words.filter((w) => w.length > 3 && !/[aeiou]/i.test(w) && !/\d/.test(w) && /[A-Za-z]{4,}/.test(w)).length;
+  const unrecRatio = words.length ? unrecognizable / words.length : 0;
+  if (words.length > 10 && unrecRatio > 0.4) {
+    checks.push({
+      type: "garbled_unrecognizable_tokens",
+      severity: "high",
+      description: `High unrecognizable token ratio (${Math.round(unrecRatio * 100)}%) - RAG poisoning risk`,
+      confidencePenalty: 0.25,
+    });
+  }
+
+  return checks;
+}
+
+/**
+ * Extreme discrepancy check: flags when extraction claims far more data than OCR text can support
+ */
+export function detectExtremeDiscrepancy(
+  ocrText: string,
+  extractedTests: { name: string; value: string }[],
+): HallucinationCheck[] {
+  const checks: HallucinationCheck[] = [];
+  if (!ocrText) return checks;
+
+  // If OCR text is very short but many tests extracted -> possible hallucination
+  if (ocrText.trim().length < 50 && extractedTests.length >= 3) {
+    checks.push({
+      type: "extreme_discrepancy",
+      severity: "high",
+      description: `Extracted ${extractedTests.length} tests from only ${ocrText.length} OCR chars - likely hallucinated`,
+      confidencePenalty: 0.35,
+    });
+  }
+
+  // Average chars per test
+  const avgCharsPerTest = extractedTests.length ? ocrText.length / extractedTests.length : ocrText.length;
+  if (extractedTests.length > 0 && avgCharsPerTest < 15) {
+    checks.push({
+      type: "extreme_discrepancy_density",
+      severity: "medium",
+      description: `Very high extraction density (${avgCharsPerTest.toFixed(1)} chars per test) suggests over-extraction`,
+      confidencePenalty: 0.15,
+    });
+  }
+
+  return checks;
+}
+
+// ============================================================================
 // Main Detection Function
 // ============================================================================
 
@@ -532,6 +642,14 @@ export function detectHallucinations(
   // 4. Check for duplicate/conflicting tests
   const duplicateChecks = checkDuplicateTests(extractedData.tests);
   allChecks.push(...duplicateChecks);
+
+  // 5. Fidelity: garbled OCR detection (prevent RAG poisoning)
+  const garbledChecks = detectGarbledText(ocrText);
+  allChecks.push(...garbledChecks);
+
+  // 6. Extreme discrepancy / hallucination density
+  const discrepancyChecks = detectExtremeDiscrepancy(ocrText, extractedData.tests);
+  allChecks.push(...discrepancyChecks);
 
   // Calculate overall hallucination score
   const totalPenalty = allChecks.reduce(

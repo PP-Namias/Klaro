@@ -184,7 +184,7 @@
         {
           "task_id": "TSK-04-05",
           "description": "Implement hallucination detection validating extracted values against medical reference ranges and flagging impossible combos.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(extract): add hallucination detection via ranges"
         },
         {
