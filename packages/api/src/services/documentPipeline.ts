@@ -75,12 +75,41 @@ export async function executeDocumentPipeline(
 
   let imageToProcess = input.imageBase64;
 
+  // Defensive file validation preflight for PDF buffers (encrypted/corrupt without crash)
   if (input.isPdf && input.pdfBuffer) {
-    const pdfStart = Date.now();
-    const pdfResult = await convertPdfToImages(input.pdfBuffer);
-    timing.preprocessing = Date.now() - pdfStart;
+    try {
+      const { validateFileBuffer } = await import("./fileValidation");
+      const validation = await validateFileBuffer(input.pdfBuffer, "application/pdf", input.fileName);
+      if (!validation.valid) {
+        const advice = validation.sanitizedError ?? "PDF could not be processed. Please try with a valid unprotected file.";
+        const isEncrypted = advice.toLowerCase().includes("password") || advice.toLowerCase().includes("encrypted");
+        return {
+          accepted: false,
+          ocrConfidence: 0,
+          geminiConfidence: 0,
+          extractedData: {},
+          plainLanguageSummary: "",
+          urgency: "MODERATE",
+          recommendations: ["Please upload a valid PDF medical document"],
+          warnings: [validation.rawError || advice],
+          path: isEncrypted ? "pdf_encrypted" : "pdf_validation_failed",
+          rejectionReason: isEncrypted ? "pdf_encrypted" : "pdf_validation_failed",
+          rejectionAdvice: advice,
+          timing: { ...timing, total: Date.now() - startTime },
+          pages: 0,
+        };
+      }
+    } catch {
+      // never fail validation preflight
+    }
 
-    if (!pdfResult.success) {
+    const pdfStart = Date.now();
+    let pdfResult;
+    try {
+      pdfResult = await convertPdfToImages(input.pdfBuffer);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "PDF conversion crashed";
+      console.warn(`[documentPipeline] convertPdfToImages crashed: ${msg.slice(0, 80)}`);
       return {
         accepted: false,
         ocrConfidence: 0,
@@ -89,11 +118,37 @@ export async function executeDocumentPipeline(
         plainLanguageSummary: "",
         urgency: "MODERATE",
         recommendations: ["Please upload a valid PDF medical document"],
-        warnings: [pdfResult.error || "PDF conversion failed"],
-        path: "pdf_conversion_failed",
-        rejectionReason: "pdf_conversion_failed",
-        rejectionAdvice:
-          "The PDF could not be processed. Please try uploading the document as an image (PNG or JPG).",
+        warnings: [`pdf_crash:${msg.slice(0, 40)}`],
+        path: "pdf_conversion_crashed",
+        rejectionReason: "pdf_conversion_crashed",
+        rejectionAdvice: "PDF processing encountered an error. Your file was not corrupted - please retry or try uploading as an image.",
+        timing: { ...timing, total: Date.now() - startTime },
+        pages: 0,
+      };
+    }
+    timing.preprocessing = Date.now() - pdfStart;
+
+    if (!pdfResult.success) {
+      const raw = pdfResult.error || "PDF conversion failed";
+      const lower = raw.toLowerCase();
+      const isEncrypted = lower.includes("password") || lower.includes("encrypted");
+      const advice = isEncrypted
+        ? "This PDF is password-protected or encrypted and cannot be processed. Please provide an unprotected file."
+        : lower.includes("corrupt") || lower.includes("invalid")
+          ? "This PDF appears corrupted or invalid. Please try re-exporting the original document."
+          : "The PDF could not be processed. Please try uploading the document as an image (PNG or JPG).";
+      return {
+        accepted: false,
+        ocrConfidence: 0,
+        geminiConfidence: 0,
+        extractedData: {},
+        plainLanguageSummary: "",
+        urgency: "MODERATE",
+        recommendations: ["Please upload a valid PDF medical document"],
+        warnings: [raw],
+        path: isEncrypted ? "pdf_encrypted" : "pdf_conversion_failed",
+        rejectionReason: isEncrypted ? "pdf_encrypted" : "pdf_conversion_failed",
+        rejectionAdvice: advice,
         timing: { ...timing, total: Date.now() - startTime },
         pages: 0,
       };
@@ -102,7 +157,8 @@ export async function executeDocumentPipeline(
     imageToProcess = pdfResult.pages[0]?.base64 || input.imageBase64;
   }
 
-  const ocrStart = Date.now();
+  try {
+    const ocrStart = Date.now();
   const ocrResult: OcrPipelineResult = await runOcrWithRetry(imageToProcess);
   timing.ocr = Date.now() - ocrStart;
 
@@ -180,19 +236,37 @@ export async function executeDocumentPipeline(
     processingTimeMs: timing.total,
   });
 
-  return {
-    accepted: true,
-    ocrConfidence: ocrResult.confidence,
-    geminiConfidence: geminiResult.confidence,
-    extractedData: geminiResult.extractedData as unknown as Record<
-      string,
-      unknown
-    >,
-    plainLanguageSummary: geminiResult.simplification.summary,
-    urgency,
-    recommendations,
-    warnings,
-    path: geminiResult.path,
-    timing,
-  };
+    return {
+      accepted: true,
+      ocrConfidence: ocrResult.confidence,
+      geminiConfidence: geminiResult.confidence,
+      extractedData: geminiResult.extractedData as unknown as Record<
+        string,
+        unknown
+      >,
+      plainLanguageSummary: geminiResult.simplification.summary,
+      urgency,
+      recommendations,
+      warnings,
+      path: geminiResult.path,
+      timing,
+    };
+  } catch (err) {
+    const raw = err instanceof Error ? err.message : "Pipeline crashed";
+    console.warn(`[documentPipeline] top-level crash sanitized: ${raw.slice(0, 80)}`);
+    return {
+      accepted: false,
+      ocrConfidence: 0,
+      geminiConfidence: 0,
+      extractedData: {},
+      plainLanguageSummary: "",
+      urgency: "MODERATE",
+      recommendations: ["Please try again with a clearer file. If the issue persists, contact support."],
+      warnings: [`pipeline_crash:${raw.slice(0, 40)}`],
+      path: "pipeline_crashed",
+      rejectionReason: "pipeline_crashed",
+      rejectionAdvice: "We encountered an error processing your document, but no data was lost. Please retry or try uploading as an image.",
+      timing: { ...timing, total: Date.now() - startTime },
+    };
+  }
 }

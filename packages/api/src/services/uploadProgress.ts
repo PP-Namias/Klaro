@@ -23,6 +23,8 @@ export interface UploadProgress {
 }
 
 const progressMap = new Map<string, UploadProgress>();
+const abortMap = new Map<string, AbortController>();
+const retryMap = new Map<string, number>();
 
 function createProgress(documentId: string): UploadProgress {
   return {
@@ -32,6 +34,45 @@ function createProgress(documentId: string): UploadProgress {
     startedAt: new Date(),
     updatedAt: new Date(),
   };
+}
+
+export function getAbortController(documentId: string): AbortController {
+  let ctrl = abortMap.get(documentId);
+  if (!ctrl) {
+    ctrl = new AbortController();
+    abortMap.set(documentId, ctrl);
+  }
+  return ctrl;
+}
+
+export function cancelUploadProgress(documentId: string, reason = "User cancelled upload"): UploadProgress | null {
+  const ctrl = abortMap.get(documentId);
+  if (ctrl && !ctrl.signal.aborted) ctrl.abort(reason);
+  const prog = progressMap.get(documentId);
+  if (!prog) return null;
+  prog.stage = "error";
+  prog.error = "Upload cancelled by user. Please try again if needed.";
+  prog.updatedAt = new Date();
+  progressMap.set(documentId, prog);
+  return prog;
+}
+
+export function getRetryCount(documentId: string): number {
+  return retryMap.get(documentId) ?? 0;
+}
+
+export function incrementRetry(documentId: string): number {
+  const cur = (retryMap.get(documentId) ?? 0) + 1;
+  retryMap.set(documentId, cur);
+  return cur;
+}
+
+export function resetRetry(documentId: string): void {
+  retryMap.delete(documentId);
+}
+
+export function isCancelled(documentId: string): boolean {
+  return abortMap.get(documentId)?.signal.aborted ?? false;
 }
 
 export function initUploadProgress(documentId: string): UploadProgress {
@@ -99,11 +140,32 @@ export function errorUploadProgress(
 }
 
 export function removeUploadProgress(documentId: string): boolean {
+  abortMap.delete(documentId);
+  retryMap.delete(documentId);
   return progressMap.delete(documentId);
 }
 
 export function clearAllProgress(): void {
   progressMap.clear();
+  abortMap.clear();
+  retryMap.clear();
+}
+
+export function sanitizeProgressError(raw: string): string {
+  const lower = raw.toLowerCase();
+  if (lower.includes("password") || lower.includes("encrypted")) {
+    return "This file is password-protected or encrypted and cannot be processed.";
+  }
+  if (lower.includes("corrupt") || lower.includes("invalid pdf") || lower.includes("unexpected")) {
+    return "This file appears corrupted or invalid. Please try re-exporting.";
+  }
+  if (lower.includes("cancelled") || lower.includes("abort")) {
+    return "Upload was cancelled.";
+  }
+  if (lower.includes("timeout")) {
+    return "Processing timed out. Please try again with a smaller or clearer file.";
+  }
+  return "File could not be processed. Please try again with a valid document.";
 }
 
 export async function getUploadProgressFromDb(

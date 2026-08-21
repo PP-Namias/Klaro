@@ -155,7 +155,7 @@
     {
       "epic_id": "EPIC-04",
       "title": "Document Ingestion & OCR Pipeline Hardening",
-      "status": "pending",
+      "status": "completed",
       "tasks": [
         {
           "task_id": "TSK-04-01",
@@ -190,7 +190,7 @@
         {
           "task_id": "TSK-04-06",
           "description": "Handle encrypted/corrupt PDFs, file validation, progress tracking, cancellation and retry with user-friendly errors.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "fix(ocr): handle encrypted and corrupt PDFs gracefully"
         }
       ]
