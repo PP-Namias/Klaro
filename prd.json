@@ -160,7 +160,7 @@
         {
           "task_id": "TSK-04-01",
           "description": "Harden Tesseract.js pipeline with sharp preprocessing (deskew, denoise, binarize, grayscale) and confidence scoring.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(ocr): harden Tesseract pipeline with preprocessing"
         },
         {

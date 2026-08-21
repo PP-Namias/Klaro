@@ -111,16 +111,51 @@ export async function runOcrWithRetry(
     );
 
     try {
-      const { preprocessImage, getDefaultPreprocessingOptions } = await import(
-        "./imagePreprocessor"
-      );
-      const preprocessed = await preprocessImage(imageBase64, {
-        ...getDefaultPreprocessingOptions(),
-        binarize: attempt >= 2,
-        contrast: 1.2 + attempt * 0.2,
-      });
+      let preprocessedBase64 = imageBase64;
 
-      const retryResult = await runOcrOnImage(preprocessed.base64);
+      if (ocr.enablePreprocessing) {
+        try {
+          const { preprocessWithSharp, getSharpDefaultOptions } = await import(
+            "./sharpPreprocessor"
+          );
+          const sharpOpts = {
+            ...getSharpDefaultOptions(),
+            binarize: attempt >= 2,
+            contrast: 1.2 + attempt * 0.2,
+          };
+          const sharpResult = await preprocessWithSharp(
+            imageBase64,
+            sharpOpts,
+          );
+          if (!sharpResult.applied.includes("sharp-not-available")) {
+            preprocessedBase64 = sharpResult.base64;
+            warnings.push(
+              `sharp preprocessing: ${sharpResult.applied.join(",")} boost+${Math.round(sharpResult.confidenceBoost * 100)}%`,
+            );
+          } else {
+            const { preprocessImage, getDefaultPreprocessingOptions } =
+              await import("./imagePreprocessor");
+            const fallback = await preprocessImage(imageBase64, {
+              ...getDefaultPreprocessingOptions(),
+              binarize: attempt >= 2,
+              contrast: 1.2 + attempt * 0.2,
+            });
+            preprocessedBase64 = fallback.base64;
+            warnings.push(`canvas fallback: ${fallback.applied.join(",")}`);
+          }
+        } catch {
+          const { preprocessImage, getDefaultPreprocessingOptions } =
+            await import("./imagePreprocessor");
+          const fallback = await preprocessImage(imageBase64, {
+            ...getDefaultPreprocessingOptions(),
+            binarize: attempt >= 2,
+            contrast: 1.2 + attempt * 0.2,
+          });
+          preprocessedBase64 = fallback.base64;
+        }
+      }
+
+      const retryResult = await runOcrOnImage(preprocessedBase64);
 
       if (retryResult.confidence > bestResult.confidence) {
         bestResult = retryResult;
