@@ -166,7 +166,7 @@
         {
           "task_id": "TSK-04-02",
           "description": "Add Google Cloud Vision fallback when local OCR confidence < threshold (OCR_CONFIDENCE_THRESHOLD=0.7).",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(ocr): add Vision fallback for low confidence"
         },
         {

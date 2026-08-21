@@ -80,12 +80,79 @@ export async function runOcr(imageBase64: string): Promise<OcrPipelineResult> {
   };
 }
 
+export async function tryGeminiVisionFallback(
+  imageBase64: string,
+): Promise<OcrPageResult | null> {
+  try {
+    const { callGeminiVision, getGeminiApiKey } = await import(
+      "./geminiVision"
+    );
+    if (!getGeminiApiKey()) return null;
+    const vision = await callGeminiVision(imageBase64);
+    if (!vision.text.trim()) return null;
+    return {
+      pageNumber: 1,
+      text: vision.text,
+      confidence: vision.confidence,
+      source: "cloud",
+      warnings: [`gemini-vision: model=${vision.model}`],
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function tryCloudVisionFallback(
+  imageBase64: string,
+): Promise<OcrPageResult | null> {
+  try {
+    const { callGoogleVision, getCloudOcrApiKey } = await import("./cloudOcr");
+    if (!getCloudOcrApiKey()) return null;
+    const result = await callGoogleVision(imageBase64);
+    if (!result.text.trim()) return null;
+    return {
+      pageNumber: 1,
+      text: result.text,
+      confidence: result.confidence,
+      source: "cloud",
+      warnings: [`google-vision: confidence ${result.confidence}`],
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function runOcrWithVisionFallback(
+  imageBase64: string,
+  threshold = 0.7,
+): Promise<{ result: OcrPageResult; usedFallback: boolean }> {
+  const local = await runOcrOnImage(imageBase64);
+  if (local.confidence >= threshold) {
+    return { result: local, usedFallback: false };
+  }
+  const geminiFallback = await tryGeminiVisionFallback(imageBase64);
+  if (geminiFallback && geminiFallback.confidence >= threshold) {
+    return { result: geminiFallback, usedFallback: true };
+  }
+  if (geminiFallback && geminiFallback.confidence > local.confidence) {
+    return { result: geminiFallback, usedFallback: true };
+  }
+  const googleFallback = await tryCloudVisionFallback(imageBase64);
+  if (googleFallback && googleFallback.confidence >= threshold) {
+    return { result: googleFallback, usedFallback: true };
+  }
+  if (googleFallback && googleFallback.confidence > local.confidence) {
+    return { result: googleFallback, usedFallback: true };
+  }
+  return { result: local, usedFallback: false };
+}
+
 export async function runOcrWithRetry(
   imageBase64: string,
 ): Promise<OcrPipelineResult> {
   const startTime = Date.now();
   const config = getPipelineConfig();
-  const { ocr } = config;
+  const { ocr, gemini } = config;
   const warnings: string[] = [];
 
   const firstPass = await runOcrOnImage(imageBase64);
@@ -181,7 +248,74 @@ export async function runOcrWithRetry(
     }
   }
 
+  // Vision fallback when local confidence remains below threshold (TSK-04-02)
+  if (
+    bestResult.confidence < ocr.confidenceThreshold &&
+    (ocr.enableCloudFallback || gemini.visionEnabled)
+  ) {
+    try {
+      const geminiFallback = await tryGeminiVisionFallback(imageBase64);
+      if (geminiFallback) {
+        warnings.push(...geminiFallback.warnings);
+        if (geminiFallback.confidence >= ocr.confidenceThreshold) {
+          const confidence = computeWeightedConfidence([geminiFallback]);
+          return {
+            success: true,
+            accepted: true,
+            text: geminiFallback.text,
+            confidence,
+            pages: [geminiFallback],
+            source: "cloud",
+            warnings,
+            processingTimeMs: Date.now() - startTime,
+          };
+        }
+        if (geminiFallback.confidence > bestResult.confidence) {
+          bestResult = geminiFallback;
+        }
+      } else {
+        const googleFallback = await tryCloudVisionFallback(imageBase64);
+        if (googleFallback) {
+          warnings.push(...googleFallback.warnings);
+          if (googleFallback.confidence >= ocr.confidenceThreshold) {
+            const confidence = computeWeightedConfidence([googleFallback]);
+            return {
+              success: true,
+              accepted: true,
+              text: googleFallback.text,
+              confidence,
+              pages: [googleFallback],
+              source: "cloud",
+              warnings,
+              processingTimeMs: Date.now() - startTime,
+            };
+          }
+          if (googleFallback.confidence > bestResult.confidence) {
+            bestResult = googleFallback;
+          }
+        }
+      }
+    } catch (err) {
+      warnings.push(
+        `vision fallback failed: ${err instanceof Error ? err.message.slice(0, 60) : "unknown"}`,
+      );
+    }
+  }
+
   const confidence = computeWeightedConfidence([bestResult]);
+  const accepted = confidence >= ocr.confidenceThreshold && bestResult.text.length > 0;
+  if (accepted) {
+    return {
+      success: true,
+      accepted: true,
+      text: bestResult.text,
+      confidence,
+      pages: [bestResult],
+      source: bestResult.source,
+      warnings,
+      processingTimeMs: Date.now() - startTime,
+    };
+  }
   return {
     success: bestResult.text.length > 0,
     accepted: false,
@@ -192,7 +326,7 @@ export async function runOcrWithRetry(
     warnings,
     rejectionReason: "low_confidence",
     rejectionAdvice:
-      "The document appears too blurry or unclear. Please take a photo in good lighting with the document flat on a table. Ensure all text is readable before capturing.",
+      "The document appears too blurry or unclear. Please take a photo in good lighting with the document flat on a table. Ensure all text is readable before capturing. If the document is handwritten, ensure good lighting.",
     processingTimeMs: Date.now() - startTime,
   };
 }
