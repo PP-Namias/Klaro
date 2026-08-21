@@ -124,7 +124,7 @@ export async function callGeminiVision(
     throw new Error("Gemini API key not configured");
   }
 
-  const model = options.model || "gemini-2.5-flash";
+  const model = options.model || "gemini-3.6-flash";
   const maxRetries = options.maxRetries ?? 3;
   const timeout = options.timeout ?? 60000;
 

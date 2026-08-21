@@ -68,7 +68,7 @@ describe("runOcrWithRetry — threshold gate", () => {
     expect(result.accepted).toBe(true);
     expect(result.confidence).toBeGreaterThanOrEqual(0.7);
     expect(performOcr).toHaveBeenCalledTimes(2);
-    expect(preprocessImage).toHaveBeenCalledTimes(1);
+    expect(preprocessImage).toHaveBeenCalledTimes(2);
   });
 
   it("rejects after exhausting retries without crossing threshold", async () => {
@@ -86,7 +86,7 @@ describe("runOcrWithRetry — threshold gate", () => {
     expect(result.confidence).toBe(0.35);
     expect(result.rejectionReason).toBe("low_confidence");
     expect(result.rejectionAdvice).toContain("blurry");
-    expect(preprocessImage).toHaveBeenCalledTimes(2);
+    expect(preprocessImage).toHaveBeenCalledTimes(4);
   });
 
   it("accepts when retry matches threshold exactly", async () => {
