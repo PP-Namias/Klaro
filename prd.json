@@ -178,7 +178,7 @@
         {
           "task_id": "TSK-04-04",
           "description": "Expand extraction engine to 200+ Philippine test variants (CBC, lipid, urinalysis, chemistry) with regex + AI.",
-          "status": "pending",
+          "status": "completed",
           "required_commit_msg": "feat(extract): support 200 Philippine test variants"
         },
         {
