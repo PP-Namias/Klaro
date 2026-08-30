@@ -18,6 +18,19 @@ const RETRIEVER_TIMEOUT = 5000;
 const SUPABASE_VECTOR_TABLE = "klaro_document_vectors";
 const SUPABASE_MATCH_FN = "match_klaro_documents";
 
+/**
+ * An empty filter means "no filter", but passing `{}` straight through makes
+ * Chroma reject the query outright:
+ *   InvalidArgumentError: Expected where to have exactly one operator, got {}
+ * BaseConfiguration defaults filterKwargs to `{}`, so any caller that does not
+ * set one -- checkVectorStoreHealth, for instance -- would otherwise fail.
+ */
+function normalizeFilter(
+  filter: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  return filter && Object.keys(filter).length > 0 ? filter : undefined;
+}
+
 export { GEMINI_EMBEDDING_DIMS, getGeminiEmbeddings };
 export function getEmbeddings(model?: string) {
   return getGeminiEmbeddings(model);
@@ -68,7 +81,7 @@ export async function makeChromaRetriever(
 
   return vectorStore.asRetriever({
     k: configuration.k,
-    filter: configuration.filterKwargs,
+    filter: normalizeFilter(configuration.filterKwargs),
   });
 }
 
@@ -93,7 +106,7 @@ export async function makeSupabaseRetriever(
 
   const retriever = vectorStore.asRetriever({
     k: configuration.k,
-    filter: configuration.filterKwargs,
+    filter: normalizeFilter(configuration.filterKwargs),
   });
 
   // Wrap invoke to measure latency and enforce sub-200ms soft budget log
