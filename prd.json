@@ -151,7 +151,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "fix(scan-backend): drop client-controlled presigned upload of medical images",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.4",
