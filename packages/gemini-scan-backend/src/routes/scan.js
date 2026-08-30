@@ -2,7 +2,6 @@ const express = require('express');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
-const storage = require('../storage');
 const geminiClient = require('../geminiClient');
 
 const router = express.Router();
@@ -86,15 +85,6 @@ router.post('/scan', upload.array('file'), async (req, res) => {
           sanitizePathSegment(im.filename) || `image-${Date.now()}.jpg`,
           im.mimeType
         );
-        // optionally upload to presigned url
-        if (metadata.storage_presign_url) {
-          try {
-            const uploaded = await storage.uploadToPresignedUrl(scanId, sanitizePathSegment(im.filename) || 'image.jpg', buf, metadata.storage_presign_url);
-            out.url = uploaded.url;
-          } catch (e) {
-            console.warn('presign upload failed', e.message);
-          }
-        }
         saved.push(out);
       }
     } else {
@@ -102,15 +92,6 @@ router.post('/scan', upload.array('file'), async (req, res) => {
       for (const f of req.files) {
         // held in memory only — never written to disk
         const out = buildImageDescriptor(f.buffer, sanitizePathSegment(f.originalname), f.mimetype);
-        // optionally upload to presigned url (template may contain {filename})
-        if (metadata.storage_presign_url) {
-          try {
-            const uploaded = await storage.uploadToPresignedUrl(scanId, sanitizePathSegment(f.originalname), f.buffer, metadata.storage_presign_url);
-            out.url = uploaded.url;
-          } catch (e) {
-            console.warn('presign upload failed', e.message);
-          }
-        }
         saved.push(out);
       }
     }

@@ -76,7 +76,6 @@ function buildUserPrompt(metadata = {}) {
     '',
     'Input: images array of { url?, bytesBase64?, filename? }',
     `metadata: ${JSON.stringify(safeMetadata)}`,
-    'If storage_presign_url is provided, upload and set images[].url accordingly; otherwise preserve images[].hash and include a short base64 snippet.',
     'Normalize dates to ISO 8601 and currency to ISO 4217 numeric values.',
     'Detect rotation and auto-rotate prior to OCR; return rotationDegrees per image.',
     'If tables are detected, return tables as arrays of row objects and include per-table confidence.',
