@@ -294,7 +294,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "fix(compliance): clear OCR text and analysis PHI during document archival",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.9",
