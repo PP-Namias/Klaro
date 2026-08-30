@@ -1,0 +1,48 @@
+# Dependencies — reinstalled inside the image from the lockfile
+**/node_modules
+.pnpm-store
+
+# Build output
+**/.next
+**/.turbo
+**/.cache
+**/dist
+**/.output
+**/.nitro
+**/build
+**/out
+
+# Local env & secrets — injected at runtime, never baked into an image
+.env
+.env.*
+!.env.example
+!.env.docker.example
+
+# VCS & tooling
+.git
+.gitignore
+.github
+.husky
+.vscode
+.agents
+.claude
+
+# Native / mobile — not part of any container
+apps/expo/.expo
+apps/expo/android
+apps/expo/ios
+
+# Tests, docs & artifacts
+**/coverage
+**/playwright-report
+**/test-results
+**/e2e-screenshots
+docs
+*.md
+!README.md
+
+# Misc
+**/*.log
+**/.DS_Store
+Dockerfile*
+docker-compose*.yml

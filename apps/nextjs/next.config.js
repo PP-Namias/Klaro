@@ -1,3 +1,4 @@
+import { fileURLToPath } from "url";
 import { createJiti } from "jiti";
 
 const jiti = createJiti(import.meta.url);
@@ -7,6 +8,15 @@ await jiti.import("./src/env");
 
 /** @type {import("next").NextConfig} */
 const config = {
+  /**
+   * Emit a self-contained server bundle for the Docker image. Left off
+   * everywhere else so Vercel keeps using its own build output.
+   */
+  output: process.env.NEXT_OUTPUT_STANDALONE ? "standalone" : undefined,
+
+  /** File tracing has to start at the monorepo root to follow workspace deps */
+  outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
+
   /** Enables hot reloading for local packages without a build step */
   transpilePackages: [
     "@klaro/api",
@@ -19,8 +29,8 @@ const config = {
   /** We already do linting and typechecking as separate tasks in CI */
   typescript: { ignoreBuildErrors: true },
 
-  /** Canvas native module needs to be externalized for server builds */
-  serverExternalPackages: ["canvas"],
+  /** Native modules that must not be bundled into the server build */
+  serverExternalPackages: ["canvas", "pg"],
 };
 
 export default config;

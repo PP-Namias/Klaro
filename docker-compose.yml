@@ -1,0 +1,177 @@
+# Self-contained Klaro stack: Postgres, schema migration, the Next.js app and
+# the scan backend. The AI sidecar and its vector store sit behind the `ai`
+# profile because they need provider credentials to be useful.
+#
+#   docker compose up -d --build          core stack on http://localhost:3000
+#   docker compose --profile ai up -d     also starts the sidecar + Chroma
+name: klaro
+
+# Every service reads the committed defaults first, then `.env.docker` on top
+# if it exists, so local secrets always win over the checked-in placeholders.
+x-app-env: &app-env
+  env_file:
+    - path: docker/defaults.env
+      required: true
+    - path: .env.docker
+      required: false
+
+x-build: &build
+  context: .
+  dockerfile: docker/Dockerfile
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: klaro
+      POSTGRES_PASSWORD: klaro
+      POSTGRES_DB: klaro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U klaro -d klaro"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+  # One-shot: pushes the Drizzle schema, then seeds. Runs to completion before
+  # the app starts, and is safe to re-run.
+  migrate:
+    build:
+      <<: *build
+      target: migrate
+    <<: *app-env
+    environment:
+      POSTGRES_URL: postgres://klaro:klaro@postgres:5432/klaro
+      DB_DRIVER: pg
+      SEED_DATABASE: "${SEED_DATABASE:-true}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    build:
+      <<: *build
+      target: web
+      # NEXT_PUBLIC_* is inlined into the client bundle, so it is a build input,
+      # not a runtime one. These read the shell / `--env-file`, not `.env.docker`.
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-http://localhost:54321}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:-dummy-key}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        NEXT_PUBLIC_NEON_AUTH_URL: ${NEXT_PUBLIC_NEON_AUTH_URL:-}
+    <<: *app-env
+    # Service wiring is fixed here so it cannot be broken by a stray .env value.
+    environment:
+      POSTGRES_URL: postgres://klaro:klaro@postgres:5432/klaro
+      DB_DRIVER: pg
+      GEMINI_SCAN_API_URL: http://scan-api:3001
+      AI_SIDECAR_URL: http://ai-sidecar:3002
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      scan-api:
+        condition: service_started
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+  scan-api:
+    build:
+      <<: *build
+      target: scan-api
+    <<: *app-env
+    environment:
+      PORT: "3001"
+      STORAGE_BASE_PATH: /data/uploads
+      RESULTS_PATH: /data/results
+    ports:
+      - "${SCAN_API_PORT:-3001}:3001"
+    volumes:
+      - scan-data:/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ---- optional: `docker compose --profile ai up -d` -----------------------
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    profiles: ["ai"]
+    environment:
+      IS_PERSISTENT: "TRUE"
+      PERSIST_DIRECTORY: /chroma/chroma
+    ports:
+      - "${CHROMA_PORT:-8000}:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    # The image ships neither curl nor wget, so probe over bash's /dev/tcp.
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - 'exec 3<>/dev/tcp/127.0.0.1/8000 && printf "GET /api/v2/heartbeat HTTP/1.0\r\n\r\n" >&3 && head -1 <&3 | grep -q 200'
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  ai-sidecar:
+    build:
+      <<: *build
+      target: ai-sidecar
+    profiles: ["ai"]
+    <<: *app-env
+    environment:
+      PORT: "3002"
+      VECTOR_STORE_PROVIDER: chroma
+      CHROMA_DB_URL: http://chromadb:8000
+      CHROMA_URL: http://chromadb:8000
+      CORS_ORIGINS: "*"
+    ports:
+      - "${AI_SIDECAR_PORT:-3002}:3002"
+    depends_on:
+      chromadb:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3002/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  scan-data:
+  chroma-data:

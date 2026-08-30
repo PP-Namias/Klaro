@@ -362,22 +362,80 @@ After forking, enable the upstream sync action. See [Auto Sync With Latest][docs
 
 ### Deploying with Docker
 
-The AI sidecar and vector database run as Docker containers with a single command:
+`docker-compose.yml` at the repo root brings up the whole stack -- Postgres, the
+schema migration, the Next.js app and the scan backend -- with one command:
 
 ```bash
-cd packages/ai-sidecar
-cp .env.example .env
-# Edit .env with your LLM API keys and configuration
-docker compose up -d
+docker compose up -d --build
 ```
 
-This starts:
-- **ai-sidecar** -- LangChain/LangGraph RAG microservice on port `3002`
-- **chromadb** -- Chroma vector database on port `8000` with persistent volume
+| Service | Port | Notes |
+|---------|------|-------|
+| `web` | `3000` | Next.js app, built as a standalone server bundle |
+| `scan-api` | `3001` | `gemini-scan-backend`; returns mocked scans until `GEMINI_API_KEY` is set |
+| `postgres` | `5432` | Postgres 17, persisted in the `postgres-data` volume |
+| `migrate` | -- | One-shot: `drizzle-kit push` then seed, exits when done |
+
+The app is on <http://localhost:3000> once `web` reports healthy. The AI sidecar
+and its vector store need provider credentials, so they sit behind a profile:
+
+```bash
+docker compose --profile ai up -d
+```
+
+> [!IMPORTANT]
+>
+> Building `web` needs outbound internet: `apps/nextjs/src/app/layout.tsx` uses
+> `next/font/google`, which downloads Geist and Cormorant Garamond during
+> `next build`. A blocked or flaky connection fails the build with
+> `Failed to fetch ... from Google Fonts`. Retrying is usually enough.
+
+#### Configuration
+
+Every service loads `docker/defaults.env` first, then `.env.docker` on top:
+
+```bash
+cp .env.docker.example .env.docker
+```
+
+The committed defaults hold no secrets and are enough to run the stack, so this
+step is optional. Anything set in `.env.docker` overrides them. Database and
+inter-service URLs are pinned in `docker-compose.yml` and are not overridable.
+
+`NEXT_PUBLIC_*` values are compiled into the browser bundle, which makes them
+build inputs rather than runtime ones -- rebuild `web` after changing one:
+
+```bash
+docker compose --env-file .env.docker build web
+```
+
+#### Ports
+
+Host ports are overridable when something else already owns them:
+
+```bash
+WEB_PORT=3100 SCAN_API_PORT=3101 POSTGRES_PORT=55432 docker compose up -d
+```
+
+`WEB_PORT`, `SCAN_API_PORT`, `POSTGRES_PORT`, `AI_SIDECAR_PORT` and
+`CHROMA_PORT` only change the host side -- container-to-container URLs and the
+healthchecks always use the internal ports.
+
+#### Everyday commands
+
+```bash
+docker compose logs -f web        # follow app logs
+docker compose ps                 # service + health status
+docker compose run --rm migrate   # re-apply schema and re-seed
+docker compose down               # stop the stack
+docker compose down -v            # stop and drop the database volume
+```
 
 > [!NOTE]
 >
-> See the [Docker Deployment Guide][docs-docker] for detailed instructions.
+> `packages/db` chooses its driver from `POSTGRES_URL`: a Neon URL keeps Neon's
+> serverless HTTP driver, anything else uses `node-postgres` so the stack can
+> talk to the bundled Postgres container. Force it with `DB_DRIVER=neon|pg`.
 
 <br/>
 
@@ -629,7 +687,6 @@ This project is [MIT](./LICENSE) licensed.
 [official-site]: https://www.klaro-scans.tech
 [docs]: ./docs/README.md
 [docs-deployment]: ./docs/DEPLOYMENT_GUIDE.md
-[docs-docker]: ./docs/DEPLOYMENT_GUIDE.md#docker-deployment
 [docs-upstream-sync]: ./docs/DEPLOYMENT_GUIDE.md#keeping-your-fork-synced
 [docs-env-var]: ./docs/ENV_CONFIG.md
 [docs-mobile]: ./docs/MOBILE_DEV_GUIDE.md
