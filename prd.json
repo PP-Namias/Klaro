@@ -393,7 +393,7 @@
           "depends_on": [],
           "severity": "blocker",
           "git_commit_message": "feat(scan): gate document upload behind the mandatory medical consent overlay",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.13",
