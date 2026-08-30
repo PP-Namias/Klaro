@@ -1,5 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
@@ -105,6 +106,7 @@ function normalizeGuestScanResponse(
   raw: unknown,
   input: {
     language: Dialect;
+    requestId?: string;
   },
 ): ScanGuestResponse {
   const data = toRecord(raw);
@@ -133,7 +135,7 @@ function normalizeGuestScanResponse(
     requestId:
       typeof data.requestId === "string" && data.requestId.trim().length > 0
         ? data.requestId
-        : `scan-${Date.now()}`,
+        : (input.requestId ?? `scan-${Date.now()}`),
     status: "completed",
     source:
       typeof data.source === "string"
@@ -732,6 +734,10 @@ export const documentsRouter = {
       const geminiApiUrl =
         process.env.GEMINI_SCAN_API_URL || "http://localhost:3001";
 
+      // Correlates this scan across the API, the AI service and the audit trail.
+      // It is an opaque random id and carries no patient information.
+      const requestId = randomUUID();
+
       const { runOcrWithRetry, buildRejectionResponse } = await import(
         "../services/ocrPipeline"
       );
@@ -755,6 +761,7 @@ export const documentsRouter = {
               },
             ],
             metadata: {
+              requestId,
               task: "medical_scan",
               language: input.language,
               fileName: input.fileName,
@@ -772,12 +779,14 @@ export const documentsRouter = {
           return buildFallbackGuestScanResult({
             language: input.language,
             reason: `gemini_http_${response.status}:${errorText.slice(0, 120)}`,
+            requestId,
           });
         }
 
         const rawResult = (await response.json()) as unknown;
         return normalizeGuestScanResponse(rawResult, {
           language: input.language,
+          requestId,
         });
       } catch (error) {
         const reason =
@@ -788,6 +797,7 @@ export const documentsRouter = {
         return buildFallbackGuestScanResult({
           language: input.language,
           reason,
+          requestId,
         });
       }
     }),

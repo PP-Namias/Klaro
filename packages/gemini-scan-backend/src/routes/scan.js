@@ -58,7 +58,13 @@ router.post('/scan', upload.array('file'), async (req, res) => {
       task: metadata.task || 'medical_scan',
       language: metadata.language === 'Filipino' ? 'Filipino' : 'English'
     };
-    const scanId = sanitizePathSegment(metadata.requestId) || uuidv4();
+    // sanitizePathSegment returns the literal 'unknown' for a non-string input,
+    // which is truthy — so only fall back to it when the client really sent an id.
+    const rawId =
+      typeof metadata.requestId === 'string' && metadata.requestId.trim()
+        ? sanitizePathSegment(metadata.requestId)
+        : null;
+    const scanId = rawId ?? uuidv4();
 
     // Support JSON body with images (base64) as well as multipart files
     const saved = [];
