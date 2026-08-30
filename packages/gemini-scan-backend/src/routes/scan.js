@@ -1,8 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
-const path = require('path');
-const fs = require('fs/promises');
+const crypto = require('crypto');
 const storage = require('../storage');
 const geminiClient = require('../geminiClient');
 const db = require('../db');
@@ -20,6 +19,27 @@ const MAX_BASE64_SIZE = 10 * 1024 * 1024; // 10MB decoded
 function sanitizePathSegment(value) {
   if (typeof value !== 'string') return 'unknown';
   return value.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.{2,}/g, '_').slice(0, 128);
+}
+
+/**
+ * Build an in-memory descriptor for an uploaded image.
+ *
+ * Medical documents are processed ephemerally and are never written to disk or
+ * to object storage (Philippine Data Privacy Act, RA 10173). The buffer is held
+ * only for the lifetime of the request; geminiClient.readImageAsBase64 consumes
+ * `buffer` directly, and geminiClient strips it before echoing the descriptor.
+ */
+function buildImageDescriptor(buffer, filename, mimetype) {
+  return {
+    inputName: 'file',
+    buffer,
+    filename,
+    mimetype,
+    hash: crypto.createHash('sha256').update(buffer).digest('hex'),
+    width: 0,
+    height: 0,
+    rotationDegrees: 0
+  };
 }
 
 function isLikelyBase64(value) {
@@ -61,8 +81,12 @@ router.post('/scan', upload.array('file'), async (req, res) => {
         if (buf.length > MAX_BASE64_SIZE) {
           return res.status(413).json({ error: 'file_too_large', message: `Image exceeds ${MAX_BASE64_SIZE / 1024 / 1024}MB limit` });
         }
-        // save locally
-        const out = await storage.saveFile(scanId, sanitizePathSegment(im.filename) || `image-${Date.now()}.jpg`, buf);
+        // held in memory only — never written to disk
+        const out = buildImageDescriptor(
+          buf,
+          sanitizePathSegment(im.filename) || `image-${Date.now()}.jpg`,
+          im.mimeType
+        );
         // optionally upload to presigned url
         if (metadata.storage_presign_url) {
           try {
@@ -77,8 +101,8 @@ router.post('/scan', upload.array('file'), async (req, res) => {
     } else {
       if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'missing_file' });
       for (const f of req.files) {
-        // save local copy
-        const out = await storage.saveFile(scanId, sanitizePathSegment(f.originalname), f.buffer);
+        // held in memory only — never written to disk
+        const out = buildImageDescriptor(f.buffer, sanitizePathSegment(f.originalname), f.mimetype);
         // optionally upload to presigned url (template may contain {filename})
         if (metadata.storage_presign_url) {
           try {
