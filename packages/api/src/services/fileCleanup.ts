@@ -18,7 +18,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { and, eq, lt } from "drizzle-orm";
 
 import { db } from "@klaro/db/client";
-import { document } from "@klaro/db/schema";
+import { analysis, document } from "@klaro/db/schema";
 
 // ============================================================================
 // Configuration
@@ -199,14 +199,27 @@ async function findDocumentsForCleanup(
  */
 async function archiveDocument(docId: string): Promise<boolean> {
   try {
+    // Archiving must leave no PHI behind: clear the recognized text on the
+    // document and every derived value on its analysis row (RA 10173).
     await db
       .update(document)
       .set({
         status: "archived",
         storageUrl: null,
+        ocrText: null,
         updatedAt: new Date(),
       })
       .where(eq(document.id, docId));
+
+    await db
+      .update(analysis)
+      .set({
+        extractedFields: null,
+        flaggedValues: null,
+        plainLanguageSummary: null,
+        tanqmoCard: null,
+      })
+      .where(eq(analysis.documentId, docId));
     return true;
   } catch (error) {
     console.error(`[FileCleanup] Failed to archive document ${docId}:`, error);
@@ -269,16 +282,16 @@ export async function executeCleanup(
             const deleted = await deleteFromCloudinary(doc.storageUrl);
             if (deleted) {
               result.deleted++;
-              result.deletedFiles.push(doc.fileName);
+              result.deletedFiles.push(doc.id);
             } else {
               result.failed++;
               result.errors.push(
-                `Failed to delete ${doc.fileName} from Cloudinary`,
+                `Failed to delete document ${doc.id} from Cloudinary`,
               );
             }
           } else {
             result.deleted++;
-            result.deletedFiles.push(doc.fileName);
+            result.deletedFiles.push(doc.id);
           }
         }
 
@@ -297,7 +310,7 @@ export async function executeCleanup(
       } catch (error) {
         result.failed++;
         result.errors.push(
-          `Error processing ${doc.fileName}: ${error instanceof Error ? error.message : "unknown"}`,
+          `Error processing document ${doc.id}: ${error instanceof Error ? error.message : "unknown"}`,
         );
       }
     }
@@ -398,7 +411,6 @@ export async function cleanupDocument(
         type: "manual_cleanup",
         documentId: docId,
         userId,
-        fileName: doc.fileName,
         timestamp: new Date().toISOString(),
       }),
     );

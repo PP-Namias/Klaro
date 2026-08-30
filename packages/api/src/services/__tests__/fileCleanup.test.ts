@@ -24,6 +24,11 @@ function buildQuery(result: unknown[]) {
   return query;
 }
 
+/** Every payload passed to `db.update(...).set(...)` during the test. */
+function updateSetCalls(): Record<string, unknown>[] {
+  return mockSet.mock.calls.map((call) => call[0] as Record<string, unknown>);
+}
+
 function setupDbMock(resolvedDocs: unknown[] = []) {
   const query = buildQuery(resolvedDocs);
   mockSelect.mockReturnValue({ from: mockFrom });
@@ -66,6 +71,14 @@ vi.mock("@klaro/db/schema", () => ({
     status: "status",
     createdAt: "created_at",
     updatedAt: "updated_at",
+  },
+  analysis: {
+    id: "id",
+    documentId: "document_id",
+    extractedFields: "extracted_fields",
+    flaggedValues: "flagged_values",
+    plainLanguageSummary: "plain_language_summary",
+    tanqmoCard: "tanqmo_card",
   },
 }));
 
@@ -134,8 +147,36 @@ describe("File Cleanup Service", () => {
       const result = await executeCleanup({ dryRun: false });
 
       expect(result.totalFound).toBeGreaterThanOrEqual(1);
-      expect(result.deletedFiles).toContain("test-report.pdf");
+      // Medical filenames commonly embed patient names, so the cleanup result
+      // records document ids only (RA 10173).
+      expect(result.deletedFiles).toContain("doc-1");
+      expect(result.deletedFiles).not.toContain("test-report.pdf");
       expect(cloudinary.uploader.destroy).toHaveBeenCalled();
+    });
+
+    it("clears document and analysis PHI when archiving", async () => {
+      const doc = makeDoc();
+      setupDbMock([doc]);
+
+      await executeCleanup({ dryRun: false });
+
+      // Every archival update must null out PHI-bearing columns rather than
+      // leaving the recognized text and extracted values behind forever.
+      const payloads = updateSetCalls();
+      const documentUpdate = payloads.find((p) => "ocrText" in p);
+      expect(documentUpdate).toMatchObject({
+        status: "archived",
+        storageUrl: null,
+        ocrText: null,
+      });
+
+      const analysisUpdate = payloads.find((p) => "extractedFields" in p);
+      expect(analysisUpdate).toMatchObject({
+        extractedFields: null,
+        flaggedValues: null,
+        plainLanguageSummary: null,
+        tanqmoCard: null,
+      });
     });
 
     it("records failure when Cloudinary deletion fails", async () => {
