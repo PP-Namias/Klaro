@@ -446,7 +446,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "feat(compliance): add consent record model and gate uploads on accepted terms",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.15",
