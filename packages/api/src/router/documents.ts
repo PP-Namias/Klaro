@@ -16,6 +16,7 @@ import {
 
 import { extractTestsFromText } from "../services/extraction";
 import { generatePlainLanguageExplanation } from "../services/llm";
+import { logAuditEvent } from "../services/auditLogger";
 import { buildOcrResult } from "../services/ocr";
 import { protectedProcedure, publicProcedure, scanProcedure } from "../trpc";
 
@@ -63,6 +64,18 @@ function getSafeRecommendations(
     "Schedule follow-up with your healthcare provider soon",
     "Monitor symptoms and seek urgent care for severe changes",
   ];
+}
+
+/**
+ * Buckets a 0..1 OCR confidence for the audit trail. Buckets keep the log useful
+ * for debugging quality regressions without recording anything document-specific.
+ */
+function confidenceBucket(confidence: number | undefined): string {
+  if (confidence === undefined) return "unknown";
+  if (confidence >= 0.9) return "high";
+  if (confidence >= 0.7) return "medium";
+  if (confidence >= 0.5) return "low";
+  return "very_low";
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -275,8 +288,9 @@ export const documentsRouter = {
         source: input.source,
       });
 
+      // Zero-storage (RA 10173): the recognized text and its confidence are PHI-
+      // bearing and are never persisted. Only the status transition is stored.
       const updatePayload: Partial<typeof document.$inferInsert> = {
-        ocrText: result.text,
         status: "processing",
       };
 
@@ -285,9 +299,17 @@ export const documentsRouter = {
         resolvedConfidence = result.confidence;
       }
 
-      if (resolvedConfidence !== undefined) {
-        updatePayload.confidence = resolvedConfidence.toFixed(2);
-      }
+      await logAuditEvent({
+        action: "ocr_processing",
+        userId: ctx.session.user.id,
+        documentId: input.documentId,
+        externalApiCalled: false,
+        details: {
+          textLength: result.text.length,
+          confidenceBucket: confidenceBucket(resolvedConfidence),
+          source: result.source,
+        },
+      });
 
       const [updatedDoc] = await ctx.db
         .update(document)
@@ -383,15 +405,28 @@ export const documentsRouter = {
             100
           : 0;
 
+      // Zero-storage (RA 10173): extracted values are PHI and are returned to the
+      // caller only. Persist the status transition and non-identifying counts.
       await ctx.db
         .update(analysis)
         .set({
-          extractedFields,
-          flaggedValues,
           status: "completed",
           errorMessage: null,
         })
         .where(eq(analysis.id, analysisRow.id));
+
+      await logAuditEvent({
+        action: "analysis_generated",
+        userId: ctx.session.user.id,
+        documentId: input.documentId,
+        analysisId: analysisRow.id,
+        externalApiCalled: false,
+        details: {
+          extractedCount: extractedFields.length,
+          flaggedCount: flaggedValues.length,
+          method: "regex",
+        },
+      });
 
       await ctx.db
         .update(document)
@@ -578,29 +613,36 @@ export const documentsRouter = {
       const { performOcr } = await import("../services/ocr");
       const ocrResult = await performOcr(buffer);
 
-      // save OCR result to document
+      // Zero-storage (RA 10173): the OCR text and the values extracted from it are
+      // PHI and are never written to the database. Only the non-PHI status moves.
       await ctx.db
         .update(document)
-        .set({
-          ocrText: ocrResult.text,
-          confidence: ocrResult.confidence.toFixed(2),
-          status: "analyzed",
-        })
+        .set({ status: "analyzed" })
         .where(eq(document.id, input.documentId));
 
       // extract tests
       const tests = extractTestsFromText(ocrResult.text);
       const flagged = tests.filter((t) => t.flagged === true);
 
-      // update analysis
       await ctx.db
         .update(analysis)
-        .set({
-          extractedFields: tests,
-          flaggedValues: flagged,
-          status: "completed",
-        })
+        .set({ status: "completed" })
         .where(eq(analysis.documentId, input.documentId));
+
+      await logAuditEvent({
+        action: "ocr_processing",
+        userId: ctx.session.user.id,
+        documentId: input.documentId,
+        externalApiCalled: false,
+        details: {
+          // Metadata only — never the recognized text or the extracted values.
+          textLength: ocrResult.text.length,
+          confidenceBucket: confidenceBucket(ocrResult.confidence),
+          source: ocrResult.source,
+          extractedTestCount: tests.length,
+          flaggedTestCount: flagged.length,
+        },
+      });
 
       return {
         ocrResult,
@@ -681,12 +723,12 @@ export const documentsRouter = {
           bookingCta: llmResponse.bookingPrompt,
         };
 
-        // Update analysis record with generated content
+        // Zero-storage (RA 10173): the plain-language summary and the questions
+        // card are derived from the patient's document and are therefore PHI.
+        // They are returned in this response and never written to the database.
         const [updated] = await ctx.db
           .update(analysis)
           .set({
-            plainLanguageSummary: llmResponse.summary,
-            tanqmoCard,
             status: "completed",
             errorMessage: null,
           })
