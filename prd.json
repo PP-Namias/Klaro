@@ -177,7 +177,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "fix(scan-backend): remove image-persistence instruction from the Gemini system prompt",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.5",
