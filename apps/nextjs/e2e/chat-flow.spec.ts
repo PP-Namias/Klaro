@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("Chat Flow", () => {
   test("chat input is visible on scan page", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const textarea = page.locator("textarea");
     await expect(textarea).toBeVisible();
@@ -12,7 +12,7 @@ test.describe("Chat Flow", () => {
 
   test("send button is disabled when input is empty", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const sendBtn = page
       .locator("button")
@@ -23,7 +23,7 @@ test.describe("Chat Flow", () => {
 
   test("typing in textarea enables send button", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const textarea = page.locator("textarea");
     await textarea.fill("What is hemoglobin?");
@@ -32,7 +32,7 @@ test.describe("Chat Flow", () => {
 
   test("dialect toggle shows language options", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const dialectBtn = page
       .locator("button")
@@ -43,9 +43,11 @@ test.describe("Chat Flow", () => {
 
   test("chat history section is present", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
-    const chatSection = page.locator("section, div").first();
-    await expect(chatSection).toBeVisible();
+    await expect(page.locator('textarea[class*="chatTextArea"]')).toBeVisible();
+    await expect(
+      page.locator('[class*="claraChatBubble"]').first(),
+    ).toBeVisible();
   });
 });

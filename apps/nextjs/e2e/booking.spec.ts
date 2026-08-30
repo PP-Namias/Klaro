@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("Patient Booking Flow", () => {
   test("patient can view facilities listing", async ({ page }) => {
     await page.goto("/facilities");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.screenshot({
       path: "e2e-screenshots/11-facilities-listing.png",
     });
@@ -11,7 +11,7 @@ test.describe("Patient Booking Flow", () => {
 
   test("patient can navigate to scheduling", async ({ page }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.screenshot({ path: "e2e-screenshots/12-scheduling-nav.png" });
   });
 
@@ -24,7 +24,7 @@ test.describe("Patient Booking Flow", () => {
 
   test("patient can access the scan upload page", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.screenshot({ path: "e2e-screenshots/14-scan-upload.png" });
   });
 

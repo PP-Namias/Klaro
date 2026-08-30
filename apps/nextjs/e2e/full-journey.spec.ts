@@ -9,13 +9,13 @@ test.describe("Full Patient Journey", () => {
 
   test("patient navigates to scan page", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.screenshot({ path: "e2e-screenshots/17-journey-scan.png" });
   });
 
   test("patient views facilities", async ({ page }) => {
     await page.goto("/facilities");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.screenshot({
       path: "e2e-screenshots/18-journey-facilities.png",
     });
@@ -23,7 +23,7 @@ test.describe("Full Patient Journey", () => {
 
   test("patient accesses API documentation", async ({ page }) => {
     await page.goto("/api/docs");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const content = await page.textContent("body");
     expect(content).toContain("Klaro");
     await page.screenshot({ path: "e2e-screenshots/19-journey-docs.png" });
@@ -31,13 +31,13 @@ test.describe("Full Patient Journey", () => {
 
   test("patient views documents page", async ({ page }) => {
     await page.goto("/documents");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.screenshot({ path: "e2e-screenshots/20-journey-documents.png" });
   });
 
   test("patient can access auth flow", async ({ page }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.screenshot({ path: "e2e-screenshots/21-journey-auth.png" });
   });
 

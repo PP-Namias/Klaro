@@ -65,17 +65,21 @@ export function Sidebar() {
       </div>
 
       <nav className={styles.sidebarNav}>
-        <Link href="/" className={styles.navItem}>
+        <Link href="/" className={styles.navItem} aria-label="Home">
           <Home size={20} color="#999" /> {!isCollapsed && <span>Home</span>}
         </Link>
-        <Link href="/maps" className={styles.navItem}>
+        <Link href="/maps" className={styles.navItem} aria-label="Maps">
           <Map size={20} color="#999" /> {!isCollapsed && <span>Maps</span>}
         </Link>
         <hr className={styles.sidebarDivider} />
       </nav>
 
       <div className={styles.sidebarFooter}>
-        <button className={styles.bookDoctorBtn} onClick={openBooking}>
+        <button
+          className={styles.bookDoctorBtn}
+          onClick={openBooking}
+          aria-label="Book a Doctor"
+        >
           <Calendar size={20} color="#999" />{" "}
           {!isCollapsed && <span>Book a Doctor</span>}
         </button>

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("Error States", () => {
   test("shows error for unsupported file type", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const fileInput = page.locator('input[type="file"]').first();
     await fileInput.setInputFiles({
@@ -21,7 +21,7 @@ test.describe("Error States", () => {
 
   test("shows error when upload fails", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const errorDisplay = page
       .locator("[data-testid=upload-error]")
@@ -31,7 +31,7 @@ test.describe("Error States", () => {
 
   test("shows network error message when offline", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const networkError = page
       .locator("text=offline")
@@ -42,7 +42,7 @@ test.describe("Error States", () => {
 
   test("shows empty state when no documents in library", async ({ page }) => {
     await page.goto("/documents");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const emptyState = page
       .locator("text=No documents")
@@ -53,7 +53,7 @@ test.describe("Error States", () => {
 
   test("shows loading state during analysis", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const loadingIndicator = page
       .locator("[role=progressbar]")
@@ -63,18 +63,33 @@ test.describe("Error States", () => {
   });
 
   test("handles server error gracefully on chat page", async ({ page }) => {
-    await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    // Actually break the backend, then assert the page degrades instead of
+    // white-screening: the chat surface stays usable and nothing throws.
+    await page.route("**/api/trpc/**", (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: "{}",
+      }),
+    );
+    await page.route("**/api/chat/stream", (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: "{}",
+      }),
+    );
 
-    const chatSection = page
-      .locator("text=Chat")
-      .or(page.locator("text=Ask Clara"));
-    await expect(chatSection).toBeHidden();
+    await page.goto("/scan");
+    await page.waitForLoadState("domcontentloaded");
+
+    await expect(page.locator('textarea[class*="chatTextArea"]')).toBeVisible();
+    await expect(page.getByText(/Drag & drop|drop files/i)).toBeVisible();
   });
 
   test("shows retry button after failed request", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const retryButton = page
       .locator("button:has-text('Retry')")
@@ -84,7 +99,7 @@ test.describe("Error States", () => {
 
   test("handles very large file rejection", async ({ page }) => {
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const fileInput = page.locator('input[type="file"]').first();
     const accept = await fileInput.getAttribute("accept");

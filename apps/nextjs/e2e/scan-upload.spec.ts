@@ -29,7 +29,9 @@ test.describe("Scan Page - File Upload Flow", () => {
   });
 
   test("shows Clara chat interface", async ({ page }) => {
-    await expect(page.locator('[class*="claraChatBubble"]').first()).toBeVisible();
+    await expect(
+      page.locator('[class*="claraChatBubble"]').first(),
+    ).toBeVisible();
   });
 
   test("shows camera scan button", async ({ page }) => {
@@ -41,9 +43,7 @@ test.describe("Scan Page - File Upload Flow", () => {
   });
 
   test("shows chat input area", async ({ page }) => {
-    await expect(
-      page.locator('textarea[class*="chatTextArea"]'),
-    ).toBeVisible();
+    await expect(page.locator('textarea[class*="chatTextArea"]')).toBeVisible();
   });
 });
 

@@ -25,7 +25,7 @@ test.describe("Chat Interface E2E", () => {
     });
 
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const chatInput = page.locator('textarea[class*="chatTextArea"]');
     await chatInput.fill("What does the record say?");
@@ -46,9 +46,12 @@ test.describe("Chat Interface E2E", () => {
     await expect(page.locator('[class*="typingIndicator"]')).toHaveCount(0);
   });
 
-  test("shows the fallback bubble when the stream request fails", async ({
+  test("still answers when the stream fails, via the guest fallback", async ({
     page,
   }) => {
+    // Only the streaming route is broken. use-chat now retries over the public
+    // sendGuestMessage procedure, so a guest gets a real answer instead of the
+    // dead-end "upload a document first" message this used to produce.
     await page.route("**/api/chat/stream", (route) =>
       route.fulfill({
         status: 500,
@@ -58,7 +61,7 @@ test.describe("Chat Interface E2E", () => {
     );
 
     await page.goto("/scan");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const chatInput = page.locator('textarea[class*="chatTextArea"]');
     await chatInput.fill("What does the record say?");
@@ -68,12 +71,35 @@ test.describe("Chat Interface E2E", () => {
       "What does the record say?",
     );
 
+    const reply = page.locator('[class*="claraChatBubble"]').last();
+    await expect(reply).toBeVisible({ timeout: 60_000 });
+    await expect(reply).not.toHaveText(/upload a document first/i);
+  });
+
+  test("shows a recoverable message when the fallback also fails", async ({
+    page,
+  }) => {
+    await page.route("**/api/chat/stream", (route) =>
+      route.fulfill({ status: 500, body: "{}" }),
+    );
+    await page.route("**/api/trpc/chat.sendGuestMessage**", (route) =>
+      route.fulfill({ status: 500, body: "{}" }),
+    );
+
+    await page.goto("/scan");
+    await page.waitForLoadState("domcontentloaded");
+
+    const chatInput = page.locator('textarea[class*="chatTextArea"]');
+    await chatInput.fill("What does the record say?");
+    await chatInput.press("Enter");
+
+    // With both paths down the user must still be told to try again, never
+    // left staring at a typing indicator.
     await expect(
       page
         .locator('[class*="claraChatBubble"]')
-        .filter({ hasText: "Please upload a document first" }),
-    ).toBeVisible();
-
+        .filter({ hasText: /try asking again|upload a document first/i }),
+    ).toBeVisible({ timeout: 60_000 });
     await expect(page.locator('[class*="typingIndicator"]')).toHaveCount(0);
   });
 });
