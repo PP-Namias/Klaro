@@ -27,6 +27,7 @@ import { DemoPrescription } from "~/components/demo/prescription";
 import { DropOverlay } from "~/components/drop-overlay";
 import { DropZone } from "~/components/drop-zone";
 import { FilePreview } from "~/components/file-preview";
+import { MedicalDisclaimerOverlay } from "~/components/medical-disclaimer-overlay";
 import { UploadComplete } from "~/components/upload-complete";
 import { UploadError } from "~/components/upload-error";
 import { UploadProgress } from "~/components/upload-progress";
@@ -40,6 +41,7 @@ import {
 } from "~/data/demo-index";
 import { useChat } from "~/hooks/use-chat";
 import { useFileUpload } from "~/hooks/use-file-upload";
+import { useMedicalDisclaimer } from "~/hooks/use-medical-disclaimer";
 import {
   createPreviewUrl,
   getFileKind,
@@ -67,6 +69,10 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const { t, language } = useLanguage();
+
+  // Blocking consent gate: no medical document may be read until the Terms of
+  // Service, Terms & Conditions and medical disclaimer are accepted.
+  const disclaimer = useMedicalDisclaimer();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -128,6 +134,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   };
 
   const handleStartScan = async () => {
+    if (!disclaimer.requireConsent()) return;
     setIsScanning(true);
     await startCamera();
   };
@@ -162,21 +169,26 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     setDemoModalOpen(true);
   }, []);
 
-  const handleFilesSelected = useCallback(async (files: File[]) => {
-    const { valid, invalid } = await validateFiles(files);
+  const handleFilesSelected = useCallback(
+    async (files: File[]) => {
+      if (!disclaimer.requireConsent()) return;
 
-    if (invalid.length > 0) {
-      alert(invalid.map((i) => i.error).join("\n"));
-    }
+      const { valid, invalid } = await validateFiles(files);
 
-    const newItems: FilePreviewItem[] = valid.map((file) => ({
-      file,
-      previewUrl: createPreviewUrl(file),
-      kind: getFileKind(file),
-    }));
+      if (invalid.length > 0) {
+        alert(invalid.map((i) => i.error).join("\n"));
+      }
 
-    setSelectedFiles((prev) => [...prev, ...newItems]);
-  }, []);
+      const newItems: FilePreviewItem[] = valid.map((file) => ({
+        file,
+        previewUrl: createPreviewUrl(file),
+        kind: getFileKind(file),
+      }));
+
+      setSelectedFiles((prev) => [...prev, ...newItems]);
+    },
+    [disclaimer],
+  );
 
   const handleRemoveFile = useCallback((index: number) => {
     setSelectedFiles((prev) => {
@@ -190,9 +202,10 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
 
   const handleUploadFiles = useCallback(async () => {
     if (selectedFiles.length === 0) return;
+    if (!disclaimer.requireConsent()) return;
     const files = selectedFiles.map((item) => item.file);
     await fileUpload.upload(files);
-  }, [selectedFiles, fileUpload]);
+  }, [selectedFiles, fileUpload, disclaimer]);
 
   const handleSend = (content: string, image?: string) => {
     void chat.sendMessage(content, image);
@@ -724,6 +737,12 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
           isOpen={clearDialogOpen}
           onConfirm={handleClearConversation}
           onCancel={() => setClearDialogOpen(false)}
+        />
+
+        <MedicalDisclaimerOverlay
+          isOpen={disclaimer.isShowing}
+          onAccept={disclaimer.acceptDisclaimer}
+          onDecline={disclaimer.declineDisclaimer}
         />
 
         <canvas ref={canvasRef} style={{ display: "none" }} />

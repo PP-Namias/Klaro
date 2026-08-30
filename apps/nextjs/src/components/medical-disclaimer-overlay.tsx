@@ -199,15 +199,7 @@ export function MedicalDisclaimerOverlay({
   }, []);
 
   const handleAccept = () => {
-    // Store acceptance in localStorage
-    try {
-      localStorage.setItem(
-        "klaro-disclaimer-accepted",
-        new Date().toISOString(),
-      );
-    } catch {
-      // localStorage not available
-    }
+    recordDisclaimerAcceptance();
     onAccept();
   };
 
@@ -318,13 +310,59 @@ export function MedicalDisclaimerOverlay({
   );
 }
 
+export const DISCLAIMER_STORAGE_KEY = "klaro-disclaimer-accepted";
+
+// ----------------------------------------------------------------------------
+// External store
+//
+// Acceptance lives in localStorage, which the server cannot see. Exposing it as
+// an external store lets consumers read it with useSyncExternalStore, so the
+// server render and the first client render agree (no hydration mismatch) and
+// no effect has to synchronously set state.
+// ----------------------------------------------------------------------------
+
+const disclaimerListeners = new Set<() => void>();
+
+function emitDisclaimerChange(): void {
+  for (const listener of disclaimerListeners) listener();
+}
+
+export function subscribeToDisclaimer(listener: () => void): () => void {
+  disclaimerListeners.add(listener);
+  return () => {
+    disclaimerListeners.delete(listener);
+  };
+}
+
+/** Client snapshot: whether consent is recorded in this browser. */
+export function getDisclaimerSnapshot(): boolean {
+  return hasAcceptedDisclaimer();
+}
+
+/** Server snapshot: the server never has consent, so the gate renders closed. */
+export function getDisclaimerServerSnapshot(): boolean {
+  return false;
+}
+
+/**
+ * Record that the user accepted the consent gate.
+ */
+export function recordDisclaimerAcceptance(): void {
+  try {
+    localStorage.setItem(DISCLAIMER_STORAGE_KEY, new Date().toISOString());
+  } catch {
+    // localStorage not available
+  }
+  emitDisclaimerChange();
+}
+
 /**
  * Check if user has already accepted the disclaimer
  */
 export function hasAcceptedDisclaimer(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    return localStorage.getItem("klaro-disclaimer-accepted") !== null;
+    return localStorage.getItem(DISCLAIMER_STORAGE_KEY) !== null;
   } catch {
     return false;
   }
@@ -335,8 +373,9 @@ export function hasAcceptedDisclaimer(): boolean {
  */
 export function clearDisclaimerAcceptance(): void {
   try {
-    localStorage.removeItem("klaro-disclaimer-accepted");
+    localStorage.removeItem(DISCLAIMER_STORAGE_KEY);
   } catch {
     // localStorage not available
   }
+  emitDisclaimerChange();
 }

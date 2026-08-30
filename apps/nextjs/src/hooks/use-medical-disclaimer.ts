@@ -3,14 +3,18 @@
 /**
  * Medical Disclaimer Hook
  *
- * Manages the state of the medical disclaimer overlay.
- * Tracks whether the user has accepted the disclaimer.
+ * Owns the blocking consent gate that must be accepted before any medical
+ * document is read (Terms of Service, Terms & Conditions and the medical
+ * disclaimer). Acceptance is remembered per browser.
  */
-import { useCallback, useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 
 import {
   clearDisclaimerAcceptance,
-  hasAcceptedDisclaimer,
+  getDisclaimerServerSnapshot,
+  getDisclaimerSnapshot,
+  recordDisclaimerAcceptance,
+  subscribeToDisclaimer,
 } from "~/components/medical-disclaimer-overlay";
 
 interface UseMedicalDisclaimerReturn {
@@ -28,13 +32,23 @@ interface UseMedicalDisclaimerReturn {
   declineDisclaimer: () => void;
   /** Reset disclaimer acceptance (for re-consent) */
   resetDisclaimer: () => void;
+  /**
+   * Gate an action behind consent. Returns true when the caller may proceed;
+   * otherwise opens the overlay and returns false.
+   */
+  requireConsent: () => boolean;
 }
 
 export function useMedicalDisclaimer(): UseMedicalDisclaimerReturn {
   const [isShowing, setIsShowing] = useState(false);
-  const [hasAccepted, setHasAccepted] = useState(() => hasAcceptedDisclaimer());
 
-  // Check localStorage on mount
+  // Read from the external store so the server render (always "not accepted")
+  // and the first client render agree, without setting state in an effect.
+  const hasAccepted = useSyncExternalStore(
+    subscribeToDisclaimer,
+    getDisclaimerSnapshot,
+    getDisclaimerServerSnapshot,
+  );
 
   const showDisclaimer = useCallback(() => {
     setIsShowing(true);
@@ -45,19 +59,26 @@ export function useMedicalDisclaimer(): UseMedicalDisclaimerReturn {
   }, []);
 
   const acceptDisclaimer = useCallback(() => {
-    setHasAccepted(true);
+    // Persist here rather than relying on the overlay, so acceptance is
+    // recorded no matter which surface presented it.
+    recordDisclaimerAcceptance();
     setIsShowing(false);
   }, []);
 
   const declineDisclaimer = useCallback(() => {
     setIsShowing(false);
-    // Don't set hasAccepted to true
+    // Consent is not recorded, so the gate stays closed.
   }, []);
 
   const resetDisclaimer = useCallback(() => {
     clearDisclaimerAcceptance();
-    setHasAccepted(false);
   }, []);
+
+  const requireConsent = useCallback(() => {
+    if (hasAccepted) return true;
+    setIsShowing(true);
+    return false;
+  }, [hasAccepted]);
 
   return {
     isShowing,
@@ -67,5 +88,8 @@ export function useMedicalDisclaimer(): UseMedicalDisclaimerReturn {
     acceptDisclaimer,
     declineDisclaimer,
     resetDisclaimer,
+    requireConsent,
   };
 }
+
+export type { UseMedicalDisclaimerReturn };
