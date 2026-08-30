@@ -8,8 +8,9 @@
  * FE-07: Add disclaimer overlay before first AI response regarding medical advice limitations.
  *
  * This component displays a mandatory disclaimer that users must acknowledge
- * before receiving AI-generated medical information. Required for HIPAA compliance
- * and to set proper expectations about AI limitations.
+ * before receiving AI-generated medical information. Required under the Philippine
+ * Data Privacy Act of 2012 (RA 10173) and to set proper expectations about AI
+ * limitations.
  */
 import { useCallback, useEffect, useState } from "react";
 
@@ -57,14 +58,14 @@ const DISCLAIMER_TRANSLATIONS = {
       {
         heading: "Emergency Situations",
         content:
-          "If you are experiencing a medical emergency, call your local emergency number (911 in the US) or go to the nearest emergency department immediately.",
+          "If you are experiencing a medical emergency, call 911 (the Philippine national emergency hotline) or go to the nearest emergency department immediately.",
       },
     ],
     acceptButton: "I Understand & Accept",
     declineButton: "I Do Not Accept",
     requiredNotice: "You must accept this disclaimer to use the service.",
     privacyNote:
-      "Your health data is encrypted and protected in accordance with HIPAA regulations.",
+      "Your documents are processed and then discarded — Claro never stores your medical files or the values read from them. Handled under the Data Privacy Act of 2012 (Republic Act 10173).",
   },
   fil: {
     title: "Mahalagang Paunawa sa Medikal",
@@ -96,7 +97,7 @@ const DISCLAIMER_TRANSLATIONS = {
     requiredNotice:
       "Kailangan mong tanggapin ang paunawa na ito para magamit ang serbisyo.",
     privacyNote:
-      "Ang iyong data sa kalusugan ay naka-encrypt at protektado ayon sa mga regulasyon ng HIPAA.",
+      "Ang iyong mga dokumento ay pinoproseso at agad na binubura — hindi kailanman iniimbak ng Claro ang inyong medical files o ang mga halagang nabasa rito. Sakop ng Data Privacy Act of 2012 (Republic Act 10173).",
   },
   ceb: {
     title: "Importante nga Medical Disclaimer",
@@ -128,7 +129,7 @@ const DISCLAIMER_TRANSLATIONS = {
     requiredNotice:
       "Kinahanglan nimu dawaton kini nga disclaimer aron mogamit sa serbisyo.",
     privacyNote:
-      "Ang imong data sa kahimsog gi-encrypt ug giprotektahan sumala sa mga regulasyon sa HIPAA.",
+      "Ang imong mga dokumento gi-proseso ug dayon gipapas — wala gyud gitipigan sa Claro ang imong medical files o ang mga bili nga nabasa niini. Sakop sa Data Privacy Act of 2012 (Republic Act 10173).",
   },
   ilo: {
     title: "Importante nga Medical Disclaimer",
@@ -160,7 +161,7 @@ const DISCLAIMER_TRANSLATIONS = {
     requiredNotice:
       "Kailangan mo tirikko daytoy a disclaimer aron magamit iti serbisyo.",
     privacyNote:
-      "Ti data mo iti kasasaad ket encrypted ken naprotektahan babaen iti mga regulasyon iti HIPAA.",
+      "Dagiti dokumentom ket maproseso sana madagdag — saan a pulos nga idulin ti Claro dagiti medical files mo wenno dagiti balor a nabasa manipud kadagitoy. Sakop ti Data Privacy Act of 2012 (Republic Act 10173).",
   },
 };
 
