@@ -245,7 +245,7 @@
           "depends_on": [],
           "severity": "blocker",
           "git_commit_message": "fix(compliance): remove Cloudinary persistence of medical documents from scan route",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.7",
