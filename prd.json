@@ -360,7 +360,7 @@
           "depends_on": [],
           "severity": "high",
           "git_commit_message": "fix(privacy): send test-result context as a POST body instead of a query string",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.12",
