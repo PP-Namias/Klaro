@@ -121,7 +121,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "fix(scan-backend): remove PHI persistence and unauthenticated result retrieval",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.3",
