@@ -120,7 +120,11 @@ services:
 
   # ---- optional: `docker compose --profile ai up -d` -----------------------
   chromadb:
-    image: ghcr.io/chroma-core/chroma:latest
+    # Pinned deliberately, not floated on :latest — chroma 1.x removes the
+    # v1 API (410 Gone) that the lockfile's chromadb 1.10.5 client speaks.
+    # 0.6.3 is the last release still serving v1. Bump only together with
+    # the chromadb client in packages/ai-sidecar.
+    image: ghcr.io/chroma-core/chroma:0.6.3
     profiles: ["ai"]
     environment:
       IS_PERSISTENT: "TRUE"
@@ -135,7 +139,7 @@ services:
         - CMD
         - bash
         - -c
-        - 'exec 3<>/dev/tcp/127.0.0.1/8000 && printf "GET /api/v2/heartbeat HTTP/1.0\r\n\r\n" >&3 && head -1 <&3 | grep -q 200'
+        - 'exec 3<>/dev/tcp/127.0.0.1/8000 && printf "GET /api/v1/heartbeat HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3 && head -1 <&3 | grep -q 200'
       interval: 15s
       timeout: 10s
       retries: 5
