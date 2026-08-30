@@ -203,7 +203,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "fix(scan-backend): generate a unique scanId per request instead of the constant 'unknown'",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.6",
