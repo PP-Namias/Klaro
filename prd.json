@@ -418,7 +418,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "fix(compliance): replace HIPAA disclaimer copy with RA 10173 zero-storage terms",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.14",
