@@ -4,6 +4,7 @@ import {
   cleanupDocument,
   executeCleanup,
   getCleanupStats,
+  purgeExpiredChatMessages,
 } from "../fileCleanup";
 
 // Mock dependencies
@@ -14,6 +15,9 @@ const mockLimit = vi.fn(function (this: unknown) {
   return this;
 });
 const mockUpdate = vi.fn();
+const mockDelete = vi.fn();
+const mockDeleteWhere = vi.fn();
+const mockReturning = vi.fn();
 const mockSet = vi.fn();
 const mockUpdateWhere = vi.fn();
 
@@ -37,6 +41,10 @@ function setupDbMock(resolvedDocs: unknown[] = []) {
   mockUpdate.mockReturnValue({ set: mockSet });
   mockSet.mockReturnValue({ where: mockUpdateWhere });
   mockUpdateWhere.mockResolvedValue([]);
+
+  mockDelete.mockReturnValue({ where: mockDeleteWhere });
+  mockDeleteWhere.mockReturnValue({ returning: mockReturning });
+  mockReturning.mockResolvedValue([]);
 }
 
 vi.mock("@klaro/db/client", () => ({
@@ -46,6 +54,9 @@ vi.mock("@klaro/db/client", () => ({
     },
     get update() {
       return mockUpdate;
+    },
+    get delete() {
+      return mockDelete;
     },
   },
 }));
@@ -71,6 +82,10 @@ vi.mock("@klaro/db/schema", () => ({
     status: "status",
     createdAt: "created_at",
     updatedAt: "updated_at",
+  },
+  chatMessage: {
+    id: "id",
+    createdAt: "created_at",
   },
   analysis: {
     id: "id",
@@ -217,6 +232,32 @@ describe("File Cleanup Service", () => {
       const result = await cleanupDocument("doc-1", "wrong-user");
       expect(result.success).toBe(false);
       expect(result.error).toBe("Unauthorized");
+    });
+  });
+
+  describe("purgeExpiredChatMessages", () => {
+    it("deletes chat messages older than the TTL and reports the count", async () => {
+      setupDbMock([]);
+      mockReturning.mockResolvedValue([{ id: "m1" }, { id: "m2" }]);
+
+      const purged = await purgeExpiredChatMessages(60 * 60 * 1000);
+
+      expect(purged).toBe(2);
+      expect(mockDelete).toHaveBeenCalled();
+      // The cutoff is an lt() bound on created_at, so newer rows are untouched.
+      const [predicate] = mockDeleteWhere.mock.calls[0] as [
+        { field: string; op: string; value: Date },
+      ];
+      expect(predicate.op).toBe("lt");
+      expect(predicate.field).toBe("created_at");
+      expect(predicate.value.getTime()).toBeLessThan(Date.now());
+    });
+
+    it("returns 0 and does not throw when the delete fails", async () => {
+      setupDbMock([]);
+      mockReturning.mockRejectedValue(new Error("db down"));
+
+      await expect(purgeExpiredChatMessages(1000)).resolves.toBe(0);
     });
   });
 });
