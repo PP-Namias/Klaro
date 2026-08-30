@@ -270,7 +270,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "fix(compliance): stop persisting OCR text and confidence to the database",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.8",
