@@ -509,7 +509,7 @@
           "depends_on": [],
           "severity": "blocker",
           "git_commit_message": "feat(compliance): scrub phi from ocr text before the guest scan calls the external ai service",
-          "passes": false
+          "passes": true
         }
       ]
     },
