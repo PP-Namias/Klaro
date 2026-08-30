@@ -6,6 +6,7 @@ import { z } from "zod/v4";
 import { analysis, chatMessage } from "@klaro/db/schema";
 import { DialectEnum } from "@klaro/validators/llm";
 
+import { checkRateLimit } from "../middleware/rateLimiter";
 import { chat as sidecarChat } from "../services/aiSidecarClient";
 import { logChatMessage, logLlmApiCall } from "../services/auditLogger";
 import { assembleDocumentContext } from "../services/contextAssembler";
@@ -16,7 +17,7 @@ import {
   filterOutput,
 } from "../services/medicalGuardrails";
 import { detectPhiTypes, scrubPhi } from "../services/phiScrubber";
-import { chatProcedure as protectedProcedure } from "../trpc";
+import { chatProcedure as protectedProcedure, publicProcedure } from "../trpc";
 
 export type ChatSeverity = "LOW" | "MODERATE" | "HIGH";
 
@@ -458,5 +459,110 @@ export const chatRouter = {
         .where(eq(chatMessage.analysisId, input.analysisId));
 
       return { success: true };
+    }),
+  /**
+   * Clara for anonymous visitors on /scan.
+   *
+   * Guest scans are never persisted (scanGuestImage returns its result without
+   * touching the database, and analysis/chat_message both require a real
+   * user_id), so this deliberately stays stateless: the client passes the scan
+   * context and prior turns, and nothing is written back. That keeps anonymous
+   * PHI out of storage entirely and makes cross-guest leakage structurally
+   * impossible rather than a matter of getting a WHERE clause right.
+   *
+   * The same medical guardrails as the authenticated path still apply.
+   */
+  sendGuestMessage: publicProcedure
+    .input(
+      z.object({
+        guestId: z.string().trim().min(8).max(128),
+        content: z.string().trim().min(1).max(2000),
+        dialect: DialectEnum.default("Filipino"),
+        scanContext: z
+          .object({
+            summary: z.string().max(4000).optional(),
+            urgency: z.enum(["LOW", "MODERATE", "HIGH"]).optional(),
+            recommendations: z.array(z.string().max(500)).max(5).optional(),
+          })
+          .optional(),
+        history: z
+          .array(
+            z.object({
+              role: z.enum(["user", "assistant"]),
+              content: z.string().max(4000),
+            }),
+          )
+          .max(20)
+          .default([]),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const locale = dialectToLocale(input.dialect);
+
+      const rate = checkRateLimit(`guest-chat:${input.guestId}`, 20);
+      if (!rate.allowed) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: `Chat rate limit exceeded. Try again in ${Math.ceil(
+            (rate.resetAt - Date.now()) / 1000,
+          )}s.`,
+        });
+      }
+
+      const inputGuardrail = checkInputGuardrails(input.content);
+      if (inputGuardrail.level === "blocked") {
+        return {
+          role: "assistant" as const,
+          content: buildBlockedResponse(input.content, locale),
+          blocked: true,
+          followUpQuestions: [] as string[],
+        };
+      }
+
+      // Never forward raw PHI to the model provider.
+      const scrubbedQuestion = scrubPhi(input.content).scrubbedText;
+
+      const contextParts: string[] = [];
+      if (input.scanContext?.summary) {
+        contextParts.push(`Scan summary: ${input.scanContext.summary}`);
+      }
+      if (input.scanContext?.urgency) {
+        contextParts.push(`Urgency: ${input.scanContext.urgency}`);
+      }
+      if (input.scanContext?.recommendations?.length) {
+        contextParts.push(
+          `Recommendations: ${input.scanContext.recommendations.join("; ")}`,
+        );
+      }
+      contextParts.push(`Answer in ${input.dialect}.`);
+
+      const question = `${contextParts.join("\n")}\n\nQuestion: ${scrubbedQuestion}`;
+
+      try {
+        const response = await sidecarChat(
+          question,
+          input.history.map((m) => ({
+            role: m.role,
+            content: scrubPhi(m.content).scrubbedText,
+          })),
+        );
+
+        const filtered = filterOutput(response.answer, undefined, locale);
+
+        return {
+          role: "assistant" as const,
+          content: filtered.filteredContent ?? response.answer,
+          blocked: false,
+          followUpQuestions: response.followUpQuestions ?? [],
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error instanceof Error
+              ? `Clara is unavailable: ${error.message}`
+              : "Clara is unavailable",
+        });
+      }
     }),
 } satisfies TRPCRouterRecord;

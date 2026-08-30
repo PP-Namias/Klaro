@@ -107,41 +107,61 @@ export const buildOcrAudit = (input: {
       : 0,
 });
 
+/**
+ * Base URL of the OCR service. Tesseract is run out-of-process by the
+ * scan backend rather than in the Next.js server: tesseract.js forks a
+ * worker by resolving a path from its own module location, and the
+ * standalone build rewrites that to a /ROOT/ placeholder that does not
+ * exist, so the request hangs forever instead of failing.
+ */
+const getOcrServiceUrl = () =>
+  process.env.OCR_SERVICE_URL ??
+  process.env.GEMINI_SCAN_API_URL ??
+  "http://localhost:3001";
+
+const OCR_TIMEOUT_MS = 120_000;
+
 export const performOcr = async (
   imageUrlOrBuffer: string | Buffer,
 ): Promise<OcrResult> => {
-  const { createWorker } = await import("tesseract.js");
-  const worker = await createWorker("eng");
+  const imageBase64 = Buffer.isBuffer(imageUrlOrBuffer)
+    ? imageUrlOrBuffer.toString("base64")
+    : imageUrlOrBuffer;
 
-  try {
-    const { data } = (await worker.recognize(imageUrlOrBuffer)) as {
-      data: {
-        text: string;
-        lines?: {
-          text?: string;
-          confidence?: number;
-        }[];
-      };
-    };
+  const response = await fetch(`${getOcrServiceUrl()}/api/ocr`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(OCR_TIMEOUT_MS),
+    body: JSON.stringify({ imageBase64 }),
+  });
 
-    const blocks: OcrBlock[] = (data.lines ?? [])
-      .map((line) => ({
-        text: line.text?.trim() ?? "",
-        confidence:
-          typeof line.confidence === "number"
-            ? line.confidence / 100
-            : undefined,
-      }))
-      .filter((block) => block.text.length > 0);
-
-    return buildOcrResult({
-      text: data.text,
-      blocks,
-      source: "local",
-    });
-  } finally {
-    await worker.terminate();
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(
+      `OCR service responded ${response.status}${detail ? `: ${detail.slice(0, 200)}` : ""}`,
+    );
   }
+
+  const payload = (await response.json()) as {
+    text?: string;
+    confidence?: number;
+    blocks?: { text?: string; confidence?: number }[];
+  };
+
+  const blocks: OcrBlock[] = (payload.blocks ?? [])
+    .map((block) => ({
+      text: block.text?.trim() ?? "",
+      confidence:
+        typeof block.confidence === "number" ? block.confidence : undefined,
+    }))
+    .filter((block) => block.text.length > 0);
+
+  return buildOcrResult({
+    text: payload.text ?? "",
+    blocks,
+    confidence: payload.confidence,
+    source: "local",
+  });
 };
 
 export const performOcrWithFallback = async (

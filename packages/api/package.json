@@ -29,7 +29,6 @@
     "drizzle-orm": "^0.44.7",
     "pdfjs-dist": "4.0.379",
     "superjson": "2.2.3",
-    "tesseract.js": "^7.0.0",
     "zod": "catalog:"
   },
   "devDependencies": {

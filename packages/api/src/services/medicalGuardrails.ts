@@ -55,12 +55,19 @@ const DIAGNOSIS_REQUEST_PATTERNS = [
   /am\s+i\s+(sick|ill|dying|healthy)/i,
   /is\s+this\s+(serious|dangerous|life-threatening|fatal)/i,
 
-  // Treatment advice requests
-  /what\s+(medication|drug|medicine)\s+should\s+i\s+take/i,
-  /should\s+i\s+\w+(?:\s+\w+)?\s+(my\s+)?(medication|drug|medicine|treatment)/i,
+  // Treatment advice requests.
+  //
+  // These deliberately tolerate filler words. The earlier versions required
+  // the drug noun to sit adjacent to the verb, so "what medication AND DOSAGE
+  // should I take" and "should I stop taking my PRESCRIBED medicine" both
+  // sailed through to the model — the two questions it is least acceptable to
+  // answer.
+  /what\s+(?:\w+\s+){0,3}?(medication|drug|medicine|dosage|dose|pill|tablet)\s+(?:\w+\s+){0,3}?should\s+i/i,
+  /should\s+i\s+(stop|start|skip|reduce|increase|decrease|change|continue|take|keep\s+taking)\b[^?.!]*\b(medication|drug|medicine|treatment|dose|dosage|pill|tablet|prescription|prescribed)/i,
+  /can\s+i\s+(stop|skip|reduce|increase|change)\b[^?.!]*\b(medication|drug|medicine|treatment|dose|dosage|pill|tablet|prescription|prescribed)/i,
+  /(what|which|how\s+much|how\s+many)\s+(?:\w+\s+){0,3}?(dosage|dose)\b/i,
+  /how\s+(much|many)\s+(?:\w+\s+){0,3}?should\s+i\s+take/i,
   /how\s+much\s+(medication|drug|medicine)\s+should\s+i/i,
-  /what\s+dosage/i,
-  /can\s+i\s+(stop|skip|reduce)\s+(my\s+)?(medication|drug|medicine)/i,
   /should\s+i\s+(be\s+worried|be\s+scared|panic)/i,
 
   // Prognosis requests

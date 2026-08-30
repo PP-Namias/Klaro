@@ -1,0 +1,85 @@
+name: E2E
+
+on:
+  pull_request:
+    branches: ["*"]
+  push:
+    branches: ["main", "dev"]
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  FORCE_COLOR: 3
+
+jobs:
+  e2e:
+    name: Playwright against the Docker stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Build images
+        run: docker compose build web scan-api
+
+      - name: Start stack
+        run: docker compose up -d --wait --wait-timeout 600
+        env:
+          WEB_PORT: "3100"
+          SCAN_API_PORT: "3101"
+          POSTGRES_PORT: "55432"
+
+      # The sidecar and its vector store are only needed for Clara's answers.
+      - name: Start AI profile
+        run: docker compose --profile ai up -d --wait --wait-timeout 600
+        env:
+          WEB_PORT: "3100"
+          SCAN_API_PORT: "3101"
+          POSTGRES_PORT: "55432"
+          AI_SIDECAR_PORT: "3102"
+          CHROMA_PORT: "8100"
+
+      - name: Show service status
+        if: always()
+        run: docker compose --profile ai ps -a
+
+      - name: Install browsers
+        run: pnpm --filter @klaro/nextjs exec playwright install --with-deps chromium webkit
+
+      - name: Run E2E suite
+        run: pnpm --filter @klaro/nextjs exec playwright test
+        env:
+          E2E_BASE_URL: http://localhost:3100
+          E2E_SCAN_API_URL: http://localhost:3101
+          E2E_AI_SIDECAR_URL: http://localhost:3102
+
+      - name: Container logs on failure
+        if: failure()
+        run: docker compose --profile ai logs --tail 200
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/nextjs/playwright-report/
+          retention-days: 14
+
+      - name: Upload traces and screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: apps/nextjs/test-results/
+          retention-days: 14
+
+      - name: Tear down
+        if: always()
+        run: docker compose --profile ai down -v

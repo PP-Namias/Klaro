@@ -63,6 +63,10 @@ const fil: Record<string, string> = {
   "chat.placeholder":
     "Mag-upload ng medikal na dokumento o magtanong tungkol sa kalusugan...",
   "chat.imageAttached": "Nakakabit na ang larawan",
+  "chat.quick.lab": "Ipaliwanag ang resulta ng lab ko",
+  "chat.quick.prescription": "Ipaliwanag ang reseta ko",
+  "chat.quick.discharge": "Ipaliwanag ang discharge summary ko",
+  "chat.quick.next": "Ano ang mga susunod kong hakbang?",
 
   // Navbar
   "nav.home": "Home",

@@ -17,9 +17,17 @@ export interface ChatMessage {
   timestamp: number;
 }
 
+export interface ChatScanContext {
+  summary?: string;
+  urgency?: "LOW" | "MODERATE" | "HIGH";
+  recommendations?: string[];
+}
+
 interface UseChatOptions {
   analysisId?: string;
   dialect?: Dialect;
+  /** Result of a guest scan, threaded into Clara's context when there is no analysisId. */
+  scanContext?: ChatScanContext;
   onSuccess?: (response: ChatMessage) => void;
   onError?: (error: string) => void;
 }
@@ -36,6 +44,7 @@ export interface UseChatReturn {
 export function useChat({
   analysisId,
   dialect = "Filipino",
+  scanContext,
   onSuccess,
   onError,
 }: UseChatOptions = {}): UseChatReturn {
@@ -190,14 +199,51 @@ export function useChat({
           onSuccess?.(assistantMsg);
         } catch {
           setMessages((prev) => prev.filter((msg) => msg.id !== placeholderId));
-          const fallbackMsg: ChatMessage = {
-            id: `clara-${Date.now()}`,
-            sender: "clara",
-            text: "I can help explain what you scanned and suggest the next best step. Please upload a document first so I can analyze your results.",
-            timestamp: Date.now(),
-          };
-          setMessages((prev) => [...prev, fallbackMsg]);
-          setIsTyping(false);
+
+          // Streaming failed. Guests have no authenticated procedure to fall
+          // back to, so retry over the public one before giving up on them.
+          try {
+            const result = await trpcClient.chat.sendGuestMessage.mutate({
+              guestId: guestId ?? `guest-${Date.now()}`,
+              content,
+              dialect,
+              ...(scanContext ? { scanContext } : {}),
+              history: messages
+                .filter((m) => m.sender === "user" || m.sender === "clara")
+                .slice(-20)
+                .map((m) => ({
+                  role: (m.sender === "user" ? "user" : "assistant") as
+                    | "user"
+                    | "assistant",
+                  content: m.text,
+                })),
+            });
+
+            const assistantMsg: ChatMessage = {
+              id: `clara-${Date.now()}`,
+              sender: "clara",
+              text: result.content,
+              timestamp: Date.now(),
+            };
+            setMessages((prev) => [...prev, assistantMsg]);
+            setIsTyping(false);
+            onSuccess?.(assistantMsg);
+          } catch (guestErr) {
+            const fallbackMsg: ChatMessage = {
+              id: `clara-${Date.now()}`,
+              sender: "clara",
+              text: "I can help explain what you scanned and suggest the next best step. Could you try asking again?",
+              timestamp: Date.now(),
+            };
+            setMessages((prev) => [...prev, fallbackMsg]);
+            setIsTyping(false);
+            const message =
+              guestErr instanceof Error
+                ? guestErr.message
+                : "Clara is unavailable";
+            setError(message);
+            onError?.(message);
+          }
         }
         return;
       }
@@ -264,7 +310,17 @@ export function useChat({
         // Error handled in onError callback
       }
     },
-    [analysisId, dialect, guestId, messages, sendMessageMutation],
+    [
+      analysisId,
+      dialect,
+      guestId,
+      messages,
+      onError,
+      onSuccess,
+      scanContext,
+      sendMessageMutation,
+      trpcClient,
+    ],
   );
 
   const clearMessages = useCallback(async () => {

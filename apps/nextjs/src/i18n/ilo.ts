@@ -61,6 +61,10 @@ const ilo: Record<string, string> = {
   "chat.placeholder":
     "I-upload ti medikal nga dokumento wen agtanong iti katiyak...",
   "chat.imageAttached": "Na-attach na ti larawan",
+  "chat.quick.lab": "Ilawlawag ti resulta ti lab ko",
+  "chat.quick.prescription": "Ilawlawag ti resetak",
+  "chat.quick.discharge": "Ilawlawag ti discharge summary ko",
+  "chat.quick.next": "Ania dagiti sumaruno nga addangko?",
 
   // Navbar
   "nav.home": "Home",

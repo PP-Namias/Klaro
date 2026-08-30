@@ -58,6 +58,10 @@ const en = {
   // Chat
   "chat.placeholder": "Upload a medical document or ask a health question...",
   "chat.imageAttached": "Image attached",
+  "chat.quick.lab": "Explain my lab results",
+  "chat.quick.prescription": "Explain my prescription",
+  "chat.quick.discharge": "Explain my discharge summary",
+  "chat.quick.next": "What are my next steps?",
 
   // Navbar
   "nav.home": "Home",

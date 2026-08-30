@@ -29,8 +29,13 @@ const config = {
   /** We already do linting and typechecking as separate tasks in CI */
   typescript: { ignoreBuildErrors: true },
 
-  /** Native modules that must not be bundled into the server build */
-  serverExternalPackages: ["canvas", "pg"],
+  /**
+   * Must not be bundled into the server build. tesseract.js in particular
+   * spawns a worker by resolving a path from its own module location; when
+   * bundled, that resolves to the standalone /ROOT placeholder and the OCR
+   * request hangs forever instead of failing.
+   */
+  serverExternalPackages: ["canvas", "pg", "tesseract.js", "pdfjs-dist"],
 };
 
 export default config;

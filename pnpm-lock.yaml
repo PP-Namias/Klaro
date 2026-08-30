@@ -636,9 +636,6 @@ importers:
       superjson:
         specifier: 2.2.3
         version: 2.2.3
-      tesseract.js:
-        specifier: ^7.0.0
-        version: 7.0.0
       zod:
         specifier: 'catalog:'
         version: 4.1.12
@@ -774,6 +771,9 @@ importers:
       node-fetch:
         specifier: ^3.3.2
         version: 3.3.2
+      tesseract.js:
+        specifier: ^7.0.0
+        version: 7.0.0
       uuid:
         specifier: ^11.0.5
         version: 11.1.1

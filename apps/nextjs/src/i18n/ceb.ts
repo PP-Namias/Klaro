@@ -62,6 +62,10 @@ const ceb: Record<string, string> = {
   "chat.placeholder":
     "I-upload ang medikal nga dokumento o pangutana bahin sa kahimsog...",
   "chat.imageAttached": "Na-attach na ang litrato",
+  "chat.quick.lab": "Ipasabot ang resulta sa akong lab",
+  "chat.quick.prescription": "Ipasabot ang akong reseta",
+  "chat.quick.discharge": "Ipasabot ang akong discharge summary",
+  "chat.quick.next": "Unsa ang akong sunod nga mga lakang?",
 
   // Navbar
   "nav.home": "Home",
