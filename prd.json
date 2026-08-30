@@ -83,7 +83,7 @@
           "depends_on": [],
           "severity": "blocker",
           "git_commit_message": "fix(scan-backend): process uploaded medical images in memory, never write to disk",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.2",
