@@ -100,6 +100,12 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 export const createTRPCRouter = t.router;
 
 /**
+ * Server-side caller factory. Lets tests (and server-side callers) invoke
+ * procedures directly without going over HTTP.
+ */
+export const createCallerFactory = t.createCallerFactory;
+
+/**
  * Middleware for timing procedure execution and adding an articifial delay in development.
  *
  * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating

@@ -16,7 +16,15 @@ import {
 
 import { extractTestsFromText } from "../services/extraction";
 import { generatePlainLanguageExplanation } from "../services/llm";
-import { logAuditEvent } from "../services/auditLogger";
+import {
+  logAuditEvent,
+  logLlmApiCall,
+  logPhiScrubbing,
+} from "../services/auditLogger";
+import {
+  detectPhiTypes,
+  scrubForExternalApi,
+} from "../services/phiScrubber";
 import { buildOcrResult } from "../services/ocr";
 import { protectedProcedure, publicProcedure, scanProcedure } from "../trpc";
 
@@ -788,6 +796,18 @@ export const documentsRouter = {
         return buildRejectionResponse(ocrResult, input.language);
       }
 
+      // PHI must never leave this process unscrubbed (RA 10173). Only the
+      // redacted text is sent onward; `scrub.originalText` and `scrub.matches`
+      // still hold raw PHI and must not be logged or returned.
+      const scrub = scrubForExternalApi(ocrResult.text);
+      const phiTypes = detectPhiTypes(ocrResult.text);
+
+      await logPhiScrubbing({
+        originalPhiCount: scrub.matchCount,
+        scrubbedPhiCount: scrub.matchCount,
+        phiTypes,
+      });
+
       try {
         const response = await fetch(`${geminiApiUrl}/api/scan`, {
           method: "POST",
@@ -809,9 +829,16 @@ export const documentsRouter = {
               patientSex: input.patientSex,
               facilityName: input.facilityName,
               ocrConfidence: ocrResult.confidence,
-              ocrText: ocrResult.text,
+              ocrText: scrub.scrubbedText,
             },
           }),
+        });
+
+        await logLlmApiCall({
+          phiScrubbed: true,
+          phiCount: scrub.matchCount,
+          externalProvider: "gemini-scan-service",
+          success: response.ok,
         });
 
         if (!response.ok) {
@@ -829,6 +856,13 @@ export const documentsRouter = {
           requestId,
         });
       } catch (error) {
+        await logLlmApiCall({
+          phiScrubbed: true,
+          phiCount: scrub.matchCount,
+          externalProvider: "gemini-scan-service",
+          success: false,
+        });
+
         const reason =
           error instanceof Error
             ? `gemini_request_failed:${error.message}`
