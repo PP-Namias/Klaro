@@ -318,7 +318,7 @@
           "depends_on": [],
           "severity": "blocker",
           "git_commit_message": "feat(chat): purge chat messages past retention TTL",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-1.10",
