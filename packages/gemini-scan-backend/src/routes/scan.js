@@ -4,7 +4,6 @@ const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 const storage = require('../storage');
 const geminiClient = require('../geminiClient');
-const db = require('../db');
 
 const router = express.Router();
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
@@ -119,21 +118,14 @@ router.post('/scan', upload.array('file'), async (req, res) => {
     // call Gemini (stubbed if not configured)
     const result = await geminiClient.processImages(saved, metadata, { requestId: scanId });
 
-    // persist
-    await db.saveResult(scanId, result);
-
+    // The result is returned synchronously and never persisted. There is
+    // deliberately no retrieval endpoint: extracted PHI must not outlive the
+    // request that produced it (Philippine Data Privacy Act, RA 10173).
     return res.status(200).json(result);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'model_error', message: err.message });
   }
-});
-
-router.get('/scan/:scanId', async (req, res) => {
-  const scanId = sanitizePathSegment(req.params.scanId);
-  const result = await db.getResult(scanId);
-  if (!result) return res.status(404).json({ error: 'not_found' });
-  res.json(result);
 });
 
 module.exports = router;
