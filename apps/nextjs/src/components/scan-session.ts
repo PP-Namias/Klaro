@@ -118,23 +118,68 @@ export function normalizeScanAnalysisSession(
   };
 }
 
-export function saveScanAnalysisSession(payload: RawScanPayload) {
+/**
+ * How long a scan hand-off may sit in sessionStorage before it is discarded.
+ *
+ * This record carries extracted medical values, so it is deliberately
+ * short-lived. sessionStorage is per-tab and dies with the tab, so it is not
+ * database, object-store or disk persistence — but it is still health data,
+ * and it should not outlive the visit that produced it.
+ */
+export const SCAN_SESSION_TTL_MS = 30 * 60 * 1000;
+
+/**
+ * Persist the scan hand-off for the current tab.
+ *
+ * Never throws: sessionStorage is unavailable in Safari private mode, can be
+ * disabled by policy, and can exceed quota on a large extractedData payload.
+ * Callers get the normalized record back regardless so the UI can continue.
+ */
+export function saveScanAnalysisSession(
+  payload: RawScanPayload,
+): ScanAnalysisSession {
   const normalized = normalizeScanAnalysisSession(payload);
-  sessionStorage.setItem(SCAN_SESSION_KEY, JSON.stringify(normalized));
+
+  try {
+    sessionStorage.setItem(SCAN_SESSION_KEY, JSON.stringify(normalized));
+  } catch {
+    // Storage unavailable or full — the caller still has the value in memory.
+  }
+
   return normalized;
 }
 
 export function readScanAnalysisSession(): ScanAnalysisSession | null {
-  const stored = sessionStorage.getItem(SCAN_SESSION_KEY);
+  let stored: string | null = null;
+
+  try {
+    stored = sessionStorage.getItem(SCAN_SESSION_KEY);
+  } catch {
+    return null;
+  }
+
   if (!stored) return null;
 
   try {
-    return JSON.parse(stored) as ScanAnalysisSession;
+    const parsed = JSON.parse(stored) as ScanAnalysisSession;
+
+    // Drop stale hand-offs rather than letting medical values linger.
+    const savedAt = parsed.timestamp ? Date.parse(parsed.timestamp) : NaN;
+    if (Number.isFinite(savedAt) && Date.now() - savedAt > SCAN_SESSION_TTL_MS) {
+      clearScanAnalysisSession();
+      return null;
+    }
+
+    return parsed;
   } catch {
     return null;
   }
 }
 
 export function clearScanAnalysisSession() {
-  sessionStorage.removeItem(SCAN_SESSION_KEY);
+  try {
+    sessionStorage.removeItem(SCAN_SESSION_KEY);
+  } catch {
+    // Nothing to clear if storage is unavailable.
+  }
 }

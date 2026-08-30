@@ -263,16 +263,16 @@ export function UploadForm() {
     const pendingRequestId = `scan-pending-${Date.now()}`;
     setScanState("uploading");
     setUploadStatus(t("upload.uploadingDoc"));
-    saveScanAnalysisSession({
-      requestId: pendingRequestId,
-      status: "pending",
-      language: LANGUAGE_TO_DIALECT[language],
-      plainLanguageSummary: t("upload.sessionUploading"),
-      warnings: ["processing_in_progress"],
-      timestamp: new Date().toISOString(),
-    });
-
     try {
+      saveScanAnalysisSession({
+        requestId: pendingRequestId,
+        status: "pending",
+        language: LANGUAGE_TO_DIALECT[language],
+        plainLanguageSummary: t("upload.sessionUploading"),
+        warnings: ["processing_in_progress"],
+        timestamp: new Date().toISOString(),
+      });
+
       const base64 = await fileToBase64(selected.file);
       setScanState("processing");
       setUploadStatus(t("upload.processingWithGemini"));
@@ -316,16 +316,16 @@ export function UploadForm() {
     const pendingRequestId = `scan-pending-${Date.now()}`;
     setScanState("uploading");
     setUploadStatus(t("upload.uploadingImage"));
-    saveScanAnalysisSession({
-      requestId: pendingRequestId,
-      status: "pending",
-      language: LANGUAGE_TO_DIALECT[language],
-      plainLanguageSummary: t("upload.imageUploading"),
-      warnings: ["processing_in_progress"],
-      timestamp: new Date().toISOString(),
-    });
-
     try {
+      saveScanAnalysisSession({
+        requestId: pendingRequestId,
+        status: "pending",
+        language: LANGUAGE_TO_DIALECT[language],
+        plainLanguageSummary: t("upload.imageUploading"),
+        warnings: ["processing_in_progress"],
+        timestamp: new Date().toISOString(),
+      });
+
       setScanState("processing");
       setUploadStatus(t("upload.processingImage"));
       scanGuestImage.mutate({
