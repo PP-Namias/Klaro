@@ -95,6 +95,32 @@ describe("useMedicalDisclaimer", () => {
     expect(allowed).toBe(false);
   });
 
+  it("blocks an upload submit handler until consent is recorded", () => {
+    const { result } = renderHook(() => useMedicalDisclaimer());
+
+    // Mirrors upload-form/ScannerUI: the submit path returns early unless
+    // requireConsent() passes, so the scan mutation is never reached.
+    let scanCalls = 0;
+    const submit = () => {
+      if (!result.current.requireConsent()) return;
+      scanCalls += 1;
+    };
+
+    act(() => {
+      submit();
+    });
+    expect(scanCalls).toBe(0);
+    expect(result.current.isShowing).toBe(true);
+
+    act(() => {
+      result.current.acceptDisclaimer();
+    });
+    act(() => {
+      submit();
+    });
+    expect(scanCalls).toBe(1);
+  });
+
   it("re-prompts after consent is reset", () => {
     const { result } = renderHook(() => useMedicalDisclaimer());
 

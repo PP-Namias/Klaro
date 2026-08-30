@@ -9,7 +9,9 @@ import { Button } from "@klaro/ui/button";
 import { toast } from "@klaro/ui/toast";
 import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 
+import { MedicalDisclaimerOverlay } from "~/components/medical-disclaimer-overlay";
 import { saveScanAnalysisSession } from "~/components/scan-session";
+import { useMedicalDisclaimer } from "~/hooks/use-medical-disclaimer";
 import { useLanguage } from "~/providers/language-provider";
 import { useTRPC } from "~/trpc/react";
 
@@ -76,6 +78,11 @@ export function UploadForm() {
   const isProcessing = scanState === "uploading" || scanState === "processing";
 
   const trpc = useTRPC();
+
+  // Blocking consent gate — no document may be read before the Terms of
+  // Service, Terms & Conditions and medical disclaimer are accepted.
+  const disclaimer = useMedicalDisclaimer();
+  const recordConsent = useMutation(trpc.auth.recordConsent.mutationOptions());
 
   const scanGuestImage = useMutation(
     trpc.documents.scanGuestImage.mutationOptions({
@@ -247,6 +254,12 @@ export function UploadForm() {
     if (file) selectFile(file);
   };
 
+  const handleAcceptConsent = () => {
+    disclaimer.acceptDisclaimer();
+    // Proof of consent is recorded server-side; it carries no medical content.
+    recordConsent.mutate({});
+  };
+
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(false);
@@ -259,6 +272,8 @@ export function UploadForm() {
       setScanState("error");
       return;
     }
+
+    if (!disclaimer.requireConsent()) return;
 
     const pendingRequestId = `scan-pending-${Date.now()}`;
     setScanState("uploading");
@@ -629,6 +644,12 @@ export function UploadForm() {
           </div>
         </div>
       )}
+
+      <MedicalDisclaimerOverlay
+        isOpen={disclaimer.isShowing}
+        onAccept={handleAcceptConsent}
+        onDecline={disclaimer.declineDisclaimer}
+      />
     </div>
   );
 }

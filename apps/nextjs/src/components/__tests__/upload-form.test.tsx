@@ -15,6 +15,12 @@ vi.mock("~/trpc/react", () => ({
         mutationOptions: () => ({}),
       },
     },
+    auth: {
+      // The consent gate records acceptance server-side before any scan.
+      recordConsent: {
+        mutationOptions: () => ({}),
+      },
+    },
   }),
 }));
 
