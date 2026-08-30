@@ -26,7 +26,6 @@ describe("OpenAPI spec", () => {
     assert.ok(spec.includes("/api/auth/signin"));
     assert.ok(spec.includes("/api/auth/logout"));
     assert.ok(spec.includes("/api/auth/session"));
-    assert.ok(spec.includes("/api/documents/scan"));
     assert.ok(spec.includes("/api/trpc/facilities.searchNearby"));
     assert.ok(spec.includes("/auth/callback"));
     assert.ok(spec.includes("/api/maps/nearby"));

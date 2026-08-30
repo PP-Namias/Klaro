@@ -183,7 +183,6 @@ export const documentsRouter = {
         fileName: z.string().max(255),
         mimeType: z.string().max(100).optional(),
         fileSize: z.number().optional(),
-        storageUrl: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -201,7 +200,6 @@ export const documentsRouter = {
           fileName: input.fileName,
           mimeType: input.mimeType,
           fileSize: input.fileSize,
-          storageUrl: input.storageUrl,
           status: "uploaded",
         })
         .returning();
