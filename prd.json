@@ -1108,7 +1108,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "feat(ocr): wire Google Vision cloud fallback into runOcrWithRetry",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.5",
