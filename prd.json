@@ -1368,11 +1368,13 @@
           ],
           "verification": "pnpm typecheck && pnpm lint && pnpm test",
           "depends_on": [
-            "T-3.1"
+            "T-3.1",
+            "T-5.2"
           ],
           "severity": "high",
           "git_commit_message": "feat(ocr): wire executeDocumentPipeline into the guest scan route",
-          "passes": false
+          "passes": false,
+          "deferred_reason": "Same decision as T-5.2 (route the guest scan through the real orchestrator). Sequenced behind it so the wiring is done once, in EPIC-5."
         },
         {
           "task_id": "T-3.16",
