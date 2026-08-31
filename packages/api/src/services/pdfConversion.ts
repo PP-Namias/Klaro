@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type CanvasLike = any;
+import { createCanvas } from "@napi-rs/canvas";
 
 export interface PdfPageImage {
   pageNumber: number;
@@ -21,24 +20,6 @@ const RENDER_SCALE = 1.5;
 export async function convertPdfToImages(
   pdfBuffer: Buffer,
 ): Promise<PdfConversionResult> {
-  let createCanvas: ((w: number, h: number) => CanvasLike) | undefined;
-  try {
-    const canvasMod = await (import("canvas") as Promise<
-      typeof import("canvas")
-    >);
-    createCanvas = canvasMod.createCanvas;
-  } catch {
-    // canvas not available
-  }
-  if (!createCanvas) {
-    return {
-      pages: [],
-      pageCount: 0,
-      success: false,
-      error: "canvas module not available",
-    };
-  }
-
   try {
     const pdfjsLib = await import("pdfjs-dist");
     const doc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfBuffer) })
@@ -52,17 +33,28 @@ export async function convertPdfToImages(
       const width = Math.floor(viewport.width);
       const height = Math.floor(viewport.height);
 
+      // @napi-rs/canvas ships prebuilt binaries, so rasterisation works without
+      // a node-gyp toolchain. The previous `import("canvas")` was never a
+      // dependency, so every PDF returned "canvas module not available".
       const canvas = createCanvas(width, height);
-      const ctx = canvas.getContext(
-        "2d",
-      ) as unknown as CanvasRenderingContext2D;
-      const renderTask = page.render({ canvasContext: ctx, viewport });
-      await renderTask.promise;
+      const ctx = canvas.getContext("2d");
+
+      // PDFs assume a white page; the canvas starts transparent.
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+
+      await page.render({
+        canvasContext: ctx as unknown as CanvasRenderingContext2D,
+        viewport,
+      }).promise;
 
       const buffer = canvas.toBuffer("image/png");
-      const base64 = buffer.toString("base64");
-
-      pages.push({ pageNumber: i, base64, width, height });
+      pages.push({
+        pageNumber: i,
+        base64: buffer.toString("base64"),
+        width,
+        height,
+      });
       page.cleanup();
     }
 
