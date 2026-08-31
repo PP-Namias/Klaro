@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Bot, Check, Focus, Lock, Paperclip, Trash2, X } from "lucide-react";
 
@@ -58,6 +59,7 @@ import {
   validateFiles,
 } from "~/lib/file-validation";
 import { useLanguage } from "~/providers/language-provider";
+import { useTRPC } from "~/trpc/react";
 import styles from "../../app/scan/page.module.css";
 
 /** documents.scanGuestImage returns an urgency; the UI speaks in severities. */
@@ -91,6 +93,14 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   // Blocking consent gate: no medical document may be read until the Terms of
   // Service, Terms & Conditions and medical disclaimer are accepted.
   const disclaimer = useMedicalDisclaimer();
+  const trpc = useTRPC();
+  const recordConsent = useMutation(trpc.auth.recordConsent.mutationOptions());
+
+  const handleAcceptConsent = () => {
+    disclaimer.acceptDisclaimer();
+    // Proof of consent is recorded server-side; it carries no medical content.
+    recordConsent.mutate({});
+  };
 
   const videoRef = useRef<HTMLVideoElement>(null);
   // The live camera stream. Held in a ref (not read off the <video> element) so
@@ -912,7 +922,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
 
         <MedicalDisclaimerOverlay
           isOpen={disclaimer.isShowing}
-          onAccept={disclaimer.acceptDisclaimer}
+          onAccept={handleAcceptConsent}
           onDecline={disclaimer.declineDisclaimer}
         />
 

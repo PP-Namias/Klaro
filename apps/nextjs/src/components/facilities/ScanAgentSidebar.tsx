@@ -1,13 +1,12 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/array-type, react-hooks/set-state-in-effect, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/require-await, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unnecessary-condition */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import { Button } from "@klaro/ui/button";
 import { toast } from "@klaro/ui/toast";
 
-import { readScanAnalysisSession } from "~/components/scan-session";
 import { useTRPC } from "~/trpc/react";
 
 interface ScanAnalysis {
@@ -30,29 +29,20 @@ interface ScanResult {
   recommendations?: string[];
 }
 
-export function ScanAgentSidebar() {
-  const trpc = useTRPC();
-  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
-  const [analysis, setAnalysis] = useState<ScanAnalysis | null>(null);
+interface ScanAgentSidebarProps {
+  /**
+   * The analysis to summarise. Passed in by the page rather than read from
+   * browser storage: extracted values are PHI and are not persisted (RA 10173).
+   * Undefined renders nothing.
+   */
+  scanResult?: ScanResult | null;
+}
 
-  useEffect(() => {
-    try {
-      const parsed = readScanAnalysisSession();
-      if (!parsed) return;
-      setScanResult({
-        extractedData: parsed.extractedData,
-        analysis: parsed.analysis,
-        plainLanguageSummary: parsed.plainLanguageSummary,
-        urgency: parsed.urgency,
-        recommendations: parsed.recommendations,
-      });
-      if (parsed.analysis) {
-        setAnalysis(parsed.analysis);
-      }
-    } catch {
-      // ignore malformed scan state
-    }
-  }, []);
+export function ScanAgentSidebar({ scanResult }: ScanAgentSidebarProps = {}) {
+  const trpc = useTRPC();
+  const [analysis, setAnalysis] = useState<ScanAnalysis | null>(
+    scanResult?.analysis ?? null,
+  );
 
   const analyzeMutation = useMutation(
     trpc.documents.analyzeScanWithAI.mutationOptions({
