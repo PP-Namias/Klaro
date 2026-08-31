@@ -711,7 +711,7 @@
           ],
           "severity": "high",
           "git_commit_message": "fix(upload): guard the scan button against duplicate submissions of the same queued file",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.9",
@@ -853,7 +853,7 @@
           ],
           "severity": "low",
           "git_commit_message": "fix(scan): revoke preview object URLs on unmount and ignore drops during upload",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.15",
