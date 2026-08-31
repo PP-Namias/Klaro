@@ -1452,7 +1452,7 @@
           ],
           "severity": "high",
           "git_commit_message": "fix(extraction): allowlist known test names so phi header lines are not read as lab values",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-4.3",
