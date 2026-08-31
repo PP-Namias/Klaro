@@ -1,4 +1,4 @@
-import { getPipelineConfig } from "../config/pipeline";
+import { getPipelineConfig, validatePipelineConfig } from "../config/pipeline";
 
 export interface OcrPageResult {
   pageNumber: number;
@@ -86,9 +86,30 @@ export async function runOcrWithRetry(
   const startTime = Date.now();
   const config = getPipelineConfig();
   const { ocr } = config;
-  const warnings: string[] = [];
+  // Surface misconfiguration instead of silently degrading.
+  const warnings: string[] = [...validatePipelineConfig()];
 
-  const firstPass = await runOcrOnImage(imageBase64);
+  // Preprocess the first pass too. Previously only retries were preprocessed,
+  // so the cheapest win (grayscale + denoise) never applied to the first read.
+  let firstPassInput = imageBase64;
+  if (ocr.enablePreprocessing) {
+    try {
+      const { preprocessImage, getDefaultPreprocessingOptions } = await import(
+        "./imagePreprocessor"
+      );
+      const preprocessed = await preprocessImage(
+        imageBase64,
+        getDefaultPreprocessingOptions(),
+      );
+      firstPassInput = preprocessed.base64;
+    } catch (error) {
+      warnings.push(
+        `First-pass preprocessing failed: ${error instanceof Error ? error.message : "unknown"}`,
+      );
+    }
+  }
+
+  const firstPass = await runOcrOnImage(firstPassInput);
   let bestResult = firstPass;
 
   if (firstPass.confidence >= ocr.confidenceThreshold) {

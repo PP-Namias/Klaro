@@ -20,15 +20,19 @@ vi.mock("../cloudOcr", () => ({
   getCloudOcrApiKey: () => getCloudOcrApiKey(),
 }));
 
+const preprocessImage = vi.fn((base64: string, _opts?: unknown) =>
+  Promise.resolve({
+    base64,
+    buffer: Buffer.from(""),
+    width: 1,
+    height: 1,
+    applied: [],
+  }),
+);
+
 vi.mock("../imagePreprocessor", () => ({
-  preprocessImage: (base64: string) =>
-    Promise.resolve({
-      base64,
-      buffer: Buffer.from(""),
-      width: 1,
-      height: 1,
-      applied: [],
-    }),
+  preprocessImage: (base64: string, opts?: unknown) =>
+    preprocessImage(base64, opts),
   getDefaultPreprocessingOptions: () => ({}),
 }));
 
@@ -119,5 +123,64 @@ describe("runOcrWithRetry cloud fallback", () => {
     expect(result.accepted).toBe(false);
     expect(result.rejectionReason).toBe("low_confidence");
     expect(result.warnings.join(" ")).toContain("vision unavailable");
+  });
+});
+
+describe("runOcrWithRetry first-pass preprocessing", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    process.env.OCR_CONFIDENCE_THRESHOLD = "0.7";
+    process.env.OCR_MAX_RETRIES = "0";
+    process.env.OCR_ENABLE_CLOUD_FALLBACK = "false";
+    performOcr.mockResolvedValue({
+      text: "ok",
+      confidence: 0.95,
+      blocks: [],
+      source: "local",
+    });
+  });
+
+  it("preprocesses before the first OCR read when enabled", async () => {
+    process.env.OCR_ENABLE_PREPROCESSING = "true";
+
+    await runPipeline();
+
+    expect(preprocessImage).toHaveBeenCalledTimes(1);
+    expect(preprocessImage).toHaveBeenCalledWith(IMAGE, expect.anything());
+  });
+
+  it("skips preprocessing when disabled", async () => {
+    process.env.OCR_ENABLE_PREPROCESSING = "false";
+
+    await runPipeline();
+
+    expect(preprocessImage).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the raw image when preprocessing throws", async () => {
+    process.env.OCR_ENABLE_PREPROCESSING = "true";
+    preprocessImage.mockRejectedValueOnce(new Error("sharp exploded"));
+
+    const result = await runPipeline();
+
+    // OCR still ran, and the failure is recorded rather than thrown.
+    expect(performOcr).toHaveBeenCalled();
+    expect(result.warnings.join(" ")).toContain("sharp exploded");
+  });
+
+  it("includes pipeline configuration warnings in the result", async () => {
+    process.env.OCR_ENABLE_PREPROCESSING = "false";
+    const previousKey = process.env.GEMINI_API_KEY;
+    const previousLlmKey = process.env.LLM_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+    delete process.env.LLM_API_KEY;
+
+    const result = await runPipeline();
+
+    expect(result.warnings.join(" ")).toContain("GEMINI_API_KEY not set");
+
+    if (previousKey !== undefined) process.env.GEMINI_API_KEY = previousKey;
+    if (previousLlmKey !== undefined) process.env.LLM_API_KEY = previousLlmKey;
   });
 });
