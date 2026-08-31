@@ -1506,7 +1506,7 @@
           ],
           "severity": "high",
           "git_commit_message": "feat(extraction): add urinalysis and fecalysis panels and expand alias coverage to 200+",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-4.5",
