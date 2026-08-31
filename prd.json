@@ -1431,7 +1431,7 @@
           "depends_on": [],
           "severity": "blocker",
           "git_commit_message": "fix(extraction): correct regex capture-group mapping for unit and reference range",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-4.2",
