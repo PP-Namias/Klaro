@@ -539,7 +539,7 @@
           "depends_on": [],
           "severity": "blocker",
           "git_commit_message": "fix(sidecar): raise express json body limit to match max image size",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.2",
