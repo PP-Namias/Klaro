@@ -901,7 +901,7 @@
           ],
           "severity": "high",
           "git_commit_message": "fix(chat): send attached images through the scan pipeline & validate them before upload",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.17",
