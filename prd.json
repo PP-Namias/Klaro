@@ -1189,7 +1189,7 @@
           ],
           "severity": "high",
           "git_commit_message": "fix(nextjs): externalize tesseract.js and pin its language-data cache path",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.8",
