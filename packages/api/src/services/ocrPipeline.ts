@@ -63,23 +63,6 @@ function computeWeightedConfidence(pages: OcrPageResult[]): number {
   return Math.round(weighted * 100) / 100;
 }
 
-export async function runOcr(imageBase64: string): Promise<OcrPipelineResult> {
-  const startTime = Date.now();
-  const page = await runOcrOnImage(imageBase64);
-  const confidence = computeWeightedConfidence([page]);
-
-  return {
-    success: page.text.length > 0,
-    accepted: false,
-    text: page.text,
-    confidence,
-    pages: [page],
-    source: page.source,
-    warnings: page.warnings,
-    processingTimeMs: Date.now() - startTime,
-  };
-}
-
 export async function runOcrWithRetry(
   imageBase64: string,
 ): Promise<OcrPipelineResult> {
