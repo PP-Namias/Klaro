@@ -1645,7 +1645,7 @@
           ],
           "severity": "high",
           "git_commit_message": "feat(extraction): attach per-value confidence scores to extracted tests",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-5.4",
