@@ -103,12 +103,32 @@ function buildPatientContext(input: ScanAnalysisInput): string {
 /**
  * Format test results for LLM consumption
  */
+/**
+ * Neutralise caller-supplied text before it enters a prompt.
+ *
+ * analyzeScanWithAI is a public procedure whose test name/value/unit are
+ * arbitrary strings. Interpolating them raw let a caller inject their own
+ * instructions and override the clinical system prompt, so newlines and
+ * prompt-control characters are stripped and each field is length-bounded.
+ */
+function sanitizePromptField(value: string, maxLength = 120): string {
+  return value
+    .replace(/[\r\n]+/g, " ")
+    .replace(/[`<>{}[\]]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
 function formatTestResults(tests: ScanAnalysisTest[]): string {
   return tests
     .map((test) => {
       const flagStatus = test.flagged ? " [FLAGGED]" : "";
-      const unit = test.unit ? ` ${test.unit}` : "";
-      return `- ${test.name}: ${test.value || "N/A"}${unit}${flagStatus}`;
+      const name = sanitizePromptField(test.name, 80);
+      const value = sanitizePromptField(test.value ?? "N/A", 40);
+      const unit = test.unit ? ` ${sanitizePromptField(test.unit, 20)}` : "";
+      // Quoted so the model reads these as data, not as instructions.
+      return `- "${name}": "${value}${unit}"${flagStatus}`;
     })
     .join("\n");
 }
