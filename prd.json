@@ -1672,7 +1672,7 @@
           ],
           "severity": "high",
           "git_commit_message": "feat(documents): retry guest scans once when extraction confidence is low",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-5.5",
