@@ -6,7 +6,7 @@
  * Displayed when session is about to expire (1 minute warning).
  * Allows user to extend session or logout immediately.
  *
- * HIPAA Compliance: Auto-logoff after 15 minutes of inactivity
+ * RA 10173 safeguard: auto-logoff after 15 minutes of inactivity
  */
 import { useSessionTimeout } from "~/providers/session-timeout-provider";
 
@@ -98,7 +98,7 @@ export function SessionWarningModal({
         {/* Privacy Notice */}
         <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-500">
           Protected health information is automatically secured after 15 minutes
-          of inactivity per HIPAA requirements.
+          of inactivity, as required by the Data Privacy Act of 2012 (RA 10173).
         </p>
       </div>
     </div>
