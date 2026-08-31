@@ -691,7 +691,7 @@
           ],
           "severity": "high",
           "git_commit_message": "fix(upload): make cancelFile remove in-flight items and bind cancel controls in ScannerUI",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.8",
@@ -874,7 +874,7 @@
           ],
           "severity": "low",
           "git_commit_message": "fix(upload): invoke onError per failed file & match retry by queue id instead of file name",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.16",
