@@ -10,6 +10,8 @@ export interface ExtractedTest {
   unit?: string;
   referenceRange?: string;
   flagged?: boolean;
+  /** How much to trust this row, 0..1. See scoreExtraction. */
+  confidence?: number;
 }
 
 /**
@@ -555,6 +557,35 @@ const computeFlag = (value: string, range?: string): boolean => {
 /**
  * Extract lab values using regex patterns
  */
+/**
+ * Score how much to trust one extracted row, from signals already available.
+ *
+ * Earlier LAB_PATTERNS entries are more specific (they require a unit and a
+ * parenthesised range), so a match there is stronger evidence than the loose
+ * qualitative pattern at the end. A name that resolved through the canonical
+ * table, a captured unit and a range printed on the document each add
+ * confidence; a built-in range adds less than one the lab actually printed.
+ */
+function scoreExtraction(signals: {
+  patternIndex: number;
+  recognisedName: boolean;
+  hasUnit: boolean;
+  hasRange: boolean;
+  rangeWasPrinted: boolean;
+}): number {
+  const patternSpecificity =
+    LAB_PATTERNS.length > 1
+      ? 1 - signals.patternIndex / (LAB_PATTERNS.length - 1)
+      : 1;
+
+  let score = 0.3 + 0.2 * patternSpecificity;
+  if (signals.recognisedName) score += 0.2;
+  if (signals.hasUnit) score += 0.15;
+  if (signals.hasRange) score += signals.rangeWasPrinted ? 0.15 : 0.08;
+
+  return Math.round(Math.min(1, Math.max(0, score)) * 100) / 100;
+}
+
 export const extractTestsFromText = (text: string): ExtractedTest[] => {
   const lines = text
     .split(/\r?\n/)
@@ -597,6 +628,13 @@ export const extractTestsFromText = (text: string): ExtractedTest[] => {
         (builtIn ? `${builtIn.low}-${builtIn.high}` : undefined);
 
       results.push({
+        confidence: scoreExtraction({
+          patternIndex: LAB_PATTERNS.indexOf(pattern),
+          recognisedName: isKnownTestName(rawName),
+          hasUnit: unit.trim().length > 0,
+          hasRange: effectiveRange !== undefined,
+          rangeWasPrinted: printedRange !== undefined,
+        }),
         name,
         value,
         unit: unit.trim() || (printedRange ? "" : (builtIn?.unit ?? "")),

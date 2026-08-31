@@ -180,3 +180,53 @@ describe("Philippine lab panel coverage", () => {
     expect(names).toContain("Fasting Blood Glucose");
   });
 });
+
+describe("extractTestsFromText per-value confidence", () => {
+  it("attaches a 0..1 confidence to every extracted row", () => {
+    const results = extractTestsFromText(
+      [
+        "Hemoglobin: 11.2 g/dL (12.0-16.0)",
+        "Occult Blood: Positive",
+        "Sodium: 140",
+      ].join("\n"),
+    );
+
+    expect(results.length).toBeGreaterThan(0);
+    for (const test of results) {
+      expect(typeof test.confidence).toBe("number");
+      expect(test.confidence!).toBeGreaterThanOrEqual(0);
+      expect(test.confidence!).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("scores a fully-specified canonical line above a bare qualitative one", () => {
+    const [full] = extractTestsFromText("Hemoglobin: 11.2 g/dL (12.0-16.0)");
+    const [sparse] = extractTestsFromText("Occult Blood: Positive");
+
+    expect(full!.confidence!).toBeGreaterThan(sparse!.confidence!);
+  });
+
+  it("scores a printed range above a built-in fallback range", () => {
+    const [printed] = extractTestsFromText("Sodium: 140 mEq/L (136-145)");
+    const [builtIn] = extractTestsFromText("Sodium: 140 mEq/L");
+
+    expect(printed!.confidence!).toBeGreaterThan(builtIn!.confidence!);
+  });
+
+  it("still parses rows that carry no confidence field", async () => {
+    const { ExtractedTestSchema } = await import(
+      "@klaro/validators/extraction"
+    );
+
+    expect(
+      ExtractedTestSchema.parse({ name: "Hemoglobin", value: "11.2" }),
+    ).toMatchObject({ name: "Hemoglobin" });
+    expect(
+      ExtractedTestSchema.parse({
+        name: "Hemoglobin",
+        value: "11.2",
+        confidence: 0.9,
+      }).confidence,
+    ).toBe(0.9);
+  });
+});
