@@ -92,8 +92,13 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const disclaimer = useMedicalDisclaimer();
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  // The live camera stream. Held in a ref (not read off the <video> element) so
+  // it can be released even when the element never mounted — for example when
+  // getUserMedia resolves after the component unmounted.
+  const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const isMountedRef = useRef(true);
 
   const fileUpload = useFileUpload({
     language,
@@ -123,14 +128,23 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   }, [chat.messages, isScanning, chat.isTyping]);
 
   useEffect(() => {
-    const video = videoRef.current;
+    isMountedRef.current = true;
+
     return () => {
-      const stream = video?.srcObject;
-      if (stream instanceof MediaStream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
+      isMountedRef.current = false;
+      // Release the camera even if the <video> element never mounted.
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
     };
   }, []);
+
+  const stopStream = () => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
 
   const startCamera = async () => {
     try {
@@ -141,6 +155,15 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
           height: { ideal: 720 },
         },
       });
+      // Take ownership immediately: if the component unmounted while
+      // getUserMedia was pending, the camera must still be released.
+      streamRef.current = stream;
+
+      if (!isMountedRef.current) {
+        stopStream();
+        return;
+      }
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         void videoRef.current.play();
@@ -157,13 +180,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   };
 
   const handleCancelScan = () => {
-    const stream = videoRef.current?.srcObject;
-    if (stream instanceof MediaStream) {
-      stream.getTracks().forEach((track) => track.stop());
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
-    }
+    stopStream();
     setIsScanning(false);
   };
 
