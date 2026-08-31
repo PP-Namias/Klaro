@@ -19,8 +19,17 @@ const config = {
   /** We already do linting and typechecking as separate tasks in CI */
   typescript: { ignoreBuildErrors: true },
 
-  /** Canvas native module needs to be externalized for server builds */
-  serverExternalPackages: ["sharp"],
+  /**
+   * Native and worker-spawning modules must not be bundled: tesseract.js needs
+   * to resolve its own worker script and WASM core at runtime, and sharp and
+   * @napi-rs/canvas load prebuilt platform binaries.
+   */
+  serverExternalPackages: [
+    "@napi-rs/canvas",
+    "pdfjs-dist",
+    "sharp",
+    "tesseract.js",
+  ],
 };
 
 export default config;

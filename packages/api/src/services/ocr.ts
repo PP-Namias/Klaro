@@ -111,7 +111,14 @@ export const performOcr = async (
   imageUrlOrBuffer: string | Buffer,
 ): Promise<OcrResult> => {
   const { createWorker } = await import("tesseract.js");
-  const worker = await createWorker("eng");
+  // tesseract.js defaults cachePath to "." which is read-only on serverless,
+  // so eng.traineddata fails to download. Pin it to a writable location.
+  const worker = await createWorker("eng", undefined, {
+    cachePath: process.env.TESSERACT_CACHE_PATH ?? "/tmp/tesseract",
+    ...(process.env.TESSERACT_LANG_PATH
+      ? { langPath: process.env.TESSERACT_LANG_PATH }
+      : {}),
+  });
 
   try {
     // `blocks: true` is required: createWorker defaults to `{ text: true }`,
