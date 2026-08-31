@@ -146,6 +146,59 @@ export async function runOcrWithRetry(
     }
   }
 
+  // Local OCR never reached the threshold. Escalate to Google Cloud Vision when
+  // it is enabled and configured; a Vision outage degrades to the local
+  // rejection below rather than failing the request.
+  if (ocr.enableCloudFallback) {
+    try {
+      const { cloudOcrWithRetry, getCloudOcrApiKey } = await import(
+        "./cloudOcr"
+      );
+
+      if (getCloudOcrApiKey()) {
+        warnings.push(
+          `Local confidence ${bestResult.confidence.toFixed(2)} below threshold ${ocr.confidenceThreshold}; escalating to cloud OCR`,
+        );
+
+        const cloud = await cloudOcrWithRetry(imageBase64);
+        const cloudPage: OcrPageResult = {
+          pageNumber: 1,
+          text: cloud.text,
+          confidence: cloud.confidence,
+          source: "cloud",
+          warnings: [],
+        };
+
+        if (cloud.confidence >= ocr.confidenceThreshold) {
+          return {
+            success: true,
+            accepted: true,
+            text: cloudPage.text,
+            confidence: computeWeightedConfidence([cloudPage]),
+            pages: [cloudPage],
+            source: "cloud",
+            warnings,
+            processingTimeMs: Date.now() - startTime,
+          };
+        }
+
+        warnings.push(
+          `Cloud OCR confidence ${cloud.confidence.toFixed(2)} also below threshold`,
+        );
+
+        if (cloud.confidence > bestResult.confidence) {
+          bestResult = cloudPage;
+        }
+      } else {
+        warnings.push("Cloud OCR fallback enabled but no API key configured");
+      }
+    } catch (error) {
+      warnings.push(
+        `Cloud OCR fallback failed: ${error instanceof Error ? error.message : "unknown"}`,
+      );
+    }
+  }
+
   const confidence = computeWeightedConfidence([bestResult]);
   return {
     success: bestResult.text.length > 0,
