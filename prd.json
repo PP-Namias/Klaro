@@ -1479,7 +1479,7 @@
           ],
           "severity": "high",
           "git_commit_message": "feat(extraction): flag values against built-in reference ranges when none are printed",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-4.4",
@@ -2047,7 +2047,7 @@
           ],
           "severity": "medium",
           "git_commit_message": "fix(severity): make the borderline severity branch reachable",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-6.7",
