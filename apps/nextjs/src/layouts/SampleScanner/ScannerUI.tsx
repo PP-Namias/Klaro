@@ -99,6 +99,8 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const isMountedRef = useRef(true);
+  const isUploadingRef = useRef(false);
+  const selectedFilesRef = useRef<FilePreviewItem[]>([]);
 
   const fileUpload = useFileUpload({
     language,
@@ -126,6 +128,23 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     }, 50);
     return () => globalThis.clearTimeout(timer);
   }, [chat.messages, isScanning, chat.isTyping]);
+
+  useEffect(() => {
+    isUploadingRef.current = fileUpload.isUploading;
+  }, [fileUpload.isUploading]);
+
+  useEffect(() => {
+    // Release any object URLs still held when the page unmounts.
+    return () => {
+      selectedFilesRef.current.forEach((item) => {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    selectedFilesRef.current = selectedFiles;
+  }, [selectedFiles]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -248,7 +267,19 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const handleUploadFiles = useCallback(async () => {
     if (selectedFiles.length === 0) return;
     if (!disclaimer.requireConsent()) return;
+    if (fileUpload.isUploading) return;
+
     const files = selectedFiles.map((item) => item.file);
+
+    // Hand the files off and clear the staging list: leaving them selected let
+    // a second click resubmit the same document.
+    setSelectedFiles((prev) => {
+      prev.forEach((item) => {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      });
+      return [];
+    });
+
     await fileUpload.upload(files);
   }, [selectedFiles, fileUpload, disclaimer]);
 
@@ -283,6 +314,8 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
       e.preventDefault();
       setIsDragging(false);
       setDragCounter(0);
+      // Dropping mid-upload would queue files the in-flight run never picks up.
+      if (isUploadingRef.current) return;
       const files = Array.from(e.dataTransfer?.files ?? []);
       if (files.length > 0) {
         void handleFilesSelected(files);
