@@ -588,7 +588,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "fix(scan): convert camera capture to a File and submit it through the upload queue",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.4",
