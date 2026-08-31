@@ -1135,7 +1135,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "fix(pdf): rasterize PDF pages with pdfjs-dist and sharp instead of canvas",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.6",
