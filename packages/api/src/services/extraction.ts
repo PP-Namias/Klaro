@@ -224,6 +224,22 @@ const normalizeName = (name: string): string => {
 };
 
 /**
+ * Canonical names, plus the values they normalise to, form the allowlist of
+ * things this engine will call a lab result.
+ *
+ * Without it any "Label: number" line parsed as a test, so `Patient ID: 12345`,
+ * `Age: 45` and `Room No: 302` became "lab results" — PHI that then flowed into
+ * the analysis, the audit trail and user-facing text.
+ */
+const KNOWN_TEST_KEYS = new Set<string>([
+  ...Object.keys(CANONICAL_TEST_NAMES),
+  ...Object.values(CANONICAL_TEST_NAMES).map((value) => value.toLowerCase()),
+]);
+
+const isKnownTestName = (name: string): boolean =>
+  KNOWN_TEST_KEYS.has(name.trim().toLowerCase());
+
+/**
  * Compute flag based on reference range
  */
 const computeFlag = (value: string, range?: string): boolean => {
@@ -258,7 +274,12 @@ export const extractTestsFromText = (text: string): ExtractedTest[] => {
       const match = pattern.re.exec(line);
       if (!match) continue;
 
-      const name = normalizeName(match[pattern.nameIdx] ?? "");
+      const rawName = match[pattern.nameIdx] ?? "";
+      // Only recognised analytes may become results; everything else on the
+      // page (patient id, age, room number, ...) is PHI, not a measurement.
+      if (!isKnownTestName(rawName)) continue;
+
+      const name = normalizeName(rawName);
       const value = match[pattern.valueIdx] ?? "";
       const unit =
         pattern.unitIdx === undefined ? "" : (match[pattern.unitIdx] ?? "");

@@ -55,3 +55,32 @@ describe("extractTestsFromText capture-group mapping", () => {
     expect(test?.flagged).toBe(false);
   });
 });
+
+describe("extractTestsFromText PHI allowlist", () => {
+  it("does not treat patient identifiers as lab results", () => {
+    const results = extractTestsFromText(
+      [
+        "Patient ID: 12345",
+        "Age: 45",
+        "Room No: 302",
+        "Contact: 09171234567",
+        "Hemoglobin: 11.2 g/dL (12.0-16.0)",
+      ].join("\n"),
+    );
+
+    // Only the real analyte survives; the identifiers are not measurements.
+    expect(results).toHaveLength(1);
+    expect(results[0]?.name).toMatch(/hemoglobin/i);
+  });
+
+  it("still recognises analytes written under an alias", () => {
+    const results = extractTestsFromText(
+      ["HGB: 11.2 g/dL (12.0-16.0)", "FBS: 142 mg/dL (70-100)"].join("\n"),
+    );
+
+    expect(results.length).toBeGreaterThanOrEqual(1);
+    for (const test of results) {
+      expect(test.value).toBeTruthy();
+    }
+  });
+});
