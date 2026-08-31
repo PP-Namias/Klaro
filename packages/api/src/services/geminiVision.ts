@@ -24,7 +24,10 @@ export function getGeminiApiKey(): string | null {
 }
 
 export function buildGeminiApiUrl(apiKey: string, model: string): string {
-  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  // The key is sent as an x-goog-api-key header by the caller, not here: a
+  // query-string key ends up in proxy and access logs.
+  void apiKey;
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 }
 
 export function buildGeminiVisionPrompt(documentType?: string): string {
@@ -140,7 +143,10 @@ export async function callGeminiVision(
 
       const response = await fetch(buildGeminiApiUrl(apiKey, model), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
         body: JSON.stringify(requestBody),
         signal: controller.signal,
       });

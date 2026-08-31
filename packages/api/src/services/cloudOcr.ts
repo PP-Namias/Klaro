@@ -22,7 +22,9 @@ export function getCloudOcrApiKey(): string | null {
 }
 
 export function buildVisionApiUrl(apiKey: string): string {
-  return `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+  // The key is sent as an x-goog-api-key header by the caller.
+  void apiKey;
+  return "https://vision.googleapis.com/v1/images:annotate";
 }
 
 export function buildVisionRequest(
@@ -130,7 +132,10 @@ export async function callGoogleVision(
       try {
         response = await fetch(buildVisionApiUrl(apiKey), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
+          },
           body: JSON.stringify(buildVisionRequest(imageBase64)),
           signal: controller.signal,
         });

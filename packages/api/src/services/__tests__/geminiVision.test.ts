@@ -31,11 +31,13 @@ describe("Gemini Vision API Client", () => {
   });
 
   describe("buildGeminiApiUrl", () => {
-    it("builds correct URL", () => {
+    it("builds the model URL without embedding the API key", () => {
       const url = buildGeminiApiUrl("key123", "gemini-2.5-flash");
       expect(url).toContain("generativelanguage.googleapis.com");
       expect(url).toContain("gemini-2.5-flash");
-      expect(url).toContain("key=key123");
+      // The key travels as an x-goog-api-key header.
+      expect(url).not.toContain("key123");
+      expect(url).not.toContain("key=");
     });
   });
 

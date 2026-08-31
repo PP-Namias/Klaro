@@ -31,10 +31,13 @@ describe("Cloud OCR Service", () => {
   });
 
   describe("buildVisionApiUrl", () => {
-    it("builds correct URL with API key", () => {
+    it("keeps the API key out of the URL", () => {
       const url = buildVisionApiUrl("my-key");
       expect(url).toContain("vision.googleapis.com");
-      expect(url).toContain("key=my-key");
+      // The key travels as an x-goog-api-key header: a query-string key is
+      // captured by proxy and access logs.
+      expect(url).not.toContain("my-key");
+      expect(url).not.toContain("key=");
     });
   });
 
