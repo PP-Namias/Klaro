@@ -61,6 +61,12 @@ export function calculateSeverity(
   let severity: SeverityLevel;
   let message: string;
 
+  // Bands, from the range outwards. "borderline" previously sat in a trailing
+  // else that no value could reach, because the preceding branches already
+  // covered both in-range and out-of-range, so results were only ever normal,
+  // high or critical.
+  const window = `normal: ${range.low}-${range.high} ${range.unit}`;
+
   if (value >= range.low && value <= range.high) {
     severity = "normal";
     message = "Within normal range";
@@ -68,17 +74,21 @@ export function calculateSeverity(
     severity = "critical";
     message =
       value < range.low
-        ? `Critically low (normal: ${range.low}-${range.high} ${range.unit})`
-        : `Critically high (normal: ${range.low}-${range.high} ${range.unit})`;
-  } else if (value < range.low || value > range.high) {
+        ? `Critically low (${window})`
+        : `Critically high (${window})`;
+  } else if (value >= range.low * 0.9 && value <= range.high * 1.1) {
+    // Just outside the range — worth noting, not alarming.
+    severity = "borderline";
+    message =
+      value < range.low
+        ? `Slightly below normal (${window})`
+        : `Slightly above normal (${window})`;
+  } else {
     severity = "high";
     message =
       value < range.low
-        ? `Below normal (normal: ${range.low}-${range.high} ${range.unit})`
-        : `Above normal (normal: ${range.low}-${range.high} ${range.unit})`;
-  } else {
-    severity = "borderline";
-    message = `Borderline (normal: ${range.low}-${range.high} ${range.unit})`;
+        ? `Below normal (${window})`
+        : `Above normal (${window})`;
   }
 
   return {
