@@ -7,6 +7,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Bot, Check, Focus, Lock, Paperclip, Trash2, X } from "lucide-react";
 
+import { toast } from "@klaro/ui/toast";
 import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 
 import type { DemoLanguage } from "~/components/demo-modal";
@@ -175,8 +176,10 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
 
       const { valid, invalid } = await validateFiles(files);
 
-      if (invalid.length > 0) {
-        alert(invalid.map((i) => i.error).join("\n"));
+      // One toast per rejected file: alert() blocks the main thread and hides
+      // which file failed when several are dropped at once.
+      for (const { error } of invalid) {
+        toast.error(error);
       }
 
       const newItems: FilePreviewItem[] = valid.map((file) => ({
