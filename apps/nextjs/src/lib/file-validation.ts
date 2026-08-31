@@ -182,6 +182,11 @@ export function createCameraCaptureFileName(): string {
   return `camera-${Date.now()}.png`;
 }
 
+/** Name for an image attached from the chat composer. */
+export function createChatAttachmentFileName(): string {
+  return `chat-attachment-${Date.now()}.png`;
+}
+
 /**
  * Convert a canvas data URL into a File so a camera capture can go through the
  * same validation and upload queue as a picked file.

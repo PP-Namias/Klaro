@@ -51,6 +51,7 @@ import { useChat } from "~/hooks/use-chat";
 import { useFileUpload } from "~/hooks/use-file-upload";
 import { useMedicalDisclaimer } from "~/hooks/use-medical-disclaimer";
 import {
+  createChatAttachmentFileName,
   createPreviewUrl,
   dataUrlToFile,
   getFileKind,
@@ -283,9 +284,20 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     await fileUpload.upload(files);
   }, [selectedFiles, fileUpload, disclaimer]);
 
-  const handleSend = (content: string, image?: string) => {
-    void chat.sendMessage(content, image);
-  };
+  const handleSend = useCallback(
+    async (content: string, image?: string) => {
+      // An image attached in chat is a medical document like any other: run it
+      // through the same validation and scan queue instead of only previewing
+      // it in the bubble and then discarding it.
+      if (image) {
+        const file = await dataUrlToFile(image, createChatAttachmentFileName());
+        await handleFilesSelected([file]);
+      }
+
+      await chat.sendMessage(content, image);
+    },
+    [chat, handleFilesSelected],
+  );
 
   const handleClearConversation = async () => {
     await chat.clearMessages();
@@ -881,7 +893,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             >
               <div className={styles.chatInputWrapper}>
                 <ChatInput
-                  onSend={handleSend}
+                  onSend={(content, image) => void handleSend(content, image)}
                   disabled={chat.isTyping}
                   placeholder={t("chat.placeholder")}
                   onCameraClick={handleStartScan}
