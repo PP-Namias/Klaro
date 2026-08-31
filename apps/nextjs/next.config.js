@@ -20,7 +20,7 @@ const config = {
   typescript: { ignoreBuildErrors: true },
 
   /** Canvas native module needs to be externalized for server builds */
-  serverExternalPackages: ["canvas"],
+  serverExternalPackages: ["sharp"],
 };
 
 export default config;

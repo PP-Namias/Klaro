@@ -37,6 +37,7 @@ linkWorkspacePackages: true
 onlyBuiltDependencies:
   - '@tailwindcss/oxide'
   - esbuild
+  - sharp
 
 overrides:
   '@types/minimatch': 5.1.2
