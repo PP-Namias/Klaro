@@ -1209,7 +1209,7 @@
           ],
           "severity": "low",
           "git_commit_message": "fix(ocr): clear the cloud vision abort timer on failure to stop the timer leak",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.9",
@@ -1230,7 +1230,7 @@
           "depends_on": [],
           "severity": "high",
           "git_commit_message": "fix(ai-sidecar): terminate the tesseract worker in a finally block to stop worker leaks",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.10",
@@ -1346,7 +1346,7 @@
           "depends_on": [],
           "severity": "low",
           "git_commit_message": "chore(ocr): delete the dead runOcr export with its hardcoded accepted verdict",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.15",
