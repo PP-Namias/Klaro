@@ -1083,7 +1083,7 @@
           ],
           "severity": "high",
           "git_commit_message": "feat(ocr): honor OCR_ENABLE_PREPROCESSING on the first OCR pass",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.4",
