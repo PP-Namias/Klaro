@@ -1307,7 +1307,7 @@
           "depends_on": [],
           "severity": "medium",
           "git_commit_message": "refactor(ocr): remove orphaned enhancedOcr and ocrResult modules",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.13",
