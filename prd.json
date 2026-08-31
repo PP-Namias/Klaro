@@ -783,7 +783,7 @@
           ],
           "severity": "high",
           "git_commit_message": "feat(scan): show the guest scan result and gate the guest upload behind consent",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.12",
@@ -803,7 +803,7 @@
           ],
           "severity": "medium",
           "git_commit_message": "fix(scan): add a retry path out of the guest scan error state",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.13",
