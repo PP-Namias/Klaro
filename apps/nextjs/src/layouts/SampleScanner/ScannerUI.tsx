@@ -651,6 +651,18 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
               </div>
             )}
 
+            {/* Cancel an in-flight upload */}
+            {fileUpload.isUploading && (
+              <button
+                className={styles.secondaryBtn}
+                onClick={fileUpload.cancelAll}
+                style={{ marginTop: 12 }}
+                type="button"
+              >
+                <X size={18} /> Cancel upload
+              </button>
+            )}
+
             {/* Upload progress */}
             <UploadProgress
               stage={fileUpload.stage}
@@ -743,17 +755,13 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                   errors={fileUpload.queue
                     .filter((f) => f.stage === "error" && f.error)
                     .map((f) => ({
+                      id: f.id,
                       fileName: f.file.name,
                       message: f.error!,
                       type: "network" as const,
                     }))}
                   onDismiss={() => {}}
-                  onRetry={(fileName) => {
-                    const item = fileUpload.queue.find(
-                      (f) => f.file.name === fileName,
-                    );
-                    if (item) void fileUpload.retry(item.id);
-                  }}
+                  onRetry={(fileId) => void fileUpload.retry(fileId)}
                 />
               )}
 

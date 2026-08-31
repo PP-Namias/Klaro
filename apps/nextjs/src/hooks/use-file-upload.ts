@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Language } from "@klaro/validators/language";
 import type { ScanGuestResponse } from "@klaro/validators/scan-analysis";
@@ -32,7 +32,7 @@ export interface UploadFileItem {
 interface UseFileUploadOptions {
   language?: Language;
   onSuccess?: (requestId: string, result: ScanGuestResponse) => void;
-  onError?: (error: string) => void;
+  onError?: (error: string, fileId?: string) => void;
 }
 
 interface UseFileUploadReturn {
@@ -63,6 +63,13 @@ export function useFileUpload({
   const [error, setError] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const cancelledRef = useRef<Set<string>>(new Set());
+  // Mirrors `queue` so callbacks can read the latest items without taking the
+  // array as a dependency (which would recreate them on every queue mutation).
+  const queueRef = useRef<UploadFileItem[]>([]);
+
+  useEffect(() => {
+    queueRef.current = queue;
+  }, [queue]);
 
   const trpcClient = useTRPCClient();
 
@@ -142,10 +149,14 @@ export function useFileUpload({
               : f,
           ),
         );
+        onError?.(
+          err instanceof Error ? err.message : "Upload failed",
+          item.id,
+        );
         return "error";
       }
     },
-    [trpcClient, language, onSuccess],
+    [trpcClient, language, onSuccess, onError],
   );
 
   const upload = useCallback(
@@ -210,10 +221,10 @@ export function useFileUpload({
 
   const retryFile = useCallback(
     async (fileId: string) => {
-      const item = queue.find((f) => f.id === fileId);
-      if (!item) return;
-
       cancelledRef.current.delete(fileId);
+
+      const item = queueRef.current.find((f) => f.id === fileId);
+      if (!item) return;
 
       setQueue((prev) =>
         prev.map((f) =>
@@ -226,18 +237,23 @@ export function useFileUpload({
       setStage("uploading");
       setError(null);
 
-      await processFile(item);
+      const outcome = await processFile(item);
+      if (outcome === "error") {
+        setStage("error");
+        setError("Some files failed to upload.");
+      } else if (outcome === "complete") {
+        setStage("complete");
+        setProgress(100);
+      }
     },
-    [queue, processFile],
+    [processFile],
   );
 
   const cancelFile = useCallback((fileId: string) => {
     cancelledRef.current.add(fileId);
-    setQueue((prev) =>
-      prev.map((f) =>
-        f.id === fileId ? { ...f, stage: "pending" as const, progress: 0 } : f,
-      ),
-    );
+    // Remove rather than reset to "pending": isUploading counts pending items,
+    // so resetting left the queue permanently busy.
+    setQueue((prev) => prev.filter((f) => f.id !== fileId));
   }, []);
 
   const cancelAll = useCallback(() => {

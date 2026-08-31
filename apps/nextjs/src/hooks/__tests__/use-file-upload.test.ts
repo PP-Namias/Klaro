@@ -193,4 +193,63 @@ describe("useFileUpload", () => {
     expect(result.current.queue).toEqual([]);
     expect(result.current.requestId).toBeNull();
   });
+
+  it("cancelFile removes the item so the queue stops reporting as busy", async () => {
+    scanMutate.mockResolvedValue({ status: "completed", requestId: "req-1" });
+
+    const { result } = renderHook(() => useFileUpload());
+
+    await act(async () => {
+      await result.current.upload([makeFile()]);
+    });
+    const id = result.current.queue[0]!.id;
+
+    act(() => {
+      result.current.cancelFile(id);
+    });
+
+    // Previously this reset the item to "pending", which isUploading counts,
+    // leaving the UI busy forever.
+    expect(result.current.queue.find((f) => f.id === id)).toBeUndefined();
+    expect(result.current.isUploading).toBe(false);
+  });
+
+  it("reports each failed file to onError with its queue id", async () => {
+    scanMutate.mockRejectedValue(new Error("network down"));
+
+    const onError = vi.fn();
+    const { result } = renderHook(() => useFileUpload({ onError }));
+
+    await act(async () => {
+      await result.current.upload([makeFile()]);
+    });
+
+    const id = result.current.queue[0]!.id;
+    expect(onError).toHaveBeenCalledWith(expect.stringContaining("network down"), id);
+  });
+
+  it("retries a failed file by its queue id, not its name", async () => {
+    scanMutate.mockRejectedValueOnce(new Error("network down"));
+
+    const { result } = renderHook(() => useFileUpload());
+
+    await act(async () => {
+      await result.current.upload([makeFile("scan.png")]);
+    });
+    await waitFor(() => {
+      expect(result.current.stage).toBe("error");
+    });
+
+    const id = result.current.queue[0]!.id;
+    scanMutate.mockResolvedValue({ status: "completed", requestId: "req-retry" });
+
+    await act(async () => {
+      await result.current.retry(id);
+    });
+
+    await waitFor(() => {
+      expect(result.current.stage).toBe("complete");
+    });
+    expect(result.current.queue[0]?.requestId).toBe("req-retry");
+  });
 });
