@@ -90,9 +90,9 @@ describe("extractTestsFromText built-in reference ranges", () => {
   it("flags an abnormal value even when the document prints no range", () => {
     const [test] = extractTestsFromText("Hemoglobin: 9.1 g/dL");
 
-    // 9.1 is below the built-in HGB low of 12.
+    // 9.1 is below the unified HGB low of 12.
     expect(test?.flagged).toBe(true);
-    expect(test?.referenceRange).toBe("12-16");
+    expect(test?.referenceRange).toBe("12-17.5");
   });
 
   it("does not flag a normal value without a printed range", () => {
@@ -121,10 +121,10 @@ describe("calculateSeverity bands", () => {
   it("returns borderline for a value just outside the range", async () => {
     const { calculateSeverity } = await import("../severityScoring");
 
-    // HGB range is 12-16; 11.5 is within 10% below the low bound.
+    // General HGB band is 12-17.5; 11.5 is within 10% below the low bound.
     expect(calculateSeverity("HGB", 11.5).severity).toBe("borderline");
-    // 16.8 is within 10% above the high bound.
-    expect(calculateSeverity("HGB", 16.8).severity).toBe("borderline");
+    // 18.5 is within 10% above the high bound.
+    expect(calculateSeverity("HGB", 18.5).severity).toBe("borderline");
   });
 
   it("still separates normal, high and critical", async () => {
@@ -133,7 +133,7 @@ describe("calculateSeverity bands", () => {
     expect(calculateSeverity("HGB", 14).severity).toBe("normal");
     expect(calculateSeverity("HGB", 10.5).severity).toBe("high");
     expect(calculateSeverity("HGB", 5).severity).toBe("critical");
-    expect(calculateSeverity("HGB", 25).severity).toBe("critical");
+    expect(calculateSeverity("HGB", 24).severity).toBe("critical");
   });
 });
 

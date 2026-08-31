@@ -1,3 +1,6 @@
+import type { PatientContext } from "./referenceRanges";
+import { lookupRange, REFERENCE_ENTRIES } from "./referenceRanges";
+
 export type SeverityLevel = "normal" | "borderline" | "high" | "critical";
 
 export interface SeverityResult {
@@ -16,35 +19,37 @@ export interface ReferenceRange {
   unit: string;
 }
 
-export const REFERENCE_RANGES: Record<string, ReferenceRange> = {
-  HGB: { low: 12, high: 16, unit: "g/dL" },
-  HCT: { low: 36, high: 46, unit: "%" },
-  RBC: { low: 4, high: 5.5, unit: "million/uL" },
-  WBC: { low: 4500, high: 11000, unit: "/uL" },
-  PLT: { low: 150000, high: 400000, unit: "/uL" },
-  GLU: { low: 70, high: 100, unit: "mg/dL" },
-  BUN: { low: 7, high: 20, unit: "mg/dL" },
-  CRE: { low: 0.6, high: 1.2, unit: "mg/dL" },
-  CHOL: { low: 0, high: 200, unit: "mg/dL" },
-  HDL: { low: 40, high: 60, unit: "mg/dL" },
-  LDL: { low: 0, high: 100, unit: "mg/dL" },
-  TG: { low: 0, high: 150, unit: "mg/dL" },
-  ALT: { low: 7, high: 56, unit: "U/L" },
-  AST: { low: 10, high: 40, unit: "U/L" },
-  UA: { low: 2.4, high: 7, unit: "mg/dL" },
-  TSH: { low: 0.4, high: 4, unit: "mIU/L" },
-  NA: { low: 136, high: 145, unit: "mEq/L" },
-  K: { low: 3.5, high: 5, unit: "mEq/L" },
-  CL: { low: 98, high: 106, unit: "mEq/L" },
-  CA: { low: 8.5, high: 10.5, unit: "mg/dL" },
-  MG: { low: 1.7, high: 2.2, unit: "mg/dL" },
-};
+/**
+ * Adult reference ranges, derived from the single canonical table in
+ * referenceRanges.ts. Kept as an exported record for backwards compatibility;
+ * new code should call lookupRange() so age and sex are taken into account.
+ */
+export const REFERENCE_RANGES: Record<string, ReferenceRange> =
+  Object.fromEntries(
+    REFERENCE_ENTRIES.map((entry) => {
+      const general =
+        entry.ranges.find((band) => !band.sex && band.minAge === undefined) ??
+        entry.ranges[0];
+      return [
+        entry.code,
+        {
+          low: general?.low ?? 0,
+          high: general?.high ?? 0,
+          unit: entry.unit,
+        },
+      ];
+    }),
+  );
 
 export function calculateSeverity(
   testCode: string,
   value: number,
+  context: PatientContext = {},
 ): SeverityResult {
-  const range = REFERENCE_RANGES[testCode.toUpperCase()];
+  const resolved = lookupRange(testCode, context);
+  const range = resolved
+    ? { low: resolved.low, high: resolved.high, unit: resolved.unit }
+    : undefined;
 
   if (!range) {
     return {
