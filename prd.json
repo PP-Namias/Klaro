@@ -562,7 +562,7 @@
           "depends_on": [],
           "severity": "blocker",
           "git_commit_message": "fix(upload): derive upload stage from per-file outcomes instead of stale queue closure",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.3",
