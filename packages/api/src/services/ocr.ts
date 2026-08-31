@@ -1,3 +1,6 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 export type OcrSource = "local" | "cloud";
 
 export interface OcrBlock {
@@ -114,7 +117,7 @@ export const performOcr = async (
   // tesseract.js defaults cachePath to "." which is read-only on serverless,
   // so eng.traineddata fails to download. Pin it to a writable location.
   const worker = await createWorker("eng", undefined, {
-    cachePath: process.env.TESSERACT_CACHE_PATH ?? "/tmp/tesseract",
+    cachePath: process.env.TESSERACT_CACHE_PATH ?? join(tmpdir(), "tesseract"),
     ...(process.env.TESSERACT_LANG_PATH
       ? { langPath: process.env.TESSERACT_LANG_PATH }
       : {}),
