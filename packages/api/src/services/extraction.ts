@@ -1,3 +1,9 @@
+/**
+ * Comprehensive test name canonicalization database
+ * 200+ variants for Philippine & international lab formats
+ */
+import { REFERENCE_RANGES } from "./severityScoring";
+
 export interface ExtractedTest {
   name: string;
   value: string;
@@ -7,9 +13,38 @@ export interface ExtractedTest {
 }
 
 /**
- * Comprehensive test name canonicalization database
- * 200+ variants for Philippine & international lab formats
+ * Canonical display name -> reference-range code.
+ *
+ * Lets extraction fall back to the built-in ranges when a document does not
+ * print one, which is common on Philippine lab printouts. Without this, any
+ * result without a printed range was silently reported as normal.
  */
+const CANONICAL_NAME_TO_CODE: Record<string, string> = {
+  Hemoglobin: "HGB",
+  Hematocrit: "HCT",
+  "Red Blood Cell Count": "RBC",
+  "White Blood Cell Count": "WBC",
+  "Platelet Count": "PLT",
+  "Fasting Blood Sugar": "GLU",
+  Glucose: "GLU",
+  "Blood Urea Nitrogen": "BUN",
+  Creatinine: "CRE",
+  "Total Cholesterol": "CHOL",
+  Cholesterol: "CHOL",
+  "HDL Cholesterol": "HDL",
+  "LDL Cholesterol": "LDL",
+  Triglycerides: "TG",
+  ALT: "ALT",
+  AST: "AST",
+  "Uric Acid": "UA",
+  TSH: "TSH",
+  Sodium: "NA",
+  Potassium: "K",
+  Chloride: "CL",
+  Calcium: "CA",
+  Magnesium: "MG",
+};
+
 const CANONICAL_TEST_NAMES: Record<string, string> = {
   // Hemoglobin
   hemoglobin: "Hemoglobin",
@@ -291,12 +326,22 @@ export const extractTestsFromText = (text: string): ExtractedTest[] => {
       if (seenNames.has(nameKey)) break;
       seenNames.add(nameKey);
 
+      // Prefer the range printed on the document; fall back to the built-in
+      // table so a value without a printed range is still checked.
+      const printedRange = referenceRange?.trim();
+      const builtIn = printedRange
+        ? undefined
+        : REFERENCE_RANGES[CANONICAL_NAME_TO_CODE[name] ?? ""];
+      const effectiveRange =
+        printedRange ??
+        (builtIn ? `${builtIn.low}-${builtIn.high}` : undefined);
+
       results.push({
         name,
         value,
-        unit: unit.trim(),
-        referenceRange: referenceRange?.trim(),
-        flagged: computeFlag(value, referenceRange ?? ""),
+        unit: unit.trim() || (printedRange ? "" : (builtIn?.unit ?? "")),
+        referenceRange: effectiveRange,
+        flagged: computeFlag(value, effectiveRange ?? ""),
       });
 
       break; // Move to next line after successful pattern match

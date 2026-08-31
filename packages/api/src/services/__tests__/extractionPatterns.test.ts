@@ -47,11 +47,12 @@ describe("extractTestsFromText capture-group mapping", () => {
     expect(test?.flagged).toBe(true);
   });
 
-  it("leaves referenceRange undefined when the line carries none", () => {
+  it("falls back to the built-in range when the line carries none", () => {
     const [test] = extractTestsFromText("Sodium: 140");
 
     expect(test?.value).toBe("140");
-    expect(test?.referenceRange).toBeUndefined();
+    // Sodium has a built-in range, so the value is still checked.
+    expect(test?.referenceRange).toBe("136-145");
     expect(test?.flagged).toBe(false);
   });
 });
@@ -82,5 +83,56 @@ describe("extractTestsFromText PHI allowlist", () => {
     for (const test of results) {
       expect(test.value).toBeTruthy();
     }
+  });
+});
+
+describe("extractTestsFromText built-in reference ranges", () => {
+  it("flags an abnormal value even when the document prints no range", () => {
+    const [test] = extractTestsFromText("Hemoglobin: 9.1 g/dL");
+
+    // 9.1 is below the built-in HGB low of 12.
+    expect(test?.flagged).toBe(true);
+    expect(test?.referenceRange).toBe("12-16");
+  });
+
+  it("does not flag a normal value without a printed range", () => {
+    const [test] = extractTestsFromText("Creatinine: 1.0 mg/dL");
+
+    expect(test?.flagged).toBe(false);
+    expect(test?.referenceRange).toBe("0.6-1.2");
+  });
+
+  it("prefers the range printed on the document over the built-in one", () => {
+    const [test] = extractTestsFromText("Hemoglobin: 11.0 g/dL (10.5-15.0)");
+
+    expect(test?.referenceRange).toBe("10.5-15.0");
+    expect(test?.flagged).toBe(false);
+  });
+
+  it("leaves an unknown-range analyte unflagged rather than guessing", () => {
+    const [test] = extractTestsFromText("Hemoglobin A1C: 7.4");
+
+    expect(test?.referenceRange).toBeUndefined();
+    expect(test?.flagged).toBe(false);
+  });
+});
+
+describe("calculateSeverity bands", () => {
+  it("returns borderline for a value just outside the range", async () => {
+    const { calculateSeverity } = await import("../severityScoring");
+
+    // HGB range is 12-16; 11.5 is within 10% below the low bound.
+    expect(calculateSeverity("HGB", 11.5).severity).toBe("borderline");
+    // 16.8 is within 10% above the high bound.
+    expect(calculateSeverity("HGB", 16.8).severity).toBe("borderline");
+  });
+
+  it("still separates normal, high and critical", async () => {
+    const { calculateSeverity } = await import("../severityScoring");
+
+    expect(calculateSeverity("HGB", 14).severity).toBe("normal");
+    expect(calculateSeverity("HGB", 10.5).severity).toBe("high");
+    expect(calculateSeverity("HGB", 5).severity).toBe("critical");
+    expect(calculateSeverity("HGB", 25).severity).toBe("critical");
   });
 });
