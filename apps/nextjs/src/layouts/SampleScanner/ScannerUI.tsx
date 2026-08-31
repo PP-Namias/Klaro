@@ -28,6 +28,12 @@ import { DropOverlay } from "~/components/drop-overlay";
 import { DropZone } from "~/components/drop-zone";
 import { FilePreview } from "~/components/file-preview";
 import { MedicalDisclaimerOverlay } from "~/components/medical-disclaimer-overlay";
+import {
+  ConfidenceScore,
+  PlainLanguageSummary,
+  SeverityIndicator,
+  TanongMoCard,
+} from "~/components/scan";
 import { UploadComplete } from "~/components/upload-complete";
 import { UploadError } from "~/components/upload-error";
 import { UploadProgress } from "~/components/upload-progress";
@@ -50,6 +56,13 @@ import {
 } from "~/lib/file-validation";
 import { useLanguage } from "~/providers/language-provider";
 import styles from "../../app/scan/page.module.css";
+
+/** documents.scanGuestImage returns an urgency; the UI speaks in severities. */
+const URGENCY_TO_SEVERITY = {
+  LOW: "low",
+  MODERATE: "moderate",
+  HIGH: "high",
+} as const;
 
 interface ScannerUIProps {
   initialAnalysisId?: string;
@@ -290,6 +303,11 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
       />
     );
   }
+
+  // The analysis lives in React state only and is never persisted (RA 10173).
+  const completedResults = fileUpload.queue.filter(
+    (item) => item.stage === "complete" && item.result,
+  );
 
   const hasUploadQueue = selectedFiles.length > 0;
   const uploadComplete = fileUpload.stage === "complete";
@@ -633,6 +651,64 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                 }}
               />
             )}
+
+            {/* The analysis Clara produced, rendered per completed file. */}
+            {completedResults.map((item) => {
+              const result = item.result;
+              if (!result) return null;
+
+              // Every analysis field is optional on the wire; fall back rather
+              // than rendering a broken card.
+              const severity =
+                URGENCY_TO_SEVERITY[result.urgency ?? "MODERATE"];
+              const summary =
+                result.plainLanguageSummary ?? result.analysis?.summary ?? "";
+              const recommendations =
+                result.recommendations ??
+                result.analysis?.recommendations ??
+                [];
+
+              if (!summary && recommendations.length === 0) return null;
+
+              return (
+                <div
+                  key={item.id}
+                  style={{
+                    width: "100%",
+                    marginTop: 16,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 12,
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                  >
+                    <SeverityIndicator level={severity} size="md" />
+                    {result.confidence !== undefined && (
+                      <ConfidenceScore
+                        score={Math.round(result.confidence * 100)}
+                      />
+                    )}
+                  </div>
+
+                  {summary && (
+                    <PlainLanguageSummary
+                      summary={summary}
+                      dialect={chatDialect}
+                      onDialectChange={setChatDialect}
+                    />
+                  )}
+
+                  {recommendations.length > 0 && (
+                    <TanongMoCard
+                      questions={recommendations}
+                      severity={severity}
+                    />
+                  )}
+                </div>
+              );
+            })}
 
             {/* Upload errors */}
             {fileUpload.stage === "error" &&

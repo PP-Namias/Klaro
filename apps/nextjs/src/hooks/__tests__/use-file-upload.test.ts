@@ -130,6 +130,40 @@ describe("useFileUpload", () => {
     ]);
   });
 
+  it("keeps the returned analysis on the queue item so /scan can render it", async () => {
+    const analysis = {
+      requestId: "req-1",
+      status: "completed",
+      language: "English",
+      plainLanguageSummary: "Your blood sugar is higher than normal.",
+      urgency: "MODERATE",
+      recommendations: ["Follow up with your doctor"],
+      confidence: 0.91,
+      timestamp: new Date().toISOString(),
+    };
+    scanMutate.mockResolvedValue(analysis);
+
+    const onSuccess = vi.fn();
+    const { result } = renderHook(() => useFileUpload({ onSuccess }));
+
+    await act(async () => {
+      await result.current.upload([makeFile()]);
+    });
+
+    await waitFor(() => {
+      expect(result.current.stage).toBe("complete");
+    });
+
+    // The analysis is carried in React state so the page can render it, and is
+    // handed to onSuccess alongside the request id.
+    expect(result.current.queue[0]?.result).toMatchObject({
+      plainLanguageSummary: "Your blood sugar is higher than normal.",
+      urgency: "MODERATE",
+      confidence: 0.91,
+    });
+    expect(onSuccess).toHaveBeenCalledWith("req-1", analysis);
+  });
+
   it("reports an error stage when no file survives validation", async () => {
     const { result } = renderHook(() => useFileUpload());
 

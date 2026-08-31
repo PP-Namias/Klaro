@@ -5,6 +5,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import type { Language } from "@klaro/validators/language";
+import type { ScanGuestResponse } from "@klaro/validators/scan-analysis";
 import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 
 import type { UploadStage } from "~/components/upload-progress";
@@ -21,11 +22,16 @@ export interface UploadFileItem {
   progress: number;
   error?: string;
   requestId?: string;
+  /**
+   * The analysis returned for this file. Kept in React state only — it is PHI
+   * and is never persisted (RA 10173).
+   */
+  result?: ScanGuestResponse;
 }
 
 interface UseFileUploadOptions {
   language?: Language;
-  onSuccess?: (requestId: string) => void;
+  onSuccess?: (requestId: string, result: ScanGuestResponse) => void;
   onError?: (error: string) => void;
 }
 
@@ -114,12 +120,13 @@ export function useFileUpload({
                   stage: "complete",
                   progress: 100,
                   requestId: result.requestId,
+                  result,
                 }
               : f,
           ),
         );
         setRequestId(result.requestId);
-        onSuccess?.(result.requestId);
+        onSuccess?.(result.requestId, result);
         return "complete";
       } catch (err) {
         if (cancelledRef.current.has(item.id)) return "cancelled";
