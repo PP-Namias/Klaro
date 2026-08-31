@@ -19,28 +19,59 @@ interface FileValidationResult {
   valid: boolean;
   error?: string;
   kind: "image" | "pdf";
+  /** Undefined when the count could not be determined. */
   pageCount?: number;
+  /** True when the page count could not be read (compressed cross-reference). */
+  pageCountIndeterminate?: boolean;
 }
 
-async function countPdfPages(file: File): Promise<number> {
-  const buffer = await file.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-  const text = new TextDecoder("utf-8").decode(bytes);
+/** How much of a PDF to scan for a page count, from each end. */
+const PDF_SCAN_WINDOW_BYTES = 512 * 1024;
 
-  const typeIdx = text.lastIndexOf("/Type");
-  if (typeIdx === -1) return 1;
+/**
+ * Best-effort page count for a PDF.
+ *
+ * Returns `null` when the count cannot be determined - most commonly a
+ * cross-reference stream (object streams), where the page tree is compressed
+ * and invisible to a byte scan. This previously returned a hardcoded 1, which
+ * silently waved such files past the MAX_PDF_PAGES cap.
+ *
+ * Only the head and tail are decoded: decoding a 50MB document whole would
+ * block the main thread. Latin1 keeps byte offsets intact for the scan.
+ */
+async function countPdfPages(file: File): Promise<number | null> {
+  const decoder = new TextDecoder("latin1");
 
-  const pagesMatch = text.match(/\/Type\s*\/Pages[^/]*\/Count\s+(\d+)/);
-  if (pagesMatch) {
-    return parseInt(pagesMatch[1] ?? "1", 10);
+  // A file that fits inside one window is scanned once. Concatenating head and
+  // tail for such a file would scan the same bytes twice and double any
+  // occurrence-based page count.
+  let text: string;
+  if (file.size <= PDF_SCAN_WINDOW_BYTES) {
+    text = decoder.decode(new Uint8Array(await file.arrayBuffer()));
+  } else {
+    const head = new Uint8Array(
+      await file.slice(0, PDF_SCAN_WINDOW_BYTES).arrayBuffer(),
+    );
+    const tail = new Uint8Array(
+      await file.slice(file.size - PDF_SCAN_WINDOW_BYTES).arrayBuffer(),
+    );
+    text = decoder.decode(head) + "\n" + decoder.decode(tail);
   }
 
-  const pageMatch = text.match(/\/Type\s*\/Page\b[^/]/g);
-  if (pageMatch) {
-    return pageMatch.length;
+  // Allow intervening keys (/Kids, /MediaBox, ...) between /Pages and /Count,
+  // but stay inside one object: `[^/]*` never matched a real page tree.
+  const pagesMatch = /\/Type\s*\/Pages[\s\S]{0,400}?\/Count\s+(\d+)/.exec(text);
+  if (pagesMatch?.[1]) {
+    return parseInt(pagesMatch[1], 10);
   }
 
-  return 1;
+  const pageMatches = text.match(/\/Type\s*\/Page\b[^/]/g);
+  if (pageMatches) {
+    return pageMatches.length;
+  }
+
+  // Indeterminate - say so instead of pretending it is a single page.
+  return null;
 }
 
 export async function validateFile(file: File): Promise<FileValidationResult> {
@@ -70,11 +101,20 @@ export async function validateFile(file: File): Promise<FileValidationResult> {
 
   const kind = file.type === "application/pdf" ? "pdf" : "image";
   let pageCount: number | undefined;
+  let pageCountIndeterminate = false;
 
   if (file.type === "application/pdf") {
     try {
-      pageCount = await countPdfPages(file);
-      if (pageCount > MAX_PDF_PAGES) {
+      const counted = await countPdfPages(file);
+
+      if (counted === null) {
+        // Accept, but record that the page cap could not be enforced here.
+        pageCountIndeterminate = true;
+      } else {
+        pageCount = counted;
+      }
+
+      if (pageCount !== undefined && pageCount > MAX_PDF_PAGES) {
         return {
           valid: false,
           error: `"${file.name}" has ${pageCount} pages. For best results, please upload 10 pages or fewer.`,
@@ -91,7 +131,7 @@ export async function validateFile(file: File): Promise<FileValidationResult> {
     }
   }
 
-  return { valid: true, kind, pageCount };
+  return { valid: true, kind, pageCount, pageCountIndeterminate };
 }
 
 export async function validateFiles(files: File[]): Promise<{
@@ -176,7 +216,7 @@ export async function getFileMetadata(file: File): Promise<{
 
   if (file.type === "application/pdf") {
     try {
-      pageCount = await countPdfPages(file);
+      pageCount = (await countPdfPages(file)) ?? undefined;
     } catch {
       pageCount = undefined;
     }

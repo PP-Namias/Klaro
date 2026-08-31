@@ -314,4 +314,44 @@ describe("getFileMetadata", () => {
       expect(result.kind).toBe("image");
     });
   });
+
+  describe("pdf page counting", () => {
+    function pdfFile(body: string, name = "report.pdf") {
+      return new File([body], name, { type: "application/pdf" });
+    }
+
+    it("reads the page count from an uncompressed page tree", async () => {
+      const body =
+        "%PDF-1.4\n" +
+        "1 0 obj << /Type /Pages /Kids [2 0 R] /Count 3 >> endobj\n" +
+        "x".repeat(300);
+      const result = await validateFile(pdfFile(body));
+
+      expect(result.valid).toBe(true);
+      expect(result.pageCount).toBe(3);
+      expect(result.pageCountIndeterminate).toBe(false);
+    });
+
+    it("rejects a PDF whose readable page count exceeds the cap", async () => {
+      const body =
+        "%PDF-1.4\n" +
+        "1 0 obj << /Type /Pages /Kids [2 0 R] /Count 20 >> endobj\n" +
+        "x".repeat(300);
+      const result = await validateFile(pdfFile(body));
+
+      expect(result.valid).toBe(false);
+      expect(result.pageCount).toBe(20);
+      expect(result.error).toContain("20 pages");
+    });
+
+    it("reports an indeterminate count rather than pretending it is 1 page", async () => {
+      // A compressed cross-reference stream hides the page tree from a byte
+      // scan; previously this silently returned 1 and bypassed the cap.
+      const body = "%PDF-1.5\n" + "\u0000binary-object-stream\u0000".repeat(40);
+      const result = await validateFile(pdfFile(body));
+
+      expect(result.pageCount).toBeUndefined();
+      expect(result.pageCountIndeterminate).toBe(true);
+    });
+  });
 });
