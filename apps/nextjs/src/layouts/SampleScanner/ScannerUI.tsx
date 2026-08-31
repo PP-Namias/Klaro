@@ -44,6 +44,7 @@ import { useFileUpload } from "~/hooks/use-file-upload";
 import { useMedicalDisclaimer } from "~/hooks/use-medical-disclaimer";
 import {
   createPreviewUrl,
+  dataUrlToFile,
   getFileKind,
   validateFiles,
 } from "~/lib/file-validation";
@@ -119,7 +120,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: "user",
+          facingMode: { ideal: "environment" },
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
@@ -150,20 +151,6 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     setIsScanning(false);
   };
 
-  const handleCapture = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageData = canvas.toDataURL("image/png");
-    setCapturedImage(imageData);
-    handleCancelScan();
-  };
-
   const openDemo = useCallback((type: DemoType) => {
     setActiveDemoType(type);
     setDemoModalOpen(true);
@@ -189,6 +176,29 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     },
     [disclaimer],
   );
+
+  const handleCapture = useCallback(async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = canvas.toDataURL("image/png");
+    setCapturedImage(imageData);
+    handleCancelScan();
+
+    // The captured frame is a real upload, not just a preview: convert it to a
+    // File and put it through the same validation and queue as a picked file.
+    const file = await dataUrlToFile(imageData);
+    await handleFilesSelected([file]);
+  }, [handleFilesSelected]);
+
+  const handleRetake = () => {
+    setCapturedImage(null);
+  };
 
   const handleRemoveFile = useCallback((index: number) => {
     setSelectedFiles((prev) => {
@@ -664,10 +674,17 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                   >
                     <X size={18} /> Cancel
                   </button>
-                  <button className={styles.primaryBtn} onClick={handleCapture}>
+                  <button
+                    className={styles.primaryBtn}
+                    onClick={() => void handleCapture()}
+                  >
                     <Check size={18} /> Scan image
                   </button>
                 </>
+              ) : capturedImage ? (
+                <button className={styles.secondaryBtn} onClick={handleRetake}>
+                  <X size={18} /> Retake
+                </button>
               ) : null}
             </div>
 

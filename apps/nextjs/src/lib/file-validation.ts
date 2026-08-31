@@ -134,6 +134,27 @@ export function fileToBase64(file: File): Promise<string> {
   });
 }
 
+/**
+ * Name for a camera capture. Lives here rather than in the component so the
+ * impure `Date.now()` call stays outside React's render-purity analysis.
+ */
+export function createCameraCaptureFileName(): string {
+  return `camera-${Date.now()}.png`;
+}
+
+/**
+ * Convert a canvas data URL into a File so a camera capture can go through the
+ * same validation and upload queue as a picked file.
+ */
+export async function dataUrlToFile(
+  dataUrl: string,
+  fileName: string = createCameraCaptureFileName(),
+  mimeType = "image/png",
+): Promise<File> {
+  const blob = await (await fetch(dataUrl)).blob();
+  return new File([blob], fileName, { type: mimeType });
+}
+
 export function getFileKind(file: File): "image" | "pdf" {
   return file.type === "application/pdf" ? "pdf" : "image";
 }

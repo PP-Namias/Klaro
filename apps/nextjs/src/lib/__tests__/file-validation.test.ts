@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createPreviewUrl,
+  dataUrlToFile,
   fileToBase64,
   formatBytes,
   getFileKind,
@@ -277,5 +278,40 @@ describe("getFileMetadata", () => {
     const meta = await getFileMetadata(file);
     expect(meta.kind).toBe("pdf");
     expect(meta.pageCount).toBe(3);
+  });
+
+  describe("dataUrlToFile", () => {
+    // A 1x1 transparent PNG.
+    const PNG_DATA_URL =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+    it("converts a canvas data URL into a non-empty PNG File", async () => {
+      const file = await dataUrlToFile(PNG_DATA_URL, "camera-123.png");
+
+      expect(file).toBeInstanceOf(File);
+      expect(file.name).toBe("camera-123.png");
+      expect(file.type).toBe("image/png");
+      expect(file.size).toBeGreaterThan(0);
+    });
+
+    it("rejects a frame too small to be a real document", async () => {
+      // The 1x1 fixture is ~70 bytes, under MIN_FILE_SIZE.
+      const file = await dataUrlToFile(PNG_DATA_URL, "camera-456.png");
+      const result = await validateFile(file);
+
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain("too small");
+    });
+
+    it("produces a File the upload validator accepts at realistic capture size", async () => {
+      // A real camera frame is far larger; anything over MIN_FILE_SIZE passes.
+      const padded = `data:image/png;base64,${Buffer.alloc(4096, 7).toString("base64")}`;
+      const file = await dataUrlToFile(padded, "camera-789.png");
+      const result = await validateFile(file);
+
+      expect(file.size).toBeGreaterThan(100);
+      expect(result.valid).toBe(true);
+      expect(result.kind).toBe("image");
+    });
   });
 });
