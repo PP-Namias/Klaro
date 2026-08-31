@@ -163,18 +163,53 @@ const CANONICAL_TEST_NAMES: Record<string, string> = {
 /**
  * Philippine lab format regex patterns
  */
-const LAB_PATTERNS = [
-  // Pattern 1: "TestName: value unit (reference range)"
-  /^([A-Za-z\s-/()]+?):\s*([\d.]+)\s+([A-Za-z/%\-°C°F]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
+/**
+ * Layout patterns for a lab line, with explicit capture-group indices.
+ *
+ * The indices matter: pattern 3 has no unit group, so reading group 3 as the
+ * unit put the reference range into `unit`. `referenceRange` then arrived
+ * undefined and computeFlag never ran, so abnormal values were never flagged.
+ */
+interface LabPattern {
+  re: RegExp;
+  nameIdx: number;
+  valueIdx: number;
+  unitIdx?: number;
+  rangeIdx?: number;
+}
 
-  // Pattern 2: "TestName value unit (reference range)" (no colon)
-  /^([A-Za-z\s-/()]+?)\s+([\d.]+)\s+([A-Za-z/%\-°C°F]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
-
-  // Pattern 3: "TestName: value (reference range)" (abbreviated, with optional ref range)
-  /^([A-Za-z\s-/()0-9]+?):\s*([\d.]+)(?:\s*\(([\d.\-\s]+?)\))?$/,
-
-  // Pattern 4: Tab-separated
-  /^([A-Za-z\s-/()]+?)\t+([\d.]+)\t+([A-Za-z/%\-°C°F]+?)(?:\t+([\d.\-\s]+?))?$/,
+const LAB_PATTERNS: LabPattern[] = [
+  // "TestName: value unit (reference range)"
+  {
+    re: /^([A-Za-z\s\-/()]+?):\s*([\d.]+)\s+([A-Za-z/%\-°C°F]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
+    nameIdx: 1,
+    valueIdx: 2,
+    unitIdx: 3,
+    rangeIdx: 4,
+  },
+  // "TestName value unit (reference range)" (no colon)
+  {
+    re: /^([A-Za-z\s\-/()]+?)\s+([\d.]+)\s+([A-Za-z/%\-°C°F]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
+    nameIdx: 1,
+    valueIdx: 2,
+    unitIdx: 3,
+    rangeIdx: 4,
+  },
+  // "TestName: value (reference range)" — no unit group at all.
+  {
+    re: /^([A-Za-z\s\-/()0-9]+?):\s*([\d.]+)(?:\s*\(([\d.\-\s]+?)\))?$/,
+    nameIdx: 1,
+    valueIdx: 2,
+    rangeIdx: 3,
+  },
+  // Tab-separated
+  {
+    re: /^([A-Za-z\s\-/()]+?)\t+([\d.]+)\t+([A-Za-z/%\-°C°F]+?)(?:\t+([\d.\-\s]+?))?$/,
+    nameIdx: 1,
+    valueIdx: 2,
+    unitIdx: 3,
+    rangeIdx: 4,
+  },
 ];
 
 const rangeRegex = /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/;
@@ -220,13 +255,15 @@ export const extractTestsFromText = (text: string): ExtractedTest[] => {
 
   for (const line of lines) {
     for (const pattern of LAB_PATTERNS) {
-      const match = pattern.exec(line);
+      const match = pattern.re.exec(line);
       if (!match) continue;
 
-      const name = normalizeName(match[1] ?? "");
-      const value = match[2] ?? "";
-      const unit = match[3] ?? "";
-      const referenceRange = match[4];
+      const name = normalizeName(match[pattern.nameIdx] ?? "");
+      const value = match[pattern.valueIdx] ?? "";
+      const unit =
+        pattern.unitIdx === undefined ? "" : (match[pattern.unitIdx] ?? "");
+      const referenceRange =
+        pattern.rangeIdx === undefined ? undefined : match[pattern.rangeIdx];
 
       // Skip duplicate names
       const nameKey = name.toLowerCase();
