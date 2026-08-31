@@ -1058,7 +1058,7 @@
           "depends_on": [],
           "severity": "blocker",
           "git_commit_message": "fix(ocr): replace unavailable canvas backend in imagePreprocessor with sharp",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.3",
@@ -1281,7 +1281,7 @@
           ],
           "severity": "high",
           "git_commit_message": "test(ocr): add direct unit tests for imagePreprocessor pixel operations",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.12",
