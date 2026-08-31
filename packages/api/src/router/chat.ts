@@ -8,6 +8,8 @@ import { DialectEnum } from "@klaro/validators/llm";
 
 import { logChatMessage, logLlmApiCall } from "../services/auditLogger";
 import { assembleDocumentContext } from "../services/contextAssembler";
+import { insertEncryptedChatMessage } from "../services/encryptedFields";
+import { decryptChatMessage } from "../services/encryption";
 import { callLLMAPI } from "../services/llm";
 import {
   buildBlockedResponse,
@@ -145,7 +147,7 @@ export const chatRouter = {
         }).catch(() => {});
 
         // Save user message (for record-keeping)
-        await ctx.db.insert(chatMessage).values({
+        await insertEncryptedChatMessage({
           analysisId: input.analysisId,
           userId,
           role: "user",
@@ -165,16 +167,13 @@ export const chatRouter = {
           dialect: input.dialect,
         };
 
-        await ctx.db
-          .insert(chatMessage)
-          .values({
-            analysisId: input.analysisId,
-            userId,
-            role: "assistant",
-            content: blockedResponse,
-            dialect: input.dialect,
-          })
-          .returning();
+        await insertEncryptedChatMessage({
+          analysisId: input.analysisId,
+          userId,
+          role: "assistant",
+          content: blockedResponse,
+          dialect: input.dialect,
+        });
 
         return {
           userMessage: {
@@ -205,7 +204,7 @@ export const chatRouter = {
       }
 
       // Save user message (original, for record-keeping)
-      await ctx.db.insert(chatMessage).values({
+      await insertEncryptedChatMessage({
         analysisId: input.analysisId,
         userId,
         role: "user",
@@ -221,11 +220,13 @@ export const chatRouter = {
         .orderBy(chatMessage.createdAt)
         .limit(5);
 
-      const recentMessages = recent.map((m) => ({
-        role: m.role,
-        content: m.content,
-        dialect: m.dialect ?? undefined,
-      }));
+      const recentMessages = await Promise.all(
+        recent.map(async (m) => ({
+          role: m.role,
+          content: await decryptChatMessage(m.content),
+          dialect: m.dialect ?? undefined,
+        })),
+      );
 
       // Assemble context from analysis + recent messages
       const context = assembleDocumentContext(
@@ -321,16 +322,13 @@ export const chatRouter = {
       };
 
       // Save assistant message
-      await ctx.db
-        .insert(chatMessage)
-        .values({
-          analysisId: input.analysisId,
-          userId,
-          role: "assistant",
-          content: assistantMessage.content,
-          dialect: input.dialect,
-        })
-        .returning();
+      await insertEncryptedChatMessage({
+        analysisId: input.analysisId,
+        userId,
+        role: "assistant",
+        content: assistantMessage.content,
+        dialect: input.dialect,
+      });
 
       return {
         userMessage: {
@@ -384,7 +382,14 @@ export const chatRouter = {
         .limit(input.limit)
         .orderBy(chatMessage.createdAt);
 
-      return messages;
+      // Content is stored as ciphertext; decrypt on the way out. Rows written
+      // before encryption was enabled come back unchanged.
+      return await Promise.all(
+        messages.map(async (m) => ({
+          ...m,
+          content: await decryptChatMessage(m.content),
+        })),
+      );
     }),
 
   /**

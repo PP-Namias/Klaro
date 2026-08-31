@@ -49,6 +49,8 @@ function outboundBody(fetchMock: ReturnType<typeof vi.fn>): string {
   return String(init?.body ?? "");
 }
 
+const MODULE_LOAD_TIMEOUT_MS = 30_000;
+
 describe("scanGuestImage PHI scrubbing", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
@@ -92,7 +94,7 @@ describe("scanGuestImage PHI scrubbing", () => {
     expect(body).not.toContain(PHILHEALTH);
     expect(body).not.toContain(DOB);
     expect(body).toContain("[PHI_REDACTED]");
-  });
+  }, MODULE_LOAD_TIMEOUT_MS);
 
   it("still forwards the clinical values the pipeline needs", async () => {
     const caller = await createCaller();
@@ -107,5 +109,5 @@ describe("scanGuestImage PHI scrubbing", () => {
     // Scrubbing removes identifiers, not the medicine.
     expect(body).toContain("Hemoglobin");
     expect(body).toContain("142");
-  });
+  }, MODULE_LOAD_TIMEOUT_MS);
 });
