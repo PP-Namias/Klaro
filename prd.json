@@ -641,7 +641,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "feat(scan): render the returned analysis on the scan page instead of dropping it",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.6",
