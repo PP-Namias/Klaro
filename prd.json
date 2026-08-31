@@ -1705,7 +1705,7 @@
           ],
           "severity": "high",
           "git_commit_message": "fix(documents): stop labelling fallback scan results as high-confidence AI output",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-5.6",
