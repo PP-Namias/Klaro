@@ -1256,7 +1256,7 @@
           ],
           "severity": "high",
           "git_commit_message": "test(ocr): add real Tesseract integration test on a fixture image",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.11",
