@@ -114,17 +114,31 @@ export const performOcr = async (
   const worker = await createWorker("eng");
 
   try {
-    const { data } = (await worker.recognize(imageUrlOrBuffer)) as {
+    // `blocks: true` is required: createWorker defaults to `{ text: true }`,
+    // which leaves data.blocks null. The previous code read `data.lines`, a
+    // field tesseract.js does not return — so every page scored 0 confidence
+    // and runOcrWithRetry rejected every document.
+    const { data } = (await worker.recognize(
+      imageUrlOrBuffer,
+      {},
+      { blocks: true, text: true },
+    )) as {
       data: {
         text: string;
-        lines?: {
-          text?: string;
-          confidence?: number;
-        }[];
+        confidence?: number;
+        blocks?:
+          | ({
+              paragraphs?: {
+                lines?: { text?: string; confidence?: number }[];
+              }[];
+            } | null)[]
+          | null;
       };
     };
 
-    const blocks: OcrBlock[] = (data.lines ?? [])
+    const blocks: OcrBlock[] = (data.blocks ?? [])
+      .flatMap((block) => block?.paragraphs ?? [])
+      .flatMap((paragraph) => paragraph.lines ?? [])
       .map((line) => ({
         text: line.text?.trim() ?? "",
         confidence:
@@ -134,10 +148,18 @@ export const performOcr = async (
       }))
       .filter((block) => block.text.length > 0);
 
+    // The page-level MeanTextConf is authoritative; per-line averaging is only
+    // a fallback for engines/inputs that do not report it.
+    const pageConfidence =
+      typeof data.confidence === "number" && Number.isFinite(data.confidence)
+        ? data.confidence / 100
+        : undefined;
+
     return buildOcrResult({
       text: data.text,
       blocks,
       source: "local",
+      confidence: pageConfidence,
     });
   } finally {
     await worker.terminate();
