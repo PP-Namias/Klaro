@@ -4,6 +4,7 @@
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Bot, Check, Focus, Lock, Paperclip, Trash2, X } from "lucide-react";
 
@@ -84,6 +85,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const { t, language } = useLanguage();
+  const router = useRouter();
 
   // Blocking consent gate: no medical document may be read until the Terms of
   // Service, Terms & Conditions and medical disclaimer are accepted.
@@ -651,7 +653,9 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                   analysisId: item.requestId ?? "",
                 }))}
                 onViewAnalysis={(id) => {
-                  window.location.href = `/scan?id=${id}`;
+                  // Client navigation keeps the chat history and the rendered
+                  // analysis mounted; a full reload discarded both.
+                  router.push(`/scan?id=${id}`);
                 }}
               />
             )}
