@@ -136,3 +136,47 @@ describe("calculateSeverity bands", () => {
     expect(calculateSeverity("HGB", 25).severity).toBe("critical");
   });
 });
+
+describe("Philippine lab panel coverage", () => {
+  it("carries at least 200 recognised aliases", async () => {
+    const { CANONICAL_TEST_NAMES } = await import("../extraction");
+
+    expect(Object.keys(CANONICAL_TEST_NAMES).length).toBeGreaterThanOrEqual(
+      200,
+    );
+  });
+
+  it("recognises urinalysis lines", () => {
+    const results = extractTestsFromText(
+      ["Specific Gravity: 1.020", "Pus Cells: 5-10 /hpf"].join("\n"),
+    );
+
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Specific Gravity");
+    expect(names).toContain("Pus Cells");
+    expect(results.find((r) => r.name === "Pus Cells")?.value).toBe("5-10");
+  });
+
+  it("recognises qualitative fecalysis lines", () => {
+    const results = extractTestsFromText(
+      ["Occult Blood: Positive", "Stool Consistency: Formed"].join("\n"),
+    );
+
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Occult Blood");
+    expect(results.find((r) => r.name === "Occult Blood")?.value).toBe(
+      "Positive",
+    );
+  });
+
+  it("canonicalizes panel aliases to one display name", () => {
+    const results = extractTestsFromText(
+      ["SGPT: 68 U/L", "Segmenters: 72 %", "FBS: 142 mg/dL"].join("\n"),
+    );
+
+    const names = results.map((r) => r.name);
+    expect(names).toContain("ALT");
+    expect(names).toContain("Neutrophils");
+    expect(names).toContain("Fasting Blood Glucose");
+  });
+});
