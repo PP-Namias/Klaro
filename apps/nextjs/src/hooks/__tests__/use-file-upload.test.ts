@@ -1,132 +1,162 @@
+/** @vitest-environment jsdom */
+
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { useFileUpload } from "~/hooks/use-file-upload";
+
+/**
+ * These tests drive the real hook. Before this suite the upload flow could
+ * never reach a terminal stage: upload() derived completion from the `queue`
+ * state captured in its own closure, which never included the files it had
+ * just processed, so `stage` stayed on "uploading" forever and both
+ * UploadComplete and UploadError were unreachable.
+ */
+
+const scanMutate = vi.fn();
+
+vi.mock("~/trpc/react", () => ({
+  useTRPCClient: () => ({
+    documents: { scanGuestImage: { mutate: scanMutate } },
+  }),
+}));
+
+vi.mock("~/lib/file-validation", async () => {
+  const actual = await vi.importActual<typeof import("~/lib/file-validation")>(
+    "~/lib/file-validation",
+  );
+  return {
+    ...actual,
+    // Bypass magic-byte sniffing; these tests are about queue state machinery.
+    validateFiles: (files: File[]) =>
+      Promise.resolve({ valid: files, invalid: [] }),
+    fileToBase64: () => Promise.resolve("ZmFrZS1iYXNlNjQ="),
+  };
+});
+
+function makeFile(name = "lab.png") {
+  return new File([new Uint8Array([1, 2, 3])], name, { type: "image/png" });
+}
 
 describe("useFileUpload", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("initializes with idle stage", () => {
-    const stage = "idle";
-    expect(stage).toBe("idle");
+  it("starts idle with no progress and no error", () => {
+    const { result } = renderHook(() => useFileUpload());
+
+    expect(result.current.stage).toBe("idle");
+    expect(result.current.progress).toBe(0);
+    expect(result.current.error).toBeNull();
+    expect(result.current.queue).toEqual([]);
   });
 
-  it("has progress starting at 0", () => {
-    const progress = 0;
-    expect(progress).toBe(0);
+  it("reaches stage 'complete' with progress 100 after a successful upload", async () => {
+    scanMutate.mockResolvedValue({ status: "completed", requestId: "req-1" });
+
+    const { result } = renderHook(() => useFileUpload());
+
+    await act(async () => {
+      await result.current.upload([makeFile()]);
+    });
+
+    await waitFor(() => {
+      expect(result.current.stage).toBe("complete");
+    });
+    expect(result.current.progress).toBe(100);
+    expect(result.current.requestId).toBe("req-1");
+    expect(result.current.isUploading).toBe(false);
   });
 
-  it("has null error initially", () => {
-    const error = null;
-    expect(error).toBeNull();
+  it("reaches stage 'error' and sets error when the scan returns an error", async () => {
+    scanMutate.mockResolvedValue({
+      status: "error",
+      error: "Document unreadable",
+    });
+
+    const { result } = renderHook(() => useFileUpload());
+
+    await act(async () => {
+      await result.current.upload([makeFile()]);
+    });
+
+    await waitFor(() => {
+      expect(result.current.stage).toBe("error");
+    });
+    expect(result.current.error).toBeTruthy();
+    expect(result.current.queue[0]?.stage).toBe("error");
   });
 
-  it("has null requestId initially", () => {
-    const requestId = null;
-    expect(requestId).toBeNull();
+  it("reaches stage 'error' when the mutation itself rejects", async () => {
+    scanMutate.mockRejectedValue(new Error("network down"));
+
+    const { result } = renderHook(() => useFileUpload());
+
+    await act(async () => {
+      await result.current.upload([makeFile()]);
+    });
+
+    await waitFor(() => {
+      expect(result.current.stage).toBe("error");
+    });
+    expect(result.current.queue[0]?.error).toContain("network down");
   });
 
-  it("isUploading returns false when idle", () => {
-    const stage = "idle";
-    const isUploading =
-      stage !== "idle" && stage !== "complete" && stage !== "error";
-    expect(isUploading).toBe(false);
-  });
+  it("completes every file in a multi-file queue", async () => {
+    scanMutate
+      .mockResolvedValueOnce({ status: "completed", requestId: "req-a" })
+      .mockResolvedValueOnce({ status: "completed", requestId: "req-b" })
+      .mockResolvedValueOnce({ status: "completed", requestId: "req-c" });
 
-  it("isUploading returns true when uploading", () => {
-    const stage = "uploading";
-    const isUploading =
-      stage !== "idle" && stage !== "complete" && stage !== "error";
-    expect(isUploading).toBe(true);
-  });
+    const { result } = renderHook(() => useFileUpload());
 
-  it("isUploading returns true when processing", () => {
-    const stage = "processing";
-    const isUploading =
-      stage !== "idle" && stage !== "complete" && stage !== "error";
-    expect(isUploading).toBe(true);
-  });
+    await act(async () => {
+      await result.current.upload([
+        makeFile("a.png"),
+        makeFile("b.png"),
+        makeFile("c.png"),
+      ]);
+    });
 
-  it("isUploading returns false when complete", () => {
-    const stage = "complete";
-    const isUploading =
-      stage !== "idle" && stage !== "complete" && stage !== "error";
-    expect(isUploading).toBe(false);
-  });
-
-  it("isUploading returns false when error", () => {
-    const stage = "error";
-    const isUploading =
-      stage !== "idle" && stage !== "complete" && stage !== "error";
-    expect(isUploading).toBe(false);
-  });
-
-  it("validates files before upload", () => {
-    const validFiles = [
-      new File(["content"], "lab.png", { type: "image/png" }),
-    ];
-    const invalidFiles = [
-      new File(["content"], "malware.exe", {
-        type: "application/x-msdownload",
-      }),
-    ];
-
-    const acceptedTypes = new Set([
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-      "image/webp",
-      "application/pdf",
+    await waitFor(() => {
+      expect(result.current.stage).toBe("complete");
+    });
+    expect(result.current.queue).toHaveLength(3);
+    expect(result.current.queue.map((f) => f.requestId)).toEqual([
+      "req-a",
+      "req-b",
+      "req-c",
     ]);
-
-    const validResult = validFiles.filter((f) => acceptedTypes.has(f.type));
-    const invalidResult = invalidFiles.filter(
-      (f) => !acceptedTypes.has(f.type),
-    );
-
-    expect(validResult).toHaveLength(1);
-    expect(invalidResult).toHaveLength(1);
   });
 
-  it("uses base64Image field for tRPC mutation", () => {
-    const field = "base64Image";
-    expect(field).toBe("base64Image");
+  it("reports an error stage when no file survives validation", async () => {
+    const { result } = renderHook(() => useFileUpload());
+
+    await act(async () => {
+      await result.current.upload([]);
+    });
+
+    expect(result.current.stage).toBe("error");
+    expect(result.current.error).toBe("No valid files selected.");
+    expect(scanMutate).not.toHaveBeenCalled();
   });
 
-  it("reset clears all state", () => {
-    let stage = "complete";
-    let progress = 100;
-    let error = "some error";
-    let requestId = "req-123";
+  it("resets back to a clean idle state", async () => {
+    scanMutate.mockResolvedValue({ status: "completed", requestId: "req-1" });
 
-    const reset = () => {
-      stage = "idle";
-      progress = 0;
-      error = "";
-      requestId = "";
-    };
+    const { result } = renderHook(() => useFileUpload());
 
-    reset();
-    expect(stage).toBe("idle");
-    expect(progress).toBe(0);
-    expect(error).toBe("");
-    expect(requestId).toBe("");
-  });
+    await act(async () => {
+      await result.current.upload([makeFile()]);
+    });
+    act(() => {
+      result.current.reset();
+    });
 
-  it("progress stages are sequential", () => {
-    const stages = ["validating", "uploading", "processing", "complete"];
-    const progressMap: Record<string, number> = {
-      validating: 10,
-      uploading: 30,
-      processing: 80,
-      complete: 100,
-    };
-
-    for (let i = 1; i < stages.length; i++) {
-      const prev = stages[i - 1];
-      const curr = stages[i];
-      if (prev && curr) {
-        expect(progressMap[curr]).toBeGreaterThan(progressMap[prev]!);
-      }
-    }
+    expect(result.current.stage).toBe("idle");
+    expect(result.current.progress).toBe(0);
+    expect(result.current.queue).toEqual([]);
+    expect(result.current.requestId).toBeNull();
   });
 });

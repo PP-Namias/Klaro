@@ -11,6 +11,9 @@ import type { UploadStage } from "~/components/upload-progress";
 import { fileToBase64, validateFiles } from "~/lib/file-validation";
 import { useTRPCClient } from "~/trpc/react";
 
+/** Result of processing a single queued file. */
+type FileOutcome = "complete" | "error" | "cancelled";
+
 export interface UploadFileItem {
   id: string;
   file: File;
@@ -58,8 +61,8 @@ export function useFileUpload({
   const trpcClient = useTRPCClient();
 
   const processFile = useCallback(
-    async (item: UploadFileItem): Promise<void> => {
-      if (cancelledRef.current.has(item.id)) return;
+    async (item: UploadFileItem): Promise<FileOutcome> => {
+      if (cancelledRef.current.has(item.id)) return "cancelled";
 
       try {
         setQueue((prev) =>
@@ -70,7 +73,7 @@ export function useFileUpload({
 
         const base64 = await fileToBase64(item.file);
 
-        if (cancelledRef.current.has(item.id)) return;
+        if (cancelledRef.current.has(item.id)) return "cancelled";
 
         setQueue((prev) =>
           prev.map((f) =>
@@ -87,7 +90,7 @@ export function useFileUpload({
             | "Bisaya"
             | "Ilocano",
         });
-        if (cancelledRef.current.has(item.id)) return;
+        if (cancelledRef.current.has(item.id)) return "cancelled";
         if (result.status === "error") {
           setQueue((prev) =>
             prev.map((f) =>
@@ -117,8 +120,9 @@ export function useFileUpload({
         );
         setRequestId(result.requestId);
         onSuccess?.(result.requestId);
+        return "complete";
       } catch (err) {
-        if (cancelledRef.current.has(item.id)) return;
+        if (cancelledRef.current.has(item.id)) return "cancelled";
         setQueue((prev) =>
           prev.map((f) =>
             f.id === item.id
@@ -131,6 +135,7 @@ export function useFileUpload({
               : f,
           ),
         );
+        return "error";
       }
     },
     [trpcClient, language, onSuccess],
@@ -159,27 +164,41 @@ export function useFileUpload({
       setProgress(10);
       setError(null);
 
-      // Process files sequentially
-      for (const item of newItems) {
-        if (cancelledRef.current.has(item.id)) continue;
-        await processFile(item);
+      // Process files sequentially, collecting each outcome. The terminal state
+      // is derived from these outcomes rather than from the `queue` state, which
+      // is stale inside this closure and never reflected the just-processed files.
+      const outcomes: FileOutcome[] = [];
+
+      for (const [index, item] of newItems.entries()) {
+        if (cancelledRef.current.has(item.id)) {
+          outcomes.push("cancelled");
+        } else {
+          outcomes.push(await processFile(item));
+        }
+
+        setProgress(Math.round(((index + 1) / newItems.length) * 100));
       }
 
-      // Check overall status
-      const allComplete = queue
-        .concat(newItems)
-        .every((f) => f.stage === "complete" || cancelledRef.current.has(f.id));
-      const anyError = queue.concat(newItems).some((f) => f.stage === "error");
+      const anyError = outcomes.includes("error");
+      const settled = outcomes.filter((outcome) => outcome !== "cancelled");
 
       if (anyError) {
         setStage("error");
         setError("Some files failed to upload.");
-      } else if (allComplete) {
+        onError?.("Some files failed to upload.");
+      } else if (
+        settled.length > 0 &&
+        settled.every((outcome) => outcome === "complete")
+      ) {
         setStage("complete");
         setProgress(100);
+      } else {
+        // Everything was cancelled — go back to idle rather than hanging.
+        setStage("idle");
+        setProgress(0);
       }
     },
-    [processFile, onError, queue],
+    [processFile, onError],
   );
 
   const retryFile = useCallback(
