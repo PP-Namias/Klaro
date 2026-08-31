@@ -1559,7 +1559,7 @@
           ],
           "severity": "medium",
           "git_commit_message": "feat(chat): localize medical terms in Clara's context via medicalTerminology",
-          "passes": false
+          "passes": true
         }
       ]
     },
