@@ -833,11 +833,35 @@ export const documentsRouter = {
           "../services/documentPipeline"
         );
 
-        const pipeline = await executeDocumentPipeline({
-          imageBase64: input.base64Image,
-          fileName: input.fileName,
-          language: input.language,
-        });
+        const runPipeline = () =>
+          executeDocumentPipeline({
+            imageBase64: input.base64Image,
+            fileName: input.fileName,
+            language: input.language,
+          });
+
+        let pipeline = await runPipeline();
+        const extraWarnings: string[] = [];
+
+        // One reprocess when the model was not confident. Capped at a single
+        // retry so the 30s request budget below still holds.
+        const { getPipelineConfig } = await import("../config/pipeline");
+        const confidenceThreshold =
+          getPipelineConfig().gemini.confidenceThreshold;
+        const scoreOf = (result: typeof pipeline) =>
+          result.geminiConfidence || result.ocrConfidence;
+
+        if (pipeline.accepted && scoreOf(pipeline) < confidenceThreshold) {
+          extraWarnings.push("reprocessed:low_confidence");
+          try {
+            const retry = await runPipeline();
+            if (retry.accepted && scoreOf(retry) > scoreOf(pipeline)) {
+              pipeline = retry;
+            }
+          } catch {
+            // Keep the first attempt; the warning already records the retry.
+          }
+        }
 
         if (pipeline.accepted) {
           return normalizeGuestScanResponse(
@@ -848,9 +872,9 @@ export const documentsRouter = {
               plainLanguageSummary: pipeline.plainLanguageSummary,
               urgency: pipeline.urgency,
               recommendations: pipeline.recommendations,
-              confidence: pipeline.geminiConfidence || pipeline.ocrConfidence,
+              confidence: scoreOf(pipeline),
               extractedData: pipeline.extractedData,
-              warnings: pipeline.warnings,
+              warnings: [...pipeline.warnings, ...extraWarnings],
             },
             { language: input.language, requestId },
           );
