@@ -304,10 +304,12 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     );
   }
 
-  // The analysis lives in React state only and is never persisted (RA 10173).
-  const completedResults = fileUpload.queue.filter(
-    (item) => item.stage === "complete" && item.result,
+  const completedUploads = fileUpload.queue.filter(
+    (item) => item.stage === "complete",
   );
+
+  // The analysis lives in React state only and is never persisted (RA 10173).
+  const completedResults = completedUploads.filter((item) => item.result);
 
   const hasUploadQueue = selectedFiles.length > 0;
   const uploadComplete = fileUpload.stage === "complete";
@@ -635,17 +637,16 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             />
 
             {/* Upload complete */}
-            {uploadComplete && uploadedRequestId && (
+            {uploadComplete && completedUploads.length > 0 && (
               <UploadComplete
-                items={[
-                  {
-                    fileName: selectedFiles[0]?.file.name ?? "Document",
-                    fileType:
-                      selectedFiles[0]?.kind === "pdf" ? "pdf" : "image",
-                    fileSize: selectedFiles[0]?.file.size ?? 0,
-                    analysisId: uploadedRequestId,
-                  },
-                ]}
+                items={completedUploads.map((item) => ({
+                  fileName: item.file.name,
+                  fileType:
+                    item.file.type === "application/pdf" ? "pdf" : "image",
+                  fileSize: item.file.size,
+                  // Each row carries its own request id, not the last one written.
+                  analysisId: item.requestId ?? "",
+                }))}
                 onViewAnalysis={(id) => {
                   window.location.href = `/scan?id=${id}`;
                 }}
