@@ -1033,7 +1033,7 @@
           "depends_on": [],
           "severity": "blocker",
           "git_commit_message": "fix(ocr): read real Tesseract confidence from data.confidence and data.blocks",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.2",
