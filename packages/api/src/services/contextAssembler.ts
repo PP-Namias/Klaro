@@ -5,6 +5,7 @@
  * PHI Protection: All patient identifiers are scrubbed before context assembly
  * to prevent leakage to external LLM APIs.
  */
+import { convertToPlainLanguage, getTerminology } from "./medicalTerminology";
 import { scrubPhi } from "./phiScrubber";
 
 /**
@@ -73,12 +74,37 @@ function scrubChatMessages(
   }));
 }
 
+/** Map a chat dialect onto the terminology database's language keys. */
+function terminologyLanguage(dialect?: string): string {
+  switch (dialect) {
+    case "Filipino":
+      return "fil";
+    case "Bisaya":
+      return "bisaya";
+    case "Ilocano":
+      return "ilocano";
+    default:
+      return "en";
+  }
+}
+
+/**
+ * Annotate a result key with its dialect-appropriate term so Clara can explain
+ * the value in the patient's own language. Keys with no entry pass through
+ * untouched.
+ */
+function localizeFieldName(key: string, dialect?: string): string {
+  if (!getTerminology(key)) return key;
+  return convertToPlainLanguage(key, terminologyLanguage(dialect));
+}
+
 export function assembleDocumentContext(
   analysis: {
     extractedFields?: Record<string, unknown> | null;
     plainLanguageSummary?: string | null;
   },
   recentMessages?: { role: string; content: string; dialect?: string }[],
+  dialect?: string,
 ): string {
   const parts: string[] = [];
 
@@ -86,10 +112,16 @@ export function assembleDocumentContext(
     analysis.extractedFields &&
     Object.keys(analysis.extractedFields).length > 0
   ) {
-    // Scrub PHI from extracted fields before building context
+    // Scrub PHI from extracted fields before building context. Term
+    // annotation happens afterwards so it can never undo a redaction.
     const scrubbedFields = scrubExtractedFields(analysis.extractedFields);
     const fields = Object.entries(scrubbedFields)
-      .map(([k, v]) => `${k}: ${String(v)}`)
+      .map(([k, v]) => {
+        const localized = localizeFieldName(k, dialect);
+        return localized === k
+          ? `${k}: ${String(v)}`
+          : `${k} (${localized}): ${String(v)}`;
+      })
       .join("; ");
     parts.push(`Patient results: ${fields}.`);
   }

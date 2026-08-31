@@ -238,6 +238,9 @@ export const chatRouter = {
           plainLanguageSummary: docAnalysis.plainLanguageSummary,
         },
         recentMessages,
+        // Clara explains results in the patient's dialect, so the medical terms
+        // in the context are localized to match.
+        input.dialect,
       );
 
       // PHI Scrubbing: Redact patient data from context before sending to LLM
