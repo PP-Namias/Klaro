@@ -1533,7 +1533,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "refactor(validation): unify reference ranges into one age and sex aware table",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-4.6",
