@@ -665,7 +665,7 @@
           ],
           "severity": "high",
           "git_commit_message": "fix(upload): render an UploadComplete row per completed file",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.7",
