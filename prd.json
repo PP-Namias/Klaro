@@ -1161,7 +1161,7 @@
           ],
           "severity": "high",
           "git_commit_message": "feat(ocr): wire PDF detection and multi-page OCR into scanGuestImage",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.7",
