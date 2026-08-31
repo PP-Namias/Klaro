@@ -828,7 +828,7 @@
           "depends_on": [],
           "severity": "medium",
           "git_commit_message": "fix(upload): stop silently reporting 1 page for unparseable PDFs",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.14",
