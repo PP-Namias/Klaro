@@ -57,6 +57,8 @@ const ceb: Record<string, string> = {
   // Footer
   "scan.analysisChat": "Pagsusuri ug Chat",
   "scan.privacy": "Pribado ug luwas ang imong data.",
+  "scan.degradedResult":
+    "Limitado nga pagsusi: wala ma-access ang among AI service, busa dili kini gikan sa medikal nga modelo. Palihug ipasusi kini sa imong healthcare provider.",
 
   // Chat
   "chat.placeholder":

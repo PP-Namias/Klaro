@@ -56,6 +56,8 @@ const ilo: Record<string, string> = {
   // Footer
   "scan.analysisChat": "Panagsusuri ken Chat",
   "scan.privacy": "Privado ken naligi ti data mo.",
+  "scan.degradedResult":
+    "Limitado a panagsukisok: saan a magamit ti AI service mi, isu a saan a naggapu iti medikal a modelo. Pangngaasi ta ipasuri daytoy iti healthcare provider mo.",
 
   // Chat
   "chat.placeholder":

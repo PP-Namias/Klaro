@@ -762,6 +762,11 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
 
               if (!summary && recommendations.length === 0) return null;
 
+              // A fallback or mock result did not come from a real model.
+              // Saying so is a safety requirement, not a nicety.
+              const isDegraded =
+                result.source === "fallback" || result.source === "mock";
+
               return (
                 <div
                   key={item.id}
@@ -773,6 +778,23 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                     gap: 12,
                   }}
                 >
+                  {isDegraded && (
+                    <div
+                      role="status"
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                        border: "1px solid #f59e0b",
+                        background: "#fffbeb",
+                        color: "#92400e",
+                        fontSize: "0.85rem",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {t("scan.degradedResult")}
+                    </div>
+                  )}
+
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 12 }}
                   >

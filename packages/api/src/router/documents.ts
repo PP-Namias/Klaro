@@ -113,9 +113,10 @@ function buildFallbackGuestScanResult(params: {
     plainLanguageSummary: summary,
     urgency,
     recommendations,
-    confidence: 0.6,
+    // No confidence: this result did not come from a model, and inventing a
+    // number here made a degraded response look like a real analysis.
     extractedData: {},
-    warnings: [params.reason],
+    warnings: ["degraded:fallback", params.reason],
     timestamp: new Date().toISOString(),
   };
 }
@@ -141,13 +142,15 @@ function normalizeGuestScanResponse(
       ? summarySource.trim().slice(0, 500)
       : "Medical document scanned and analyzed";
 
+  // Absent upstream confidence stays absent. Substituting 0.85 presented an
+  // unscored result as a high-confidence one.
   const confidenceRaw = data.confidence;
   const confidence =
     typeof confidenceRaw === "number" &&
     confidenceRaw >= 0 &&
     confidenceRaw <= 1
       ? confidenceRaw
-      : 0.85;
+      : undefined;
 
   const normalized: ScanGuestResponse = {
     requestId:
@@ -155,14 +158,15 @@ function normalizeGuestScanResponse(
         ? data.requestId
         : (input.requestId ?? `scan-${Date.now()}`),
     status: "completed",
+    // Unknown sources fall back to "raw", never "gemini": a mock upstream must
+    // not be relabelled as a real Gemini analysis.
     source:
-      typeof data.source === "string"
-        ? (["gemini", "fallback", "llm", "mock", "raw"] as const).includes(
-            data.source as "gemini" | "fallback" | "llm" | "mock" | "raw",
-          )
-          ? (data.source as "gemini" | "fallback" | "llm" | "mock" | "raw")
-          : "gemini"
-        : "gemini",
+      typeof data.source === "string" &&
+      (["gemini", "fallback", "llm", "mock", "raw"] as const).includes(
+        data.source as "gemini" | "fallback" | "llm" | "mock" | "raw",
+      )
+        ? (data.source as "gemini" | "fallback" | "llm" | "mock" | "raw")
+        : "raw",
     language: input.language,
     analysis: {
       summary,

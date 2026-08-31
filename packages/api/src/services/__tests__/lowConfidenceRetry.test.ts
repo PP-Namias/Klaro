@@ -114,3 +114,88 @@ describe("scanGuestImage low-confidence reprocessing", () => {
     expect(result.warnings).toContain("reprocessed:low_confidence");
   });
 });
+
+describe("degraded results are self-identifying", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    runOcrWithRetry.mockResolvedValue({
+      accepted: true,
+      text: "Hemoglobin 11.2",
+      confidence: 0.9,
+      source: "local",
+      warnings: [],
+      pages: [],
+      success: true,
+      processingTimeMs: 1,
+    });
+  });
+
+  it("never relabels a mock upstream as a real Gemini analysis", async () => {
+    executeDocumentPipeline.mockRejectedValue(new Error("no pipeline"));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              requestId: "svc-1",
+              source: "mock",
+              plainLanguageSummary: "mocked",
+              urgency: "LOW",
+              recommendations: ["x"],
+            }),
+          text: () => Promise.resolve(""),
+        } as unknown as Response),
+      ),
+    );
+
+    const result = await callScan();
+
+    expect(result.source).toBe("mock");
+    vi.unstubAllGlobals();
+  });
+
+  it("omits confidence when the upstream reports none", async () => {
+    executeDocumentPipeline.mockRejectedValue(new Error("no pipeline"));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              requestId: "svc-2",
+              plainLanguageSummary: "no score given",
+              urgency: "LOW",
+              recommendations: ["x"],
+            }),
+          text: () => Promise.resolve(""),
+        } as unknown as Response),
+      ),
+    );
+
+    const result = await callScan();
+
+    // Previously this was silently reported as 0.85.
+    expect(result.confidence).toBeUndefined();
+    expect(result.source).toBe("raw");
+    vi.unstubAllGlobals();
+  });
+
+  it("marks a hard fallback as degraded and gives it no confidence", async () => {
+    executeDocumentPipeline.mockRejectedValue(new Error("no pipeline"));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.reject(new Error("service down"))),
+    );
+
+    const result = await callScan();
+
+    expect(result.source).toBe("fallback");
+    expect(result.confidence).toBeUndefined();
+    expect(result.warnings).toContain("degraded:fallback");
+    vi.unstubAllGlobals();
+  });
+});
