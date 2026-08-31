@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/prefer-regexp-exec, @typescript-eslint/no-non-null-assertion, @typescript-eslint/prefer-nullish-coalescing */
 
+// Kept in lockstep with the AI service's own filter
+// (packages/ai-sidecar/src/routes/ingest.ts). TIFF, BMP and GIF were accepted
+// here but rejected downstream, so those uploads failed after the user waited.
 const ACCEPTED_TYPES = new Set([
   "image/png",
   "image/jpeg",
   "image/jpg",
   "image/webp",
   "application/pdf",
-  "image/tiff",
-  "image/bmp",
-  "image/gif",
 ]);
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;

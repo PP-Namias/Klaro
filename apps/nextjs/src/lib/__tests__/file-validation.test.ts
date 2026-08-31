@@ -63,12 +63,18 @@ describe("validateFile", () => {
     });
   });
 
-  it("accepts TIFF files", async () => {
-    const file = createFile("scan.tiff", "image/tiff", 1024);
-    await expect(validateFile(file)).resolves.toMatchObject({
-      valid: true,
-      kind: "image",
-    });
+  it("rejects TIFF, BMP and GIF, which the server path cannot process", async () => {
+    // These were accepted here but rejected by the AI service's own filter, so
+    // the upload failed only after the user had waited for it.
+    for (const [name, type] of [
+      ["scan.tiff", "image/tiff"],
+      ["scan.bmp", "image/bmp"],
+      ["scan.gif", "image/gif"],
+    ] as const) {
+      const result = await validateFile(createFile(name, type, 1024));
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain("not supported");
+    }
   });
 
   it("rejects EXE files", async () => {
