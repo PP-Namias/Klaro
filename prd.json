@@ -1373,7 +1373,7 @@
           ],
           "severity": "high",
           "git_commit_message": "feat(ocr): wire executeDocumentPipeline into the guest scan route",
-          "passes": false,
+          "passes": true,
           "deferred_reason": "Same decision as T-5.2 (route the guest scan through the real orchestrator). Sequenced behind it so the wiring is done once, in EPIC-5."
         },
         {
@@ -1618,7 +1618,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "feat(documents): route guest scans through executeDocumentPipeline",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-5.3",
