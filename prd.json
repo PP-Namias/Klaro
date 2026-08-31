@@ -1328,7 +1328,7 @@
           ],
           "severity": "medium",
           "git_commit_message": "fix(upload): reject file formats tesseract cannot decode instead of failing silently",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-3.14",
