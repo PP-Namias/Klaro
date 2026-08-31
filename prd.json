@@ -981,7 +981,7 @@
           ],
           "severity": "medium",
           "git_commit_message": "chore(scan): remove the orphaned UploadForm/ScanContainer chain and its sessionStorage writer",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-2.20",
