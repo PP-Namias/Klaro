@@ -1725,7 +1725,7 @@
           ],
           "severity": "blocker",
           "git_commit_message": "fix(api): analyse the real extracted values instead of a hardcoded placeholder document",
-          "passes": false
+          "passes": true
         },
         {
           "task_id": "T-5.7",
