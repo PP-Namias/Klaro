@@ -1,6 +1,6 @@
+import { randomUUID } from "node:crypto";
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
-import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
@@ -14,18 +14,15 @@ import {
   scanGuestResponseSchema,
 } from "@klaro/validators/scan-analysis";
 
-import { extractTestsFromText } from "../services/extraction";
-import { generatePlainLanguageExplanation } from "../services/llm";
 import {
   logAuditEvent,
   logLlmApiCall,
   logPhiScrubbing,
 } from "../services/auditLogger";
-import {
-  detectPhiTypes,
-  scrubForExternalApi,
-} from "../services/phiScrubber";
+import { extractTestsFromText } from "../services/extraction";
+import { generatePlainLanguageExplanation } from "../services/llm";
 import { buildOcrResult } from "../services/ocr";
+import { detectPhiTypes, scrubForExternalApi } from "../services/phiScrubber";
 import { protectedProcedure, publicProcedure, scanProcedure } from "../trpc";
 
 const scanUrgencyValues = ["LOW", "MODERATE", "HIGH"] as const;
@@ -786,11 +783,43 @@ export const documentsRouter = {
       // It is an opaque random id and carries no patient information.
       const requestId = randomUUID();
 
-      const { runOcrWithRetry, buildRejectionResponse } = await import(
-        "../services/ocrPipeline"
+      const { runOcrWithRetry, runOcrOnPages, buildRejectionResponse } =
+        await import("../services/ocrPipeline");
+
+      // PDFs must be rasterized before OCR; feeding the raw bytes to tesseract
+      // silently produced nothing.
+      const inputBuffer = Buffer.from(input.base64Image, "base64");
+      const { isPdf, convertPdfToImages } = await import(
+        "../services/pdfConversion"
       );
 
-      const ocrResult = await runOcrWithRetry(input.base64Image);
+      let ocrResult;
+      if (isPdf(inputBuffer)) {
+        const converted = await convertPdfToImages(inputBuffer);
+
+        if (!converted.success) {
+          return buildRejectionResponse(
+            {
+              success: false,
+              accepted: false,
+              text: "",
+              confidence: 0,
+              pages: [],
+              source: "local",
+              warnings: [converted.error ?? "PDF conversion failed"],
+              rejectionReason: "pdf_conversion_failed",
+              rejectionAdvice:
+                "We could not read that PDF. Please upload a clear photo or a different file.",
+              processingTimeMs: 0,
+            },
+            input.language,
+          );
+        }
+
+        ocrResult = await runOcrOnPages(converted.pages);
+      } else {
+        ocrResult = await runOcrWithRetry(input.base64Image);
+      }
 
       if (!ocrResult.accepted) {
         return buildRejectionResponse(ocrResult, input.language);

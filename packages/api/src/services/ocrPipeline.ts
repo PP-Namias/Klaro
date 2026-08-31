@@ -219,6 +219,75 @@ export async function runOcrWithRetry(
   };
 }
 
+/**
+ * OCR every rasterized page of a document and combine them into one result.
+ *
+ * Each page runs through the full retry/preprocess/cloud-fallback pipeline. The
+ * document is accepted when at least one page was accepted, so a single blurry
+ * page does not discard an otherwise readable report.
+ */
+export async function runOcrOnPages(
+  pages: { pageNumber: number; base64: string }[],
+): Promise<OcrPipelineResult> {
+  const startTime = Date.now();
+
+  if (pages.length === 0) {
+    return {
+      success: false,
+      accepted: false,
+      text: "",
+      confidence: 0,
+      pages: [],
+      source: "local",
+      warnings: ["No pages to process"],
+      rejectionReason: "empty_document",
+      rejectionAdvice:
+        "The document contained no readable pages. Please upload a different file.",
+      processingTimeMs: Date.now() - startTime,
+    };
+  }
+
+  const results: OcrPipelineResult[] = [];
+  for (const page of pages) {
+    results.push(await runOcrWithRetry(page.base64));
+  }
+
+  const pageResults: OcrPageResult[] = results.map((result, index) => ({
+    pageNumber: pages[index]?.pageNumber ?? index + 1,
+    text: result.text,
+    confidence: result.confidence,
+    source: result.source,
+    warnings: result.warnings,
+  }));
+
+  const accepted = results.some((result) => result.accepted);
+  const warnings = results.flatMap((result, index) =>
+    result.warnings.map((w) => `Page ${pageResults[index]?.pageNumber}: ${w}`),
+  );
+
+  const rejected = results.find((result) => !result.accepted);
+
+  return {
+    success: pageResults.some((page) => page.text.length > 0),
+    accepted,
+    text: pageResults
+      .map((page) => page.text)
+      .filter((text) => text.length > 0)
+      .join("\n\n"),
+    confidence: computeWeightedConfidence(pageResults),
+    pages: pageResults,
+    source: pageResults[0]?.source ?? "local",
+    warnings,
+    ...(accepted
+      ? {}
+      : {
+          rejectionReason: rejected?.rejectionReason ?? "low_confidence",
+          rejectionAdvice: rejected?.rejectionAdvice,
+        }),
+    processingTimeMs: Date.now() - startTime,
+  };
+}
+
 export function buildRejectionResponse(
   result: OcrPipelineResult,
   language = "English",

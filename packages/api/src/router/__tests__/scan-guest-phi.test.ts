@@ -28,6 +28,8 @@ const buildRejectionResponse = vi.fn();
 
 vi.mock("../../services/ocrPipeline", () => ({
   runOcrWithRetry: (...args: unknown[]) => runOcrWithRetry(...args),
+  // The PDF branch uses this; these fixtures are images so it is never called.
+  runOcrOnPages: vi.fn(),
   buildRejectionResponse: (...args: unknown[]) =>
     buildRejectionResponse(...args),
 }));
@@ -78,36 +80,44 @@ describe("scanGuestImage PHI scrubbing", () => {
     vi.stubGlobal("fetch", fetchMock);
   });
 
-  it("never sends the patient name, mobile number, PhilHealth number or DOB", async () => {
-    const caller = await createCaller();
+  it(
+    "never sends the patient name, mobile number, PhilHealth number or DOB",
+    async () => {
+      const caller = await createCaller();
 
-    await caller.documents.scanGuestImage({
-      base64Image: Buffer.from("x".repeat(600)).toString("base64"),
-      fileName: "lab.png",
-      language: "English",
-    });
+      await caller.documents.scanGuestImage({
+        base64Image: Buffer.from("x".repeat(600)).toString("base64"),
+        fileName: "lab.png",
+        language: "English",
+      });
 
-    const body = outboundBody(fetchMock);
+      const body = outboundBody(fetchMock);
 
-    expect(body).not.toContain(PATIENT_NAME);
-    expect(body).not.toContain(MOBILE);
-    expect(body).not.toContain(PHILHEALTH);
-    expect(body).not.toContain(DOB);
-    expect(body).toContain("[PHI_REDACTED]");
-  }, MODULE_LOAD_TIMEOUT_MS);
+      expect(body).not.toContain(PATIENT_NAME);
+      expect(body).not.toContain(MOBILE);
+      expect(body).not.toContain(PHILHEALTH);
+      expect(body).not.toContain(DOB);
+      expect(body).toContain("[PHI_REDACTED]");
+    },
+    MODULE_LOAD_TIMEOUT_MS,
+  );
 
-  it("still forwards the clinical values the pipeline needs", async () => {
-    const caller = await createCaller();
+  it(
+    "still forwards the clinical values the pipeline needs",
+    async () => {
+      const caller = await createCaller();
 
-    await caller.documents.scanGuestImage({
-      base64Image: Buffer.from("x".repeat(600)).toString("base64"),
-      language: "English",
-    });
+      await caller.documents.scanGuestImage({
+        base64Image: Buffer.from("x".repeat(600)).toString("base64"),
+        language: "English",
+      });
 
-    const body = outboundBody(fetchMock);
+      const body = outboundBody(fetchMock);
 
-    // Scrubbing removes identifiers, not the medicine.
-    expect(body).toContain("Hemoglobin");
-    expect(body).toContain("142");
-  }, MODULE_LOAD_TIMEOUT_MS);
+      // Scrubbing removes identifiers, not the medicine.
+      expect(body).toContain("Hemoglobin");
+      expect(body).toContain("142");
+    },
+    MODULE_LOAD_TIMEOUT_MS,
+  );
 });
