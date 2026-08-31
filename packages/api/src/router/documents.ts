@@ -825,6 +825,44 @@ export const documentsRouter = {
         return buildRejectionResponse(ocrResult, input.language);
       }
 
+      // Primary path: the in-process orchestrator. It composes PHI scrubbing,
+      // the Gemini fallback chain, hallucination detection and audit logging —
+      // all of which were previously bypassed by the thin HTTP hop below.
+      try {
+        const { executeDocumentPipeline } = await import(
+          "../services/documentPipeline"
+        );
+
+        const pipeline = await executeDocumentPipeline({
+          imageBase64: input.base64Image,
+          fileName: input.fileName,
+          language: input.language,
+        });
+
+        if (pipeline.accepted) {
+          return normalizeGuestScanResponse(
+            {
+              requestId,
+              status: "completed",
+              source: "llm",
+              plainLanguageSummary: pipeline.plainLanguageSummary,
+              urgency: pipeline.urgency,
+              recommendations: pipeline.recommendations,
+              confidence: pipeline.geminiConfidence || pipeline.ocrConfidence,
+              extractedData: pipeline.extractedData,
+              warnings: pipeline.warnings,
+            },
+            { language: input.language, requestId },
+          );
+        }
+      } catch (error) {
+        // Fall through to the external service below.
+        console.warn(
+          "[scanGuestImage] in-process pipeline failed, falling back to the scan service:",
+          error instanceof Error ? error.message : error,
+        );
+      }
+
       // PHI must never leave this process unscrubbed (RA 10173). Only the
       // redacted text is sent onward; `scrub.originalText` and `scrub.matches`
       // still hold raw PHI and must not be logged or returned.
