@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * Integration tests for OAuth flow and file upload with authentication
+ * Integration tests for the OAuth sign-in and logout flows.
  *
  * Prerequisites:
  * - better-auth configured with Discord & Google OAuth
@@ -24,7 +24,7 @@ function mockResponse(
   };
 }
 
-describe("OAuth & Upload Integration", () => {
+describe("OAuth Integration", () => {
   // Mock environment
   const TEST_USER_ID = "test-user-123";
 
@@ -68,75 +68,6 @@ describe("OAuth & Upload Integration", () => {
           return Promise.resolve(
             mockResponse(400, { error: "Provider is required" }),
           );
-        }
-        if (urlStr.includes("/api/uploads/server")) {
-          if (!isAuthd) {
-            return Promise.resolve(
-              mockResponse(401, { error: "Unauthorized" }),
-            );
-          }
-          const body =
-            init?.body instanceof FormData ? init.body : new FormData();
-          const file = body.get("file");
-          if (!file || !(file instanceof File)) {
-            return Promise.resolve(
-              mockResponse(400, { error: "File is required" }),
-            );
-          }
-          const supportedTypes = [
-            "image/png",
-            "image/jpeg",
-            "image/jpg",
-            "image/webp",
-            "application/pdf",
-            "image/tiff",
-            "image/bmp",
-            "image/gif",
-          ];
-          if (!supportedTypes.includes(file.type)) {
-            return Promise.resolve(
-              mockResponse(415, { error: "Unsupported file type" }),
-            );
-          }
-          if (file.size > 50 * 1024 * 1024) {
-            return Promise.resolve(
-              mockResponse(413, { error: "File too large" }),
-            );
-          }
-          return Promise.resolve(
-            mockResponse(201, {
-              id: "doc-123",
-              userId: TEST_USER_ID,
-              fileName: file.name || "test.png",
-              url: "https://res.cloudinary.com/test",
-            }),
-          );
-        }
-        if (urlStr.includes("/api/uploads/sign")) {
-          if (!isAuthd) {
-            return Promise.resolve(
-              mockResponse(401, { error: "Unauthorized" }),
-            );
-          }
-          return Promise.resolve(
-            mockResponse(200, {
-              signature: "abc",
-              timestamp: 123,
-              cloudName: "test",
-            }),
-          );
-        }
-        if (urlStr.includes("/api/uploads/doc-owned-by-user")) {
-          return Promise.resolve(mockResponse(200, { userId: TEST_USER_ID }));
-        }
-        if (urlStr.includes("/api/uploads/doc-owned-by-someone-else")) {
-          return Promise.resolve(mockResponse(403, { error: "Forbidden" }));
-        }
-        if (urlStr.includes("/api/uploads/doc-123")) {
-          return Promise.resolve(mockResponse(401, { error: "Unauthorized" }));
-        }
-        if (urlStr.includes("/api/uploads/does-not-exist")) {
-          return Promise.resolve(mockResponse(404, { error: "Not found" }));
         }
         if (urlStr === `${BASE_URL}/api/auth/logout`) {
           if (!isAuthd) {
@@ -194,170 +125,6 @@ describe("OAuth & Upload Integration", () => {
     });
   });
 
-  describe("File Upload with Authentication", () => {
-    it("should reject upload without authentication (401)", async () => {
-      const formData = new FormData();
-      formData.append(
-        "file",
-        new Blob(["test content"], { type: "image/png" }),
-        "test.png",
-      );
-
-      const response = await fetch(`${BASE_URL}/api/uploads/server`, {
-        method: "POST",
-        body: formData,
-        // No Authorization header
-      });
-
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data.error).toBe("Unauthorized");
-    });
-
-    it("should accept upload with valid session and store userId from session", async () => {
-      const formData = new FormData();
-      formData.append(
-        "file",
-        new Blob(["test content"], { type: "image/png" }),
-        "test.png",
-      );
-
-      // Mock authenticated request with session cookie
-      const response = await fetch(`${BASE_URL}/api/uploads/server`, {
-        method: "POST",
-        body: formData,
-        credentials: "include", // Include cookies
-        headers: {
-          // better-auth uses httpOnly cookie, but we simulate Authorization header
-          Authorization: `Bearer ${TEST_USER_ID}`,
-        },
-      });
-
-      expect(response.status).toBe(201);
-      const data = await response.json();
-      expect(data.id).toBeDefined();
-      expect(data.userId).toBe(TEST_USER_ID); // Should come from session, not formData
-      expect(data.fileName).toBe("test.png");
-      expect(data.url).toBeDefined(); // Cloudinary URL
-    });
-
-    it("should return 413 for file too large (>50MB)", async () => {
-      const largeBlob = new Blob(
-        [new ArrayBuffer(51 * 1024 * 1024)], // 51 MB
-        { type: "image/png" },
-      );
-      const formData = new FormData();
-      formData.append("file", largeBlob, "large.png");
-
-      const response = await fetch(`${BASE_URL}/api/uploads/server`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${TEST_USER_ID}`,
-        },
-      });
-
-      expect(response.status).toBe(413);
-    });
-
-    it("should return 415 for unsupported file type", async () => {
-      const formData = new FormData();
-      formData.append(
-        "file",
-        new Blob(["fake executable"], { type: "application/x-msdownload" }),
-        "malware.exe",
-      );
-
-      const response = await fetch(`${BASE_URL}/api/uploads/server`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${TEST_USER_ID}`,
-        },
-      });
-
-      expect(response.status).toBe(415);
-    });
-
-    it("should return 400 when file is missing", async () => {
-      const formData = new FormData();
-      // No file appended
-
-      const response = await fetch(`${BASE_URL}/api/uploads/server`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${TEST_USER_ID}`,
-        },
-      });
-
-      expect(response.status).toBe(400);
-    });
-  });
-
-  describe("Document Ownership Validation", () => {
-    it("should allow authenticated user to retrieve their own document", async () => {
-      const docId = "doc-owned-by-user";
-
-      const response = await fetch(`${BASE_URL}/api/uploads/${docId}`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${TEST_USER_ID}`,
-        },
-      });
-
-      expect(response.status).toBe(200);
-      const data = await response.json();
-      expect(data.userId).toBe(TEST_USER_ID);
-    });
-
-    it("should return 403 when user tries to access document owned by another user", async () => {
-      const docId = "doc-owned-by-someone-else";
-      const otherUserId = "other-user-456";
-
-      const response = await fetch(`${BASE_URL}/api/uploads/${docId}`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${otherUserId}`,
-        },
-      });
-
-      expect(response.status).toBe(403);
-      const data = await response.json();
-      expect(data.error).toBe("Forbidden");
-    });
-
-    it("should return 401 when accessing document without authentication", async () => {
-      const docId = "doc-123";
-
-      const response = await fetch(`${BASE_URL}/api/uploads/${docId}`, {
-        method: "GET",
-        // No credentials or Authorization header
-      });
-
-      expect(response.status).toBe(401);
-    });
-
-    it("should return 404 for non-existent document", async () => {
-      const nonExistentId = "does-not-exist";
-
-      const response = await fetch(`${BASE_URL}/api/uploads/${nonExistentId}`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${TEST_USER_ID}`,
-        },
-      });
-
-      expect(response.status).toBe(404);
-    });
-  });
-
   describe("Logout Endpoint", () => {
     it("should clear session on authenticated POST /api/auth/logout", async () => {
       const response = await fetch(`${BASE_URL}/api/auth/logout`, {
@@ -377,32 +144,6 @@ describe("OAuth & Upload Integration", () => {
       const response = await fetch(`${BASE_URL}/api/auth/logout`, {
         method: "POST",
         // No credentials or Authorization header
-      });
-
-      expect(response.status).toBe(401);
-    });
-  });
-
-  describe("Cloudinary Signature Endpoint", () => {
-    it("should return signed params when authenticated", async () => {
-      const response = await fetch(`${BASE_URL}/api/uploads/sign`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${TEST_USER_ID}`,
-        },
-      });
-
-      expect(response.status).toBe(200);
-      const data = await response.json();
-      expect(data.signature).toBeDefined();
-      expect(data.timestamp).toBeDefined();
-      expect(data.cloudName).toBeDefined();
-    });
-
-    it("should return 401 when not authenticated", async () => {
-      const response = await fetch(`${BASE_URL}/api/uploads/sign`, {
-        method: "GET",
       });
 
       expect(response.status).toBe(401);

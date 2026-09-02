@@ -6,6 +6,8 @@ export const ExtractedTestSchema = z.object({
   unit: z.string().optional(),
   referenceRange: z.string().optional(),
   flagged: z.boolean().optional().default(false),
+  /** Extraction confidence 0..1. Optional: rows predating scoring omit it. */
+  confidence: z.number().min(0).max(1).optional(),
 });
 
 export type ExtractedTest = z.infer<typeof ExtractedTestSchema>;

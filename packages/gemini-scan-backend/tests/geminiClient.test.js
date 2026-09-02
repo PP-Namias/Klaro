@@ -61,4 +61,17 @@ describe('geminiClient normalization', () => {
     expect(result.analysis).toBeTruthy();
     expect(Array.isArray(result.recommendations)).toBe(true);
   });
+
+  it('never instructs the model to persist or locate the received images', async () => {
+    const { buildSystemPrompt } = await import('../src/prompts');
+
+    for (const metadata of [{}, { task: 'medical_scan' }]) {
+      const prompt = buildSystemPrompt(metadata);
+      // RA 10173: the model must not be told to store images or return a location.
+      expect(prompt).toContain('Do not persist');
+      expect(prompt).not.toContain('storage_presigned_url');
+      expect(prompt).not.toContain('storage_path');
+      expect(prompt).not.toMatch(/save received images/i);
+    }
+  });
 });

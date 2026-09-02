@@ -45,8 +45,14 @@ export async function runOcr(imageBuffer: Buffer): Promise<OcrResult> {
   const { createWorker } = await import("tesseract.js");
   const worker = await createWorker("eng");
 
-  const { data } = await worker.recognize(preprocessed);
-  await worker.terminate();
+  let data;
+  try {
+    ({ data } = await worker.recognize(preprocessed));
+  } finally {
+    // Terminate on every path; a throw from recognize() used to leak the
+    // worker and its child process for the lifetime of the service.
+    await worker.terminate();
+  }
 
   const blocks: OcrBlock[] = (data.blocks ?? []).map((block) => ({
     text: block.text,

@@ -5,7 +5,7 @@
 /**
  * Session Timeout Provider
  *
- * React context provider for HIPAA-compliant session timeout.
+ * React context provider for the RA 10173 session timeout safeguard.
  * Tracks user activity and manages session state.
  */
 import type { ReactNode } from "react";

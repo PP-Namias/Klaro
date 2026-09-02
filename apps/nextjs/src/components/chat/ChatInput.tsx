@@ -1,10 +1,13 @@
 "use client";
 
+/** Max size for an image attached in the chat composer. */
 import { useRef, useState } from "react";
 import { Camera, Paperclip, Send, X } from "lucide-react";
 
 import type { Dialect } from "~/hooks/use-chat";
 import styles from "../../app/scan/page.module.css";
+
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 
 interface ChatInputProps {
   onSend: (content: string, image?: string) => void;
@@ -55,9 +58,17 @@ export function ChatInput({
     }
   };
 
-  const attachFiles = (files: FileList | File[]) => {
-    const file = Array.from(files).find((f) => f.type.startsWith("image/"));
-    if (!file) return;
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file?.type.startsWith("image/")) return;
+
+    // Guard before reading: the composer previously loaded any size of file
+    // into memory as a data URL with no cap.
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      e.target.value = "";
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (ev) => {
       setAttachment(ev.target?.result as string);

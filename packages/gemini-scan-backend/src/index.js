@@ -18,8 +18,12 @@ try {
 }
 
 const app = express();
-app.use(morgan("dev"));
-app.use(express.json({ limit: "15mb" }));
+app.use(morgan('dev'));
+// The scan route accepts base64 images up to MAX_BASE64_SIZE (10MB decoded).
+// body-parser defaults to 100kb, which rejected every real photograph before
+// the route could run. 15mb covers 10MB plus base64's ~33% overhead; oversized
+// payloads are still rejected by the route's own check with 'file_too_large'.
+app.use(express.json({ limit: '15mb' }));
 
 app.use("/api", scanRoute);
 app.use("/api", ocrRoute);

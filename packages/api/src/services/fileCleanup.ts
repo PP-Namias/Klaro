@@ -18,7 +18,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { and, eq, lt } from "drizzle-orm";
 
 import { db } from "@klaro/db/client";
-import { document } from "@klaro/db/schema";
+import { analysis, chatMessage, document } from "@klaro/db/schema";
 
 // ============================================================================
 // Configuration
@@ -63,6 +63,8 @@ export interface CleanupResult {
   failed: number;
   errors: string[];
   deletedFiles: string[];
+  /** chat_message rows deleted for exceeding CHAT_MESSAGE_TTL_MS */
+  chatMessagesPurged: number;
   dryRun: boolean;
 }
 
@@ -194,19 +196,81 @@ async function findDocumentsForCleanup(
   }));
 }
 
+/** Default chat retention: 24 hours. */
+const DEFAULT_CHAT_MESSAGE_TTL_MS = 24 * 60 * 60 * 1000;
+
+export function getChatMessageTtlMs(): number {
+  const raw = Number.parseInt(process.env.CHAT_MESSAGE_TTL_MS ?? "", 10);
+  return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_CHAT_MESSAGE_TTL_MS;
+}
+
+/**
+ * Delete chat messages older than the retention window.
+ *
+ * Chat turns quote the patient's own document, so `chat_message.content` is
+ * PHI-bearing. The table is kept (getHistory and the Clear button rely on it
+ * inside the window) but rows must not outlive the TTL (RA 10173).
+ *
+ * @returns the number of rows deleted.
+ */
+export async function purgeExpiredChatMessages(
+  olderThanMs: number = getChatMessageTtlMs(),
+): Promise<number> {
+  const cutoff = new Date(Date.now() - olderThanMs);
+
+  try {
+    const deleted = await db
+      .delete(chatMessage)
+      .where(lt(chatMessage.createdAt, cutoff))
+      .returning({ id: chatMessage.id });
+
+    if (deleted.length > 0) {
+      console.log(
+        JSON.stringify({
+          type: "chat_retention_purge",
+          purged: deleted.length,
+          cutoff: cutoff.toISOString(),
+          timestamp: new Date().toISOString(),
+        }),
+      );
+    }
+
+    return deleted.length;
+  } catch (error) {
+    console.error(
+      "[FileCleanup] Failed to purge expired chat messages:",
+      error instanceof Error ? error.message : error,
+    );
+    return 0;
+  }
+}
+
 /**
  * Archive a document (mark as cleaned up)
  */
 async function archiveDocument(docId: string): Promise<boolean> {
   try {
+    // Archiving must leave no PHI behind: clear the recognized text on the
+    // document and every derived value on its analysis row (RA 10173).
     await db
       .update(document)
       .set({
         status: "archived",
         storageUrl: null,
+        ocrText: null,
         updatedAt: new Date(),
       })
       .where(eq(document.id, docId));
+
+    await db
+      .update(analysis)
+      .set({
+        extractedFields: null,
+        flaggedValues: null,
+        plainLanguageSummary: null,
+        tanqmoCard: null,
+      })
+      .where(eq(analysis.documentId, docId));
     return true;
   } catch (error) {
     console.error(`[FileCleanup] Failed to archive document ${docId}:`, error);
@@ -233,6 +297,7 @@ export async function executeCleanup(
     failed: 0,
     errors: [],
     deletedFiles: [],
+    chatMessagesPurged: 0,
     dryRun: fullConfig.dryRun,
   };
 
@@ -269,16 +334,16 @@ export async function executeCleanup(
             const deleted = await deleteFromCloudinary(doc.storageUrl);
             if (deleted) {
               result.deleted++;
-              result.deletedFiles.push(doc.fileName);
+              result.deletedFiles.push(doc.id);
             } else {
               result.failed++;
               result.errors.push(
-                `Failed to delete ${doc.fileName} from Cloudinary`,
+                `Failed to delete document ${doc.id} from Cloudinary`,
               );
             }
           } else {
             result.deleted++;
-            result.deletedFiles.push(doc.fileName);
+            result.deletedFiles.push(doc.id);
           }
         }
 
@@ -297,9 +362,15 @@ export async function executeCleanup(
       } catch (error) {
         result.failed++;
         result.errors.push(
-          `Error processing ${doc.fileName}: ${error instanceof Error ? error.message : "unknown"}`,
+          `Error processing document ${doc.id}: ${error instanceof Error ? error.message : "unknown"}`,
         );
       }
+    }
+
+    // Chat turns quote the patient's document, so they expire on the same
+    // cleanup trigger as the documents themselves.
+    if (!fullConfig.dryRun) {
+      result.chatMessagesPurged = await purgeExpiredChatMessages();
     }
 
     // Log cleanup completion
@@ -310,6 +381,7 @@ export async function executeCleanup(
         deleted: result.deleted,
         archived: result.archived,
         failed: result.failed,
+        chatMessagesPurged: result.chatMessagesPurged,
         dryRun: result.dryRun,
         timestamp: new Date().toISOString(),
       }),
@@ -398,7 +470,6 @@ export async function cleanupDocument(
         type: "manual_cleanup",
         documentId: docId,
         userId,
-        fileName: doc.fileName,
         timestamp: new Date().toISOString(),
       }),
     );

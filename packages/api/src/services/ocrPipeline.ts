@@ -1,4 +1,4 @@
-import { getPipelineConfig } from "../config/pipeline";
+import { getPipelineConfig, validatePipelineConfig } from "../config/pipeline";
 
 export interface OcrPageResult {
   pageNumber: number;
@@ -63,99 +63,36 @@ function computeWeightedConfidence(pages: OcrPageResult[]): number {
   return Math.round(weighted * 100) / 100;
 }
 
-export async function runOcr(imageBase64: string): Promise<OcrPipelineResult> {
-  const startTime = Date.now();
-  const page = await runOcrOnImage(imageBase64);
-  const confidence = computeWeightedConfidence([page]);
-
-  return {
-    success: page.text.length > 0,
-    accepted: false,
-    text: page.text,
-    confidence,
-    pages: [page],
-    source: page.source,
-    warnings: page.warnings,
-    processingTimeMs: Date.now() - startTime,
-  };
-}
-
-export async function tryGeminiVisionFallback(
-  imageBase64: string,
-): Promise<OcrPageResult | null> {
-  try {
-    const { callGeminiVision, getGeminiApiKey } = await import(
-      "./geminiVision"
-    );
-    if (!getGeminiApiKey()) return null;
-    const vision = await callGeminiVision(imageBase64);
-    if (!vision.text.trim()) return null;
-    return {
-      pageNumber: 1,
-      text: vision.text,
-      confidence: vision.confidence,
-      source: "cloud",
-      warnings: [`gemini-vision: model=${vision.model}`],
-    };
-  } catch {
-    return null;
-  }
-}
-
-export async function tryCloudVisionFallback(
-  imageBase64: string,
-): Promise<OcrPageResult | null> {
-  try {
-    const { callGoogleVision, getCloudOcrApiKey } = await import("./cloudOcr");
-    if (!getCloudOcrApiKey()) return null;
-    const result = await callGoogleVision(imageBase64);
-    if (!result.text.trim()) return null;
-    return {
-      pageNumber: 1,
-      text: result.text,
-      confidence: result.confidence,
-      source: "cloud",
-      warnings: [`google-vision: confidence ${result.confidence}`],
-    };
-  } catch {
-    return null;
-  }
-}
-
-export async function runOcrWithVisionFallback(
-  imageBase64: string,
-  threshold = 0.7,
-): Promise<{ result: OcrPageResult; usedFallback: boolean }> {
-  const local = await runOcrOnImage(imageBase64);
-  if (local.confidence >= threshold) {
-    return { result: local, usedFallback: false };
-  }
-  const geminiFallback = await tryGeminiVisionFallback(imageBase64);
-  if (geminiFallback && geminiFallback.confidence >= threshold) {
-    return { result: geminiFallback, usedFallback: true };
-  }
-  if (geminiFallback && geminiFallback.confidence > local.confidence) {
-    return { result: geminiFallback, usedFallback: true };
-  }
-  const googleFallback = await tryCloudVisionFallback(imageBase64);
-  if (googleFallback && googleFallback.confidence >= threshold) {
-    return { result: googleFallback, usedFallback: true };
-  }
-  if (googleFallback && googleFallback.confidence > local.confidence) {
-    return { result: googleFallback, usedFallback: true };
-  }
-  return { result: local, usedFallback: false };
-}
-
 export async function runOcrWithRetry(
   imageBase64: string,
 ): Promise<OcrPipelineResult> {
   const startTime = Date.now();
   const config = getPipelineConfig();
-  const { ocr, gemini } = config;
-  const warnings: string[] = [];
+  const { ocr } = config;
+  // Surface misconfiguration instead of silently degrading.
+  const warnings: string[] = [...validatePipelineConfig()];
 
-  const firstPass = await runOcrOnImage(imageBase64);
+  // Preprocess the first pass too. Previously only retries were preprocessed,
+  // so the cheapest win (grayscale + denoise) never applied to the first read.
+  let firstPassInput = imageBase64;
+  if (ocr.enablePreprocessing) {
+    try {
+      const { preprocessImage, getDefaultPreprocessingOptions } = await import(
+        "./imagePreprocessor"
+      );
+      const preprocessed = await preprocessImage(
+        imageBase64,
+        getDefaultPreprocessingOptions(),
+      );
+      firstPassInput = preprocessed.base64;
+    } catch (error) {
+      warnings.push(
+        `First-pass preprocessing failed: ${error instanceof Error ? error.message : "unknown"}`,
+      );
+    }
+  }
+
+  const firstPass = await runOcrOnImage(firstPassInput);
   let bestResult = firstPass;
 
   if (firstPass.confidence >= ocr.confidenceThreshold) {
@@ -248,56 +185,55 @@ export async function runOcrWithRetry(
     }
   }
 
-  // Vision fallback when local confidence remains below threshold (TSK-04-02)
-  if (
-    bestResult.confidence < ocr.confidenceThreshold &&
-    (ocr.enableCloudFallback || gemini.visionEnabled)
-  ) {
+  // Local OCR never reached the threshold. Escalate to Google Cloud Vision when
+  // it is enabled and configured; a Vision outage degrades to the local
+  // rejection below rather than failing the request.
+  if (ocr.enableCloudFallback) {
     try {
-      const geminiFallback = await tryGeminiVisionFallback(imageBase64);
-      if (geminiFallback) {
-        warnings.push(...geminiFallback.warnings);
-        if (geminiFallback.confidence >= ocr.confidenceThreshold) {
-          const confidence = computeWeightedConfidence([geminiFallback]);
+      const { cloudOcrWithRetry, getCloudOcrApiKey } = await import(
+        "./cloudOcr"
+      );
+
+      if (getCloudOcrApiKey()) {
+        warnings.push(
+          `Local confidence ${bestResult.confidence.toFixed(2)} below threshold ${ocr.confidenceThreshold}; escalating to cloud OCR`,
+        );
+
+        const cloud = await cloudOcrWithRetry(imageBase64);
+        const cloudPage: OcrPageResult = {
+          pageNumber: 1,
+          text: cloud.text,
+          confidence: cloud.confidence,
+          source: "cloud",
+          warnings: [],
+        };
+
+        if (cloud.confidence >= ocr.confidenceThreshold) {
           return {
             success: true,
             accepted: true,
-            text: geminiFallback.text,
-            confidence,
-            pages: [geminiFallback],
+            text: cloudPage.text,
+            confidence: computeWeightedConfidence([cloudPage]),
+            pages: [cloudPage],
             source: "cloud",
             warnings,
             processingTimeMs: Date.now() - startTime,
           };
         }
-        if (geminiFallback.confidence > bestResult.confidence) {
-          bestResult = geminiFallback;
+
+        warnings.push(
+          `Cloud OCR confidence ${cloud.confidence.toFixed(2)} also below threshold`,
+        );
+
+        if (cloud.confidence > bestResult.confidence) {
+          bestResult = cloudPage;
         }
       } else {
-        const googleFallback = await tryCloudVisionFallback(imageBase64);
-        if (googleFallback) {
-          warnings.push(...googleFallback.warnings);
-          if (googleFallback.confidence >= ocr.confidenceThreshold) {
-            const confidence = computeWeightedConfidence([googleFallback]);
-            return {
-              success: true,
-              accepted: true,
-              text: googleFallback.text,
-              confidence,
-              pages: [googleFallback],
-              source: "cloud",
-              warnings,
-              processingTimeMs: Date.now() - startTime,
-            };
-          }
-          if (googleFallback.confidence > bestResult.confidence) {
-            bestResult = googleFallback;
-          }
-        }
+        warnings.push("Cloud OCR fallback enabled but no API key configured");
       }
-    } catch (err) {
+    } catch (error) {
       warnings.push(
-        `vision fallback failed: ${err instanceof Error ? err.message.slice(0, 60) : "unknown"}`,
+        `Cloud OCR fallback failed: ${error instanceof Error ? error.message : "unknown"}`,
       );
     }
   }
@@ -327,6 +263,75 @@ export async function runOcrWithRetry(
     rejectionReason: "low_confidence",
     rejectionAdvice:
       "The document appears too blurry or unclear. Please take a photo in good lighting with the document flat on a table. Ensure all text is readable before capturing. If the document is handwritten, ensure good lighting.",
+    processingTimeMs: Date.now() - startTime,
+  };
+}
+
+/**
+ * OCR every rasterized page of a document and combine them into one result.
+ *
+ * Each page runs through the full retry/preprocess/cloud-fallback pipeline. The
+ * document is accepted when at least one page was accepted, so a single blurry
+ * page does not discard an otherwise readable report.
+ */
+export async function runOcrOnPages(
+  pages: { pageNumber: number; base64: string }[],
+): Promise<OcrPipelineResult> {
+  const startTime = Date.now();
+
+  if (pages.length === 0) {
+    return {
+      success: false,
+      accepted: false,
+      text: "",
+      confidence: 0,
+      pages: [],
+      source: "local",
+      warnings: ["No pages to process"],
+      rejectionReason: "empty_document",
+      rejectionAdvice:
+        "The document contained no readable pages. Please upload a different file.",
+      processingTimeMs: Date.now() - startTime,
+    };
+  }
+
+  const results: OcrPipelineResult[] = [];
+  for (const page of pages) {
+    results.push(await runOcrWithRetry(page.base64));
+  }
+
+  const pageResults: OcrPageResult[] = results.map((result, index) => ({
+    pageNumber: pages[index]?.pageNumber ?? index + 1,
+    text: result.text,
+    confidence: result.confidence,
+    source: result.source,
+    warnings: result.warnings,
+  }));
+
+  const accepted = results.some((result) => result.accepted);
+  const warnings = results.flatMap((result, index) =>
+    result.warnings.map((w) => `Page ${pageResults[index]?.pageNumber}: ${w}`),
+  );
+
+  const rejected = results.find((result) => !result.accepted);
+
+  return {
+    success: pageResults.some((page) => page.text.length > 0),
+    accepted,
+    text: pageResults
+      .map((page) => page.text)
+      .filter((text) => text.length > 0)
+      .join("\n\n"),
+    confidence: computeWeightedConfidence(pageResults),
+    pages: pageResults,
+    source: pageResults[0]?.source ?? "local",
+    warnings,
+    ...(accepted
+      ? {}
+      : {
+          rejectionReason: rejected?.rejectionReason ?? "low_confidence",
+          rejectionAdvice: rejected?.rejectionAdvice,
+        }),
     processingTimeMs: Date.now() - startTime,
   };
 }

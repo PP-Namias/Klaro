@@ -18,20 +18,34 @@ interface LLMConfig {
   maxTokens?: number;
 }
 
-const DEFAULT_LLM_CONFIG: LLMConfig = {
-  provider:
-    (process.env.LLM_PROVIDER as "openai" | "claude" | "gemini") || "gemini",
-  apiKey: process.env.LLM_API_KEY,
-  model:
-    process.env.LLM_MODEL ||
-    (process.env.LLM_PROVIDER === "openai"
-      ? "gpt-4-turbo"
-      : process.env.LLM_PROVIDER === "claude"
-        ? "claude-3-sonnet-20240229"
-        : "gemini-1.5-pro"),
-  temperature: 0.7,
-  maxTokens: 1000,
-};
+/** Current default model per provider. */
+const DEFAULT_MODELS = {
+  openai: "gpt-4o",
+  claude: "claude-sonnet-4-5",
+  gemini: "gemini-2.0-flash",
+} as const;
+
+/**
+ * Resolve LLM configuration from the environment.
+ *
+ * Evaluated per call, not at module load: as a module-level const this
+ * snapshotted process.env at import time, so a key set afterwards (or by a
+ * test) was never seen. It also read only LLM_API_KEY while the rest of the
+ * repo sets GEMINI_API_KEY, so every call silently fell back to rule-based
+ * output even with a key configured.
+ */
+export function getDefaultLLMConfig(): LLMConfig {
+  const provider =
+    (process.env.LLM_PROVIDER as "openai" | "claude" | "gemini") || "gemini";
+
+  return {
+    provider,
+    apiKey: process.env.GEMINI_API_KEY || process.env.LLM_API_KEY,
+    model: process.env.LLM_MODEL || DEFAULT_MODELS[provider],
+    temperature: 0.7,
+    maxTokens: 1000,
+  };
+}
 
 /**
  * Prompt versioning for A/B testing
@@ -453,12 +467,12 @@ export function computeSeverityForTests(tests: ExtractedTest[]): Severity {
 export async function callLLMAPI(
   prompt: string,
   systemPrompt: string,
-  config: LLMConfig = DEFAULT_LLM_CONFIG,
+  config: LLMConfig = getDefaultLLMConfig(),
 ): Promise<string> {
   // If no API key configured, fall back to rule-based generation
   if (!config.apiKey || !config.provider) {
     console.warn(
-      `LLM_API_KEY not configured for provider ${config.provider}. Using rule-based generation.`,
+      `No API key (GEMINI_API_KEY / LLM_API_KEY) for provider ${config.provider}. Using rule-based generation.`,
     );
     return "";
   }
@@ -495,7 +509,7 @@ async function callOpenAI(
       Authorization: `Bearer ${config.apiKey}`,
     },
     body: JSON.stringify({
-      model: config.model || "gpt-4-turbo",
+      model: config.model || DEFAULT_MODELS.openai,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt },
@@ -531,7 +545,7 @@ async function callClaude(
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: config.model || "claude-3-sonnet-20240229",
+      model: config.model || DEFAULT_MODELS.claude,
       max_tokens: config.maxTokens ?? 1000,
       system: systemPrompt,
       messages: [{ role: "user", content: prompt }],
@@ -561,7 +575,7 @@ async function callGemini(
   }
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${config.model || "gemini-1.5-pro"}:generateContent`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${config.model || DEFAULT_MODELS.gemini}:generateContent`,
     {
       method: "POST",
       headers: {

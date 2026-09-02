@@ -68,11 +68,15 @@ describe("Severity Scoring", () => {
     it("processes multiple tests", () => {
       const results = batchCalculateSeverity([
         { code: "HGB", value: 14 },
+        // GLU range is 70-100. 110 sits inside the +10% band, so it is
+        // borderline; 125 is further out and reads as high.
         { code: "GLU", value: 110 },
+        { code: "CRE", value: 1.4 },
       ]);
-      expect(results).toHaveLength(2);
+      expect(results).toHaveLength(3);
       expect(results[0].severity).toBe("normal");
-      expect(results[1].severity).toBe("high");
+      expect(results[1].severity).toBe("borderline");
+      expect(results[2].severity).toBe("high");
     });
   });
 

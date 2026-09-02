@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions, @typescript-eslint/array-type, @typescript-eslint/no-base-to-string, @typescript-eslint/no-unnecessary-condition, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { Button } from "@klaro/ui/button";
 
@@ -159,30 +159,49 @@ export default function FacilitiesClient() {
   const facilities = (facilitiesQuery.data ?? []) as Facility[];
   const isFacilitiesLoading = facilitiesQuery.isLoading;
 
-  const bestSuggestedQuery = useQuery({
-    ...trpc.facilities.bestSuggested.queryOptions({
+  // Both of these send the patient's flagged test names and values. They are
+  // mutations so the payload travels in a POST body instead of a ?input= query
+  // string, which would otherwise leak PHI into logs, history and Referer.
+  const bestSuggestedQuery = useMutation(
+    trpc.facilities.bestSuggested.mutationOptions(),
+  );
+
+  const recommendationsQuery = useMutation(
+    trpc.facilities.recommendByTestResults.mutationOptions(),
+  );
+
+  const bestSuggestedMutate = bestSuggestedQuery.mutate;
+  const recommendationsMutate = recommendationsQuery.mutate;
+  const recommendationsReset = recommendationsQuery.reset;
+
+  useEffect(() => {
+    bestSuggestedMutate({
       latitude: coords[0],
       longitude: coords[1],
       medicalContext: medicalContext ?? undefined,
-    }),
-  });
+    });
+  }, [bestSuggestedMutate, coords, medicalContext]);
 
-  const recommendationsQuery = useQuery({
-    ...trpc.facilities.recommendByTestResults.queryOptions({
-      extractedTests:
-        medicalContext?.flaggedTests.map((test) => ({
-          name: test.name,
-          value: test.value ?? "",
-          unit: test.unit,
-          flagged: true,
-        })) ?? [],
+  useEffect(() => {
+    const flaggedTests = medicalContext?.flaggedTests ?? [];
+    if (flaggedTests.length === 0) {
+      recommendationsReset();
+      return;
+    }
+
+    recommendationsMutate({
+      extractedTests: flaggedTests.map((test) => ({
+        name: test.name,
+        value: test.value ?? "",
+        unit: test.unit,
+        flagged: true,
+      })),
       latitude: coords[0],
       longitude: coords[1],
       radiusKm: 15,
       limit: 5,
-    }),
-    enabled: Boolean(medicalContext?.flaggedTests.length),
-  });
+    });
+  }, [recommendationsMutate, recommendationsReset, coords, medicalContext]);
 
   const recommendedById = useMemo(() => {
     const rows = recommendationsQuery.data ?? [];

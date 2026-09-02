@@ -109,11 +109,15 @@ export async function simplifyWithGemini(
     }
 
     const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      // Key travels as a header, never in the request line.
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": geminiApiKey,
+      },
       signal: AbortSignal.timeout(30_000),
       body: JSON.stringify({
         contents: [

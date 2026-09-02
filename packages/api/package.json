@@ -24,10 +24,12 @@
     "@klaro/auth": "workspace:*",
     "@klaro/db": "workspace:*",
     "@klaro/validators": "workspace:*",
+    "@napi-rs/canvas": "^0.1.65",
     "@trpc/server": "catalog:",
     "cloudinary": "catalog:",
     "drizzle-orm": "^0.44.7",
     "pdfjs-dist": "4.0.379",
+    "sharp": "^0.33.5",
     "superjson": "2.2.3",
     "zod": "catalog:"
   },

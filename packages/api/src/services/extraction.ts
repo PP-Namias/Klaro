@@ -1,541 +1,512 @@
+/**
+ * Comprehensive test name canonicalization database
+ * 200+ variants for Philippine & international lab formats
+ */
+import { REFERENCE_RANGES } from "./severityScoring";
+
 export interface ExtractedTest {
   name: string;
   value: string;
   unit?: string;
   referenceRange?: string;
   flagged?: boolean;
+  /** How much to trust this row, 0..1. See scoreExtraction. */
+  confidence?: number;
 }
 
 /**
- * Comprehensive test name canonicalization database
- * 220+ variants for Philippine & international lab formats
- * Covers CBC, lipid panel, urinalysis, chemistry, etc.
+ * Canonical display name -> reference-range code.
+ *
+ * Lets extraction fall back to the built-in ranges when a document does not
+ * print one, which is common on Philippine lab printouts. Without this, any
+ * result without a printed range was silently reported as normal.
  */
-const CANONICAL_TEST_NAMES: Record<string, string> = {
-  // Hemoglobin
+const CANONICAL_NAME_TO_CODE: Record<string, string> = {
+  Hemoglobin: "HGB",
+  Hematocrit: "HCT",
+  "Red Blood Cell Count": "RBC",
+  "White Blood Cell Count": "WBC",
+  "Platelet Count": "PLT",
+  "Fasting Blood Glucose": "GLU",
+  "Random Blood Sugar": "GLU",
+  "Blood Urea Nitrogen": "BUN",
+  Creatinine: "CRE",
+  "Total Cholesterol": "CHOL",
+  Cholesterol: "CHOL",
+  "HDL Cholesterol": "HDL",
+  "LDL Cholesterol": "LDL",
+  Triglycerides: "TG",
+  ALT: "ALT",
+  AST: "AST",
+  "Uric Acid": "UA",
+  TSH: "TSH",
+  Sodium: "NA",
+  Potassium: "K",
+  Chloride: "CL",
+  Calcium: "CA",
+  Magnesium: "MG",
+};
+
+/**
+ * Alias -> canonical name for Philippine lab reports.
+ *
+ * 363 aliases across CBC, urinalysis, fecalysis, blood chemistry, lipid,
+ * liver, cardiac, thyroid, coagulation, serology and tumour-marker panels.
+ * Doubles as the allowlist of things this engine will call a lab result.
+ */
+export const CANONICAL_TEST_NAMES: Record<string, string> = {
+  // Complete Blood Count
   hemoglobin: "Hemoglobin",
   hgb: "Hemoglobin",
   hb: "Hemoglobin",
   haemoglobin: "Hemoglobin",
-  "hb conc": "Hemoglobin",
-  "hemoglobin conc": "Hemoglobin",
-  "hemoglobin concentration": "Hemoglobin",
-
-  // Hemoglobin A1C / Glycated
-  "hemoglobin a1c": "Hemoglobin A1C",
-  hba1c: "Hemoglobin A1C",
-  "hb a1c": "Hemoglobin A1C",
-  a1c: "Hemoglobin A1C",
-  "glycated hemoglobin": "Hemoglobin A1C",
-  glycohemoglobin: "Hemoglobin A1C",
-  "glycosylated hemoglobin": "Hemoglobin A1C",
-
-  // Red Blood Cell
-  "red blood cell": "Red Blood Cell Count",
-  rbc: "Red Blood Cell Count",
-  "red cell count": "Red Blood Cell Count",
-  "erythrocyte count": "Red Blood Cell Count",
-  "rbc count": "Red Blood Cell Count",
-  "red cells": "Red Blood Cell Count",
-  erythrocytes: "Red Blood Cell Count",
-
-  // White Blood Cell
-  "white blood cell": "White Blood Cell Count",
-  wbc: "White Blood Cell Count",
-  "white cell count": "White Blood Cell Count",
-  "leukocyte count": "White Blood Cell Count",
-  "wbc count": "White Blood Cell Count",
-  "total wbc": "White Blood Cell Count",
-  leukocytes: "White Blood Cell Count",
-
-  // Platelet
-  platelets: "Platelet Count",
-  plt: "Platelet Count",
-  "platelet count": "Platelet Count",
-  "thrombocyte count": "Platelet Count",
-  "platelet cnt": "Platelet Count",
-  plat: "Platelet Count",
-  thrombocytes: "Platelet Count",
-
-  // Hematocrit
   hematocrit: "Hematocrit",
   hct: "Hematocrit",
-  pcv: "Hematocrit",
+  haematocrit: "Hematocrit",
   "packed cell volume": "Hematocrit",
-  "hct %": "Hematocrit",
-
-  // MCV
-  mcv: "MCV",
-  "mean corpuscular volume": "MCV",
-  "mean cell volume": "MCV",
-
-  // MCH
-  mch: "MCH",
-  "mean corpuscular hemoglobin": "MCH",
-  "mean cell hemoglobin": "MCH",
-
-  // MCHC
-  mchc: "MCHC",
-  "mean corpuscular hemoglobin concentration": "MCHC",
-
-  // RDW
-  rdw: "RDW",
-  "rdw-cv": "RDW",
-  "rdw-sd": "RDW",
-  "red cell distribution width": "RDW",
-  "rdw cv": "RDW",
-  "rdw sd": "RDW",
-
-  // Neutrophils
+  pcv: "Hematocrit",
+  "red blood cell count": "Red Blood Cell Count",
+  rbc: "Red Blood Cell Count",
+  "rbc count": "Red Blood Cell Count",
+  "erythrocyte count": "Red Blood Cell Count",
+  "white blood cell count": "White Blood Cell Count",
+  wbc: "White Blood Cell Count",
+  "wbc count": "White Blood Cell Count",
+  "leukocyte count": "White Blood Cell Count",
+  "leucocyte count": "White Blood Cell Count",
+  "platelet count": "Platelet Count",
+  plt: "Platelet Count",
+  platelets: "Platelet Count",
+  "thrombocyte count": "Platelet Count",
+  "mean corpuscular volume": "Mean Corpuscular Volume",
+  mcv: "Mean Corpuscular Volume",
+  "mean corpuscular hemoglobin": "Mean Corpuscular Hemoglobin",
+  mch: "Mean Corpuscular Hemoglobin",
+  "mean corpuscular hemoglobin concentration":
+    "Mean Corpuscular Hemoglobin Concentration",
+  mchc: "Mean Corpuscular Hemoglobin Concentration",
+  "red cell distribution width": "Red Cell Distribution Width",
+  rdw: "Red Cell Distribution Width",
+  "rdw-cv": "Red Cell Distribution Width",
+  "mean platelet volume": "Mean Platelet Volume",
+  mpv: "Mean Platelet Volume",
   neutrophils: "Neutrophils",
-  "neutrophil count": "Neutrophils",
-  "neutrophil %": "Neutrophils",
-  neuts: "Neutrophils",
-  anc: "Neutrophils",
-  "absolute neutrophil count": "Neutrophils",
-  "seg neutrophils": "Neutrophils",
+  neutrophil: "Neutrophils",
+  segmenters: "Neutrophils",
   "segmented neutrophils": "Neutrophils",
-  "neutrophil percentage": "Neutrophils",
   segs: "Neutrophils",
-
-  // Lymphocytes
+  polymorphonuclear: "Neutrophils",
   lymphocytes: "Lymphocytes",
-  "lymphocyte count": "Lymphocytes",
-  "lymph %": "Lymphocytes",
+  lymphocyte: "Lymphocytes",
   lymphs: "Lymphocytes",
-  "absolute lymphocyte count": "Lymphocytes",
-  alc: "Lymphocytes",
-  "lymphocyte %": "Lymphocytes",
-  "lymphocytes %": "Lymphocytes",
-
-  // Monocytes
   monocytes: "Monocytes",
-  "monocyte %": "Monocytes",
-  mono: "Monocytes",
-  "monocyte count": "Monocytes",
-  "monocytes %": "Monocytes",
-
-  // Eosinophils
+  monocyte: "Monocytes",
   eosinophils: "Eosinophils",
-  "eosinophil %": "Eosinophils",
+  eosinophil: "Eosinophils",
   eos: "Eosinophils",
-  "eosinophil count": "Eosinophils",
-  "eosinophils %": "Eosinophils",
-
-  // Basophils
   basophils: "Basophils",
-  "basophil %": "Basophils",
+  basophil: "Basophils",
   baso: "Basophils",
-  "basophil count": "Basophils",
-
-  // Bands
-  bands: "Bands",
-  "band neutrophils": "Bands",
-  stab: "Bands",
-  "stab neutrophils": "Bands",
-  "band count": "Bands",
-
-  // Reticulocytes
+  "band cells": "Band Cells",
+  bands: "Band Cells",
+  "stab cells": "Band Cells",
+  "erythrocyte sedimentation rate": "Erythrocyte Sedimentation Rate",
+  esr: "Erythrocyte Sedimentation Rate",
+  "sed rate": "Erythrocyte Sedimentation Rate",
   reticulocytes: "Reticulocytes",
-  retic: "Reticulocytes",
   "retic count": "Reticulocytes",
   "reticulocyte count": "Reticulocytes",
 
-  // ESR
-  esr: "ESR",
-  "erythrocyte sedimentation rate": "ESR",
-  sedrate: "ESR",
-
-  // Blood Glucose
-  glucose: "Fasting Blood Glucose",
-  "blood glucose": "Fasting Blood Glucose",
-  fbg: "Fasting Blood Glucose",
-  fbs: "Fasting Blood Glucose",
-  "fasting glucose": "Fasting Blood Glucose",
-  "fasting blood sugar": "Fasting Blood Sugar",
-  rbs: "Random Blood Sugar",
-  "random blood sugar": "Random Blood Sugar",
-  "casual glucose": "Random Blood Sugar",
-  "random glucose": "Random Blood Sugar",
-
-  // Cholesterol
-  cholesterol: "Total Cholesterol",
-  "total cholesterol": "Total Cholesterol",
-  chol: "Total Cholesterol",
-  tc: "Total Cholesterol",
-  "serum cholesterol": "Total Cholesterol",
-  "total chol": "Total Cholesterol",
-
-  // LDL
-  ldl: "LDL Cholesterol",
-  "ldl cholesterol": "LDL Cholesterol",
-  "ldl-c": "LDL Cholesterol",
-  "low density lipoprotein": "LDL Cholesterol",
-  "ldl chol": "LDL Cholesterol",
-
-  // HDL
-  hdl: "HDL Cholesterol",
-  "hdl cholesterol": "HDL Cholesterol",
-  "hdl-c": "HDL Cholesterol",
-  "high density lipoprotein": "HDL Cholesterol",
-  "hdl chol": "HDL Cholesterol",
-
-  // Triglyceride
-  triglycerides: "Triglycerides",
-  triglyceride: "Triglycerides",
-  tg: "Triglycerides",
-  trig: "Triglycerides",
-  tri: "Triglycerides",
-
-  // VLDL
-  vldl: "VLDL Cholesterol",
-  "vldl cholesterol": "VLDL Cholesterol",
-  "very low density lipoprotein": "VLDL Cholesterol",
-  "vldl-c": "VLDL Cholesterol",
-
-  // Non-HDL
-  "non-hdl": "Non-HDL Cholesterol",
-  "non hdl": "Non-HDL Cholesterol",
-  "non-hdl cholesterol": "Non-HDL Cholesterol",
-
-  // Ratios
-  "chol/hdl ratio": "Chol/HDL Ratio",
-  "ldl/hdl ratio": "LDL/HDL Ratio",
-  "cardiac risk ratio": "Chol/HDL Ratio",
-  "total chol/hdl": "Chol/HDL Ratio",
-
-  // Total Lipids
-  "total lipids": "Total Lipids",
-
-  // Creatinine
-  creatinine: "Creatinine",
-  "serum creatinine": "Creatinine",
-  crea: "Creatinine",
-  creat: "Creatinine",
-  cr: "Creatinine",
-  "crea conc": "Creatinine",
-
-  // BUN
-  bun: "Blood Urea Nitrogen",
-  "blood urea nitrogen": "Blood Urea Nitrogen",
-  urea: "Blood Urea Nitrogen",
-  "serum urea": "Blood Urea Nitrogen",
-  "urea nitrogen": "Blood Urea Nitrogen",
-
-  // eGFR
-  egfr: "eGFR",
-  gfr: "eGFR",
-  "estimated glomerular filtration rate": "eGFR",
-  "estimated gfr": "eGFR",
-
-  // Uric Acid
-  "uric acid": "Uric Acid",
-  ua: "Uric Acid",
-  "serum uric acid": "Uric Acid",
-  urate: "Uric Acid",
-
-  // Sodium
-  sodium: "Sodium",
-  na: "Sodium",
-  "serum sodium": "Sodium",
-  "na+": "Sodium",
-
-  // Potassium
-  potassium: "Potassium",
-  k: "Potassium",
-  "serum potassium": "Potassium",
-  "k+": "Potassium",
-
-  // Chloride
-  chloride: "Chloride",
-  cl: "Chloride",
-  "serum chloride": "Chloride",
-  "cl-": "Chloride",
-
-  // Bicarbonate / CO2
-  bicarbonate: "Bicarbonate",
-  hco3: "Bicarbonate",
-  co2: "Bicarbonate",
-  "carbon dioxide": "Bicarbonate",
-  "total co2": "Bicarbonate",
-  "bicarbonate co2": "Bicarbonate",
-
-  // Calcium
-  calcium: "Calcium",
-  ca: "Calcium",
-  "serum calcium": "Calcium",
-  "ionized calcium": "Calcium",
-  "ca++": "Calcium",
-  "ca2+": "Calcium",
-
-  // Phosphorus
-  phosphorus: "Phosphorus",
-  phosphorous: "Phosphorus",
-  p: "Phosphorus",
-  phosphate: "Phosphorus",
-  po4: "Phosphorus",
-  "serum phosphate": "Phosphorus",
-  "inorganic phosphorus": "Phosphorus",
-  phos: "Phosphorus",
-
-  // Magnesium
-  magnesium: "Magnesium",
-  mg: "Magnesium",
-  "serum magnesium": "Magnesium",
-  "mg2+": "Magnesium",
-
-  // Iron studies
-  iron: "Iron",
-  fe: "Iron",
-  "serum iron": "Iron",
-  tibc: "TIBC",
-  "total iron binding capacity": "TIBC",
-  uibc: "UIBC",
-  ferritin: "Ferritin",
-  "transferrin saturation": "Transferrin Saturation",
-  "iron saturation": "Transferrin Saturation",
-  tsat: "Transferrin Saturation",
-
-  // AST
-  ast: "AST",
-  sgot: "AST",
-  "ast/got": "AST",
-  "glutamic oxaloacetic transaminase": "AST",
-
-  // ALT
-  alt: "ALT",
-  sgpt: "ALT",
-  "alt/gpt": "ALT",
-  "glutamic pyruvic transaminase": "ALT",
-
-  // Alkaline Phosphatase
-  "alkaline phosphatase": "Alkaline Phosphatase",
-  alp: "Alkaline Phosphatase",
-  "alk phos": "Alkaline Phosphatase",
-  "alk phosphatase": "Alkaline Phosphatase",
-
-  // GGT
-  ggt: "GGT",
-  "gamma gt": "GGT",
-  "gamma glutamyl transferase": "GGT",
-  "gamma-gt": "GGT",
-  "ggtp": "GGT",
-
-  // Bilirubin total
-  "total bilirubin": "Total Bilirubin",
-  bilirubin: "Total Bilirubin",
-  "t-bil": "Total Bilirubin",
-  tbili: "Total Bilirubin",
-  "serum bilirubin": "Total Bilirubin",
-  "total bili": "Total Bilirubin",
-
-  // Direct bilirubin
-  "direct bilirubin": "Direct Bilirubin",
-  "d-bilirubin": "Direct Bilirubin",
-  "conjugated bilirubin": "Direct Bilirubin",
-  "d-bili": "Direct Bilirubin",
-  "direct bili": "Direct Bilirubin",
-
-  // Indirect bilirubin
-  "indirect bilirubin": "Indirect Bilirubin",
-  "unconjugated bilirubin": "Indirect Bilirubin",
-  "i-bil": "Indirect Bilirubin",
-  "indirect bili": "Indirect Bilirubin",
-
-  // Albumin
-  albumin: "Albumin",
-  "serum albumin": "Albumin",
-  alb: "Albumin",
-
-  // Total Protein
-  "total protein": "Total Protein",
-  protein: "Total Protein",
-  tp: "Total Protein",
-  "serum protein": "Total Protein",
-
-  // Globulin
-  globulin: "Globulin",
-  "serum globulin": "Globulin",
-  glob: "Globulin",
-
-  // A/G Ratio
-  "a/g ratio": "A/G Ratio",
-  "albumin/globulin ratio": "A/G Ratio",
-  "ag ratio": "A/G Ratio",
-
-  // Urea & Electrolytes grouped already
-
-  // TSH
-  tsh: "TSH",
-  "thyroid stimulating hormone": "TSH",
-  thyrotropin: "TSH",
-
-  // T3
-  t3: "T3",
-  triiodothyronine: "T3",
-  "free t3": "T3",
-  ft3: "T3",
-
-  // T4
-  t4: "T4",
-  thyroxine: "T4",
-  "free t4": "T4",
-  ft4: "T4",
-  "free thyroxine": "T4",
-
-  // Vitamin D
-  "vitamin d": "Vitamin D",
-  "25-oh vitamin d": "Vitamin D",
-  "25-hydroxy vitamin d": "Vitamin D",
-  vitd: "Vitamin D",
-
-  // Vitamin B12
-  "vitamin b12": "Vitamin B12",
-  b12: "Vitamin B12",
-  cobalamin: "Vitamin B12",
-
-  // Folate
-  folate: "Folate",
-  "folic acid": "Folate",
-  "serum folate": "Folate",
-
-  // PSA
-  psa: "PSA",
-  "prostate specific antigen": "PSA",
-  "total psa": "PSA",
-  "free psa": "PSA",
-
-  // CRP
-  crp: "CRP",
-  "c-reactive protein": "CRP",
-  "cr protein": "CRP",
-
-  // Procalcitonin
-  procalcitonin: "Procalcitonin",
-  pct: "Procalcitonin",
-
-  // Hepatitis B
-  hbsag: "Hepatitis B Surface Antigen",
-  "hbs ag": "Hepatitis B Surface Antigen",
-  "hepatitis b surface antigen": "Hepatitis B Surface Antigen",
-  "hep b surface ag": "Hepatitis B Surface Antigen",
-  "anti-hbs": "Hepatitis B Surface Antibody",
-  "hbs antibody": "Hepatitis B Surface Antibody",
-  "hepatitis b surface antibody": "Hepatitis B Surface Antibody",
-
-  // Hepatitis C
-  hcv: "Hepatitis C",
-  "anti-hcv": "Hepatitis C",
-  "hepatitis c antibody": "Hepatitis C",
-  "hcv antibody": "Hepatitis C",
-
-  // HIV
-  hiv: "HIV",
-  "hiv 1/2": "HIV",
-  "hiv screen": "HIV",
-  "anti-hiv": "HIV",
-
-  // Syphilis
-  rpr: "RPR",
-  vdrl: "VDRL",
-  syphilis: "Syphilis",
-
-  // Blood Type
-  "blood type": "Blood Type",
-  abo: "Blood Type",
-  "blood group": "Blood Type",
-  "abo grouping": "Blood Type",
-
-  // Urinalysis - general
+  // Urinalysis
   "urine color": "Urine Color",
-  color: "Urine Color",
-  "urine appearance": "Urine Appearance",
-  appearance: "Urine Appearance",
-  clarity: "Urine Appearance",
-  ph: "Urine pH",
+  "urine colour": "Urine Color",
+  transparency: "Urine Transparency",
+  "urine transparency": "Urine Transparency",
+  clarity: "Urine Transparency",
+  "specific gravity": "Specific Gravity",
+  "sp gravity": "Specific Gravity",
+  "sp. gravity": "Specific Gravity",
+  spgr: "Specific Gravity",
   "urine ph": "Urine pH",
-  "specific gravity": "Urine Specific Gravity",
-  "urine specific gravity": "Urine Specific Gravity",
-  spgr: "Urine Specific Gravity",
-  sg: "Urine Specific Gravity",
-
-  // Urine chemistry
+  reaction: "Urine pH",
   "urine protein": "Urine Protein",
-  "protein urine": "Urine Protein",
+  proteinuria: "Urine Protein",
+  albuminuria: "Urine Protein",
   "urine glucose": "Urine Glucose",
-  "glucose urine": "Urine Glucose",
-  ketones: "Urine Ketones",
-  ketone: "Urine Ketones",
+  glycosuria: "Urine Glucose",
   "urine ketones": "Urine Ketones",
-  "bilirubin urine": "Urine Bilirubin",
-  "urine bilirubin": "Urine Bilirubin",
-  "blood urine": "Urine Blood",
+  ketones: "Urine Ketones",
+  "ketone bodies": "Urine Ketones",
+  acetone: "Urine Ketones",
   "urine blood": "Urine Blood",
-  "occult blood": "Urine Blood",
-  "leukocyte esterase": "Leukocyte Esterase",
-  "leuk esterase": "Leukocyte Esterase",
-  nitrite: "Urine Nitrite",
+  hematuria: "Urine Blood",
+  "urine leukocytes": "Urine Leukocytes",
+  "leukocyte esterase": "Urine Leukocytes",
   "urine nitrite": "Urine Nitrite",
+  nitrite: "Urine Nitrite",
+  nitrites: "Urine Nitrite",
+  "urine bilirubin": "Urine Bilirubin",
   urobilinogen: "Urobilinogen",
   "urine urobilinogen": "Urobilinogen",
-
-  // Urine microscopy
-  "rbc urine": "Urine RBC",
+  "pus cells": "Pus Cells",
+  "pus cell": "Pus Cells",
   "urine rbc": "Urine RBC",
-  "red cells urine": "Urine RBC",
-  "wbc urine": "Urine WBC",
-  "urine wbc": "Urine WBC",
-  "pus cells": "Urine WBC",
-  "epithelial cells": "Urine Epithelial Cells",
-  "squamous epithelial cells": "Urine Epithelial Cells",
-  "epithelial cell": "Urine Epithelial Cells",
-  bacteria: "Urine Bacteria",
+  "red blood cells urine": "Urine RBC",
+  "epithelial cells": "Epithelial Cells",
+  "epithelial cell": "Epithelial Cells",
+  "squamous epithelial cells": "Epithelial Cells",
   "urine bacteria": "Urine Bacteria",
-  crystals: "Urine Crystals",
-  "calcium oxalate": "Urine Crystals",
-  "uric acid crystals": "Urine Crystals",
-  "triple phosphate": "Urine Crystals",
-  "amorphous urates": "Urine Crystals",
-  "amorphous phosphates": "Urine Crystals",
+  bacteria: "Urine Bacteria",
+  bacteriuria: "Urine Bacteria",
+  "urine casts": "Urine Casts",
   casts: "Urine Casts",
   "hyaline casts": "Urine Casts",
   "granular casts": "Urine Casts",
-  "waxy casts": "Urine Casts",
-  "rbc casts": "Urine Casts",
-  "wbc casts": "Urine Casts",
-  mucus: "Urine Mucus",
-  "mucus threads": "Urine Mucus",
-  yeast: "Urine Yeast",
+  "urine crystals": "Urine Crystals",
+  crystals: "Urine Crystals",
+  "amorphous urates": "Urine Crystals",
+  "amorphous phosphates": "Urine Crystals",
+  "calcium oxalate": "Urine Crystals",
+  "mucus threads": "Mucus Threads",
+  "mucus thread": "Mucus Threads",
+  "mucous threads": "Mucus Threads",
+  "yeast cells": "Yeast Cells",
+  "yeast cell": "Yeast Cells",
 
-  // Hematology others
+  // Fecalysis
+  "stool color": "Stool Color",
+  "stool colour": "Stool Color",
+  "fecal color": "Stool Color",
+  "stool consistency": "Stool Consistency",
+  consistency: "Stool Consistency",
+  "occult blood": "Occult Blood",
+  "fecal occult blood": "Occult Blood",
+  fobt: "Occult Blood",
+  guaiac: "Occult Blood",
+  "ova and parasites": "Ova and Parasites",
+  "o&p": "Ova and Parasites",
+  parasite: "Ova and Parasites",
+  parasites: "Ova and Parasites",
+  ova: "Ova and Parasites",
+  "stool wbc": "Stool WBC",
+  "stool pus cells": "Stool WBC",
+  "stool rbc": "Stool RBC",
+  "fat globules": "Fat Globules",
+  "fat globule": "Fat Globules",
+  "stool bacteria": "Stool Bacteria",
+  "entamoeba histolytica": "Entamoeba histolytica",
+  "e. histolytica": "Entamoeba histolytica",
+  "e histolytica": "Entamoeba histolytica",
+  "ascaris lumbricoides": "Ascaris lumbricoides",
+  ascaris: "Ascaris lumbricoides",
+  "a. lumbricoides": "Ascaris lumbricoides",
+  "trichuris trichiura": "Trichuris trichiura",
+  trichuris: "Trichuris trichiura",
+  whipworm: "Trichuris trichiura",
+  hookworm: "Hookworm Ova",
+  "hookworm ova": "Hookworm Ova",
+  necator: "Hookworm Ova",
+  ancylostoma: "Hookworm Ova",
+
+  // Blood Chemistry
+  "fasting blood glucose": "Fasting Blood Glucose",
+  fbs: "Fasting Blood Glucose",
+  "fasting blood sugar": "Fasting Blood Glucose",
+  glucose: "Fasting Blood Glucose",
+  "blood sugar": "Fasting Blood Glucose",
+  "asukal sa dugo": "Fasting Blood Glucose",
+  "random blood sugar": "Random Blood Sugar",
+  rbs: "Random Blood Sugar",
+  "random blood glucose": "Random Blood Sugar",
+  "oral glucose tolerance test": "Oral Glucose Tolerance Test",
+  ogtt: "Oral Glucose Tolerance Test",
+  "glucose tolerance test": "Oral Glucose Tolerance Test",
+  "hemoglobin a1c": "Hemoglobin A1C",
+  hba1c: "Hemoglobin A1C",
+  a1c: "Hemoglobin A1C",
+  "glycated hemoglobin": "Hemoglobin A1C",
+  "glycosylated hemoglobin": "Hemoglobin A1C",
+  creatinine: "Creatinine",
+  crea: "Creatinine",
+  cre: "Creatinine",
+  "serum creatinine": "Creatinine",
+  "blood urea nitrogen": "Blood Urea Nitrogen",
+  bun: "Blood Urea Nitrogen",
+  "urea nitrogen": "Blood Urea Nitrogen",
+  urea: "Blood Urea Nitrogen",
+  "estimated gfr": "Estimated GFR",
+  egfr: "Estimated GFR",
+  gfr: "Estimated GFR",
+  "glomerular filtration rate": "Estimated GFR",
+  "uric acid": "Uric Acid",
+  "serum uric acid": "Uric Acid",
+  "total protein": "Total Protein",
+  "serum total protein": "Total Protein",
+  albumin: "Albumin",
+  alb: "Albumin",
+  "serum albumin": "Albumin",
+  globulin: "Globulin",
+  "a/g ratio": "A/G Ratio",
+  "ag ratio": "A/G Ratio",
+  "albumin globulin ratio": "A/G Ratio",
+  sodium: "Sodium",
+  na: "Sodium",
+  "serum sodium": "Sodium",
+  potassium: "Potassium",
+  "serum potassium": "Potassium",
+  chloride: "Chloride",
+  "serum chloride": "Chloride",
+  bicarbonate: "Bicarbonate",
+  hco3: "Bicarbonate",
+  "total co2": "Bicarbonate",
+  calcium: "Calcium",
+  "serum calcium": "Calcium",
+  "total calcium": "Calcium",
+  "ionized calcium": "Ionized Calcium",
+  "free calcium": "Ionized Calcium",
+  phosphorus: "Phosphorus",
+  phosphate: "Phosphorus",
+  "inorganic phosphorus": "Phosphorus",
+  magnesium: "Magnesium",
+  "serum magnesium": "Magnesium",
+
+  // Lipid Profile
+  "total cholesterol": "Total Cholesterol",
+  cholesterol: "Total Cholesterol",
+  chol: "Total Cholesterol",
+  "ldl cholesterol": "LDL Cholesterol",
+  ldl: "LDL Cholesterol",
+  "ldl-c": "LDL Cholesterol",
+  "low density lipoprotein": "LDL Cholesterol",
+  "hdl cholesterol": "HDL Cholesterol",
+  hdl: "HDL Cholesterol",
+  "hdl-c": "HDL Cholesterol",
+  "high density lipoprotein": "HDL Cholesterol",
+  "vldl cholesterol": "VLDL Cholesterol",
+  vldl: "VLDL Cholesterol",
+  "very low density lipoprotein": "VLDL Cholesterol",
+  triglycerides: "Triglycerides",
+  trig: "Triglycerides",
+  triglyceride: "Triglycerides",
+  "cholesterol hdl ratio": "Cholesterol HDL Ratio",
+  "chol/hdl ratio": "Cholesterol HDL Ratio",
+
+  // Liver Function
+  ast: "AST",
+  sgot: "AST",
+  "aspartate aminotransferase": "AST",
+  alt: "ALT",
+  sgpt: "ALT",
+  "alanine aminotransferase": "ALT",
+  "alkaline phosphatase": "Alkaline Phosphatase",
+  alp: "Alkaline Phosphatase",
+  "alk phos": "Alkaline Phosphatase",
+  "gamma-glutamyl transferase": "Gamma-Glutamyl Transferase",
+  ggt: "Gamma-Glutamyl Transferase",
+  "gamma gt": "Gamma-Glutamyl Transferase",
+  "total bilirubin": "Total Bilirubin",
+  "bilirubin total": "Total Bilirubin",
+  "total bili": "Total Bilirubin",
+  "direct bilirubin": "Direct Bilirubin",
+  "conjugated bilirubin": "Direct Bilirubin",
+  "indirect bilirubin": "Indirect Bilirubin",
+  "unconjugated bilirubin": "Indirect Bilirubin",
+  "lactate dehydrogenase": "Lactate Dehydrogenase",
+  ldh: "Lactate Dehydrogenase",
+
+  // Cardiac and Pancreatic
+  troponin: "Troponin",
+  "troponin i": "Troponin",
+  "troponin t": "Troponin",
+  "creatine kinase": "Creatine Kinase",
+  cpk: "Creatine Kinase",
+  "ck-mb": "CK-MB",
+  ckmb: "CK-MB",
+  "creatine kinase mb": "CK-MB",
+  bnp: "BNP",
+  "nt-probnp": "BNP",
+  "brain natriuretic peptide": "BNP",
+  amylase: "Amylase",
+  "serum amylase": "Amylase",
+  lipase: "Lipase",
+  "serum lipase": "Lipase",
+
+  // Thyroid
+  tsh: "TSH",
+  "thyroid stimulating hormone": "TSH",
+  thyrotropin: "TSH",
+  t3: "T3",
+  triiodothyronine: "T3",
+  "total t3": "T3",
+  t4: "T4",
+  thyroxine: "T4",
+  "total t4": "T4",
+  "free t3": "Free T3",
+  ft3: "Free T3",
+  "free t4": "Free T4",
+  ft4: "Free T4",
+  "anti-tpo": "Anti-TPO",
+  "thyroid peroxidase antibody": "Anti-TPO",
+
+  // Coagulation
+  "prothrombin time": "Prothrombin Time",
+  protime: "Prothrombin Time",
   inr: "INR",
   "international normalized ratio": "INR",
-  pt: "Prothrombin Time",
-  "prothrombin time": "Prothrombin Time",
-  aptt: "Partial Thromboplastin Time",
-  ptt: "Partial Thromboplastin Time",
   "partial thromboplastin time": "Partial Thromboplastin Time",
+  ptt: "Partial Thromboplastin Time",
+  aptt: "Partial Thromboplastin Time",
+  "activated ptt": "Partial Thromboplastin Time",
   fibrinogen: "Fibrinogen",
   "d-dimer": "D-Dimer",
-  ddimmer: "D-Dimer",
+  "d dimer": "D-Dimer",
+  ddimer: "D-Dimer",
+  "bleeding time": "Bleeding Time",
+  "clotting time": "Clotting Time",
+
+  // Serology
+  "c-reactive protein": "C-Reactive Protein",
+  crp: "C-Reactive Protein",
+  "hs-crp": "C-Reactive Protein",
+  procalcitonin: "Procalcitonin",
+  "antistreptolysin o": "Antistreptolysin O",
+  aso: "Antistreptolysin O",
+  "aso titer": "Antistreptolysin O",
+  "rheumatoid factor": "Rheumatoid Factor",
+  "antinuclear antibody": "Antinuclear Antibody",
+  ana: "Antinuclear Antibody",
+  "dengue ns1": "Dengue NS1",
+  "ns1 antigen": "Dengue NS1",
+  "dengue ns1 antigen": "Dengue NS1",
+  "dengue igg": "Dengue IgG",
+  "dengue igm": "Dengue IgM",
+  "widal test": "Widal Test",
+  widal: "Widal Test",
+  typhidot: "Widal Test",
+  "hepatitis b surface antigen": "Hepatitis B Surface Antigen",
+  hbsag: "Hepatitis B Surface Antigen",
+  "hbs ag": "Hepatitis B Surface Antigen",
+  "anti-hbs": "Anti-HBs",
+  hbsab: "Anti-HBs",
+  "hepatitis b surface antibody": "Anti-HBs",
+  "anti-hcv": "Anti-HCV",
+  "hepatitis c antibody": "Anti-HCV",
+  hcv: "Anti-HCV",
+  "hepatitis a igm": "Hepatitis A IgM",
+  "hav igm": "Hepatitis A IgM",
+  hiv: "HIV",
+  "hiv screening": "HIV",
+  "anti-hiv": "HIV",
+  vdrl: "VDRL",
+  rpr: "VDRL",
+  "syphilis screening": "VDRL",
+  "helicobacter pylori": "Helicobacter pylori",
+  "h. pylori": "Helicobacter pylori",
+  "h pylori": "Helicobacter pylori",
+  "covid-19 rt-pcr": "COVID-19 RT-PCR",
+  "sars-cov-2 rt-pcr": "COVID-19 RT-PCR",
+
+  // Tumor Markers and Vitamins
+  psa: "PSA",
+  "prostate specific antigen": "PSA",
+  cea: "CEA",
+  "carcinoembryonic antigen": "CEA",
+  "alpha-fetoprotein": "Alpha-Fetoprotein",
+  afp: "Alpha-Fetoprotein",
+  "ca 125": "CA 125",
+  "ca-125": "CA 125",
+  ca125: "CA 125",
+  "ca 19-9": "CA 19-9",
+  "ca19-9": "CA 19-9",
+  "vitamin d": "Vitamin D",
+  "25-oh vitamin d": "Vitamin D",
+  "vitamin b12": "Vitamin B12",
+  b12: "Vitamin B12",
+  cobalamin: "Vitamin B12",
+  folate: "Folate",
+  "folic acid": "Folate",
+  ferritin: "Ferritin",
+  "serum ferritin": "Ferritin",
+  iron: "Iron",
+  "serum iron": "Iron",
+  "total iron binding capacity": "Total Iron Binding Capacity",
+  tibc: "Total Iron Binding Capacity",
+  transferrin: "Transferrin",
+  "transferrin saturation": "Transferrin",
+
+  // Other
+  "blood type": "Blood Type",
+  "blood typing": "Blood Type",
+  "abo typing": "Blood Type",
+  "abo rh": "Blood Type",
+  "rh factor": "Rh Factor",
+  "rh typing": "Rh Factor",
+  "rhesus factor": "Rh Factor",
 };
 
 /**
  * Philippine lab format regex patterns
  */
-const LAB_PATTERNS = [
-  // Pattern 1: "TestName: value unit (reference range)"
-  /^([A-Za-z\s-/()]+?):\s*([\d.]+)\s+([A-Za-z/%\-°C°Fµ³]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
-  // Pattern 2: "TestName value unit (reference range)" (no colon)
-  /^([A-Za-z\s-/()]+?)\s+([\d.]+)\s+([A-Za-z/%\-°C°Fµ³]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
-  // Pattern 3: "TestName: value (reference range)" (abbreviated, with optional ref range)
-  /^([A-Za-z\s-/()0-9]+?):\s*([\d.]+)(?:\s*\(([\d.\-\s]+?)\))?$/,
-  // Pattern 4: Tab-separated
-  /^([A-Za-z\s-/()]+?)\t+([\d.]+)\t+([A-Za-z/%\-°C°Fµ³]+?)(?:\t+([\d.\-\s]+?))?$/,
-  // Pattern 5: Philippine format "TestName ........ value" dotted leaders
-  /^([A-Za-z\s-/()]+?)\s*\.+\s*([\d.]+)\s*([A-Za-z/%\-°C°Fµ³]*)?(?:\s*\(([\d.\-\s]+?)\))?$/,
-  // Pattern 6: Compact "TEST=123" or "TEST:123"
-  /^([A-Za-z\s-/()]+?)\s*[:=]\s*([\d.]+)\s*([A-Za-z/%\-°C°Fµ³]*)?$/,
+/**
+ * Layout patterns for a lab line, with explicit capture-group indices.
+ *
+ * The indices matter: pattern 3 has no unit group, so reading group 3 as the
+ * unit put the reference range into `unit`. `referenceRange` then arrived
+ * undefined and computeFlag never ran, so abnormal values were never flagged.
+ */
+interface LabPattern {
+  re: RegExp;
+  nameIdx: number;
+  valueIdx: number;
+  unitIdx?: number;
+  rangeIdx?: number;
+}
+
+const LAB_PATTERNS: LabPattern[] = [
+  // "TestName: value unit (reference range)"
+  {
+    re: /^([A-Za-z\s\-/()]+?):\s*([\d.]+)\s+([A-Za-z/%\-°C°F]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
+    nameIdx: 1,
+    valueIdx: 2,
+    unitIdx: 3,
+    rangeIdx: 4,
+  },
+  // "TestName value unit (reference range)" (no colon)
+  {
+    re: /^([A-Za-z\s\-/()]+?)\s+([\d.]+)\s+([A-Za-z/%\-°C°F]+?)(?:\s*\(([\d.\-\s]+?)\))?$/,
+    nameIdx: 1,
+    valueIdx: 2,
+    unitIdx: 3,
+    rangeIdx: 4,
+  },
+  // "TestName: value (reference range)" — no unit group at all.
+  {
+    re: /^([A-Za-z\s\-/()0-9]+?):\s*([\d.]+)(?:\s*\(([\d.\-\s]+?)\))?$/,
+    nameIdx: 1,
+    valueIdx: 2,
+    rangeIdx: 3,
+  },
+  // Tab-separated
+  {
+    re: /^([A-Za-z\s\-/()]+?)\t+([\d.]+)\t+([A-Za-z/%\-°C°F]+?)(?:\t+([\d.\-\s]+?))?$/,
+    nameIdx: 1,
+    valueIdx: 2,
+    unitIdx: 3,
+    rangeIdx: 4,
+  },
+  // Microscopy counts reported as a span, e.g. "Pus Cells: 5-10 /hpf".
+  {
+    re: /^([A-Za-z\s\-/()]+?):\s*(\d+\s*-\s*\d+)\s*([A-Za-z/]+)?$/,
+    nameIdx: 1,
+    valueIdx: 2,
+    unitIdx: 3,
+  },
+  // Qualitative results, e.g. "Occult Blood: Positive", "Urine Color: Yellow".
+  {
+    re: /^([A-Za-z\s\-/()]+?):\s*([A-Za-z][A-Za-z\s()+-]{0,29})$/,
+    nameIdx: 1,
+    valueIdx: 2,
+  },
 ];
 
 const rangeRegex = /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/;
@@ -548,6 +519,22 @@ const normalizeName = (name: string): string => {
   const key = cleaned.toLowerCase();
   return CANONICAL_TEST_NAMES[key] ?? cleaned;
 };
+
+/**
+ * Canonical names, plus the values they normalise to, form the allowlist of
+ * things this engine will call a lab result.
+ *
+ * Without it any "Label: number" line parsed as a test, so `Patient ID: 12345`,
+ * `Age: 45` and `Room No: 302` became "lab results" — PHI that then flowed into
+ * the analysis, the audit trail and user-facing text.
+ */
+const KNOWN_TEST_KEYS = new Set<string>([
+  ...Object.keys(CANONICAL_TEST_NAMES),
+  ...Object.values(CANONICAL_TEST_NAMES).map((value) => value.toLowerCase()),
+]);
+
+const isKnownTestName = (name: string): boolean =>
+  KNOWN_TEST_KEYS.has(name.trim().toLowerCase());
 
 /**
  * Compute flag based on reference range
@@ -570,6 +557,35 @@ const computeFlag = (value: string, range?: string): boolean => {
 /**
  * Extract lab values using regex patterns
  */
+/**
+ * Score how much to trust one extracted row, from signals already available.
+ *
+ * Earlier LAB_PATTERNS entries are more specific (they require a unit and a
+ * parenthesised range), so a match there is stronger evidence than the loose
+ * qualitative pattern at the end. A name that resolved through the canonical
+ * table, a captured unit and a range printed on the document each add
+ * confidence; a built-in range adds less than one the lab actually printed.
+ */
+function scoreExtraction(signals: {
+  patternIndex: number;
+  recognisedName: boolean;
+  hasUnit: boolean;
+  hasRange: boolean;
+  rangeWasPrinted: boolean;
+}): number {
+  const patternSpecificity =
+    LAB_PATTERNS.length > 1
+      ? 1 - signals.patternIndex / (LAB_PATTERNS.length - 1)
+      : 1;
+
+  let score = 0.3 + 0.2 * patternSpecificity;
+  if (signals.recognisedName) score += 0.2;
+  if (signals.hasUnit) score += 0.15;
+  if (signals.hasRange) score += signals.rangeWasPrinted ? 0.15 : 0.08;
+
+  return Math.round(Math.min(1, Math.max(0, score)) * 100) / 100;
+}
+
 export const extractTestsFromText = (text: string): ExtractedTest[] => {
   const lines = text
     .split(/\r?\n/)
@@ -581,25 +597,49 @@ export const extractTestsFromText = (text: string): ExtractedTest[] => {
 
   for (const line of lines) {
     for (const pattern of LAB_PATTERNS) {
-      const match = pattern.exec(line);
+      const match = pattern.re.exec(line);
       if (!match) continue;
 
-      const name = normalizeName(match[1] ?? "");
-      const value = match[2] ?? "";
-      const unit = match[3] ?? "";
-      const referenceRange = match[4];
+      const rawName = match[pattern.nameIdx] ?? "";
+      // Only recognised analytes may become results; everything else on the
+      // page (patient id, age, room number, ...) is PHI, not a measurement.
+      if (!isKnownTestName(rawName)) continue;
+
+      const name = normalizeName(rawName);
+      const value = match[pattern.valueIdx] ?? "";
+      const unit =
+        pattern.unitIdx === undefined ? "" : (match[pattern.unitIdx] ?? "");
+      const referenceRange =
+        pattern.rangeIdx === undefined ? undefined : match[pattern.rangeIdx];
 
       // Skip duplicate names
       const nameKey = name.toLowerCase();
       if (seenNames.has(nameKey)) break;
       seenNames.add(nameKey);
 
+      // Prefer the range printed on the document; fall back to the built-in
+      // table so a value without a printed range is still checked.
+      const printedRange = referenceRange?.trim();
+      const builtIn = printedRange
+        ? undefined
+        : REFERENCE_RANGES[CANONICAL_NAME_TO_CODE[name] ?? ""];
+      const effectiveRange =
+        printedRange ??
+        (builtIn ? `${builtIn.low}-${builtIn.high}` : undefined);
+
       results.push({
+        confidence: scoreExtraction({
+          patternIndex: LAB_PATTERNS.indexOf(pattern),
+          recognisedName: isKnownTestName(rawName),
+          hasUnit: unit.trim().length > 0,
+          hasRange: effectiveRange !== undefined,
+          rangeWasPrinted: printedRange !== undefined,
+        }),
         name,
         value,
-        unit: unit.trim(),
-        referenceRange: referenceRange?.trim(),
-        flagged: computeFlag(value, referenceRange ?? ""),
+        unit: unit.trim() || (printedRange ? "" : (builtIn?.unit ?? "")),
+        referenceRange: effectiveRange,
+        flagged: computeFlag(value, effectiveRange ?? ""),
       });
 
       break; // Move to next line after successful pattern match

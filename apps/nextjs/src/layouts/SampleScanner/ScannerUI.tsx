@@ -4,9 +4,12 @@
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Bot, Focus, Lock, Paperclip, Trash2 } from "lucide-react";
 
+import { toast } from "@klaro/ui/toast";
 import { LANGUAGE_TO_DIALECT } from "@klaro/validators/language";
 
 import type { DemoLanguage } from "~/components/demo-modal";
@@ -28,6 +31,13 @@ import { DemoPrescription } from "~/components/demo/prescription";
 import { DropOverlay } from "~/components/drop-overlay";
 import { DropZone } from "~/components/drop-zone";
 import { FilePreview } from "~/components/file-preview";
+import { MedicalDisclaimerOverlay } from "~/components/medical-disclaimer-overlay";
+import {
+  ConfidenceScore,
+  PlainLanguageSummary,
+  SeverityIndicator,
+  TanongMoCard,
+} from "~/components/scan";
 import { UploadComplete } from "~/components/upload-complete";
 import { UploadError } from "~/components/upload-error";
 import { UploadProgress } from "~/components/upload-progress";
@@ -41,13 +51,24 @@ import {
 } from "~/data/demo-index";
 import { useChat } from "~/hooks/use-chat";
 import { useFileUpload } from "~/hooks/use-file-upload";
+import { useMedicalDisclaimer } from "~/hooks/use-medical-disclaimer";
 import {
+  createChatAttachmentFileName,
   createPreviewUrl,
+  dataUrlToFile,
   getFileKind,
   validateFiles,
 } from "~/lib/file-validation";
 import { useLanguage } from "~/providers/language-provider";
+import { useTRPC } from "~/trpc/react";
 import styles from "../../app/scan/page.module.css";
+
+/** documents.scanGuestImage returns an urgency; the UI speaks in severities. */
+const URGENCY_TO_SEVERITY = {
+  LOW: "low",
+  MODERATE: "moderate",
+  HIGH: "high",
+} as const;
 
 interface ScannerUIProps {
   initialAnalysisId?: string;
@@ -68,8 +89,30 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const { t, language } = useLanguage();
+  const router = useRouter();
 
+  // Blocking consent gate: no medical document may be read until the Terms of
+  // Service, Terms & Conditions and medical disclaimer are accepted.
+  const disclaimer = useMedicalDisclaimer();
+  const trpc = useTRPC();
+  const recordConsent = useMutation(trpc.auth.recordConsent.mutationOptions());
+
+  const handleAcceptConsent = () => {
+    disclaimer.acceptDisclaimer();
+    // Proof of consent is recorded server-side; it carries no medical content.
+    recordConsent.mutate({});
+  };
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  // The live camera stream. Held in a ref (not read off the <video> element) so
+  // it can be released even when the element never mounted — for example when
+  // getUserMedia resolves after the component unmounted.
+  const streamRef = useRef<MediaStream | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const isMountedRef = useRef(true);
+  const isUploadingRef = useRef(false);
+  const selectedFilesRef = useRef<FilePreviewItem[]>([]);
 
   const fileUpload = useFileUpload({
     language,
@@ -98,35 +141,130 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
     return () => globalThis.clearTimeout(timer);
   }, [chat.messages, isCameraOpen, chat.isTyping]);
 
-  const openCamera = useCallback(() => {
-    setIsCameraOpen(true);
+  useEffect(() => {
+    isUploadingRef.current = fileUpload.isUploading;
+  }, [fileUpload.isUploading]);
+
+  useEffect(() => {
+    // Release any object URLs still held when the page unmounts.
+    return () => {
+      selectedFilesRef.current.forEach((item) => {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      });
+    };
   }, []);
 
-  const handleCameraCapture = useCallback((imageData: string) => {
-    setCapturedImage(imageData);
-    setIsCameraOpen(false);
+  useEffect(() => {
+    selectedFilesRef.current = selectedFiles;
+  }, [selectedFiles]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+      // Release the camera even if the <video> element never mounted.
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    };
   }, []);
+
+  const stopStream = () => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      });
+      // Take ownership immediately: if the component unmounted while
+      // getUserMedia was pending, the camera must still be released.
+      streamRef.current = stream;
+
+      if (!isMountedRef.current) {
+        stopStream();
+        return;
+      }
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        void videoRef.current.play();
+      }
+    } catch (error) {
+      console.error("Camera not available or permission denied", error);
+    }
+  };
+
+  const handleStartScan = async () => {
+    if (!disclaimer.requireConsent()) return;
+    setIsScanning(true);
+    await startCamera();
+  };
+
+  const handleCancelScan = () => {
+    stopStream();
+    setIsScanning(false);
+  };
 
   const openDemo = useCallback((type: DemoType) => {
     setActiveDemoType(type);
     setDemoModalOpen(true);
   }, []);
 
-  const handleFilesSelected = useCallback(async (files: File[]) => {
-    const { valid, invalid } = await validateFiles(files);
+  const handleFilesSelected = useCallback(
+    async (files: File[]) => {
+      if (!disclaimer.requireConsent()) return;
 
-    if (invalid.length > 0) {
-      alert(invalid.map((i) => i.error).join("\n"));
-    }
+      const { valid, invalid } = await validateFiles(files);
 
-    const newItems: FilePreviewItem[] = valid.map((file) => ({
-      file,
-      previewUrl: createPreviewUrl(file),
-      kind: getFileKind(file),
-    }));
+      // One toast per rejected file: alert() blocks the main thread and hides
+      // which file failed when several are dropped at once.
+      for (const { error } of invalid) {
+        toast.error(error);
+      }
 
-    setSelectedFiles((prev) => [...prev, ...newItems]);
-  }, []);
+      const newItems: FilePreviewItem[] = valid.map((file) => ({
+        file,
+        previewUrl: createPreviewUrl(file),
+        kind: getFileKind(file),
+      }));
+
+      setSelectedFiles((prev) => [...prev, ...newItems]);
+    },
+    [disclaimer],
+  );
+
+  const handleCapture = useCallback(async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = canvas.toDataURL("image/png");
+    setCapturedImage(imageData);
+    handleCancelScan();
+
+    // The captured frame is a real upload, not just a preview: convert it to a
+    // File and put it through the same validation and queue as a picked file.
+    const file = await dataUrlToFile(imageData);
+    await handleFilesSelected([file]);
+  }, [handleFilesSelected]);
+
+  const handleRetake = () => {
+    setCapturedImage(null);
+  };
 
   const handleRemoveFile = useCallback((index: number) => {
     setSelectedFiles((prev) => {
@@ -186,13 +324,37 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
 
   const handleUploadFiles = useCallback(async () => {
     if (selectedFiles.length === 0) return;
-    const files = selectedFiles.map((item) => item.file);
-    await fileUpload.upload(files);
-  }, [selectedFiles, fileUpload]);
+    if (!disclaimer.requireConsent()) return;
+    if (fileUpload.isUploading) return;
 
-  const handleSend = (content: string, image?: string) => {
-    void chat.sendMessage(content, image);
-  };
+    const files = selectedFiles.map((item) => item.file);
+
+    // Hand the files off and clear the staging list: leaving them selected let
+    // a second click resubmit the same document.
+    setSelectedFiles((prev) => {
+      prev.forEach((item) => {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      });
+      return [];
+    });
+
+    await fileUpload.upload(files);
+  }, [selectedFiles, fileUpload, disclaimer]);
+
+  const handleSend = useCallback(
+    async (content: string, image?: string) => {
+      // An image attached in chat is a medical document like any other: run it
+      // through the same validation and scan queue instead of only previewing
+      // it in the bubble and then discarding it.
+      if (image) {
+        const file = await dataUrlToFile(image, createChatAttachmentFileName());
+        await handleFilesSelected([file]);
+      }
+
+      await chat.sendMessage(content, image);
+    },
+    [chat, handleFilesSelected],
+  );
 
   const handleClearConversation = async () => {
     await chat.clearMessages();
@@ -227,6 +389,8 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
       e.preventDefault();
       setIsDragging(false);
       setDragCounter(0);
+      // Dropping mid-upload would queue files the in-flight run never picks up.
+      if (isUploadingRef.current) return;
       const files = Array.from(e.dataTransfer?.files ?? []);
       if (files.length > 0) {
         void handleGlobalDrop(files);
@@ -257,6 +421,13 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
       />
     );
   }
+
+  const completedUploads = fileUpload.queue.filter(
+    (item) => item.stage === "complete",
+  );
+
+  // The analysis lives in React state only and is never persisted (RA 10173).
+  const completedResults = completedUploads.filter((item) => item.result);
 
   const hasUploadQueue = selectedFiles.length > 0;
   const uploadComplete = fileUpload.stage === "complete";
@@ -576,6 +747,18 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
               </div>
             )}
 
+            {/* Cancel an in-flight upload */}
+            {fileUpload.isUploading && (
+              <button
+                className={styles.secondaryBtn}
+                onClick={fileUpload.cancelAll}
+                style={{ marginTop: 12 }}
+                type="button"
+              >
+                <X size={18} /> Cancel upload
+              </button>
+            )}
+
             {/* Upload progress */}
             <UploadProgress
               stage={fileUpload.stage}
@@ -584,22 +767,103 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             />
 
             {/* Upload complete */}
-            {uploadComplete && uploadedRequestId && (
+            {uploadComplete && completedUploads.length > 0 && (
               <UploadComplete
-                items={[
-                  {
-                    fileName: selectedFiles[0]?.file.name ?? "Document",
-                    fileType:
-                      selectedFiles[0]?.kind === "pdf" ? "pdf" : "image",
-                    fileSize: selectedFiles[0]?.file.size ?? 0,
-                    analysisId: uploadedRequestId,
-                  },
-                ]}
+                items={completedUploads.map((item) => ({
+                  fileName: item.file.name,
+                  fileType:
+                    item.file.type === "application/pdf" ? "pdf" : "image",
+                  fileSize: item.file.size,
+                  // Each row carries its own request id, not the last one written.
+                  analysisId: item.requestId ?? "",
+                }))}
                 onViewAnalysis={(id) => {
-                  window.location.href = `/scan?id=${id}`;
+                  // Client navigation keeps the chat history and the rendered
+                  // analysis mounted; a full reload discarded both.
+                  router.push(`/scan?id=${id}`);
                 }}
               />
             )}
+
+            {/* The analysis Clara produced, rendered per completed file. */}
+            {completedResults.map((item) => {
+              const result = item.result;
+              if (!result) return null;
+
+              // Every analysis field is optional on the wire; fall back rather
+              // than rendering a broken card.
+              const severity =
+                URGENCY_TO_SEVERITY[result.urgency ?? "MODERATE"];
+              const summary =
+                result.plainLanguageSummary ?? result.analysis?.summary ?? "";
+              const recommendations =
+                result.recommendations ??
+                result.analysis?.recommendations ??
+                [];
+
+              if (!summary && recommendations.length === 0) return null;
+
+              // A fallback or mock result did not come from a real model.
+              // Saying so is a safety requirement, not a nicety.
+              const isDegraded =
+                result.source === "fallback" || result.source === "mock";
+
+              return (
+                <div
+                  key={item.id}
+                  style={{
+                    width: "100%",
+                    marginTop: 16,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 12,
+                  }}
+                >
+                  {isDegraded && (
+                    <div
+                      role="status"
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                        border: "1px solid #f59e0b",
+                        background: "#fffbeb",
+                        color: "#92400e",
+                        fontSize: "0.85rem",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {t("scan.degradedResult")}
+                    </div>
+                  )}
+
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                  >
+                    <SeverityIndicator level={severity} size="md" />
+                    {result.confidence !== undefined && (
+                      <ConfidenceScore
+                        score={Math.round(result.confidence * 100)}
+                      />
+                    )}
+                  </div>
+
+                  {summary && (
+                    <PlainLanguageSummary
+                      summary={summary}
+                      dialect={chatDialect}
+                      onDialectChange={setChatDialect}
+                    />
+                  )}
+
+                  {recommendations.length > 0 && (
+                    <TanongMoCard
+                      questions={recommendations}
+                      severity={severity}
+                    />
+                  )}
+                </div>
+              );
+            })}
 
             {/* Upload errors */}
             {fileUpload.stage === "error" &&
@@ -609,17 +873,13 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
                   errors={fileUpload.queue
                     .filter((f) => f.stage === "error" && f.error)
                     .map((f) => ({
+                      id: f.id,
                       fileName: f.file.name,
                       message: f.error!,
                       type: "network" as const,
                     }))}
                   onDismiss={() => {}}
-                  onRetry={(fileName) => {
-                    const item = fileUpload.queue.find(
-                      (f) => f.file.name === fileName,
-                    );
-                    if (item) void fileUpload.retry(item.id);
-                  }}
+                  onRetry={(fileId) => void fileUpload.retry(fileId)}
                 />
               )}
 
@@ -630,6 +890,29 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
               <div className={styles.footerNoteItem}>
                 <Lock size={16} /> {t("scan.privacy")}
               </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+              {isScanning ? (
+                <>
+                  <button
+                    className={styles.secondaryBtn}
+                    onClick={handleCancelScan}
+                  >
+                    <X size={18} /> Cancel
+                  </button>
+                  <button
+                    className={styles.primaryBtn}
+                    onClick={() => void handleCapture()}
+                  >
+                    <Check size={18} /> Scan image
+                  </button>
+                </>
+              ) : capturedImage ? (
+                <button className={styles.secondaryBtn} onClick={handleRetake}>
+                  <X size={18} /> Retake
+                </button>
+              ) : null}
             </div>
 
             {/* Chat messages */}
@@ -696,7 +979,7 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
             >
               <div className={styles.chatInputWrapper}>
                 <ChatInput
-                  onSend={handleSend}
+                  onSend={(content, image) => void handleSend(content, image)}
                   disabled={chat.isTyping}
                   placeholder={t("chat.placeholder")}
                   onCameraClick={openCamera}
@@ -715,13 +998,14 @@ export function ScannerUI({ initialAnalysisId }: ScannerUIProps) {
           onCancel={() => setClearDialogOpen(false)}
         />
 
-        </section>
+        <MedicalDisclaimerOverlay
+          isOpen={disclaimer.isShowing}
+          onAccept={handleAcceptConsent}
+          onDecline={disclaimer.declineDisclaimer}
+        />
 
-      <CameraCapture
-        isOpen={isCameraOpen}
-        onClose={() => setIsCameraOpen(false)}
-        onCapture={handleCameraCapture}
-      />
+        <canvas ref={canvasRef} style={{ display: "none" }} />
+      </section>
 
       <DemoModal
         isOpen={demoModalOpen}

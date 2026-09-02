@@ -8,8 +8,9 @@
  * FE-07: Add disclaimer overlay before first AI response regarding medical advice limitations.
  *
  * This component displays a mandatory disclaimer that users must acknowledge
- * before receiving AI-generated medical information. Required for HIPAA compliance
- * and to set proper expectations about AI limitations.
+ * before receiving AI-generated medical information. Required under the Philippine
+ * Data Privacy Act of 2012 (RA 10173) and to set proper expectations about AI
+ * limitations.
  */
 import { useCallback, useEffect, useState } from "react";
 
@@ -57,14 +58,14 @@ const DISCLAIMER_TRANSLATIONS = {
       {
         heading: "Emergency Situations",
         content:
-          "If you are experiencing a medical emergency, call your local emergency number (911 in the US) or go to the nearest emergency department immediately.",
+          "If you are experiencing a medical emergency, call 911 (the Philippine national emergency hotline) or go to the nearest emergency department immediately.",
       },
     ],
     acceptButton: "I Understand & Accept",
     declineButton: "I Do Not Accept",
     requiredNotice: "You must accept this disclaimer to use the service.",
     privacyNote:
-      "Your health data is encrypted and protected in accordance with HIPAA regulations.",
+      "Your documents are processed and then discarded — Claro never stores your medical files or the values read from them. Handled under the Data Privacy Act of 2012 (Republic Act 10173).",
   },
   fil: {
     title: "Mahalagang Paunawa sa Medikal",
@@ -96,7 +97,7 @@ const DISCLAIMER_TRANSLATIONS = {
     requiredNotice:
       "Kailangan mong tanggapin ang paunawa na ito para magamit ang serbisyo.",
     privacyNote:
-      "Ang iyong data sa kalusugan ay naka-encrypt at protektado ayon sa mga regulasyon ng HIPAA.",
+      "Ang iyong mga dokumento ay pinoproseso at agad na binubura — hindi kailanman iniimbak ng Claro ang inyong medical files o ang mga halagang nabasa rito. Sakop ng Data Privacy Act of 2012 (Republic Act 10173).",
   },
   ceb: {
     title: "Importante nga Medical Disclaimer",
@@ -128,7 +129,7 @@ const DISCLAIMER_TRANSLATIONS = {
     requiredNotice:
       "Kinahanglan nimu dawaton kini nga disclaimer aron mogamit sa serbisyo.",
     privacyNote:
-      "Ang imong data sa kahimsog gi-encrypt ug giprotektahan sumala sa mga regulasyon sa HIPAA.",
+      "Ang imong mga dokumento gi-proseso ug dayon gipapas — wala gyud gitipigan sa Claro ang imong medical files o ang mga bili nga nabasa niini. Sakop sa Data Privacy Act of 2012 (Republic Act 10173).",
   },
   ilo: {
     title: "Importante nga Medical Disclaimer",
@@ -160,7 +161,7 @@ const DISCLAIMER_TRANSLATIONS = {
     requiredNotice:
       "Kailangan mo tirikko daytoy a disclaimer aron magamit iti serbisyo.",
     privacyNote:
-      "Ti data mo iti kasasaad ket encrypted ken naprotektahan babaen iti mga regulasyon iti HIPAA.",
+      "Dagiti dokumentom ket maproseso sana madagdag — saan a pulos nga idulin ti Claro dagiti medical files mo wenno dagiti balor a nabasa manipud kadagitoy. Sakop ti Data Privacy Act of 2012 (Republic Act 10173).",
   },
 };
 
@@ -199,15 +200,7 @@ export function MedicalDisclaimerOverlay({
   }, []);
 
   const handleAccept = () => {
-    // Store acceptance in localStorage
-    try {
-      localStorage.setItem(
-        "klaro-disclaimer-accepted",
-        new Date().toISOString(),
-      );
-    } catch {
-      // localStorage not available
-    }
+    recordDisclaimerAcceptance();
     onAccept();
   };
 
@@ -318,13 +311,59 @@ export function MedicalDisclaimerOverlay({
   );
 }
 
+export const DISCLAIMER_STORAGE_KEY = "klaro-disclaimer-accepted";
+
+// ----------------------------------------------------------------------------
+// External store
+//
+// Acceptance lives in localStorage, which the server cannot see. Exposing it as
+// an external store lets consumers read it with useSyncExternalStore, so the
+// server render and the first client render agree (no hydration mismatch) and
+// no effect has to synchronously set state.
+// ----------------------------------------------------------------------------
+
+const disclaimerListeners = new Set<() => void>();
+
+function emitDisclaimerChange(): void {
+  for (const listener of disclaimerListeners) listener();
+}
+
+export function subscribeToDisclaimer(listener: () => void): () => void {
+  disclaimerListeners.add(listener);
+  return () => {
+    disclaimerListeners.delete(listener);
+  };
+}
+
+/** Client snapshot: whether consent is recorded in this browser. */
+export function getDisclaimerSnapshot(): boolean {
+  return hasAcceptedDisclaimer();
+}
+
+/** Server snapshot: the server never has consent, so the gate renders closed. */
+export function getDisclaimerServerSnapshot(): boolean {
+  return false;
+}
+
+/**
+ * Record that the user accepted the consent gate.
+ */
+export function recordDisclaimerAcceptance(): void {
+  try {
+    localStorage.setItem(DISCLAIMER_STORAGE_KEY, new Date().toISOString());
+  } catch {
+    // localStorage not available
+  }
+  emitDisclaimerChange();
+}
+
 /**
  * Check if user has already accepted the disclaimer
  */
 export function hasAcceptedDisclaimer(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    return localStorage.getItem("klaro-disclaimer-accepted") !== null;
+    return localStorage.getItem(DISCLAIMER_STORAGE_KEY) !== null;
   } catch {
     return false;
   }
@@ -335,8 +374,9 @@ export function hasAcceptedDisclaimer(): boolean {
  */
 export function clearDisclaimerAcceptance(): void {
   try {
-    localStorage.removeItem("klaro-disclaimer-accepted");
+    localStorage.removeItem(DISCLAIMER_STORAGE_KEY);
   } catch {
     // localStorage not available
   }
+  emitDisclaimerChange();
 }

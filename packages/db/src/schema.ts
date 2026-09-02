@@ -278,6 +278,34 @@ export const phiAuditLog = pgTable(
   ],
 );
 
+/**
+ * Record of a user accepting the Terms of Service, Terms & Conditions and the
+ * medical disclaimer before any document is read.
+ *
+ * Deliberately holds NO medical content: this proves consent was given, which
+ * is required under the Data Privacy Act of 2012 (RA 10173), while remaining
+ * compatible with the zero-storage rule for medical documents.
+ */
+export const consentRecord = pgTable(
+  "consent_record",
+  {
+    id: uuid("id").notNull().primaryKey().defaultRandom(),
+    // Null for guests, who consent without an account.
+    userId: text("user_id"),
+    sessionId: text("session_id"),
+    termsVersion: varchar("terms_version", { length: 32 }).notNull(),
+    acceptedAt: timestamp("accepted_at").defaultNow().notNull(),
+    ipAddress: varchar("ip_address", { length: 45 }),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    index("consent_record_user_id_idx").on(t.userId),
+    index("consent_record_session_id_idx").on(t.sessionId),
+    index("consent_record_accepted_at_idx").on(t.acceptedAt),
+  ],
+);
+
 export const phiAuditLogRelations = relations(phiAuditLog, ({ one }) => ({
   user: one(user, {
     fields: [phiAuditLog.userId],

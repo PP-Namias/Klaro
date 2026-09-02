@@ -1,31 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type CanvasLike = any;
-
-interface CanvasModule {
-  createCanvas: (width: number, height: number) => CanvasLike;
-  loadImage: (source: Buffer) => Promise<CanvasLike>;
-}
-
-let canvasModule: CanvasModule | null = null;
-let canvasLoadAttempted = false;
-
-async function getCanvas(): Promise<CanvasModule | null> {
-  if (canvasLoadAttempted) return canvasModule;
-  canvasLoadAttempted = true;
-  try {
-    const mod = await (import("canvas") as Promise<typeof import("canvas")>);
-    canvasModule = {
-      createCanvas: mod.createCanvas as CanvasModule["createCanvas"],
-      loadImage: mod.loadImage,
-    };
-    console.log("[imagePreprocessor] canvas native module loaded");
-  } catch {
-    console.warn(
-      "[imagePreprocessor] canvas native module not available, preprocessing disabled",
-    );
-  }
-  return canvasModule;
-}
+import sharp from "sharp";
 
 export interface PreprocessingOptions {
   grayscale?: boolean;
@@ -197,18 +170,6 @@ export async function preprocessImage(
   inputBase64: string,
   options: PreprocessingOptions = {},
 ): Promise<PreprocessingResult> {
-  const canvas = await getCanvas();
-  if (!canvas) {
-    const buffer = Buffer.from(inputBase64, "base64");
-    return {
-      buffer,
-      base64: inputBase64,
-      width: 0,
-      height: 0,
-      applied: ["canvas-not-available"],
-    };
-  }
-
   const opts = {
     grayscale: options.grayscale ?? true,
     denoise: options.denoise ?? true,
@@ -219,86 +180,41 @@ export async function preprocessImage(
   };
 
   const applied: string[] = [];
-  const buffer = Buffer.from(inputBase64, "base64");
+  let working: Buffer = Buffer.from(inputBase64, "base64");
 
-  const image = await canvas.loadImage(buffer);
-  let width = image.width;
-  let height = image.height;
+  // Decode to raw RGBA so the existing pixel filters can operate in place.
+  let decoded = await sharp(working)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
 
   if (opts.deskew) {
-    const tempCanvas = canvas.createCanvas(width, height);
-    const tempCtx = tempCanvas.getContext(
-      "2d",
-    ) as unknown as CanvasRenderingContext2D;
-    tempCtx.drawImage(image, 0, 0);
-    const tempData = tempCtx.getImageData(0, 0, width, height);
-    const skewAngle = estimateSkew(tempData.data, width, height);
+    const skewAngle = estimateSkew(
+      new Uint8ClampedArray(decoded.data),
+      decoded.info.width,
+      decoded.info.height,
+    );
 
     if (Math.abs(skewAngle) > 0.5) {
-      const diagonal = Math.ceil(Math.sqrt(width * width + height * height));
-      const rotatedCanvas = canvas.createCanvas(diagonal, diagonal);
-      const rotatedCtx = rotatedCanvas.getContext(
-        "2d",
-      ) as unknown as CanvasRenderingContext2D;
-      rotatedCtx.fillStyle = "#ffffff";
-      rotatedCtx.fillRect(0, 0, diagonal, diagonal);
-      rotatedCtx.translate(diagonal / 2, diagonal / 2);
-      rotatedCtx.rotate((skewAngle * Math.PI) / 180);
-      rotatedCtx.drawImage(tempCanvas, -width / 2, -height / 2);
-      width = diagonal;
-      height = diagonal;
+      // Rotate on the encoded image, then decode the straightened result.
+      working = await sharp(working)
+        .rotate(-skewAngle, { background: "#ffffff" })
+        .png()
+        .toBuffer();
 
-      const rotatedBuffer = rotatedCanvas.toBuffer("image/png");
-      const rotatedImage = await canvas.loadImage(rotatedBuffer);
-      const resultCanvas = canvas.createCanvas(width, height);
-      const resultCtx = resultCanvas.getContext("2d");
-      resultCtx.drawImage(rotatedImage, 0, 0);
+      decoded = await sharp(working)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
 
-      const resultData = resultCtx.getImageData(0, 0, width, height);
-      const data = resultData.data;
-
-      if (opts.grayscale) {
-        applyGrayscale(data);
-        applied.push("grayscale");
-      }
-      if (opts.denoise) {
-        applyMedianDenoise(data, width, height);
-        applied.push("denoise");
-      }
-      if (opts.binarize) {
-        applyAdaptiveBinarize(data, width, height);
-        applied.push("binarize");
-      }
-      if (opts.contrast !== 1) {
-        applyContrast(data, opts.contrast);
-        applied.push("contrast");
-      }
-      if (opts.brightness !== 1) {
-        applyBrightness(data, opts.brightness);
-        applied.push("brightness");
-      }
-
-      resultCtx.putImageData(resultData, 0, 0);
-      const finalBuffer = resultCanvas.toBuffer("image/png");
-      return {
-        buffer: finalBuffer,
-        base64: finalBuffer.toString("base64"),
-        width,
-        height,
-        applied,
-      };
+      applied.push("deskew");
+    } else {
+      applied.push("deskew:not-needed");
     }
-    applied.push("deskew:not-needed");
   }
 
-  const mainCanvas = canvas.createCanvas(width, height);
-  const ctx = mainCanvas.getContext(
-    "2d",
-  ) as unknown as CanvasRenderingContext2D;
-  ctx.drawImage(image, 0, 0);
-
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const data = imageData.data;
+  const { width, height } = decoded.info;
+  const data = new Uint8ClampedArray(decoded.data);
 
   if (opts.grayscale) {
     applyGrayscale(data);
@@ -321,8 +237,12 @@ export async function preprocessImage(
     applied.push("brightness");
   }
 
-  ctx.putImageData(imageData, 0, 0);
-  const finalBuffer = mainCanvas.toBuffer("image/png");
+  const finalBuffer = await sharp(Buffer.from(data.buffer), {
+    raw: { width, height, channels: 4 },
+  })
+    .png()
+    .toBuffer();
+
   return {
     buffer: finalBuffer,
     base64: finalBuffer.toString("base64"),

@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type CanvasLike = any;
+import { createCanvas } from "@napi-rs/canvas";
 
 export interface PdfPageImage {
   pageNumber: number;
@@ -21,37 +20,6 @@ const RENDER_SCALE = 1.5;
 export async function convertPdfToImages(
   pdfBuffer: Buffer,
 ): Promise<PdfConversionResult> {
-  let createCanvas: ((w: number, h: number) => CanvasLike) | undefined;
-  try {
-    const canvasMod = await (import("canvas") as Promise<
-      typeof import("canvas")
-    >);
-    createCanvas = canvasMod.createCanvas;
-  } catch {
-    // canvas not available
-  }
-  if (!createCanvas) {
-    return {
-      pages: [],
-      pageCount: 0,
-      success: false,
-      error: "canvas module not available",
-    };
-  }
-
-  // Quick preflight checks without throwing
-  if (pdfBuffer.length < 10) {
-    return { pages: [], pageCount: 0, success: false, error: "PDF too small or empty - file appears corrupted" };
-  }
-  const header = pdfBuffer.subarray(0, 5).toString("ascii");
-  if (header !== "%PDF-") {
-    // Might be encrypted or corrupted
-    if (pdfBuffer.subarray(0, 2).toString() === "PK") {
-      return { pages: [], pageCount: 0, success: false, error: "File is not a PDF (detected Office document) - please upload a PDF" };
-    }
-    return { pages: [], pageCount: 0, success: false, error: "Invalid PDF header - file is corrupted or not a valid PDF" };
-  }
-
   try {
     const pdfjsLib = await import("pdfjs-dist");
     let doc;
@@ -87,24 +55,29 @@ export async function convertPdfToImages(
         const width = Math.floor(viewport.width);
         const height = Math.floor(viewport.height);
 
-        const canvas = createCanvas(width, height);
-        const ctx = canvas.getContext(
-          "2d",
-        ) as unknown as CanvasRenderingContext2D;
-        const renderTask = page.render({ canvasContext: ctx, viewport });
-        await renderTask.promise;
+      // @napi-rs/canvas ships prebuilt binaries, so rasterisation works without
+      // a node-gyp toolchain. The previous `import("canvas")` was never a
+      // dependency, so every PDF returned "canvas module not available".
+      const canvas = createCanvas(width, height);
+      const ctx = canvas.getContext("2d");
 
-        const buffer = canvas.toBuffer("image/png");
-        const base64 = buffer.toString("base64");
+      // PDFs assume a white page; the canvas starts transparent.
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
 
-        pages.push({ pageNumber: i, base64, width, height });
-        page.cleanup();
-      } catch (pageErr) {
-        const msg = pageErr instanceof Error ? pageErr.message : "Page render failed";
-        // Skip corrupted page but continue others - log warning
-        console.warn(`[pdfConversion] page ${i} failed: ${msg}`);
-        continue;
-      }
+      await page.render({
+        canvasContext: ctx as unknown as CanvasRenderingContext2D,
+        viewport,
+      }).promise;
+
+      const buffer = canvas.toBuffer("image/png");
+      pages.push({
+        pageNumber: i,
+        base64: buffer.toString("base64"),
+        width,
+        height,
+      });
+      page.cleanup();
     }
 
     void doc.destroy();

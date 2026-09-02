@@ -7,11 +7,28 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { FileText, Lock, Sparkles, Upload, UserPlus } from "lucide-react";
 
+import type { ScanGuestResponse } from "@klaro/validators/scan-analysis";
+
 import type { UploadStage } from "~/components/upload-progress";
 import { DropZone } from "~/components/drop-zone";
+import { MedicalDisclaimerOverlay } from "~/components/medical-disclaimer-overlay";
+import {
+  ConfidenceScore,
+  DisclaimerBanner,
+  PlainLanguageSummary,
+  SeverityIndicator,
+} from "~/components/scan";
 import { UploadProgress } from "~/components/upload-progress";
+import { useMedicalDisclaimer } from "~/hooks/use-medical-disclaimer";
 import { fileToBase64, validateFiles } from "~/lib/file-validation";
 import { useTRPC } from "~/trpc/react";
+
+/** documents.scanGuestImage returns an urgency; the UI speaks in severities. */
+const URGENCY_TO_SEVERITY = {
+  LOW: "low",
+  MODERATE: "moderate",
+  HIGH: "high",
+} as const;
 
 export default function GuestScanPage() {
   const router = useRouter();
@@ -20,10 +37,16 @@ export default function GuestScanPage() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  // The analysis is kept in React state only and never persisted (RA 10173).
+  const [result, setResult] = useState<ScanGuestResponse | null>(null);
+
+  const disclaimer = useMedicalDisclaimer();
+  const recordConsent = useMutation(trpc.auth.recordConsent.mutationOptions());
 
   const scanMutation = useMutation(
     trpc.documents.scanGuestImage.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (data) => {
+        setResult(data);
         setStage("complete");
         setProgress(100);
         setShowUpgrade(true);
@@ -37,6 +60,9 @@ export default function GuestScanPage() {
 
   const handleFilesSelected = useCallback(
     async (files: File[]) => {
+      // No document may be read before the consent gate is accepted.
+      if (!disclaimer.requireConsent()) return;
+
       const { valid, invalid } = await validateFiles(files);
 
       if (invalid.length > 0) {
@@ -72,8 +98,21 @@ export default function GuestScanPage() {
         setError(err instanceof Error ? err.message : "Upload failed");
       }
     },
-    [scanMutation],
+    [scanMutation, disclaimer],
   );
+
+  const handleAcceptConsent = () => {
+    disclaimer.acceptDisclaimer();
+    recordConsent.mutate({});
+  };
+
+  const handleRetry = () => {
+    setStage("idle");
+    setProgress(0);
+    setError(null);
+    setResult(null);
+    setShowUpgrade(false);
+  };
 
   return (
     <div
@@ -127,6 +166,62 @@ export default function GuestScanPage() {
         progress={progress}
         error={error ?? undefined}
       />
+
+      {/* Retry out of the error state */}
+      {stage === "error" && (
+        <button
+          type="button"
+          onClick={handleRetry}
+          style={{
+            marginTop: 12,
+            padding: "10px 16px",
+            borderRadius: 8,
+            border: "1px solid #d4d4d8",
+            background: "#fff",
+            cursor: "pointer",
+            fontFamily: "var(--font-geist)",
+          }}
+        >
+          Try another document
+        </button>
+      )}
+
+      {/* The analysis itself - previously discarded. */}
+      {result && (
+        <div
+          style={{
+            marginTop: 20,
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <SeverityIndicator
+              level={URGENCY_TO_SEVERITY[result.urgency ?? "MODERATE"]}
+              size="md"
+            />
+            {result.confidence !== undefined && (
+              <ConfidenceScore score={Math.round(result.confidence * 100)} />
+            )}
+          </div>
+
+          {(result.plainLanguageSummary ?? result.analysis?.summary) && (
+            <PlainLanguageSummary
+              summary={
+                result.plainLanguageSummary ?? result.analysis?.summary ?? ""
+              }
+              dialect="Filipino"
+              onDialectChange={() => {
+                // The guest flow is fixed to Filipino; dialect selection lives
+                // on the full /scan experience.
+              }}
+            />
+          )}
+
+          <DisclaimerBanner />
+        </div>
+      )}
 
       {/* Upgrade prompt */}
       {showUpgrade && (
@@ -233,6 +328,12 @@ export default function GuestScanPage() {
           </div>
         </div>
       )}
+
+      <MedicalDisclaimerOverlay
+        isOpen={disclaimer.isShowing}
+        onAccept={handleAcceptConsent}
+        onDecline={disclaimer.declineDisclaimer}
+      />
     </div>
   );
 }

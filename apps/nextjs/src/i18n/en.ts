@@ -54,6 +54,8 @@ const en = {
   // Footer
   "scan.analysisChat": "Analysis & Chat",
   "scan.privacy": "Your data is private and secure.",
+  "scan.degradedResult":
+    "Limited analysis: our AI service was unavailable, so this summary was not produced by the medical model. Please have a healthcare provider review your document.",
 
   // Chat
   "chat.placeholder": "Upload a medical document or ask a health question...",

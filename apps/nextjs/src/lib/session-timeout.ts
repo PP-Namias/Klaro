@@ -3,7 +3,7 @@
 /**
  * Session Timeout Service
  *
- * HIPAA Requirement: Automatic logoff after 15 minutes of inactivity
+ * RA 10173 safeguard: automatic logoff after 15 minutes of inactivity
  * per 45 CFR 164.312(a)(2)(iii)
  *
  * Features:

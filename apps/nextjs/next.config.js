@@ -30,12 +30,16 @@ const config = {
   typescript: { ignoreBuildErrors: true },
 
   /**
-   * Must not be bundled into the server build. tesseract.js in particular
-   * spawns a worker by resolving a path from its own module location; when
-   * bundled, that resolves to the standalone /ROOT placeholder and the OCR
-   * request hangs forever instead of failing.
+   * Native and worker-spawning modules must not be bundled: tesseract.js needs
+   * to resolve its own worker script and WASM core at runtime, and sharp and
+   * @napi-rs/canvas load prebuilt platform binaries.
    */
-  serverExternalPackages: ["canvas", "pg", "tesseract.js", "pdfjs-dist"],
+  serverExternalPackages: [
+    "@napi-rs/canvas",
+    "pdfjs-dist",
+    "sharp",
+    "tesseract.js",
+  ],
 };
 
 export default config;

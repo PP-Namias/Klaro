@@ -1,13 +1,12 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/array-type, react-hooks/set-state-in-effect, @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/require-await, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unnecessary-condition */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import { Button } from "@klaro/ui/button";
 import { toast } from "@klaro/ui/toast";
 
-import { readScanAnalysisSession } from "~/components/scan-session";
 import { useTRPC } from "~/trpc/react";
 
 interface ScanAnalysis {
@@ -30,29 +29,61 @@ interface ScanResult {
   recommendations?: string[];
 }
 
-export function ScanAgentSidebar() {
-  const trpc = useTRPC();
-  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
-  const [analysis, setAnalysis] = useState<ScanAnalysis | null>(null);
+interface ScanAgentSidebarProps {
+  /**
+   * The analysis to summarise. Passed in by the page rather than read from
+   * browser storage: extracted values are PHI and are not persisted (RA 10173).
+   * Undefined renders nothing.
+   */
+  scanResult?: ScanResult | null;
+}
 
-  useEffect(() => {
-    try {
-      const parsed = readScanAnalysisSession();
-      if (!parsed) return;
-      setScanResult({
-        extractedData: parsed.extractedData,
-        analysis: parsed.analysis,
-        plainLanguageSummary: parsed.plainLanguageSummary,
-        urgency: parsed.urgency,
-        recommendations: parsed.recommendations,
-      });
-      if (parsed.analysis) {
-        setAnalysis(parsed.analysis);
+/**
+ * Turn the analysis payload into the test rows the AI procedure expects.
+ *
+ * The live path emits a `fields` record (name -> value, or name -> { value,
+ * flagged }); it has never carried a `flaggedTests` key, so reading one always
+ * came back empty. Prefer explicitly flagged rows, else send everything.
+ */
+function toScanTests(scanResult?: ScanResult | null): {
+  name: string;
+  value?: string;
+  unit?: string;
+  flagged?: boolean;
+}[] {
+  if (
+    Array.isArray(scanResult?.flaggedTests) &&
+    scanResult.flaggedTests.length
+  ) {
+    return scanResult.flaggedTests;
+  }
+
+  const fields = (scanResult?.extractedData ?? {}) as Record<string, unknown>;
+  const rows = Object.entries(fields)
+    .filter(([, raw]) => raw !== null && raw !== undefined)
+    .map(([name, raw]) => {
+      if (typeof raw === "object") {
+        const record = raw as Record<string, unknown>;
+        return {
+          name,
+          value: record.value === undefined ? undefined : String(record.value),
+          unit: typeof record.unit === "string" ? record.unit : undefined,
+          flagged: record.flagged === true,
+        };
       }
-    } catch {
-      // ignore malformed scan state
-    }
-  }, []);
+      return { name, value: String(raw), flagged: false };
+    })
+    .filter((row) => row.value !== undefined && row.value !== "");
+
+  const flagged = rows.filter((row) => row.flagged);
+  return flagged.length > 0 ? flagged : rows;
+}
+
+export function ScanAgentSidebar({ scanResult }: ScanAgentSidebarProps = {}) {
+  const trpc = useTRPC();
+  const [analysis, setAnalysis] = useState<ScanAnalysis | null>(
+    scanResult?.analysis ?? null,
+  );
 
   const analyzeMutation = useMutation(
     trpc.documents.analyzeScanWithAI.mutationOptions({
@@ -72,30 +103,23 @@ export function ScanAgentSidebar() {
   );
 
   const handleAnalyze = async () => {
-    if (!scanResult?.extractedData) {
-      toast.error("No extracted data available");
+    const tests = toScanTests(scanResult);
+
+    if (tests.length === 0) {
+      // Never analyse a placeholder: a single unflagged "No specific tests"
+      // row drove the fallback analysis to LOW urgency and told the patient
+      // their results looked normal, whatever the document actually said.
+      toast.error("No extracted test values to analyse");
       return;
     }
 
-    const extractedData = scanResult.extractedData as Record<string, unknown>;
-    const flaggedTests = (
-      Array.isArray(extractedData.flaggedTests)
-        ? extractedData.flaggedTests
-        : Array.isArray(scanResult.flaggedTests)
-          ? scanResult.flaggedTests
-          : []
-    ) as Array<{
-      name: string;
-      value?: string;
-      unit?: string;
-      flagged?: boolean;
-    }>;
+    const extractedData = (scanResult?.extractedData ?? {}) as Record<
+      string,
+      unknown
+    >;
 
     analyzeMutation.mutate({
-      extractedTests:
-        flaggedTests.length > 0
-          ? flaggedTests
-          : [{ name: "No specific tests" }],
+      extractedTests: tests,
       patientAge:
         typeof extractedData.patientAge === "number"
           ? extractedData.patientAge

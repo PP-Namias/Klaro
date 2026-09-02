@@ -291,7 +291,10 @@ export const facilitiesRouter = {
         medicalContext: medicalContextSchema.optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    // Mutation, not query: medicalContext carries flagged test names and values.
+    // tRPC queries are GET with the input serialized into ?input=, which would
+    // write that PHI into access logs, browser history and Referer headers.
+    .mutation(async ({ ctx, input }) => {
       const rows = await selectFacilities(ctx, {
         facilityType: input.facilityType,
         limit: 50,
@@ -323,7 +326,9 @@ export const facilitiesRouter = {
 
   recommendByTestResults: publicProcedure
     .input(recommendByTestResultsSchema)
-    .query(async ({ ctx, input }) => {
+    // Mutation for the same reason as bestSuggested: extractedTests carries
+    // test names and values that must not appear in a request URL.
+    .mutation(async ({ ctx, input }) => {
       const rows = await selectFacilities(ctx, {
         limit: 200,
       });

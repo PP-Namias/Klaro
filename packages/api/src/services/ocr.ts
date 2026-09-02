@@ -1,3 +1,6 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 export type OcrSource = "local" | "cloud";
 
 export interface OcrBlock {
@@ -124,22 +127,66 @@ const OCR_TIMEOUT_MS = 120_000;
 export const performOcr = async (
   imageUrlOrBuffer: string | Buffer,
 ): Promise<OcrResult> => {
-  const imageBase64 = Buffer.isBuffer(imageUrlOrBuffer)
-    ? imageUrlOrBuffer.toString("base64")
-    : imageUrlOrBuffer;
-
-  const response = await fetch(`${getOcrServiceUrl()}/api/ocr`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    signal: AbortSignal.timeout(OCR_TIMEOUT_MS),
-    body: JSON.stringify({ imageBase64 }),
+  const { createWorker } = await import("tesseract.js");
+  // tesseract.js defaults cachePath to "." which is read-only on serverless,
+  // so eng.traineddata fails to download. Pin it to a writable location.
+  const worker = await createWorker("eng", undefined, {
+    cachePath: process.env.TESSERACT_CACHE_PATH ?? join(tmpdir(), "tesseract"),
+    ...(process.env.TESSERACT_LANG_PATH
+      ? { langPath: process.env.TESSERACT_LANG_PATH }
+      : {}),
   });
 
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new Error(
-      `OCR service responded ${response.status}${detail ? `: ${detail.slice(0, 200)}` : ""}`,
-    );
+  try {
+    // `blocks: true` is required: createWorker defaults to `{ text: true }`,
+    // which leaves data.blocks null. The previous code read `data.lines`, a
+    // field tesseract.js does not return — so every page scored 0 confidence
+    // and runOcrWithRetry rejected every document.
+    const { data } = (await worker.recognize(
+      imageUrlOrBuffer,
+      {},
+      { blocks: true, text: true },
+    )) as {
+      data: {
+        text: string;
+        confidence?: number;
+        blocks?:
+          | ({
+              paragraphs?: {
+                lines?: { text?: string; confidence?: number }[];
+              }[];
+            } | null)[]
+          | null;
+      };
+    };
+
+    const blocks: OcrBlock[] = (data.blocks ?? [])
+      .flatMap((block) => block?.paragraphs ?? [])
+      .flatMap((paragraph) => paragraph.lines ?? [])
+      .map((line) => ({
+        text: line.text?.trim() ?? "",
+        confidence:
+          typeof line.confidence === "number"
+            ? line.confidence / 100
+            : undefined,
+      }))
+      .filter((block) => block.text.length > 0);
+
+    // The page-level MeanTextConf is authoritative; per-line averaging is only
+    // a fallback for engines/inputs that do not report it.
+    const pageConfidence =
+      typeof data.confidence === "number" && Number.isFinite(data.confidence)
+        ? data.confidence / 100
+        : undefined;
+
+    return buildOcrResult({
+      text: data.text,
+      blocks,
+      source: "local",
+      confidence: pageConfidence,
+    });
+  } finally {
+    await worker.terminate();
   }
 
   const payload = (await response.json()) as {

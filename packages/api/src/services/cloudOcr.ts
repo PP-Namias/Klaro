@@ -22,7 +22,9 @@ export function getCloudOcrApiKey(): string | null {
 }
 
 export function buildVisionApiUrl(apiKey: string): string {
-  return `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+  // The key is sent as an x-goog-api-key header by the caller.
+  void apiKey;
+  return "https://vision.googleapis.com/v1/images:annotate";
 }
 
 export function buildVisionRequest(
@@ -126,14 +128,22 @@ export async function callGoogleVision(
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-      const response = await fetch(buildVisionApiUrl(apiKey), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildVisionRequest(imageBase64)),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
+      let response: Response;
+      try {
+        response = await fetch(buildVisionApiUrl(apiKey), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
+          },
+          body: JSON.stringify(buildVisionRequest(imageBase64)),
+          signal: controller.signal,
+        });
+      } finally {
+        // Must clear on every outcome: a rejected fetch previously left the
+        // abort timer pending for the full timeout window.
+        clearTimeout(timeoutId);
+      }
 
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));

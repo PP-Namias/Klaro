@@ -3,6 +3,8 @@
 import { AlertCircle, FileWarning, X } from "lucide-react";
 
 interface UploadError {
+  /** Stable queue id. Two picked files can share a name, so retries key on this. */
+  id: string;
   fileName: string;
   message: string;
   type: "type" | "size" | "corrupt" | "encrypted" | "network" | "processing";
@@ -11,7 +13,7 @@ interface UploadError {
 interface UploadErrorProps {
   errors: UploadError[];
   onDismiss: (index: number) => void;
-  onRetry?: (fileName: string) => void;
+  onRetry?: (fileId: string) => void;
 }
 
 const errorIcons = {
@@ -50,7 +52,7 @@ export function UploadError({ errors, onDismiss, onRetry }: UploadErrorProps) {
         const color = errorColor[err.type];
         return (
           <div
-            key={`${err.fileName}-${i}`}
+            key={err.id}
             style={{
               display: "flex",
               alignItems: "center",
@@ -77,7 +79,7 @@ export function UploadError({ errors, onDismiss, onRetry }: UploadErrorProps) {
             <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
               {onRetry && err.type === "network" && (
                 <button
-                  onClick={() => onRetry(err.fileName)}
+                  onClick={() => onRetry(err.id)}
                   style={{
                     padding: "4px 10px",
                     borderRadius: 6,

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createPreviewUrl,
+  dataUrlToFile,
   fileToBase64,
   formatBytes,
   getFileKind,
@@ -62,12 +63,18 @@ describe("validateFile", () => {
     });
   });
 
-  it("accepts TIFF files", async () => {
-    const file = createFile("scan.tiff", "image/tiff", 1024);
-    await expect(validateFile(file)).resolves.toMatchObject({
-      valid: true,
-      kind: "image",
-    });
+  it("rejects TIFF, BMP and GIF, which the server path cannot process", async () => {
+    // These were accepted here but rejected by the AI service's own filter, so
+    // the upload failed only after the user had waited for it.
+    for (const [name, type] of [
+      ["scan.tiff", "image/tiff"],
+      ["scan.bmp", "image/bmp"],
+      ["scan.gif", "image/gif"],
+    ] as const) {
+      const result = await validateFile(createFile(name, type, 1024));
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain("not supported");
+    }
   });
 
   it("rejects EXE files", async () => {
@@ -277,5 +284,80 @@ describe("getFileMetadata", () => {
     const meta = await getFileMetadata(file);
     expect(meta.kind).toBe("pdf");
     expect(meta.pageCount).toBe(3);
+  });
+
+  describe("dataUrlToFile", () => {
+    // A 1x1 transparent PNG.
+    const PNG_DATA_URL =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+    it("converts a canvas data URL into a non-empty PNG File", async () => {
+      const file = await dataUrlToFile(PNG_DATA_URL, "camera-123.png");
+
+      expect(file).toBeInstanceOf(File);
+      expect(file.name).toBe("camera-123.png");
+      expect(file.type).toBe("image/png");
+      expect(file.size).toBeGreaterThan(0);
+    });
+
+    it("rejects a frame too small to be a real document", async () => {
+      // The 1x1 fixture is ~70 bytes, under MIN_FILE_SIZE.
+      const file = await dataUrlToFile(PNG_DATA_URL, "camera-456.png");
+      const result = await validateFile(file);
+
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain("too small");
+    });
+
+    it("produces a File the upload validator accepts at realistic capture size", async () => {
+      // A real camera frame is far larger; anything over MIN_FILE_SIZE passes.
+      const padded = `data:image/png;base64,${Buffer.alloc(4096, 7).toString("base64")}`;
+      const file = await dataUrlToFile(padded, "camera-789.png");
+      const result = await validateFile(file);
+
+      expect(file.size).toBeGreaterThan(100);
+      expect(result.valid).toBe(true);
+      expect(result.kind).toBe("image");
+    });
+  });
+
+  describe("pdf page counting", () => {
+    function pdfFile(body: string, name = "report.pdf") {
+      return new File([body], name, { type: "application/pdf" });
+    }
+
+    it("reads the page count from an uncompressed page tree", async () => {
+      const body =
+        "%PDF-1.4\n" +
+        "1 0 obj << /Type /Pages /Kids [2 0 R] /Count 3 >> endobj\n" +
+        "x".repeat(300);
+      const result = await validateFile(pdfFile(body));
+
+      expect(result.valid).toBe(true);
+      expect(result.pageCount).toBe(3);
+      expect(result.pageCountIndeterminate).toBe(false);
+    });
+
+    it("rejects a PDF whose readable page count exceeds the cap", async () => {
+      const body =
+        "%PDF-1.4\n" +
+        "1 0 obj << /Type /Pages /Kids [2 0 R] /Count 20 >> endobj\n" +
+        "x".repeat(300);
+      const result = await validateFile(pdfFile(body));
+
+      expect(result.valid).toBe(false);
+      expect(result.pageCount).toBe(20);
+      expect(result.error).toContain("20 pages");
+    });
+
+    it("reports an indeterminate count rather than pretending it is 1 page", async () => {
+      // A compressed cross-reference stream hides the page tree from a byte
+      // scan; previously this silently returned 1 and bypassed the cap.
+      const body = "%PDF-1.5\n" + "\u0000binary-object-stream\u0000".repeat(40);
+      const result = await validateFile(pdfFile(body));
+
+      expect(result.pageCount).toBeUndefined();
+      expect(result.pageCountIndeterminate).toBe(true);
+    });
   });
 });

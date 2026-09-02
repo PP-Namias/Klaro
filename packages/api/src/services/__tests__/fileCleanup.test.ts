@@ -4,6 +4,7 @@ import {
   cleanupDocument,
   executeCleanup,
   getCleanupStats,
+  purgeExpiredChatMessages,
 } from "../fileCleanup";
 
 // Mock dependencies
@@ -14,6 +15,9 @@ const mockLimit = vi.fn(function (this: unknown) {
   return this;
 });
 const mockUpdate = vi.fn();
+const mockDelete = vi.fn();
+const mockDeleteWhere = vi.fn();
+const mockReturning = vi.fn();
 const mockSet = vi.fn();
 const mockUpdateWhere = vi.fn();
 
@@ -24,6 +28,11 @@ function buildQuery(result: unknown[]) {
   return query;
 }
 
+/** Every payload passed to `db.update(...).set(...)` during the test. */
+function updateSetCalls(): Record<string, unknown>[] {
+  return mockSet.mock.calls.map((call) => call[0] as Record<string, unknown>);
+}
+
 function setupDbMock(resolvedDocs: unknown[] = []) {
   const query = buildQuery(resolvedDocs);
   mockSelect.mockReturnValue({ from: mockFrom });
@@ -32,6 +41,10 @@ function setupDbMock(resolvedDocs: unknown[] = []) {
   mockUpdate.mockReturnValue({ set: mockSet });
   mockSet.mockReturnValue({ where: mockUpdateWhere });
   mockUpdateWhere.mockResolvedValue([]);
+
+  mockDelete.mockReturnValue({ where: mockDeleteWhere });
+  mockDeleteWhere.mockReturnValue({ returning: mockReturning });
+  mockReturning.mockResolvedValue([]);
 }
 
 vi.mock("@klaro/db/client", () => ({
@@ -41,6 +54,9 @@ vi.mock("@klaro/db/client", () => ({
     },
     get update() {
       return mockUpdate;
+    },
+    get delete() {
+      return mockDelete;
     },
   },
 }));
@@ -66,6 +82,18 @@ vi.mock("@klaro/db/schema", () => ({
     status: "status",
     createdAt: "created_at",
     updatedAt: "updated_at",
+  },
+  chatMessage: {
+    id: "id",
+    createdAt: "created_at",
+  },
+  analysis: {
+    id: "id",
+    documentId: "document_id",
+    extractedFields: "extracted_fields",
+    flaggedValues: "flagged_values",
+    plainLanguageSummary: "plain_language_summary",
+    tanqmoCard: "tanqmo_card",
   },
 }));
 
@@ -134,8 +162,36 @@ describe("File Cleanup Service", () => {
       const result = await executeCleanup({ dryRun: false });
 
       expect(result.totalFound).toBeGreaterThanOrEqual(1);
-      expect(result.deletedFiles).toContain("test-report.pdf");
+      // Medical filenames commonly embed patient names, so the cleanup result
+      // records document ids only (RA 10173).
+      expect(result.deletedFiles).toContain("doc-1");
+      expect(result.deletedFiles).not.toContain("test-report.pdf");
       expect(cloudinary.uploader.destroy).toHaveBeenCalled();
+    });
+
+    it("clears document and analysis PHI when archiving", async () => {
+      const doc = makeDoc();
+      setupDbMock([doc]);
+
+      await executeCleanup({ dryRun: false });
+
+      // Every archival update must null out PHI-bearing columns rather than
+      // leaving the recognized text and extracted values behind forever.
+      const payloads = updateSetCalls();
+      const documentUpdate = payloads.find((p) => "ocrText" in p);
+      expect(documentUpdate).toMatchObject({
+        status: "archived",
+        storageUrl: null,
+        ocrText: null,
+      });
+
+      const analysisUpdate = payloads.find((p) => "extractedFields" in p);
+      expect(analysisUpdate).toMatchObject({
+        extractedFields: null,
+        flaggedValues: null,
+        plainLanguageSummary: null,
+        tanqmoCard: null,
+      });
     });
 
     it("records failure when Cloudinary deletion fails", async () => {
@@ -176,6 +232,32 @@ describe("File Cleanup Service", () => {
       const result = await cleanupDocument("doc-1", "wrong-user");
       expect(result.success).toBe(false);
       expect(result.error).toBe("Unauthorized");
+    });
+  });
+
+  describe("purgeExpiredChatMessages", () => {
+    it("deletes chat messages older than the TTL and reports the count", async () => {
+      setupDbMock([]);
+      mockReturning.mockResolvedValue([{ id: "m1" }, { id: "m2" }]);
+
+      const purged = await purgeExpiredChatMessages(60 * 60 * 1000);
+
+      expect(purged).toBe(2);
+      expect(mockDelete).toHaveBeenCalled();
+      // The cutoff is an lt() bound on created_at, so newer rows are untouched.
+      const [predicate] = mockDeleteWhere.mock.calls[0] as [
+        { field: string; op: string; value: Date },
+      ];
+      expect(predicate.op).toBe("lt");
+      expect(predicate.field).toBe("created_at");
+      expect(predicate.value.getTime()).toBeLessThan(Date.now());
+    });
+
+    it("returns 0 and does not throw when the delete fails", async () => {
+      setupDbMock([]);
+      mockReturning.mockRejectedValue(new Error("db down"));
+
+      await expect(purgeExpiredChatMessages(1000)).resolves.toBe(0);
     });
   });
 });

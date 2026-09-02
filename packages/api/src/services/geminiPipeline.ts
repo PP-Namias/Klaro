@@ -204,10 +204,15 @@ async function tryOcrExtraction(
     const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        // Key travels as a header: a query string would be captured by proxy
+        // and access logs.
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": geminiApiKey,
+        },
         signal: AbortSignal.timeout(30_000),
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],

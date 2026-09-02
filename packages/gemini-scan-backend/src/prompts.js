@@ -7,7 +7,7 @@ function buildSystemPrompt(metadata = {}) {
 
   const basePrompt = [
     'You are an AI image-processing backend assistant for document and image scans.',
-    'Always save received images using the provided storage_presigned_url or return a stable storage_path if you saved them server-side.',
+    'Do not persist, cache, or reference any storage location for the received images; process them ephemerally and return only extracted values.',
     'Perform high-quality OCR, layout parsing, and structured-data extraction (entities, key/value pairs, tables, dates, amounts, IDs, names).',
     'Produce a deterministic JSON result matching the required schema. Include confidence scores (0-1) for each extracted field and an overall confidence.',
     'Return clear error codes for unreadable input, corrupt image, rate limit, and model error.',
@@ -76,7 +76,6 @@ function buildUserPrompt(metadata = {}) {
     '',
     'Input: images array of { url?, bytesBase64?, filename? }',
     `metadata: ${JSON.stringify(safeMetadata)}`,
-    'If storage_presign_url is provided, upload and set images[].url accordingly; otherwise preserve images[].hash and include a short base64 snippet.',
     'Normalize dates to ISO 8601 and currency to ISO 4217 numeric values.',
     'Detect rotation and auto-rotate prior to OCR; return rotationDegrees per image.',
     'If tables are detected, return tables as arrays of row objects and include per-table confidence.',

@@ -1,5 +1,4 @@
 const path = require('path');
-const fs = require('fs/promises');
 const { SYSTEM_PROMPT, buildSystemPrompt, buildUserPrompt } = require('./prompts');
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
@@ -22,22 +21,15 @@ function mimeTypeFromName(name = '') {
 }
 
 async function readImageAsBase64(image) {
-  if (image.buffer) {
-    return {
-      base64: image.buffer.toString('base64'),
-      mimeType: image.mimetype || mimeTypeFromName(image.filename || image.path || image.url || '')
-    };
+  // In-memory only. Reading an image back off disk (or from a file:// url) is
+  // deliberately unsupported: medical documents are never persisted (RA 10173).
+  if (!image.buffer) {
+    throw new Error(`Unsupported image input: ${JSON.stringify({ filename: image.filename })}`);
   }
 
-  const filePath = image.path || (typeof image.url === 'string' && image.url.startsWith('file://') ? image.url.replace('file://', '') : null);
-  if (!filePath) {
-    throw new Error(`Unsupported image input: ${JSON.stringify({ filename: image.filename, url: image.url })}`);
-  }
-
-  const buffer = await fs.readFile(filePath);
   return {
-    base64: buffer.toString('base64'),
-    mimeType: image.mimetype || mimeTypeFromName(image.filename || filePath)
+    base64: image.buffer.toString('base64'),
+    mimeType: image.mimetype || mimeTypeFromName(image.filename || '')
   };
 }
 
@@ -52,10 +44,19 @@ function normalizeJsonCandidate(text) {
   return JSON.parse(jsonText);
 }
 
+/**
+ * Strip the in-memory image bytes before echoing descriptors to the client.
+ * The buffer exists only for the duration of the request; it must never appear
+ * in a response body, a log line, or any persisted record (RA 10173).
+ */
+function toPublicImages(images) {
+  return images.map(({ buffer, ...rest }) => rest);
+}
+
 function buildPages(images) {
   return images.map((im, idx) => ({
     page: idx + 1,
-    text: `Processed ${path.basename(im.path || im.url || im.filename || 'image')}`,
+    text: `Processed ${path.basename(im.filename || 'image')}`,
     rotationDegrees: im.rotationDegrees || 0,
     layout: []
   }));
@@ -148,7 +149,7 @@ function normalizeProcessedResult({ parsed, images, metadata, requestId, started
     extractedData: fields,
     tables: Array.isArray(parsed.tables) ? parsed.tables : [],
     pages: Array.isArray(parsed.pages) ? parsed.pages : buildPages(images),
-    images,
+    images: toPublicImages(images),
     warnings: mergedWarnings,
     plainLanguageSummary,
     urgency,
@@ -190,7 +191,7 @@ function buildFallbackProcessedResult({ images, metadata, requestId, startedAt, 
     extractedData: fields,
     tables: [],
     pages,
-    images,
+    images: toPublicImages(images),
     warnings: base.warnings || warnings,
     plainLanguageSummary: base.plainLanguageSummary,
     urgency: base.urgency,

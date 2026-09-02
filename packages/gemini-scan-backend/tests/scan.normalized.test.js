@@ -31,7 +31,7 @@ describe('POST /api/scan normalized medical response', () => {
     expect(res.body.recommendations.length).toBeGreaterThan(0);
   });
 
-  it('returns a retrievable stored result', async () => {
+  it('does not retain the result and exposes no retrieval endpoint', async () => {
     const res = await request(app)
       .post('/api/scan')
       .send({
@@ -40,10 +40,14 @@ describe('POST /api/scan normalized medical response', () => {
       })
       .set('Content-Type', 'application/json');
 
+    // The full analysis is delivered in this response and nowhere else.
     expect(res.statusCode).toBe(200);
+    expect(res.body.requestId).toBe('normalized-2');
+    expect(res.body.urgency).toBeDefined();
+
+    // Zero-storage (RA 10173): extracted PHI must not outlive the request, so
+    // there is deliberately no endpoint that can read a past scan back.
     const get = await request(app).get('/api/scan/normalized-2');
-    expect(get.statusCode).toBe(200);
-    expect(get.body.requestId).toBe('normalized-2');
-    expect(get.body.urgency).toBeDefined();
+    expect(get.statusCode).toBe(404);
   });
 });

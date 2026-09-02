@@ -45,6 +45,11 @@ process.env.GEMINI_MOCK_DELAY = "0";
 process.env.GEMINI_MODEL = "gemini-2.0-flash";
 process.env.GEMINI_SCAN_API_URL = "http://localhost:3001";
 process.env.GEMINI_API_KEY = "mock-gemini-key";
+// Because GEMINI_API_KEY is set above, geminiClient would otherwise treat the
+// suite as "configured" and issue real requests to generativelanguage.googleapis.com,
+// making tests network-dependent and prone to 5s timeouts. Force the offline mock.
+// Suites that exercise the live path delete this var themselves.
+process.env.MOCK_GEMINI = "true";
 process.env.GOOGLE_API_KEY = "mock-google-api-key";
 process.env.GOOGLE_GENAI_API_KEY = "mock-google-genai-key";
 process.env.GOOGLE_VISION_API_KEY = "mock-google-vision-key";

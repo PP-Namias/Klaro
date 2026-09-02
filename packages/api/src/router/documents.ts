@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
@@ -13,9 +14,15 @@ import {
   scanGuestResponseSchema,
 } from "@klaro/validators/scan-analysis";
 
+import {
+  logAuditEvent,
+  logLlmApiCall,
+  logPhiScrubbing,
+} from "../services/auditLogger";
 import { extractTestsFromText } from "../services/extraction";
 import { generatePlainLanguageExplanation } from "../services/llm";
 import { buildOcrResult } from "../services/ocr";
+import { detectPhiTypes, scrubForExternalApi } from "../services/phiScrubber";
 import { protectedProcedure, publicProcedure, scanProcedure } from "../trpc";
 
 const scanUrgencyValues = ["LOW", "MODERATE", "HIGH"] as const;
@@ -64,6 +71,18 @@ function getSafeRecommendations(
   ];
 }
 
+/**
+ * Buckets a 0..1 OCR confidence for the audit trail. Buckets keep the log useful
+ * for debugging quality regressions without recording anything document-specific.
+ */
+function confidenceBucket(confidence: number | undefined): string {
+  if (confidence === undefined) return "unknown";
+  if (confidence >= 0.9) return "high";
+  if (confidence >= 0.7) return "medium";
+  if (confidence >= 0.5) return "low";
+  return "very_low";
+}
+
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return {};
@@ -94,9 +113,10 @@ function buildFallbackGuestScanResult(params: {
     plainLanguageSummary: summary,
     urgency,
     recommendations,
-    confidence: 0.6,
+    // No confidence: this result did not come from a model, and inventing a
+    // number here made a degraded response look like a real analysis.
     extractedData: {},
-    warnings: [params.reason],
+    warnings: ["degraded:fallback", params.reason],
     timestamp: new Date().toISOString(),
   };
 }
@@ -105,6 +125,7 @@ function normalizeGuestScanResponse(
   raw: unknown,
   input: {
     language: Dialect;
+    requestId?: string;
   },
 ): ScanGuestResponse {
   const data = toRecord(raw);
@@ -121,28 +142,31 @@ function normalizeGuestScanResponse(
       ? summarySource.trim().slice(0, 500)
       : "Medical document scanned and analyzed";
 
+  // Absent upstream confidence stays absent. Substituting 0.85 presented an
+  // unscored result as a high-confidence one.
   const confidenceRaw = data.confidence;
   const confidence =
     typeof confidenceRaw === "number" &&
     confidenceRaw >= 0 &&
     confidenceRaw <= 1
       ? confidenceRaw
-      : 0.85;
+      : undefined;
 
   const normalized: ScanGuestResponse = {
     requestId:
       typeof data.requestId === "string" && data.requestId.trim().length > 0
         ? data.requestId
-        : `scan-${Date.now()}`,
+        : (input.requestId ?? `scan-${Date.now()}`),
     status: "completed",
+    // Unknown sources fall back to "raw", never "gemini": a mock upstream must
+    // not be relabelled as a real Gemini analysis.
     source:
-      typeof data.source === "string"
-        ? (["gemini", "fallback", "llm", "mock", "raw"] as const).includes(
-            data.source as "gemini" | "fallback" | "llm" | "mock" | "raw",
-          )
-          ? (data.source as "gemini" | "fallback" | "llm" | "mock" | "raw")
-          : "gemini"
-        : "gemini",
+      typeof data.source === "string" &&
+      (["gemini", "fallback", "llm", "mock", "raw"] as const).includes(
+        data.source as "gemini" | "fallback" | "llm" | "mock" | "raw",
+      )
+        ? (data.source as "gemini" | "fallback" | "llm" | "mock" | "raw")
+        : "raw",
     language: input.language,
     analysis: {
       summary,
@@ -181,7 +205,6 @@ export const documentsRouter = {
         fileName: z.string().max(255),
         mimeType: z.string().max(100).optional(),
         fileSize: z.number().optional(),
-        storageUrl: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -199,7 +222,6 @@ export const documentsRouter = {
           fileName: input.fileName,
           mimeType: input.mimeType,
           fileSize: input.fileSize,
-          storageUrl: input.storageUrl,
           status: "uploaded",
         })
         .returning();
@@ -275,8 +297,9 @@ export const documentsRouter = {
         source: input.source,
       });
 
+      // Zero-storage (RA 10173): the recognized text and its confidence are PHI-
+      // bearing and are never persisted. Only the status transition is stored.
       const updatePayload: Partial<typeof document.$inferInsert> = {
-        ocrText: result.text,
         status: "processing",
       };
 
@@ -285,9 +308,17 @@ export const documentsRouter = {
         resolvedConfidence = result.confidence;
       }
 
-      if (resolvedConfidence !== undefined) {
-        updatePayload.confidence = resolvedConfidence.toFixed(2);
-      }
+      await logAuditEvent({
+        action: "ocr_processing",
+        userId: ctx.session.user.id,
+        documentId: input.documentId,
+        externalApiCalled: false,
+        details: {
+          textLength: result.text.length,
+          confidenceBucket: confidenceBucket(resolvedConfidence),
+          source: result.source,
+        },
+      });
 
       const [updatedDoc] = await ctx.db
         .update(document)
@@ -383,15 +414,28 @@ export const documentsRouter = {
             100
           : 0;
 
+      // Zero-storage (RA 10173): extracted values are PHI and are returned to the
+      // caller only. Persist the status transition and non-identifying counts.
       await ctx.db
         .update(analysis)
         .set({
-          extractedFields,
-          flaggedValues,
           status: "completed",
           errorMessage: null,
         })
         .where(eq(analysis.id, analysisRow.id));
+
+      await logAuditEvent({
+        action: "analysis_generated",
+        userId: ctx.session.user.id,
+        documentId: input.documentId,
+        analysisId: analysisRow.id,
+        externalApiCalled: false,
+        details: {
+          extractedCount: extractedFields.length,
+          flaggedCount: flaggedValues.length,
+          method: "regex",
+        },
+      });
 
       await ctx.db
         .update(document)
@@ -578,29 +622,36 @@ export const documentsRouter = {
       const { performOcr } = await import("../services/ocr");
       const ocrResult = await performOcr(buffer);
 
-      // save OCR result to document
+      // Zero-storage (RA 10173): the OCR text and the values extracted from it are
+      // PHI and are never written to the database. Only the non-PHI status moves.
       await ctx.db
         .update(document)
-        .set({
-          ocrText: ocrResult.text,
-          confidence: ocrResult.confidence.toFixed(2),
-          status: "analyzed",
-        })
+        .set({ status: "analyzed" })
         .where(eq(document.id, input.documentId));
 
       // extract tests
       const tests = extractTestsFromText(ocrResult.text);
       const flagged = tests.filter((t) => t.flagged === true);
 
-      // update analysis
       await ctx.db
         .update(analysis)
-        .set({
-          extractedFields: tests,
-          flaggedValues: flagged,
-          status: "completed",
-        })
+        .set({ status: "completed" })
         .where(eq(analysis.documentId, input.documentId));
+
+      await logAuditEvent({
+        action: "ocr_processing",
+        userId: ctx.session.user.id,
+        documentId: input.documentId,
+        externalApiCalled: false,
+        details: {
+          // Metadata only — never the recognized text or the extracted values.
+          textLength: ocrResult.text.length,
+          confidenceBucket: confidenceBucket(ocrResult.confidence),
+          source: ocrResult.source,
+          extractedTestCount: tests.length,
+          flaggedTestCount: flagged.length,
+        },
+      });
 
       return {
         ocrResult,
@@ -681,12 +732,12 @@ export const documentsRouter = {
           bookingCta: llmResponse.bookingPrompt,
         };
 
-        // Update analysis record with generated content
+        // Zero-storage (RA 10173): the plain-language summary and the questions
+        // card are derived from the patient's document and are therefore PHI.
+        // They are returned in this response and never written to the database.
         const [updated] = await ctx.db
           .update(analysis)
           .set({
-            plainLanguageSummary: llmResponse.summary,
-            tanqmoCard,
             status: "completed",
             errorMessage: null,
           })
@@ -732,15 +783,125 @@ export const documentsRouter = {
       const geminiApiUrl =
         process.env.GEMINI_SCAN_API_URL || "http://localhost:3001";
 
-      const { runOcrWithRetry, buildRejectionResponse } = await import(
-        "../services/ocrPipeline"
+      // Correlates this scan across the API, the AI service and the audit trail.
+      // It is an opaque random id and carries no patient information.
+      const requestId = randomUUID();
+
+      const { runOcrWithRetry, runOcrOnPages, buildRejectionResponse } =
+        await import("../services/ocrPipeline");
+
+      // PDFs must be rasterized before OCR; feeding the raw bytes to tesseract
+      // silently produced nothing.
+      const inputBuffer = Buffer.from(input.base64Image, "base64");
+      const { isPdf, convertPdfToImages } = await import(
+        "../services/pdfConversion"
       );
 
-      const ocrResult = await runOcrWithRetry(input.base64Image);
+      let ocrResult;
+      if (isPdf(inputBuffer)) {
+        const converted = await convertPdfToImages(inputBuffer);
+
+        if (!converted.success) {
+          return buildRejectionResponse(
+            {
+              success: false,
+              accepted: false,
+              text: "",
+              confidence: 0,
+              pages: [],
+              source: "local",
+              warnings: [converted.error ?? "PDF conversion failed"],
+              rejectionReason: "pdf_conversion_failed",
+              rejectionAdvice:
+                "We could not read that PDF. Please upload a clear photo or a different file.",
+              processingTimeMs: 0,
+            },
+            input.language,
+          );
+        }
+
+        ocrResult = await runOcrOnPages(converted.pages);
+      } else {
+        ocrResult = await runOcrWithRetry(input.base64Image);
+      }
 
       if (!ocrResult.accepted) {
         return buildRejectionResponse(ocrResult, input.language);
       }
+
+      // Primary path: the in-process orchestrator. It composes PHI scrubbing,
+      // the Gemini fallback chain, hallucination detection and audit logging —
+      // all of which were previously bypassed by the thin HTTP hop below.
+      try {
+        const { executeDocumentPipeline } = await import(
+          "../services/documentPipeline"
+        );
+
+        const runPipeline = () =>
+          executeDocumentPipeline({
+            imageBase64: input.base64Image,
+            fileName: input.fileName,
+            language: input.language,
+          });
+
+        let pipeline = await runPipeline();
+        const extraWarnings: string[] = [];
+
+        // One reprocess when the model was not confident. Capped at a single
+        // retry so the 30s request budget below still holds.
+        const { getPipelineConfig } = await import("../config/pipeline");
+        const confidenceThreshold =
+          getPipelineConfig().gemini.confidenceThreshold;
+        const scoreOf = (result: typeof pipeline) =>
+          result.geminiConfidence || result.ocrConfidence;
+
+        if (pipeline.accepted && scoreOf(pipeline) < confidenceThreshold) {
+          extraWarnings.push("reprocessed:low_confidence");
+          try {
+            const retry = await runPipeline();
+            if (retry.accepted && scoreOf(retry) > scoreOf(pipeline)) {
+              pipeline = retry;
+            }
+          } catch {
+            // Keep the first attempt; the warning already records the retry.
+          }
+        }
+
+        if (pipeline.accepted) {
+          return normalizeGuestScanResponse(
+            {
+              requestId,
+              status: "completed",
+              source: "llm",
+              plainLanguageSummary: pipeline.plainLanguageSummary,
+              urgency: pipeline.urgency,
+              recommendations: pipeline.recommendations,
+              confidence: scoreOf(pipeline),
+              extractedData: pipeline.extractedData,
+              warnings: [...pipeline.warnings, ...extraWarnings],
+            },
+            { language: input.language, requestId },
+          );
+        }
+      } catch (error) {
+        // Fall through to the external service below.
+        console.warn(
+          "[scanGuestImage] in-process pipeline failed, falling back to the scan service:",
+          error instanceof Error ? error.message : error,
+        );
+      }
+
+      // PHI must never leave this process unscrubbed (RA 10173). Only the
+      // redacted text is sent onward; `scrub.originalText` and `scrub.matches`
+      // still hold raw PHI and must not be logged or returned.
+      const scrub = scrubForExternalApi(ocrResult.text);
+      const phiTypes = detectPhiTypes(ocrResult.text);
+
+      await logPhiScrubbing({
+        originalPhiCount: scrub.matchCount,
+        scrubbedPhiCount: scrub.matchCount,
+        phiTypes,
+      });
 
       try {
         const response = await fetch(`${geminiApiUrl}/api/scan`, {
@@ -755,6 +916,7 @@ export const documentsRouter = {
               },
             ],
             metadata: {
+              requestId,
               task: "medical_scan",
               language: input.language,
               fileName: input.fileName,
@@ -762,9 +924,16 @@ export const documentsRouter = {
               patientSex: input.patientSex,
               facilityName: input.facilityName,
               ocrConfidence: ocrResult.confidence,
-              ocrText: ocrResult.text,
+              ocrText: scrub.scrubbedText,
             },
           }),
+        });
+
+        await logLlmApiCall({
+          phiScrubbed: true,
+          phiCount: scrub.matchCount,
+          externalProvider: "gemini-scan-service",
+          success: response.ok,
         });
 
         if (!response.ok) {
@@ -772,14 +941,23 @@ export const documentsRouter = {
           return buildFallbackGuestScanResult({
             language: input.language,
             reason: `gemini_http_${response.status}:${errorText.slice(0, 120)}`,
+            requestId,
           });
         }
 
         const rawResult = (await response.json()) as unknown;
         return normalizeGuestScanResponse(rawResult, {
           language: input.language,
+          requestId,
         });
       } catch (error) {
+        await logLlmApiCall({
+          phiScrubbed: true,
+          phiCount: scrub.matchCount,
+          externalProvider: "gemini-scan-service",
+          success: false,
+        });
+
         const reason =
           error instanceof Error
             ? `gemini_request_failed:${error.message}`
@@ -788,6 +966,7 @@ export const documentsRouter = {
         return buildFallbackGuestScanResult({
           language: input.language,
           reason,
+          requestId,
         });
       }
     }),

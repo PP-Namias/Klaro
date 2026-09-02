@@ -58,6 +58,8 @@ const fil: Record<string, string> = {
   // Footer
   "scan.analysisChat": "Pagsusuri at Chat",
   "scan.privacy": "Pribado at ligtas ang iyong data.",
+  "scan.degradedResult":
+    "Limitadong pagsusuri: hindi available ang aming AI service, kaya hindi ito galing sa medikal na modelo. Pakisuri ito sa inyong healthcare provider.",
 
   // Chat
   "chat.placeholder":
